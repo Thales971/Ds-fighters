@@ -31,6 +31,22 @@ const AI = {
     const attacking = ['punch', 'kick', 'cpunch', 'ckick', 'jpunch', 'jkick', 'special', 'super'].includes(opponent.state);
     const startup = attacking && opponent.attack && opponent.stateTime < (opponent.attack.startup || 8);
 
+    if (m.seq && m.seq.length) {
+      const step = m.seq.shift();
+      if (step.down) input.down = true;
+      if (step.forward) {
+        input.right = toRight;
+        input.left = !toRight;
+      }
+      if (step.back) {
+        input.left = toRight;
+        input.right = !toRight;
+      }
+      if (step.punch) input.punch = true;
+      if (step.kick) input.kick = true;
+      return input;
+    }
+
     if (m.cd > 0) m.cd--;
 
     if (m.plan === 'block' && m.planT > 0) {
@@ -82,7 +98,9 @@ const AI = {
       return input;
     }
 
-    const meter = fighter.super >= (fighter.def.special.cost || 25);
+    const meter = true;
+    const chargeReady = fighter.charge && (fighter.charge[0] >= 100 || fighter.charge[1] >= 100);
+    const ultReady = fighter.ultimate >= 100;
     const zoner = ['iales', 'stack', 'frontend', 'backend', 'devops', 'fullstack', 'senpai', 'felipinho', 'bughunter', 'qa'].includes(fighter.def.id);
 
     if (dist > 190) {
@@ -109,10 +127,16 @@ const AI = {
       }
     }
 
-    if (fighter.super >= 100 && dist < 150 && r < 0.18 + diff * 0.2) {
+    if (ultReady && dist < 170 && r < 0.2 + diff * 0.16) {
       input.super = true;
       input.punch = false;
       input.kick = false;
+    } else if (chargeReady && dist < 210 && r < 0.16 + diff * 0.08) {
+      const useA = fighter.charge[0] >= 100;
+      m.seq = useA
+        ? [{ down: true }, { down: true, forward: true }, { forward: true, kick: true }]
+        : [{ down: true }, { down: true, back: true }, { back: true, punch: true }];
+      input.down = true;
     }
 
     if (input.punch || input.kick || input.special || input.super) m.cd = 12 + ((Math.random() * 16) | 0);

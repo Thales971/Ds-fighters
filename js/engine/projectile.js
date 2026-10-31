@@ -46,7 +46,10 @@ class Projectile {
           stun: this.spec.stun || (this.spec.heavy ? 16 : 13),
           height: 'mid',
           hitstop: this.spec.heavy ? 7 : 5,
+          poison: this.spec.poison || 0,
+          slow: this.spec.slow || 0,
         });
+        if (this.spec.sheet && game.spawnBurst) game.spawnBurst(this.spec.sheet, 'impact', this.x, this.y, this.dir);
         if (this.multiHitLeft <= 0) {
           this.hitSet.add(target);
           this.dead = true;
@@ -61,6 +64,14 @@ class Projectile {
   draw(ctx) {
     if (this.age < 0) return;
     const s = this.spec;
+    if (s.sheet && typeof Fx !== 'undefined') {
+      const bob = Math.sin(this.age * 0.4) * 2;
+      Fx.blit(ctx, s.sheet, s.clip || 'projectile', Math.floor(this.age / 3), this.x, this.y + bob, {
+        dir: this.dir,
+        scale: s.heavy ? 2.3 : 1.8,
+      });
+      return;
+    }
     ctx.save();
     ctx.translate(this.x, this.y);
     if (s.rotate) ctx.rotate(this.spin);

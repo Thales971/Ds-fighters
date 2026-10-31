@@ -1,10 +1,10 @@
-/* Gerado por tools/generate-sprites.mjs — não edite à mão. */
+/* Gerado por tools/pack-roster.mjs — não edite à mão. */
 const SPRITE_LAYOUT = {
-  "frameW": 96,
-  "frameH": 128,
-  "cols": 8,
-  "baseline": 121,
-  "drawScale": 2,
+  "frameW": 320,
+  "frameH": 260,
+  "cols": 4,
+  "baseline": 246,
+  "drawScale": 1,
   "poses": [
     "idle",
     "walk",
@@ -23,21 +23,21 @@ const SPRITE_LAYOUT = {
     "win"
   ],
   "frames": {
-    "idle": 6,
-    "walk": 8,
-    "jump": 5,
-    "crouch": 4,
-    "punch": 5,
-    "kick": 6,
-    "cpunch": 4,
-    "ckick": 5,
-    "jpunch": 4,
-    "jkick": 5,
-    "special": 6,
-    "hit": 4,
-    "block": 4,
-    "ko": 6,
-    "win": 6
+    "idle": 4,
+    "walk": 4,
+    "jump": 2,
+    "crouch": 2,
+    "punch": 4,
+    "kick": 4,
+    "cpunch": 2,
+    "ckick": 3,
+    "jpunch": 3,
+    "jkick": 3,
+    "special": 2,
+    "hit": 2,
+    "block": 2,
+    "ko": 2,
+    "win": 2
   },
   "files": {
     "du": "assets/sprites/du.png",

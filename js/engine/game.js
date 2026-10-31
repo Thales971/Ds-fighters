@@ -4,7 +4,7 @@
 
 const W = 960;
 const H = 540;
-const GROUND_Y = H - 60;
+const GROUND_Y = 458;
 const ROUND_TIME = 99;
 
 const EMPTY_INPUT = {
@@ -33,6 +33,8 @@ class Game {
     this.stage = null;
     this.projectiles = [];
     this.particles = [];
+    this.bursts = [];
+    this.cinema = null;
     this.speech = null;
     this.round = 1;
     this.roundTimer = ROUND_TIME * 60;
@@ -116,6 +118,11 @@ class Game {
     if (this.particles.length > 260) this.particles.splice(0, this.particles.length - 260);
   }
 
+  spawnBurst(sheet, clip, x, y, dir = 1, scale = 2) {
+    this.bursts.push({ sheet, clip, x, y, dir, scale, frame: 0, life: clip === 'ultimate' ? 22 : 14 });
+    if (this.bursts.length > 40) this.bursts.shift();
+  }
+
   spawnProjectile(owner, spec, delay) {
     this.projectiles.push(new Projectile(owner, spec, delay || 0));
   }
@@ -167,6 +174,8 @@ class Game {
     this.stage = new StageFX(STAGES[this.stageIdx], W, H);
     this.projectiles = [];
     this.particles = [];
+    this.bursts = [];
+    this.cinema = null;
     this.speech = null;
     this.roundTimer = ROUND_TIME * 60;
     this.round = 1;
@@ -191,6 +200,10 @@ class Game {
   nextRound() {
     const w1 = this.p1.wins;
     const w2 = this.p2.wins;
+    const meters = [
+      { charge: this.p1.charge.slice(), ultimate: this.p1.ultimate },
+      { charge: this.p2.charge.slice(), ultimate: this.p2.ultimate },
+    ];
     const d1 = this.p1.def;
     const d2 = this.p2.def;
     this.round++;
@@ -199,10 +212,16 @@ class Game {
     this.p2 = new Fighter(d2, W * 0.72, -1, this);
     this.p1.wins = w1;
     this.p2.wins = w2;
+    this.p1.charge = meters[0].charge;
+    this.p1.ultimate = meters[0].ultimate;
+    this.p2.charge = meters[1].charge;
+    this.p2.ultimate = meters[1].ultimate;
     this.stageIdx = (this.stageIdx + 1) % STAGES.length;
     this.stage = new StageFX(STAGES[this.stageIdx], W, H);
     this.projectiles = [];
     this.particles = [];
+    this.bursts = [];
+    this.cinema = null;
     this.roundTimer = ROUND_TIME * 60;
     this.roundState = 'intro';
     this.roundStateTime = 0;
@@ -444,6 +463,12 @@ class Game {
       pt.life--;
     }
     this.particles = this.particles.filter((p) => p.life > 0);
+    for (const b of this.bursts) { b.life--; b.frame++; }
+    this.bursts = this.bursts.filter((b) => b.life > 0);
+    if (this.cinema) {
+      this.cinema.life--;
+      if (this.cinema.life <= 0) this.cinema = null;
+    }
     for (const d of this.dmgNumbers) { d.y += d.vy; d.life--; }
     this.dmgNumbers = this.dmgNumbers.filter((d) => d.life > 0);
     for (let i = 0; i < 2; i++) {
@@ -483,14 +508,18 @@ class Game {
       this.shakeMag *= 0.86;
       if (this.shakeMag < 0.4) this.shakeMag = 0;
     }
-    const stageDef = this.stage ? this.stage.def : STAGES[this.stageIdx];
-    stageDef.draw(ctx, W, H, t, cam);
-    if (this.stage) this.stage.draw(ctx, t, cam);
+    if (!this.stage && !this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[this.stageIdx] || STAGES[0], W, H);
+    const backdrop = this.stage || this._titleStage;
+    if (backdrop) backdrop.draw(ctx, t, cam);
+    else { ctx.fillStyle = '#070910'; ctx.fillRect(0, 0, W, H); }
     if (this.p1 && this.p2) {
       ctx.save();
       ctx.translate(-Math.round(cam), GROUND_Y);
       const order = this.p1.x < this.p2.x ? [this.p1, this.p2] : [this.p2, this.p1];
       for (const p of this.projectiles) p.draw(ctx);
+      for (const b of this.bursts) {
+        if (typeof Fx !== 'undefined') Fx.blit(ctx, b.sheet, b.clip, b.frame, b.x, b.y, { dir: b.dir, scale: b.scale, alpha: Math.min(1, b.life / 8) });
+      }
       for (const f of order) f.draw(ctx);
       for (const pt of this.particles) {
         ctx.save();
@@ -532,7 +561,6 @@ class Game {
       ctx.textAlign = 'left';
       ctx.restore();
     }
-    if (stageDef.drawFg) stageDef.drawFg(ctx, W, H, t, cam);
     ctx.restore();
 
     const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.42, W / 2, H / 2, H * 0.95);
@@ -545,6 +573,11 @@ class Game {
       ctx.fillStyle = this.flashColor;
       ctx.fillRect(0, 0, W, H);
       ctx.globalAlpha = 1;
+    }
+    if (this.cinema && typeof Fx !== 'undefined') {
+      const life = this.cinema.life;
+      Fx.blit(ctx, this.cinema.sheet, 'flash', (28 - life) / 6 | 0, W / 2, H / 2, { scale: 8, alpha: Math.min(0.45, life / 22) });
+      Fx.blit(ctx, this.cinema.sheet, 'ultimate', (28 - life) / 3 | 0, W / 2, H / 2 - 10, { scale: 4.2, alpha: Math.min(1, life / 8) });
     }
   }
 
@@ -578,22 +611,45 @@ class Game {
     const ctx = this.ctx;
     this.bar(24, 28, 360, 18, this.p1.hp / this.p1.maxHp, this.p1.hp > 30 ? '#3dde45' : '#ff3b30', false, this.ghostHp[0] / 100);
     this.bar(W - 384, 28, 360, 18, this.p2.hp / this.p2.maxHp, this.p2.hp > 30 ? '#3dde45' : '#ff3b30', true, this.ghostHp[1] / 100);
-    const drawSuper = (x, pct) => {
-      const full = pct >= 1;
+    const drawMeters = (x, f, flip) => {
+      const slots = [
+        { pct: f.charge[0] / 100, ready: f.charge[0] >= 100, color: '#3ecbff', label: 'C1' },
+        { pct: f.charge[1] / 100, ready: f.charge[1] >= 100, color: '#ffb020', label: 'C2' },
+      ];
+      slots.forEach((slot, i) => {
+        const bx = flip ? x + (1 - i) * 178 : x + i * 178;
+        ctx.fillStyle = 'rgba(0,0,0,0.72)';
+        ctx.fillRect(bx, 50, 170, 8);
+        ctx.strokeStyle = '#8d93a8';
+        ctx.strokeRect(bx + 0.5, 50.5, 169, 7);
+        ctx.fillStyle = slot.ready && Math.sin(t * 10) > 0 ? '#fff' : slot.color;
+        const fw = 170 * Math.max(0, Math.min(1, slot.pct));
+        if (flip) ctx.fillRect(bx + 170 - fw, 50, fw, 8);
+        else ctx.fillRect(bx, 50, fw, 8);
+        if (slot.ready) {
+          ctx.strokeStyle = '#fff';
+          ctx.strokeRect(bx, 50, 170, 8);
+        }
+      });
+      const up = f.ultimate / 100;
+      const full = up >= 1;
       ctx.fillStyle = 'rgba(0,0,0,0.72)';
-      ctx.fillRect(x - 2, 50, 360 + 4, 12);
-      ctx.strokeStyle = full && Math.sin(t * 8) > 0 ? '#ff7de0' : '#5a5a6a';
-      ctx.strokeRect(x - 2, 50, 360 + 4, 12);
-      const fw = 360 * Math.max(0, Math.min(1, pct));
-      ctx.fillStyle = full ? (Math.sin(t * 10) > 0 ? '#ffffff' : '#ff7de0') : '#b26bff';
-      ctx.fillRect(x, 52, fw, 8);
+      ctx.fillRect(x, 62, 348, 10);
+      ctx.fillStyle = full ? (Math.sin(t * 12) > 0 ? '#fff' : '#ff7de0') : '#b26bff';
+      const uw = 348 * Math.max(0, Math.min(1, up));
+      if (flip) ctx.fillRect(x + 348 - uw, 62, uw, 10);
+      else ctx.fillRect(x, 62, uw, 10);
+      ctx.strokeStyle = full ? '#ff7de0' : '#5a5a6a';
+      ctx.strokeRect(x, 62, 348, 10);
+      if (full) {
+        ctx.font = 'bold 10px monospace';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = flip ? 'right' : 'left';
+        ctx.fillText('ULT', flip ? x + 340 : x + 6, 71);
+      }
     };
-    drawSuper(24, this.p1.super / 100);
-    ctx.save();
-    ctx.translate(W - 384 + 360, 0);
-    ctx.scale(-1, 1);
-    drawSuper(0, this.p2.super / 100);
-    ctx.restore();
+    drawMeters(24, this.p1, false);
+    drawMeters(W - 372, this.p2, true);
 
     ctx.font = 'bold 15px monospace';
     ctx.fillStyle = '#fff';
@@ -608,12 +664,12 @@ class Game {
     ctx.fillStyle = '#ffd27d';
     for (let i = 0; i < this.p1.wins; i++) {
       ctx.beginPath();
-      ctx.arc(36 + i * 16, 74, 5, 0, Math.PI * 2);
+      ctx.arc(36 + i * 16, 86, 5, 0, Math.PI * 2);
       ctx.fill();
     }
     for (let i = 0; i < this.p2.wins; i++) {
       ctx.beginPath();
-      ctx.arc(W - 36 - i * 16, 74, 5, 0, Math.PI * 2);
+      ctx.arc(W - 36 - i * 16, 86, 5, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.font = '12px monospace';
@@ -665,28 +721,13 @@ class Game {
 
   drawTitle(t) {
     const ctx = this.ctx;
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#070b1e');
-    g.addColorStop(0.55, '#1a1040');
-    g.addColorStop(1, '#12081f');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    ctx.font = '12px monospace';
-    for (let c = 0; c < 28; c++) {
-      const x = c * 36;
-      const y = ((t * 36 + c * 90) % (H + 40)) - 20;
-      ctx.fillStyle = 'rgba(0,255,170,0.16)';
-      ctx.fillText('{}</>#;'.charAt((c + (t * 2 | 0)) % 6), x, y);
-    }
-    const floor = H - 48;
-    ctx.fillStyle = '#12081c';
-    ctx.fillRect(0, floor, W, H - floor);
-    ctx.fillStyle = '#ff4fa3';
-    ctx.fillRect(0, floor, W, 3);
+    if (!this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[3] || STAGES[0], W, H);
+    if (this._titleStage) this._titleStage.draw(ctx, t, Math.sin(t * 0.4) * 20);
+    else { ctx.fillStyle = '#070910'; ctx.fillRect(0, 0, W, H); }
     const frame = Math.floor(this.time / 8);
     if (typeof SpriteGen !== 'undefined') {
-      SpriteGen.blit(ctx, 'du', 'idle', frame, 1, 150, floor + 2, false, 2);
-      SpriteGen.blit(ctx, 'frontend', 'idle', frame + 2, -1, W - 150, floor + 2, false, 2);
+      SpriteGen.blit(ctx, 'du', 'idle', frame, 1, 150, GROUND_Y, false, 1);
+      SpriteGen.blit(ctx, 'frontend', 'idle', frame + 2, -1, W - 150, GROUND_Y, false, 1);
     }
     ctx.textAlign = 'center';
     ctx.font = 'bold 68px monospace';
@@ -754,9 +795,9 @@ class Game {
       'Segure para trás para bloquear em pé (segura o pulo).',
       'Segure para baixo para bloquear agachado (segura a rasteira).',
       'Pulo + ataque é golpe alto. Agachado + chute é golpe baixo.',
-      '↓ ↘ → + soco solta o especial. ↓ ↙ ← + chute solta o super.',
-      'Toque duplo para frente corre. Soco acertado cancela no chute.',
-      'A barra roxa enche ao bater e ao apanhar. Primeiro a 2 rounds vence.',
+      'D ou ↓↘→+soco: simples 1.  ↓↙←+chute: simples 2.',
+      '↓↘→+chute: carga 1.  ↓↙←+soco: carga 2.  F ou ↓↘→↓↘→+soco: ultimate.',
+      'C1 e C2 enchem ao bater e ao apanhar. ULT pisca quando está pronto.',
       '',
       'ENTER volta    ·    Esc no meio da luta volta ao menu',
     ];
@@ -769,7 +810,9 @@ class Game {
 
   drawSelect(t) {
     const ctx = this.ctx;
-    ctx.fillStyle = '#070a14';
+    if (!this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[this.stageIdx] || STAGES[0], W, H);
+    if (this._titleStage) this._titleStage.draw(ctx, t, 0);
+    ctx.fillStyle = 'rgba(4,6,12,0.86)';
     ctx.fillRect(0, 0, W, H);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#7dffd4';
@@ -798,7 +841,7 @@ class Game {
       ctx.lineWidth = isP1 || isP2 ? 3 : 1;
       ctx.strokeRect(cx - 46, cy + 4, 92, 100);
       const footY = oy + row * ch + ch - 4;
-      SpriteGen.blit(ctx, f.id, 'idle', Math.floor(this.time / 8) + i, 1, cx, footY, false, 1);
+      SpriteGen.blit(ctx, f.id, 'idle', Math.floor(this.time / 8) + i, 1, cx, footY, false, 0.34);
       if (isP1) { ctx.fillStyle = '#3dffe0'; ctx.font = 'bold 11px monospace'; ctx.fillText('P1', cx - 28, cy + 16); }
       if (isP2) { ctx.fillStyle = '#ff7de0'; ctx.font = 'bold 11px monospace'; ctx.fillText('P2', cx + 28, cy + 16); }
     });
@@ -808,7 +851,7 @@ class Game {
     ctx.fillRect(12, 292, W - 24, 236);
     ctx.strokeStyle = f.colors.accent;
     ctx.strokeRect(12, 292, W - 24, 236);
-    SpriteGen.blit(ctx, f.id, 'idle', Math.floor(t * 8), 1, 120, 510, false, 2);
+    SpriteGen.blit(ctx, f.id, 'idle', Math.floor(t * 8), 1, 108, 512, false, 0.7);
     ctx.textAlign = 'left';
     ctx.fillStyle = f.colors.accent;
     ctx.font = 'bold 20px monospace';
@@ -827,8 +870,13 @@ class Game {
     this.statBar(ctx, 680, 420, f.stats.weight / 1.35);
     ctx.fillStyle = '#9dffc9';
     ctx.font = '13px monospace';
-    ctx.fillText('ESPECIAL: ' + f.special.name + '  (' + f.special.cost + ')', 230, 468);
-    ctx.fillText('SUPER: ' + f.super.name, 230, 490);
+    const kit = (typeof POWERS !== 'undefined' && POWERS[f.id]) || null;
+    if (kit) {
+      const by = (slot) => kit.powers.filter((p) => p.slot === slot).map((p) => p.name).join('  ·  ');
+      ctx.fillText(kit.element.toUpperCase() + '   SIMPLES: ' + by('simple'), 230, 462);
+      ctx.fillText('CARGA: ' + by('charge'), 230, 482);
+      ctx.fillText('ULTIMATE: ' + by('ultimate'), 230, 502);
+    }
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
     ctx.font = '14px monospace';

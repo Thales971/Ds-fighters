@@ -22,6 +22,14 @@ class Fighter {
     this.maxHp = 100;
     this.super = 0;
     this.maxSuper = 100;
+    this.charge = [0, 0];
+    this.ultimate = 0;
+    this.kit = (typeof POWERS !== 'undefined' && POWERS[def.id]) || null;
+    this.element = this.kit ? this.kit.element : 'fogo';
+    this.activePower = null;
+    this.auraUntil = 0;
+    this.auraPower = null;
+    this.didBlast = false;
     this.state = 'idle';
     this.frame = 0;
     this.stateTime = 0;
@@ -80,6 +88,17 @@ class Fighter {
 
   gainSuper(n) {
     this.super = Math.min(this.maxSuper, this.super + n);
+    this.ultimate = Math.min(100, this.ultimate + n * 0.5);
+  }
+
+  gainGauge(dealt) {
+    const a = dealt ? 12 : 6;
+    const b = dealt ? 8 : 10;
+    const u = dealt ? 8 : 6;
+    this.charge[0] = Math.min(100, this.charge[0] + a);
+    this.charge[1] = Math.min(100, this.charge[1] + b);
+    this.ultimate = Math.min(100, this.ultimate + u);
+    this.super = this.ultimate;
   }
 
   heal(n) {
@@ -119,8 +138,8 @@ class Fighter {
   hurtbox() {
     const low = this.crouching || this.state === 'crouchblock' || this.state === 'cpunch' || this.state === 'ckick';
     const ko = this.state === 'ko' && this.onGround;
-    const h = ko ? 40 : low ? 64 : 100;
-    const w = ko ? 70 : 36;
+    const h = ko ? 52 : low ? 86 : 168;
+    const w = ko ? 96 : 56;
     return { x: this.x - w / 2, y: this.y - h, w, h };
   }
 
@@ -128,8 +147,8 @@ class Fighter {
     const reach = mv.range;
     const low = this.state === 'cpunch' || this.state === 'ckick';
     const air = this.state === 'jpunch' || this.state === 'jkick';
-    const h = low ? 32 : 50;
-    const top = this.y - (low ? 42 : air ? 82 : 90);
+    const h = low ? 40 : 64;
+    const top = this.y - (low ? 52 : air ? 120 : 132);
     const w = Math.max(30, reach * 0.75);
     const x = this.dir === 1 ? this.x + 6 : this.x - 6 - w;
     return { x, y: top, w, h };
@@ -168,9 +187,15 @@ class Fighter {
       this.game.audio.block();
       this.game.spawnSparks(this.x - sign * 8, this.y - 68, '#9adcff', 8);
       this.game.spawnSlash(this.x - sign * 6, this.y - 66, -sign, '#e7f7ff');
-      this.gainSuper(3);
-      if (atk) atk.gainSuper(2);
       this.game.registerHit(atk, this, chip, true, 3);
+      this.charge[0] = Math.min(100, this.charge[0] + 3);
+      this.charge[1] = Math.min(100, this.charge[1] + 3);
+      this.ultimate = Math.min(100, this.ultimate + 2);
+      if (atk) {
+        atk.charge[0] = Math.min(100, atk.charge[0] + 2);
+        atk.charge[1] = Math.min(100, atk.charge[1] + 2);
+        atk.ultimate = Math.min(100, atk.ultimate + 2);
+      }
       if (this.hp <= 0) this.defeat(sign);
       return;
     }
@@ -189,12 +214,15 @@ class Fighter {
     this.state = 'hit';
     this.stateTime = 0;
     this.game.audio.hit();
-    this.game.spawnSparks(this.x + sign * 6, this.y - 70, '#ffe14d', 14);
-    this.game.spawnSlash(this.x, this.y - 72, -sign, d >= 12 ? '#ff7b1c' : '#fff4c8');
+    this.game.spawnSparks(this.x + sign * 6, this.y - 90, '#ffe14d', 8);
+    const sheet = (atk && atk.element) || this.element;
+    if (this.game.spawnBurst) this.game.spawnBurst(sheet, 'impact', this.x, this.y - 100, atk ? atk.dir : this.dir);
     this.game.shake(Math.min(12, d >= 14 ? 8 : 5));
     this.game.registerHit(atk, this, d, false, opts.hitstop || (d >= 14 ? 7 : 5));
-    if (atk) atk.gainSuper(7);
-    this.gainSuper(4);
+    if (atk) atk.gainGauge(true);
+    this.gainGauge(false);
+    if (opts.poison) this.bugUntil = this.now + opts.poison;
+    if (opts.slow) this.slowUntil = this.now + opts.slow;
     if (this.hp <= 0) this.defeat(sign);
   }
 
@@ -306,6 +334,8 @@ class Fighter {
       stun: mv.hitstun,
       blockstun: mv.blockstun,
       hitstop: mv.dmg >= 12 ? 7 : 5,
+      poison: mv.poison || 0,
+      slow: mv.slow || 0,
     });
   }
 
@@ -325,14 +355,124 @@ class Fighter {
     const dir = this.notation(input);
     const last = this.motion[this.motion.length - 1];
     if (!last || last.dir !== dir) this.motion.push({ dir, t: this.now });
-    if (this.motion.length > 16) this.motion.shift();
+    if (this.motion.length > 24) this.motion.shift();
   }
 
   hasMove(code) {
-    const s = this.motion.filter((m) => this.now - m.t <= 22 && m.dir !== '5').map((m) => m.dir).join('');
+    const s = this.motion.filter((m) => this.now - m.t <= (code === '236236' ? 40 : 22) && m.dir !== '5').map((m) => m.dir).join('');
+    if (code === '236236') return s.includes('236236') || s.includes('23626') || s.includes('26236');
     if (code === '236') return s.includes('236') || s.includes('26');
     if (code === '214') return s.includes('214') || s.includes('24');
     return false;
+  }
+
+  powerReady(p) {
+    if (!p) return false;
+    if (p.slot === 'simple') return true;
+    if (p.slot === 'charge') return this.charge[p.meter] >= 100;
+    if (p.slot === 'ultimate') return this.ultimate >= 100;
+    return false;
+  }
+
+  wantsPower(p) {
+    const punch = this.buf.punch > 0;
+    const kick = this.buf.kick > 0;
+    const special = this.buf.special > 0;
+    const sup = this.buf.super > 0;
+    if (p.button === 'super' && sup) return true;
+    if (p.button === 'special' && special && p.slot === 'simple') return true;
+    if (p.input === '236236P') return (punch || sup) && this.hasMove('236236');
+    if (p.input === '236P') return punch && this.hasMove('236');
+    if (p.input === '214K') return kick && this.hasMove('214');
+    if (p.input === '236K') return kick && this.hasMove('236');
+    if (p.input === '214P') return punch && this.hasMove('214');
+    return false;
+  }
+
+  tryPowers() {
+    const list = (this.kit && this.kit.powers) || [];
+    for (const slot of ['ultimate', 'charge', 'simple']) {
+      for (const p of list) {
+        if (p.slot !== slot || !this.wantsPower(p)) continue;
+        if (!this.powerReady(p)) {
+          const fresh = this.buf.punch === 8 || this.buf.kick === 8 || this.buf.super === 10 || this.buf.special === 8;
+          if (fresh && p.slot !== 'simple') this.flashText(p.name + ' CARREGANDO');
+          continue;
+        }
+        if (this.castPower(p)) {
+          this.buf.punch = 0;
+          this.buf.kick = 0;
+          this.buf.special = 0;
+          this.buf.super = 0;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  shotSpec(p) {
+    return {
+      speed: p.speed,
+      dmg: p.dmg,
+      w: 42,
+      h: 42,
+      sheet: this.element,
+      clip: 'projectile',
+      heavy: !!p.heavy,
+      stun: p.stun,
+      poison: p.poison,
+      slow: p.slow,
+      angle: 0,
+    };
+  }
+
+  castPower(p) {
+    if (['ko', 'hit', 'win', 'blockstun'].includes(this.state)) return false;
+    if (!this.onGround && !['jpunch', 'jkick', 'punch', 'kick'].includes(this.state)) return false;
+    if (p.slot === 'charge') this.charge[p.meter] = 0;
+    if (p.slot === 'ultimate') { this.ultimate = 0; this.super = 0; }
+    this.activePower = p;
+    this.didBlast = false;
+    this.hasHit = false;
+    this.blocking = false;
+    this.attack = null;
+    this.dashHit = null;
+    const ultimate = p.slot === 'ultimate';
+    this.state = ultimate ? 'super' : 'special';
+    this.stateTime = 0;
+    if (ultimate) this.game.audio.super_();
+    else this.game.audio.special();
+    this.flashText(p.name + '!');
+    const quotes = ultimate ? this.def.quotes.super : this.def.quotes.special;
+    if (quotes && quotes.length) this.game.say(this, quotes[(Math.random() * quotes.length) | 0]);
+    if (ultimate) {
+      this.game.flashScreen(this.def.colors.accent);
+      this.game.shake(12);
+      this.game.showMessage(p.name.toUpperCase(), 700, this.def.colors.accent);
+      this.game.cinema = { sheet: this.element, life: 28 };
+    }
+    if (p.kind === 'projectile') {
+      for (let i = 0; i < (p.count || 1); i++) {
+        const spec = this.shotSpec(p);
+        if (p.count > 1) spec.angle = (i - (p.count - 1) / 2) * 0.22;
+        this.shotQueue.push({ spec, delay: 8 + i * 5 });
+      }
+    } else if (p.kind === 'dash') {
+      this.vx = this.dir * (p.slot === 'charge' ? 15 : 12.5);
+      this.dashHit = { dmg: p.dmg, range: p.range || 120, poison: p.poison, slow: p.slow };
+      if (p.heal) this.heal(p.heal);
+    } else if (p.kind === 'aura') {
+      this.auraUntil = this.now + (p.time || 150);
+      this.auraPower = p;
+      if (p.buff) this.buffDmgMult = p.buff;
+      if (p.invuln) this.buffInvUntil = this.now + p.invuln;
+      if (p.speedBoost) this.speedBoostUntil = this.now + p.speedBoost;
+      if (p.heal) this.heal(p.heal);
+    } else if (p.kind === 'rush') {
+      this.vx = this.dir * 6.5;
+    }
+    return true;
   }
 
   press(input) {
@@ -389,6 +529,7 @@ class Fighter {
     if (this.stateTime >= mv.startup && this.stateTime < mv.startup + mv.active) this.checkMeleeHit(opponent, mv);
     const cancel = this.hasHit && this.stateTime >= mv.startup && this.stateTime <= mv.startup + mv.active + Math.ceil(mv.recovery * 0.6);
     if (cancel) {
+      if (this.kit && this.tryPowers()) return;
       if (this.buf.super && this.startSuper()) { this.buf.super = 0; return; }
       if ((this.buf.special || (this.buf.punch && this.hasMove('236'))) && this.startSpecial()) {
         this.buf.special = 0;
@@ -409,6 +550,7 @@ class Fighter {
   }
 
   stepSpecial(opponent) {
+    const p = this.activePower;
     if (this.dashHit && !this.hasHit) {
       this.checkMeleeHit(opponent, {
         dmg: this.dashHit.dmg,
@@ -418,9 +560,16 @@ class Fighter {
         hitstun: 16,
         blockstun: 11,
         launch: -2.2,
+        poison: this.dashHit.poison,
+        slow: this.dashHit.slow,
       });
     }
-    if (this.stateTime > 30) {
+    if (p && p.kind === 'aura' && this.stateTime === 8) {
+      this.checkMeleeHit(opponent, {
+        dmg: p.dmg, range: 96, height: 'mid', kx: 3, hitstun: 12, blockstun: 8, launch: 0,
+      });
+    }
+    if (this.stateTime > (p && p.kind === 'dash' ? 22 : 28)) {
       this.state = this.onGround ? 'idle' : 'jump';
       this.stateTime = 0;
       this.dashHit = null;
@@ -428,6 +577,34 @@ class Fighter {
   }
 
   stepSuper(opponent) {
+    const p = this.activePower;
+    if (p && p.kind === 'rush') {
+      if (this.stateTime % 8 === 0) {
+        this.hasHit = false;
+        this.checkMeleeHit(opponent, {
+          dmg: p.dmg / (p.hits || 4),
+          range: 90,
+          height: 'mid',
+          kx: 3.2,
+          hitstun: 14,
+          blockstun: 8,
+          launch: this.stateTime > 28 ? -4.8 : 0,
+        });
+      }
+      this.vx = this.dir * 5.2;
+    }
+    if (p && p.kind === 'blast' && !this.didBlast && this.stateTime >= 8) {
+      this.didBlast = true;
+      this.game.aoeBlast(this, p.radius || 200, p.dmg, p.heal || 0);
+      if (this.game.spawnBurst) this.game.spawnBurst(this.element, 'ultimate', this.x + this.dir * 30, this.y - 110, this.dir, 3.2);
+    }
+    if (p && (p.kind === 'rush' || p.kind === 'blast')) {
+      if (this.stateTime > (p.kind === 'blast' ? 34 : 48)) {
+        this.state = 'idle';
+        this.stateTime = 0;
+      }
+      return;
+    }
     const sp = this.superData;
     if (sp && (sp.type === 'melee-rush' || sp.type === 'buff-rush')) {
       if (this.stateTime % 8 === 0) {
@@ -458,6 +635,8 @@ class Fighter {
 
     const rightEdge = input.right && !this.prev.right;
     const leftEdge = input.left && !this.prev.left;
+
+    if (this.kit && this.tryPowers()) return;
 
     const wantSuper = this.buf.super || (this.buf.kick && this.hasMove('214'));
     const wantSpecial = this.buf.special || (this.buf.punch && this.hasMove('236'));
@@ -567,6 +746,10 @@ class Fighter {
     this.frame++;
     this.stateTime++;
     if (this.flash && this.now > this.flashUntil) this.flash = null;
+    if (this.auraPower && this.now > this.auraUntil) {
+      this.auraPower = null;
+      this.buffDmgMult = 1;
+    }
     if (this.buf.punch) this.buf.punch--;
     if (this.buf.kick) this.buf.kick--;
     if (this.buf.special) this.buf.special--;
@@ -732,6 +915,10 @@ class Fighter {
       ctx.restore();
     }
 
+    if (this.auraPower && this.now < this.auraUntil && typeof Fx !== 'undefined') {
+      Fx.blit(ctx, this.element, 'aura', Math.floor(this.frame / 4), this.x, this.y - 90, { scale: 2.4, alpha: 0.9 });
+    }
+
     ctx.save();
     if ((this.now < this.invincibleUntil || this.now < this.buffInvUntil) && this.frame % 6 < 3) ctx.globalAlpha = 0.4;
     if (this.now < this.rageUntil) ctx.shadowColor = '#ff5a3c';
@@ -742,9 +929,9 @@ class Fighter {
       ctx.font = 'bold 13px monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#000';
-      ctx.fillText(this.flash, this.x + 1, this.y - 132);
+      ctx.fillText(this.flash, this.x + 1, this.y - 188);
       ctx.fillStyle = this.def.colors.accent;
-      ctx.fillText(this.flash, this.x, this.y - 133);
+      ctx.fillText(this.flash, this.x, this.y - 189);
       ctx.textAlign = 'left';
     }
   }
