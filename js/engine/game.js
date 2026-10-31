@@ -38,6 +38,40 @@ class Game {
     this.message = null;         // texto grande central (FIGHT!, K.O.!, etc.)
     this.messageUntil = 0;
     this.difficulty = 1;
+    this.hitstop = 0;            // frames de "congelamento" no impacto
+    this.slowmo = 0;             // slow motion (KO)
+    this.dmgNumbers = [];        // números de dano flutuando
+    this.combo = { owner: null, count: 0, until: 0 };
+    this.camX = 0;               // câmera que acompanha a ação
+    this.ghostHp = [100, 100];   // dano fantasma das barras
+  }
+
+  registerHit(attacker, victim, dmg, blocked) {
+    this.hitstop = blocked ? 3 : (dmg >= 14 ? 7 : 4);
+    if (attacker) {
+      if (this.combo.owner === attacker && this.time < this.combo.until) this.combo.count++;
+      else { this.combo = { owner: attacker, count: 1, until: this.time + 90 }; }
+      this.combo.until = this.time + 90;
+    }
+    this.dmgNumbers.push({
+      x: victim.x + (Math.random() - 0.5) * 30,
+      y: victim.y - victim.height - 10,
+      vy: -1.6,
+      life: 45,
+      text: (blocked ? 'BLOCK ' : '') + Math.round(dmg),
+      color: blocked ? '#9adcff' : (dmg >= 14 ? '#ff5030' : '#ffe14d'),
+    });
+  }
+
+  spawnHitStar(x, y, color) {
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(a) * 6, vy: Math.sin(a) * 6,
+        life: 16, color, size: 5, star: true,
+      });
+    }
   }
 
   say(fighter, text) {
@@ -94,12 +128,14 @@ class Game {
     if (this.roundState !== 'fight') return;
     this.roundState = 'ko';
     this.roundStateTime = 0;
+    this.slowmo = 150; // slow motion no K.O.
     const winner = loser === this.p1 ? this.p2 : this.p1;
     winner.state = 'win';
     winner.wins++;
     const q = winner.def.quotes.win;
     this.say(winner, q[(Math.random() * q.length) | 0]);
-    this.showMessage('K.O.!', 1600, '#ff3b30');
+    this.showMessage('K.O.!', 2200, '#ff3b30');
+    this.shake(16);
   }
 
   startFight() {
@@ -114,6 +150,10 @@ class Game {
     this.roundTimer = ROUND_TIME * 60;
     this.round = 1;
     this.p1.wins = 0; this.p2.wins = 0;
+    this.ghostHp = [100, 100];
+    this.dmgNumbers = [];
+    this.combo = { owner: null, count: 0, until: 0 };
+    this.slowmo = 0; this.hitstop = 0; this.camX = 0;
     this.screen = 'vs';
     this.roundState = 'intro';
     this.roundStateTime = 0;
@@ -138,10 +178,19 @@ class Game {
     this.roundStateTime = 0;
     this.screen = 'fight';
     this.speech = null;
+    this.ghostHp = [100, 100];
+    this.dmgNumbers = [];
+    this.combo = { owner: null, count: 0, until: 0 };
+    this.camX = 0;
   }
 
   update() {
     this.time++;
+    if (this.hitstop > 0) { this.hitstop--; Input.endFrame(); return; }  // congela tudo no impacto
+    if (this.slowmo > 0) {
+      this.slowmo--;
+      if (this.slowmo % 3 !== 0) { Input.endFrame(); return; }          // roda 1 a cada 3 frames
+    }
     const t = this.time / 60;
 
     if (this.screen === 'title') {
@@ -267,11 +316,7 @@ class Game {
       }
       this.projectiles = this.projectiles.filter((p) => !p.dead);
 
-      // partículas
-      for (const pt of this.particles) {
-        pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.4; pt.life--;
-      }
-      this.particles = this.particles.filter((p) => p.life > 0);
+      this.tickFx();
 
       // fim de round por tempo
       if (this.roundTimer <= 0) {
@@ -297,6 +342,7 @@ class Game {
       this.p2.update({ left: false, right: false, up: false, down: false, punch: false, kick: false, special: false, super: false }, this.p1);
       for (const p of this.projectiles) p.update(this, p.owner === this.p1 ? this.p2 : this.p1);
       this.projectiles = this.projectiles.filter((p) => !p.dead);
+      this.tickFx();
       if (this.roundStateTime > 170) {
         if (this.p1.wins >= 2 || this.p2.wins >= 2) {
           this.screen = 'gameover';
@@ -308,9 +354,33 @@ class Game {
     }
   }
 
+  tickFx() {
+    // partículas
+    for (const pt of this.particles) {
+      pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.4; pt.life--;
+    }
+    this.particles = this.particles.filter((p) => p.life > 0);
+    // números de dano
+    for (const d of this.dmgNumbers) { d.y += d.vy; d.life--; }
+    this.dmgNumbers = this.dmgNumbers.filter((d) => d.life > 0);
+    // dano fantasma das barras de vida (desce devagar até o hp real)
+    for (let i = 0; i < 2; i++) {
+      const f = i === 0 ? this.p1 : this.p2;
+      if (this.ghostHp[i] > f.hp) this.ghostHp[i] = Math.max(f.hp, this.ghostHp[i] - 0.6);
+    }
+    // câmera segue o meio dos dois lutadores
+    if (this.p1 && this.p2) {
+      const mid = (this.p1.x + this.p2.x) / 2;
+      const target = Math.max(0, Math.min(W - W, 0)); // arena fixa, câmera sutil
+      this.camX += ((mid - W / 2) * 0.04 - this.camX) * 0.1;
+      this.camX = Math.max(-40, Math.min(40, this.camX));
+    }
+  }
+
   drawScene(t) {
     const ctx = this.ctx;
     ctx.save();
+    ctx.translate(-this.camX, 0);
     if (this.shakeMag > 0) {
       ctx.translate((Math.random() - 0.5) * this.shakeMag, (Math.random() - 0.5) * this.shakeMag);
       this.shakeMag *= 0.85;
@@ -329,11 +399,38 @@ class Game {
       for (const pt of this.particles) {
         ctx.globalAlpha = Math.min(1, pt.life / 20);
         ctx.fillStyle = pt.color;
-        ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+        if (pt.star) {
+          ctx.save();
+          ctx.translate(pt.x, pt.y);
+          ctx.rotate(this.time * 0.15);
+          ctx.fillRect(-pt.size, -1.5, pt.size * 2, 3);
+          ctx.fillRect(-1.5, -pt.size, 3, pt.size * 2);
+          ctx.restore();
+        } else {
+          ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+        }
       }
       ctx.globalAlpha = 1;
+      // números de dano flutuando
+      for (const d of this.dmgNumbers) {
+        ctx.globalAlpha = Math.min(1, d.life / 25);
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#000';
+        ctx.fillText(d.text, d.x + 2, d.y + 2);
+        ctx.fillStyle = d.color;
+        ctx.fillText(d.text, d.x, d.y);
+      }
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
     }
     ctx.restore();
+    // vinheta estilo arcade
+    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 0.95);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
     if (this.flashColor && this.time < this.flashUntil) {
       ctx.globalAlpha = 0.35;
       ctx.fillStyle = this.flashColor;
@@ -342,29 +439,63 @@ class Game {
     }
   }
 
-  bar(x, y, w, h, pct, color, flip) {
+  bar(x, y, w, h, pct, color, flip, ghostPct = null) {
     const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
-    ctx.fillStyle = '#3a0d0d';
+    // moldura estilo arcade
+    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+    ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+    ctx.strokeStyle = '#e8e8e8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - 3, y - 3, w + 6, h + 6);
+    ctx.fillStyle = '#2a0808';
     ctx.fillRect(x, y, w, h);
+    // dano fantasma (amarelo) por cima do vermelho vazio
+    if (ghostPct !== null && ghostPct > pct) {
+      const gw = w * ghostPct;
+      ctx.fillStyle = '#ffd24d';
+      if (flip) ctx.fillRect(x + w - gw, y, gw, h);
+      else ctx.fillRect(x, y, gw, h);
+    }
     const fillW = Math.max(0, w * pct);
-    ctx.fillStyle = color;
+    // gradiente da vida: verde → amarelo → vermelho conforme cai
+    const g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, '#baff9e');
+    g.addColorStop(0.5, color);
+    g.addColorStop(1, color);
+    ctx.fillStyle = g;
     if (flip) ctx.fillRect(x + w - fillW, y, fillW, h);
     else ctx.fillRect(x, y, fillW, h);
-    // dano residual (branco) — simplificado: gradiente
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    // brilho no topo
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fillRect(x, y, w, 3);
   }
 
   drawHUD(t) {
     const ctx = this.ctx;
-    // barras de vida
-    this.bar(20, 18, 380, 22, this.p1.hp / this.p1.maxHp, this.p1.hp > 30 ? '#7dff5e' : '#ff3b30', false);
-    this.bar(W - 400, 18, 380, 22, this.p2.hp / this.p2.maxHp, this.p2.hp > 30 ? '#7dff5e' : '#ff3b30', true);
-    // super
-    this.bar(20, 46, 380, 10, this.p1.super / 100, this.p1.super >= 100 ? '#ff7de0' : '#b26bff', false);
-    this.bar(W - 400, 46, 380, 10, this.p2.super / 100, this.p2.super >= 100 ? '#ff7de0' : '#b26bff', true);
+    // barras de vida com dano fantasma
+    this.bar(20, 18, 380, 22, this.p1.hp / this.p1.maxHp, this.p1.hp > 30 ? '#4ddb3a' : '#ff3b30', false, this.ghostHp[0] / 100);
+    this.bar(W - 400, 18, 380, 22, this.p2.hp / this.p2.maxHp, this.p2.hp > 30 ? '#4ddb3a' : '#ff3b30', true, this.ghostHp[1] / 100);
+    // super segmentada que brilha quando cheia
+    const drawSuper = (x, pct, flip) => {
+      const full = pct >= 1;
+      ctx.fillStyle = 'rgba(0,0,0,0.75)';
+      ctx.fillRect(x - 3, 46 - 3, 380 + 6, 10 + 6);
+      ctx.strokeStyle = full && Math.sin(t * 8) > 0 ? '#ff7de0' : '#666';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 3, 46 - 3, 380 + 6, 10 + 6);
+      for (let i = 0; i < 10; i++) {
+        const segW = 38;
+        const segPct = Math.max(0, Math.min(1, pct * 10 - i));
+        ctx.fillStyle = '#1a1030';
+        ctx.fillRect(x + i * segW, 46, segW - 2, 10);
+        if (segPct > 0) {
+          ctx.fillStyle = full ? (Math.sin(t * 10 + i) > 0 ? '#ffffff' : '#ff7de0') : '#b26bff';
+          ctx.fillRect(x + i * segW, 46, (segW - 2) * segPct, 10);
+        }
+      }
+    };
+    drawSuper(20, this.p1.super / 100, false);
+    drawSuper(W - 400, this.p2.super / 100, true);
     // nomes
     ctx.font = 'bold 16px monospace';
     ctx.fillStyle = '#fff';
@@ -388,6 +519,17 @@ class Game {
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.textAlign = 'center';
     ctx.fillText('— ' + this.stage.def.name + ' —', W / 2, H - 8);
+    // contador de combo estilo arcade
+    if (this.combo.count >= 2 && this.time < this.combo.until) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 26px monospace';
+      ctx.shadowColor = '#ff7b1c';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ffe14d';
+      const cx = this.combo.owner === this.p1 ? 160 : W - 160;
+      ctx.fillText(this.combo.count + ' HITS!', cx, 110);
+      ctx.shadowBlur = 0;
+    }
     ctx.textAlign = 'left';
   }
 
@@ -422,9 +564,12 @@ class Game {
 
   drawTitle(t) {
     const ctx = this.ctx;
+    // fundo estilo arcade: gradiente escuro + horizonte
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#0b1030');
-    g.addColorStop(1, '#1f0533');
+    g.addColorStop(0, '#070b1e');
+    g.addColorStop(0.55, '#1a1040');
+    g.addColorStop(0.8, '#3d0f3d');
+    g.addColorStop(1, '#12081f');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
     // código caindo leve no fundo
@@ -432,25 +577,69 @@ class Game {
     for (let c = 0; c < 30; c++) {
       const x = c * 32;
       const y = ((t * 30 + c * 173) % (H + 60)) - 30;
-      ctx.fillStyle = 'rgba(0,255,140,0.25)';
+      ctx.fillStyle = 'rgba(0,255,140,0.22)';
       ctx.fillText('01<>{}#;'.charAt((c + ((t * 3) | 0)) % 8), x, y);
     }
+    // sol neon ao fundo (vaporwave arcade)
+    const sunY = H * 0.62;
+    const sg = ctx.createLinearGradient(0, sunY - 120, 0, sunY + 120);
+    sg.addColorStop(0, '#ffe14d');
+    sg.addColorStop(0.5, '#ff7b1c');
+    sg.addColorStop(1, '#ff3cdc');
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, sunY - 130, W, 260);
+    ctx.clip();
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(W / 2, sunY, 130, Math.PI, 0); ctx.fill();
+    // listras horizontais cortando o sol
+    ctx.fillStyle = '#12081f';
+    for (let i = 0; i < 6; i++) {
+      const ly = sunY - 20 + i * 16 + Math.sin(t) * 0;
+      ctx.fillRect(0, ly, W, 3 + i);
+    }
+    ctx.restore();
+    // logo estilo arcade com contorno e gradiente
     ctx.textAlign = 'center';
-    ctx.shadowColor = '#00ffc8';
-    ctx.shadowBlur = 30 + Math.sin(t * 3) * 10;
+    ctx.font = 'bold 78px monospace';
+    const pulse = 1 + Math.sin(t * 3) * 0.02;
+    ctx.save();
+    ctx.translate(W / 2, H / 2 - 70);
+    ctx.scale(pulse, pulse);
+    // contorno grosso preto
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#000';
+    ctx.strokeText('DS FIGHTERS', 0, 0);
+    // preenchimento com gradiente dourado→rosa
+    const lg = ctx.createLinearGradient(0, -60, 0, 10);
+    lg.addColorStop(0, '#fff6b0');
+    lg.addColorStop(0.45, '#ffd24d');
+    lg.addColorStop(0.75, '#ff7b1c');
+    lg.addColorStop(1, '#ff3cdc');
+    ctx.fillStyle = lg;
+    ctx.shadowColor = '#ff9d2e';
+    ctx.shadowBlur = 34;
+    ctx.fillText('DS FIGHTERS', 0, 0);
+    ctx.restore();
+    // subtítulo em placa
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(W / 2 - 240, H / 2 - 34, 480, 34);
+    ctx.strokeStyle = '#00ffc8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W / 2 - 240, H / 2 - 34, 480, 34);
     ctx.fillStyle = '#7dffd4';
-    ctx.font = 'bold 64px monospace';
-    ctx.fillText('DS FIGHTERS', W / 2, H / 2 - 40);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ff7de0';
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText('TORNEIO DOS DESENVOLVEDORES', W / 2, H / 2 - 6);
-    ctx.fillStyle = Math.sin(t * 4) > 0 ? '#fff' : '#888';
-    ctx.font = '16px monospace';
-    ctx.fillText('PRESSIONE ENTER / TOCAR PARA COMEÇAR', W / 2, H / 2 + 50);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = 'bold 19px monospace';
+    ctx.fillText('★ TORNEIO DOS DESENVOLVEDORES ★', W / 2, H / 2 - 11);
+    // "pressione enter" piscando
+    ctx.fillStyle = Math.sin(t * 4) > 0 ? '#fff' : '#777';
+    ctx.font = 'bold 17px monospace';
+    ctx.fillText('PRESSIONE ENTER / TOCAR PARA COMEÇAR', W / 2, H / 2 + 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.font = '12px monospace';
-    ctx.fillText('12 lutadores • 6 cenários • obstáculos interativos • specials e supers', W / 2, H / 2 + 80);
+    ctx.fillText('13 lutadores • 6 cenários • obstáculos interativos • specials e supers', W / 2, H / 2 + 66);
+    // scanlines de CRT
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 2);
     ctx.textAlign = 'left';
   }
 

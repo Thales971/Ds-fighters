@@ -62,13 +62,15 @@ class Fighter {
     if (opts.fromAttacker && opts.fromAttacker.now < opts.fromAttacker.rageUntil) d *= 2;
     d *= opts.attacker ? opts.attacker.buffDmgMult : 1;
     if (opts.attacker && opts.attacker.now < opts.attacker.dmgMultUntil) d *= opts.attacker.dmgMult;
-    if (this.blocking && this.onGround) {
+    const wasBlocked = this.blocking && this.onGround;
+    if (wasBlocked) {
       d *= 0.25;
       this.vx = opts.kx || 0;
       this.game.audio.block();
       this.game.spawnSparks(this.x + this.dir * 30, -70, '#9adcff', 6);
       this.gainSuper(4);
       if (opts.attacker) opts.attacker.gainSuper(3);
+      this.game.registerHit(opts.attacker || null, this, d, true);
       return;
     }
     this.hp = Math.max(0, this.hp - d);
@@ -80,8 +82,10 @@ class Fighter {
     this.hasHit = false;
     if (opts.stun) this.stunUntil = this.now + opts.stun;
     this.game.audio.hit();
-    this.game.spawnSparks(this.x + this.dir * 20, -70, '#ffd27d', 10);
-    this.game.shake(6);
+    this.game.spawnSparks(this.x + this.dir * 20, -70, '#ffd27d', 14);
+    this.game.spawnHitStar(this.x + this.dir * 24, -72, d >= 12 ? '#ff7b1c' : '#ffe14d');
+    this.game.shake(d >= 12 ? 9 : 6);
+    this.game.registerHit(opts.attacker || null, this, d, false);
     if (this.hp <= 0) {
       this.state = 'ko';
       this.stateTime = 0;
@@ -285,11 +289,12 @@ class Fighter {
     if (this.state === 'jump') {
       this.vy += GRAVITY;
       this.y += this.vy;
-      if (this.y >= 0) { this.y = 0; this.vy = 0; this.state = this.blocking ? 'crouch' : 'idle'; }
+      if (this.y >= 0) { this.y = 0; this.vy = 0; this.state = this.blocking ? 'crouch' : 'idle'; this.game.spawnSparks(this.x, -3, 'rgba(205,195,175,0.8)', 7); }
     } else if (this.blocking) {
       this.state = 'crouch';
     } else if (move !== 0) {
       this.state = 'walk';
+      if (this.frame % 14 === 0) this.game.spawnSparks(this.x - this.vx * 2, -2, 'rgba(205,195,175,0.5)', 2);
     } else {
       this.state = 'idle';
     }
@@ -315,17 +320,22 @@ class Fighter {
   draw(ctx) {
     const pose = this.state === 'walk' ? 'walk' : this.state;
     const frame = this.frame;
-    const spr = SpriteGen.get(this.def, pose, frame, this.dir);
-    const w = this.width * 1.6, h = this.height * 1.35;
+    const flashing = this.state === 'hit' && this.frame % 4 < 2;
+    const spr = flashing ? SpriteGen.getFlash(this.def, pose, frame, this.dir) : SpriteGen.get(this.def, pose, frame, this.dir);
+    const w = this.width * 1.9, h = this.height * 1.58;
     // sombra
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    const shW = 40 * (1 - Math.min(Math.abs(this.y) / 200, 0.5));
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    const shW = 44 * (1 - Math.min(Math.abs(this.y) / 200, 0.5));
     ctx.beginPath();
     ctx.ellipse(this.x, 4, shW, 7, 0, 0, Math.PI * 2);
     ctx.fill();
     // piscar quando invencível
     if ((this.now < this.invincibleUntil || this.now < this.buffInvUntil) && this.frame % 6 < 3) ctx.globalAlpha = 0.4;
+    // contorno escuro + brilho de dano
+    ctx.shadowColor = flashing ? '#ffffff' : 'rgba(0,0,0,0.85)';
+    ctx.shadowBlur = flashing ? 16 : 5;
     ctx.drawImage(spr, this.x - w / 2, this.y - h + 6, w, h);
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
 
     // nome + fala flutuante

@@ -23,6 +23,21 @@ const SpriteGen = {
     return c;
   },
 
+  getFlash(def, pose, frame, dir) {
+    const k = this.key(def, pose, frame, dir) + '|flash';
+    if (this.cache.has(k)) return this.cache.get(k);
+    const src = this.get(def, pose, frame, dir);
+    const c = document.createElement('canvas');
+    c.width = src.width; c.height = src.height;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(src, 0, 0);
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    this.cache.set(k, c);
+    return c;
+  },
+
   clear() { this.cache.clear(); },
 
   drawFighter(ctx, def, pose, frame, dir) {
