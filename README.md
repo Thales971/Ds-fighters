@@ -47,50 +47,84 @@ No celular aparecem botões de toque.
 - **Guarda em pé** (para trás) segura golpe médio e golpe de pulo. A rasteira passa.
 - **Guarda baixa** (para baixo) segura golpe médio e rasteira. O pulo passa.
 - **Agachado + chute** é golpe baixo. **Pulo + ataque** é golpe alto.
-- **↓ ↘ → + soco** (ou o botão) solta o especial e gasta um pedaço da barra roxa.
-- **↓ ↙ ← + chute** (ou o botão) solta o super, que precisa da barra cheia.
+- **↓ ↘ → + soco** (ou o botão D / 3) solta o **simples 1**. Sempre disponível.
+- **↓ ↙ ← + chute** solta o **simples 2**. Sempre disponível.
+- **↓ ↘ → + chute** solta a **carga 1** quando a barra C1 está cheia.
+- **↓ ↙ ← + soco** solta a **carga 2** quando a barra C2 está cheia.
+- **↓ ↘ → ↓ ↘ → + soco** (ou o botão F / 4) solta o **ultimate** quando a barra ULT está cheia.
 - **Toque duplo para frente** corre. Toque duplo para trás recua.
-- Soco que acerta pode ser cancelado no chute, e golpe acertado pode ser cancelado no especial ou no super.
+- Soco que acerta pode ser cancelado no chute, e golpe acertado pode ser cancelado num poder.
 
-A barra de vida mostra o dano fantasma em amarelo. A barra roxa enche ao acertar e ao apanhar. Quem ganhar 2 rounds vence a luta. O timer começa em 99.
+Cada lutador tem **5 poderes**: 2 simples, 2 de carga e 1 ultimate. C1, C2 e ULT enchem ao acertar e ao apanhar (apanhar enche mais a C2). A barra pisca em branco quando o golpe daquela carga está pronto. ULT pisca rosa e mostra a palavra ULT. Os medidores passam de um round para o outro e zeram numa luta nova.
+
+A barra de vida mostra o dano fantasma em amarelo. Quem ganhar 2 rounds vence a luta. O timer começa em 99.
 
 ## Lutadores
 
-| Lutador | Jeito | Especial | Super |
-|---|---|---|---|
-| **DU** | Careca, barba, óculos e cicatriz. Pesado. | Lâmina do Caos | Fúria do Deus do Código |
-| **IALES** | Terno e poderes roubados. Cada especial é um tiro diferente. | Poder Roubado | ALL FOR ONE |
-| **FELIPINHO** | Boné, corrente e jeans. Rápido. | Carro Cheat | Modo Deus (GTA) |
-| **STACK OVERFLOW** | Laranja, óculos, cura um pouco. | Resposta Aceita | Copy-Paste Massivo |
-| **GIT MASTER** | Ninja de capuz. O mais rápido. | Git Dash | Rebase Interativo |
-| **BUG HUNTER** | Rabo de cavalo e visor. O tiro atordoa. | Bug Report | Hotfix em Área |
-| **FRONT DEV** | Cabelo rosa e óculos. | Caixa de Layout | CSS Ultra Instinct |
-| **BACK DEV** | Maior e mais forte. | Erro 500 | DDoS de Socos |
-| **DEVOPS** | Capacete e colete. O tiro acerta mais de uma vez. | Pipeline | Deploy Contínuo |
-| **QA TESTER** | Prancheta. O tiro segura bastante. | Teste Falhou | Suíte de Testes |
-| **SCRUM MASTER** | Terno. Cura e avança. | Daily Standup | Planning Poker |
-| **FULLSTACK** | Moletom roxo. | Deploy Simultâneo | Monolito Perfeito |
-| **SENPAI DO SENAI** | Cardigã, cabelo grisalho e apostila. | Apostila Pesada | Prova Final |
+Cada um tem um elemento. O efeito visual vem do sheet desse elemento.
+
+| Lutador | Elemento | Simples | Carga | Ultimate |
+|---|---|---|---|---|
+| **DU** | Fogo | Lâmina de Brasa, Chute de Forja | Meteoro, Aura de Fúria | Inferno do Código |
+| **IALES** | Gelo | Estilhaço, Toque Frio | Orbe Glacial, Armadura de Gelo | Zero Absoluto |
+| **FELIPINHO** | Raio | Faísca, Drift | Trovoada, Nitro | Modo Deus |
+| **STACK OVERFLOW** | Vento | Resposta Certa, Copy Rápido | Tempestade de Abas, Aceito | Copy-Paste |
+| **GIT MASTER** | Sombra | Shuriken de Commit, Git Dash | Branch Sombria, Stash | Rebase Interativo |
+| **BUG HUNTER** | Veneno | Relatório, Caça | Infestação, Antídoto | Hotfix |
+| **FRONT DEV** | Neon | Caixa de Layout, Flex Dash | Gradiente, Keyframe | CSS Ultra |
+| **BACK DEV** | Terra | Erro 500, Query Pesada | Muralha, Transação | DDoS de Socos |
+| **DEVOPS** | Metal | Pipeline, Rollback | Cluster, Container | Deploy Contínuo |
+| **QA TESTER** | Ácido | Caso de Teste, Assert | Regressão, Cobertura | Suíte Completa |
+| **SCRUM MASTER** | Tempo | Post-it, Daily | Sprint, Bloqueio | Planning Poker |
+| **FULLSTACK** | Arcano | Commit Duplo, Merge | Stack Trace, Monorepo | Monolito Perfeito |
+| **SENPAI DO SENAI** | Espírito | Apostila, Correção | Lição, Chamada | Prova Final |
+
+Os dados ficam em `js/data/powers.js`. Para trocar o desenho de um golpe, aponte o elemento para outro arquivo em `assets/fx/layout.js` ou substitua o PNG.
+
+## Efeitos (spritesheet)
+
+O canvas só copia retângulos desses PNG. Não há desenho de bola, raio ou chama no código do jogo.
+
+Arquivo: `assets/fx/<elemento>.png`
+
+| | |
+|---|---|
+| Frame | 96 × 96 px |
+| Grade | 8 colunas × 5 linhas |
+| Fundo | transparente |
+| Linha 0 | `projectile` — 8 frames, o tiro em loop |
+| Linha 1 | `impact` — 6 frames, a explosão no acerto |
+| Linha 2 | `aura` — 8 frames, o anel em volta do lutador |
+| Linha 3 | `ultimate` — 8 frames, o corte cinematográfico |
+| Linha 4 | `flash` — 4 frames, o clarão da tela |
+
+O mapa de nomes fica em `assets/fx/layout.js` (`FX_LAYOUT.clips` e `FX_LAYOUT.sheets`). Um poder usa o sheet do elemento do lutador e o clipe pelo nome (`projectile`, `impact`, `aura`, `ultimate`, `flash`). Dá para substituir o PNG inteiro, desde que a grade continue 8×5 de 96×96. Para gerar de novo os placeholders:
+
+```bash
+node tools/gen-fx.mjs
+```
 
 ## Cenários
 
-Os fundos são em camadas, com parallax e animação. Pisar na marca dourada do chão ativa o efeito uma vez por round.
+São os 10 fundos animados do dono, em `assets/stages/`. Cada PNG é uma folha de 6 colunas por 4 linhas, 24 frames de 960×540, a 10 fps. O jogo só blita o frame da vez. O chão em perspectiva foi pintado por cima da arte original, e silhuetas escuras de gente que apareciam no piso foram apagadas.
 
-1. **Sala de Servidores** — racks com LED. Um deixa lento, o outro queima.
-2. **Arena do Commit** — arquibancada e anel de merge. O conflito atordoa.
-3. **Chuva de Código** — chuva de caracteres. Glitch inverte o direcional ou dobra o dano.
-4. **Mesa do Dev** — monitor, teclado RGB e café. Café acelera, energético enche o super.
-5. **Nuvem** — ilhas, sol e pacotes. O bucket joga o lutador para cima.
-6. **Cidade Neon** — chuva, letreiros e rua molhada. Placa dá choque ou fúria.
+1. Centro de Dados
+2. Chuva de Código
+3. Laboratório 95
+4. Neon City.exe
+5. Fight.exe
+6. Fábrica de Bugs
+7. Placa-Mãe
+8. Startup 3am
+9. Deploy nas Nuvens
+10. Arena Git
 
-## Sprites
-
-As folhas ficam em `assets/sprites/` (`du.png`, `iales.png`, e o resto). Cada uma tem 8 colunas e 15 linhas de animação: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória.
-
-A arte é gerada por `tools/generate-sprites.mjs` (só Node, sem dependência). Para refazer:
+Os GIFs de origem estão em `assets/stages/source/`. Para reprocessar:
 
 ```bash
-node tools/generate-sprites.mjs
+node tools/process-stages.mjs
 ```
 
-Isso também regrava `assets/sprites/layout.js`, que o jogo lê. Se um PNG faltar, o jogo desenha um boneco simples com as cores do lutador.
+## Sprites dos lutadores
+
+As folhas ficam em `assets/sprites/`. Cada frame tem 320×260. A ordem das linhas está em `assets/sprites/layout.js`: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória. O jogo alinha o pé na linha `baseline`.

@@ -99,11 +99,12 @@ try {
   const pages = [
     ['title', 'http://127.0.0.1:8765/index.html?shot=title', 700],
     ['select', 'http://127.0.0.1:8765/index.html?shot=select#select', 900],
-    ['neon', 'http://127.0.0.1:8765/index.html?shot=neon#demo?stage=5&p1=0&p2=7', 2400],
-    ['matrix', 'http://127.0.0.1:8765/index.html?shot=matrix#demo?stage=2&p1=4&p2=6', 1800],
-    ['desk', 'http://127.0.0.1:8765/index.html?shot=desk#demo?stage=3&p1=2&p2=12', 1600],
-    ['cloud', 'http://127.0.0.1:8765/index.html?shot=cloud#demo?stage=4&p1=8&p2=9', 1600],
-    ['servers', 'http://127.0.0.1:8765/index.html?shot=servers#demo?stage=0&p1=3&p2=10', 1600],
+    ['neon', 'http://127.0.0.1:8765/index.html?shot=neon#demo?stage=3&p1=0&p2=6', 2200],
+    ['lab', 'http://127.0.0.1:8765/index.html?shot=lab#demo?stage=2&p1=4&p2=12', 1600],
+    ['nuvem', 'http://127.0.0.1:8765/index.html?shot=nuvem#demo?stage=8&p1=2&p2=7', 1600],
+    ['arena', 'http://127.0.0.1:8765/index.html?shot=arena#demo?stage=9&p1=8&p2=9', 1600],
+    ['dados', 'http://127.0.0.1:8765/index.html?shot=dados#demo?stage=0&p1=3&p2=10', 1600],
+    ['poder', 'http://127.0.0.1:8765/index.html?shot=poder#demo?stage=3&p1=0&p2=6', 1600],
   ];
   for (const [name, url, wait] of pages) {
     const nav = await send('Runtime.evaluate', {
@@ -112,6 +113,21 @@ try {
     }, sessionId);
     if (nav.result && nav.result.exceptionDetails) console.log('nav fail', name, JSON.stringify(nav.result.exceptionDetails).slice(0, 200));
     await sleep(wait);
+    if (name === 'poder') {
+      await send('Runtime.evaluate', {
+        expression: `(() => {
+          const g = window.__ds;
+          g.roundState = 'fight';
+          g.p1.charge = [100, 100];
+          g.p1.ultimate = 100;
+          g.p2.x = Math.min(900, g.p1.x + 200);
+          g.p1.castPower(g.p1.kit.powers.find((p) => p.kind === 'projectile'));
+          return g.p1.state + ' ' + g.projectiles.length;
+        })()`,
+        returnByValue: true,
+      }, sessionId);
+      await sleep(500);
+    }
     await shot(send, sessionId, name);
     const st = await state(send, sessionId);
     console.log(name, st);
