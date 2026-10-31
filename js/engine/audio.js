@@ -60,6 +60,8 @@ const AudioSys = {
   hit()    { this.noise(0.15, 0.28, 0, 600); this.tone(90, 0.15, 'square', 0.2, 40); },
   ko()     { this.tone(400, 0.7, 'sawtooth', 0.2, 40); this.tone(200, 0.9, 'square', 0.15, 30, 0.1); this.noise(0.6, 0.2, 0.05, 300); },
   jump()   { this.tone(300, 0.12, 'sine', 0.08, 600); },
+  land()   { this.noise(0.05, 0.06, 0, 280); this.tone(80, 0.05, 'sine', 0.04, 40); },
+  dash()   { this.noise(0.06, 0.07, 0, 1400); this.tone(180, 0.06, 'square', 0.04, 90); },
   select() { this.tone(660, 0.08, 'square', 0.12); this.tone(880, 0.1, 'square', 0.12, null, 0.07); },
   cursor() { this.tone(440, 0.05, 'square', 0.08); },
   round()  { this.tone(523, 0.15, 'square', 0.15); this.tone(659, 0.15, 'square', 0.15, null, 0.15); this.tone(784, 0.3, 'square', 0.15, null, 0.3); },
