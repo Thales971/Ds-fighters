@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DS FIGHTERS — Torneio dos Desenvolvedores</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="touch-controls" class="hidden">
+      <div class="pad-left">
+        <button class="tbtn" data-k="ArrowLeft">◀</button>
+        <button class="tbtn" data-k="ArrowRight">▶</button>
+        <button class="tbtn" data-k="ArrowUp">▲</button>
+        <button class="tbtn" data-k="ArrowDown">▼</button>
+      </div>
+      <div class="pad-right">
+        <button class="tbtn atk" data-k="KeyA">A</button>
+        <button class="tbtn atk" data-k="KeyS">S</button>
+        <button class="tbtn atk" data-k="KeyD">D</button>
+        <button class="tbtn sp" data-k="KeyF">★</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/data/stages.js"></script>
+  <script src="js/data/fighters.js"></script>
+  <script src="js/engine/audio.js"></script>
+  <script src="js/engine/sprites.js"></script>
+  <script src="js/engine/input.js"></script>
+  <script src="js/engine/fighter.js"></script>
+  <script src="js/engine/projectile.js"></script>
+  <script src="js/engine/stage.js"></script>
+  <script src="js/engine/ai.js"></script>
+  <script src="js/engine/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
