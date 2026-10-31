@@ -16,7 +16,7 @@ const FIGHTERS = [
     quotes: {
       intro: ['BOY... digo... código. Vamos nessa.', 'A barba cresce. A fúria compila.'],
       win: ['Meu código é impecável, garoto.', 'Você foi depreciado.'],
-      special: ['LÂMINA DO CAOS!', 'SENTirá a fúria do build!'],
+      special: ['LÂMINA DO CAOS!', 'Sentirá a fúria do build!'],
       super: ['FÚRIA DO DEUS DO CÓDIGO!!'],
     },
     moves: {
@@ -82,10 +82,10 @@ const FIGHTERS = [
     },
     special: {
       name: 'Carro Cheat', type: 'projectile', cost: 25,
-      proj: { speed: 12, dmg: 16, w: 56, h: 26, color: '#3fae5a', shape: 'car' },
+      proj: { speed: 12, dmg: 16, w: 56, h: 26, color: '#3fae5a', shape: 'car', heavy: true },
     },
     super: {
-      name: 'Modo Deus (GTA)', type: 'buff-rush', dmg: 20, buff: { invincible: 1600, dmgMult: 2 },
+      name: 'Modo Deus (GTA)', type: 'buff-rush', dmg: 20, buff: { invincible: 150, dmgMult: 2 },
     },
   },
   {
@@ -158,7 +158,7 @@ const FIGHTERS = [
       kick: { dmg: 8, range: 60, startup: 7, active: 4, recovery: 12 },
     },
     special: {
-      name: 'Bug Report', type: 'projectile', cost: 25, stun: 600,
+      name: 'Bug Report', type: 'projectile', cost: 25, stun: 40,
       proj: { speed: 10, dmg: 9, w: 22, h: 22, color: '#ffd700', shape: 'bug' },
     },
     super: {
@@ -262,7 +262,7 @@ const FIGHTERS = [
       kick: { dmg: 8, range: 60, startup: 7, active: 4, recovery: 12 },
     },
     special: {
-      name: 'Teste Falhou', type: 'projectile', cost: 25, stun: 900,
+      name: 'Teste Falhou', type: 'projectile', cost: 25, stun: 48,
       proj: { speed: 8, dmg: 8, w: 26, h: 26, color: '#e53935', shape: 'clipboard' },
     },
     super: {
@@ -330,7 +330,7 @@ const FIGHTERS = [
     stats: { power: 1.1, speed: 0.95, weight: 1.05 },
     quotes: {
       intro: ['Abrem a apostila, página 42: capítulo de luta.', 'Quem não fez a lição, vai tomar lição de soco.'],
-      win: ['Nota 10 na prova de vida. Studio:_derrota.'],
+      win: ['Nota 10. Você ficou de recuperação.'],
       special: ['APOSTILA PESADA!', 'EXERCÍCIO DE FIXAÇÃO!'],
       super: ['PROVA FINAL!'],
     },

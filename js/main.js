@@ -3,8 +3,13 @@
    ============================================================ */
 
 (function () {
+  window.__dsErrors = [];
+  window.addEventListener('error', (e) => { window.__dsErrors.push(String(e.message || e.error || 'erro')); });
+  window.addEventListener('unhandledrejection', (e) => { window.__dsErrors.push(String(e.reason || 'promise')); });
+
   const canvas = document.getElementById('game');
   const game = new Game(canvas);
+  window.__ds = game;
 
   // ajusta o canvas mantendo proporção 16:9
   function fit() {
@@ -16,6 +21,40 @@
   fit();
 
   Input.init();
+  bootFromHash(game);
+
+  function bootFromHash(game) {
+    const raw = (location.hash || '').replace(/^#/, '');
+    if (!raw) return;
+    const [route, query] = raw.split('?');
+    const q = new URLSearchParams(query || '');
+    const num = (key, fallback, max) => {
+      const n = parseInt(q.get(key) ?? '', 10);
+      if (Number.isNaN(n)) return fallback;
+      return Math.max(0, Math.min(max, n));
+    };
+    if (route === 'select') {
+      game.screen = 'select';
+      game.mode = 'versus';
+      game.selIdx = [0, 1];
+      game.selConfirmed = [false, false];
+      return;
+    }
+    if (route === 'demo' || route === 'luta') {
+      game.mode = q.get('vs') === '1' ? 'versus' : 'demo';
+      game.selIdx = [num('p1', 0, FIGHTERS.length - 1), num('p2', 7, FIGHTERS.length - 1)];
+      if (game.selIdx[0] === game.selIdx[1]) game.selIdx[1] = (game.selIdx[0] + 1) % FIGHTERS.length;
+      game.stageIdx = num('stage', 5, STAGES.length - 1);
+      game.difficulty = Math.max(0.6, parseFloat(q.get('diff') || '1.2') || 1.2);
+      game.startFight();
+      if (q.get('vscreen') !== '1') {
+        game.screen = 'fight';
+        game.roundState = 'fight';
+        game.roundStateTime = 40;
+        game.message = null;
+      }
+    }
+  }
 
   // desbloqueia áudio no primeiro gesto do usuário
   const unlock = () => { game.audio.ensure(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };

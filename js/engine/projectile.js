@@ -33,15 +33,27 @@ class Projectile {
     if (this.vy && this.y > -4) { this.vy = 0; }
     if (this.x < -60 || this.x > game.W + 60 || this.y < -260) this.dead = true;
 
-    if (target && target.alive && !this.hitSet.has(target)) {
-      const inX = Math.abs(target.x - this.x) < (this.w / 2 + 22);
-      const inY = Math.abs((target.y - 70) - this.y) < (this.h / 2 + 50);
-      if (inX && inY) {
-        this.hitSet.add(target);
+    if (this.rehit > 0) this.rehit--;
+    if (target && target.alive && this.rehit <= 0 && !this.hitSet.has(target)) {
+      const hurt = target.hurtbox ? target.hurtbox() : { x: target.x - 20, y: target.y - 100, w: 40, h: 100 };
+      const hit = this.x > hurt.x - this.w * 0.4 && this.x < hurt.x + hurt.w + this.w * 0.4
+        && this.y > hurt.y - this.h * 0.4 && this.y < hurt.y + hurt.h + this.h * 0.3;
+      if (hit) {
         this.multiHitLeft--;
-        target.takeHit(this.dmg, { kx: 7, attacker: this.owner, stun: this.spec.stun });
-        if (this.multiHitLeft <= 0) this.dead = true;
-        else game.spawnSparks(this.x, this.y, this.spec.color, 8);
+        target.takeHit(this.dmg, {
+          kx: this.spec.heavy ? 8 : 6.2,
+          attacker: this.owner,
+          stun: this.spec.stun || (this.spec.heavy ? 16 : 13),
+          height: 'mid',
+          hitstop: this.spec.heavy ? 7 : 5,
+        });
+        if (this.multiHitLeft <= 0) {
+          this.hitSet.add(target);
+          this.dead = true;
+        } else {
+          this.rehit = 8;
+          game.spawnSparks(this.x, this.y, this.spec.color, 8);
+        }
       }
     }
   }
