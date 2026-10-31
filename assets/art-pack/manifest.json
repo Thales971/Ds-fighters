@@ -1,0 +1,967 @@
+{
+  "name": "DS Fighters — Retro Elemental Expansion",
+  "version": "1.1.0",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 4,
+  "rows": 4,
+  "logicalFrameWidth": 64,
+  "logicalFrameHeight": 64,
+  "nearestNeighborScale": 4,
+  "alpha": "native RGBA",
+  "coordinateOrder": "row-major; zero-based",
+  "sheets": {
+    "impact": {
+      "file": "spritesheets/impact.png",
+      "nativeFile": "retro-native/spritesheets/impact.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "punch",
+          "name": "Impacto leve",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/impact/punch/00.png",
+            "frames/impact/punch/01.png",
+            "frames/impact/punch/02.png",
+            "frames/impact/punch/03.png"
+          ],
+          "preview": "previews/impact-punch.gif"
+        },
+        {
+          "id": "heavy",
+          "name": "Impacto pesado",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/impact/heavy/00.png",
+            "frames/impact/heavy/01.png",
+            "frames/impact/heavy/02.png",
+            "frames/impact/heavy/03.png"
+          ],
+          "preview": "previews/impact-heavy.gif"
+        },
+        {
+          "id": "block",
+          "name": "Defesa",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/impact/block/00.png",
+            "frames/impact/block/01.png",
+            "frames/impact/block/02.png",
+            "frames/impact/block/03.png"
+          ],
+          "preview": "previews/impact-block.gif"
+        },
+        {
+          "id": "critical",
+          "name": "Impacto crítico",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/impact/critical/00.png",
+            "frames/impact/critical/01.png",
+            "frames/impact/critical/02.png",
+            "frames/impact/critical/03.png"
+          ],
+          "preview": "previews/impact-critical.gif"
+        }
+      ]
+    },
+    "fire": {
+      "file": "spritesheets/fire.png",
+      "nativeFile": "retro-native/spritesheets/fire.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "fireball",
+          "name": "Bola de fogo",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/fire/fireball/00.png",
+            "frames/fire/fireball/01.png",
+            "frames/fire/fireball/02.png",
+            "frames/fire/fireball/03.png"
+          ],
+          "preview": "previews/fire-fireball.gif"
+        },
+        {
+          "id": "pillar",
+          "name": "Pilar de fogo",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/fire/pillar/00.png",
+            "frames/fire/pillar/01.png",
+            "frames/fire/pillar/02.png",
+            "frames/fire/pillar/03.png"
+          ],
+          "preview": "previews/fire-pillar.gif"
+        },
+        {
+          "id": "slash",
+          "name": "Corte de fogo",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/fire/slash/00.png",
+            "frames/fire/slash/01.png",
+            "frames/fire/slash/02.png",
+            "frames/fire/slash/03.png"
+          ],
+          "preview": "previews/fire-slash.gif"
+        },
+        {
+          "id": "explosion",
+          "name": "Explosão de fogo",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/fire/explosion/00.png",
+            "frames/fire/explosion/01.png",
+            "frames/fire/explosion/02.png",
+            "frames/fire/explosion/03.png"
+          ],
+          "preview": "previews/fire-explosion.gif"
+        }
+      ]
+    },
+    "water": {
+      "file": "spritesheets/water.png",
+      "nativeFile": "retro-native/spritesheets/water.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "orb",
+          "name": "Projétil de água",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/water/orb/00.png",
+            "frames/water/orb/01.png",
+            "frames/water/orb/02.png",
+            "frames/water/orb/03.png"
+          ],
+          "preview": "previews/water-orb.gif"
+        },
+        {
+          "id": "wave",
+          "name": "Onda",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/water/wave/00.png",
+            "frames/water/wave/01.png",
+            "frames/water/wave/02.png",
+            "frames/water/wave/03.png"
+          ],
+          "preview": "previews/water-wave.gif"
+        },
+        {
+          "id": "shield",
+          "name": "Escudo de água",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/water/shield/00.png",
+            "frames/water/shield/01.png",
+            "frames/water/shield/02.png",
+            "frames/water/shield/03.png"
+          ],
+          "preview": "previews/water-shield.gif"
+        },
+        {
+          "id": "splash",
+          "name": "Impacto de água",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/water/splash/00.png",
+            "frames/water/splash/01.png",
+            "frames/water/splash/02.png",
+            "frames/water/splash/03.png"
+          ],
+          "preview": "previews/water-splash.gif"
+        }
+      ]
+    },
+    "lightning": {
+      "file": "spritesheets/lightning.png",
+      "nativeFile": "retro-native/spritesheets/lightning.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "projectile",
+          "name": "Projétil elétrico",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/lightning/projectile/00.png",
+            "frames/lightning/projectile/01.png",
+            "frames/lightning/projectile/02.png",
+            "frames/lightning/projectile/03.png"
+          ],
+          "preview": "previews/lightning-projectile.gif"
+        },
+        {
+          "id": "strike",
+          "name": "Raio vertical",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/lightning/strike/00.png",
+            "frames/lightning/strike/01.png",
+            "frames/lightning/strike/02.png",
+            "frames/lightning/strike/03.png"
+          ],
+          "preview": "previews/lightning-strike.gif"
+        },
+        {
+          "id": "ring",
+          "name": "Anel elétrico",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/lightning/ring/00.png",
+            "frames/lightning/ring/01.png",
+            "frames/lightning/ring/02.png",
+            "frames/lightning/ring/03.png"
+          ],
+          "preview": "previews/lightning-ring.gif"
+        },
+        {
+          "id": "impact",
+          "name": "Impacto elétrico",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/lightning/impact/00.png",
+            "frames/lightning/impact/01.png",
+            "frames/lightning/impact/02.png",
+            "frames/lightning/impact/03.png"
+          ],
+          "preview": "previews/lightning-impact.gif"
+        }
+      ]
+    },
+    "chaos": {
+      "file": "spritesheets/chaos.png",
+      "nativeFile": "retro-native/spritesheets/chaos.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "blade",
+          "name": "Lâmina do caos",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/chaos/blade/00.png",
+            "frames/chaos/blade/01.png",
+            "frames/chaos/blade/02.png",
+            "frames/chaos/blade/03.png"
+          ],
+          "preview": "previews/chaos-blade.gif"
+        },
+        {
+          "id": "vortex",
+          "name": "Vórtice",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/chaos/vortex/00.png",
+            "frames/chaos/vortex/01.png",
+            "frames/chaos/vortex/02.png",
+            "frames/chaos/vortex/03.png"
+          ],
+          "preview": "previews/chaos-vortex.gif"
+        },
+        {
+          "id": "claws",
+          "name": "Garras do caos",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/chaos/claws/00.png",
+            "frames/chaos/claws/01.png",
+            "frames/chaos/claws/02.png",
+            "frames/chaos/claws/03.png"
+          ],
+          "preview": "previews/chaos-claws.gif"
+        },
+        {
+          "id": "eruption",
+          "name": "Erupção do caos",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/chaos/eruption/00.png",
+            "frames/chaos/eruption/01.png",
+            "frames/chaos/eruption/02.png",
+            "frames/chaos/eruption/03.png"
+          ],
+          "preview": "previews/chaos-eruption.gif"
+        }
+      ]
+    },
+    "arcane": {
+      "file": "spritesheets/arcane.png",
+      "nativeFile": "retro-native/spritesheets/arcane.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "ice",
+          "name": "Gelo",
+          "row": 0,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/arcane/ice/00.png",
+            "frames/arcane/ice/01.png",
+            "frames/arcane/ice/02.png",
+            "frames/arcane/ice/03.png"
+          ],
+          "preview": "previews/arcane-ice.gif"
+        },
+        {
+          "id": "wind",
+          "name": "Vento",
+          "row": 1,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/arcane/wind/00.png",
+            "frames/arcane/wind/01.png",
+            "frames/arcane/wind/02.png",
+            "frames/arcane/wind/03.png"
+          ],
+          "preview": "previews/arcane-wind.gif"
+        },
+        {
+          "id": "heal",
+          "name": "Cura",
+          "row": 2,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/arcane/heal/00.png",
+            "frames/arcane/heal/01.png",
+            "frames/arcane/heal/02.png",
+            "frames/arcane/heal/03.png"
+          ],
+          "preview": "previews/arcane-heal.gif"
+        },
+        {
+          "id": "teleport",
+          "name": "Teleporte",
+          "row": 3,
+          "frames": 4,
+          "fps": 14,
+          "loop": false,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/arcane/teleport/00.png",
+            "frames/arcane/teleport/01.png",
+            "frames/arcane/teleport/02.png",
+            "frames/arcane/teleport/03.png"
+          ],
+          "preview": "previews/arcane-teleport.gif"
+        }
+      ]
+    },
+    "birds": {
+      "file": "spritesheets/birds.png",
+      "nativeFile": "retro-native/spritesheets/birds.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": [
+        {
+          "id": "raven",
+          "name": "Corvo",
+          "row": 0,
+          "frames": 4,
+          "fps": 10,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/birds/raven/00.png",
+            "frames/birds/raven/01.png",
+            "frames/birds/raven/02.png",
+            "frames/birds/raven/03.png"
+          ],
+          "preview": "previews/birds-raven.gif"
+        },
+        {
+          "id": "dove",
+          "name": "Pomba",
+          "row": 1,
+          "frames": 4,
+          "fps": 10,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/birds/dove/00.png",
+            "frames/birds/dove/01.png",
+            "frames/birds/dove/02.png",
+            "frames/birds/dove/03.png"
+          ],
+          "preview": "previews/birds-dove.gif"
+        },
+        {
+          "id": "eagle",
+          "name": "Águia",
+          "row": 2,
+          "frames": 4,
+          "fps": 10,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/birds/eagle/00.png",
+            "frames/birds/eagle/01.png",
+            "frames/birds/eagle/02.png",
+            "frames/birds/eagle/03.png"
+          ],
+          "preview": "previews/birds-eagle.gif"
+        },
+        {
+          "id": "phoenix",
+          "name": "Fênix",
+          "row": 3,
+          "frames": 4,
+          "fps": 10,
+          "loop": true,
+          "pivot": {
+            "x": 128,
+            "y": 128
+          },
+          "individualFrames": [
+            "frames/birds/phoenix/00.png",
+            "frames/birds/phoenix/01.png",
+            "frames/birds/phoenix/02.png",
+            "frames/birds/phoenix/03.png"
+          ],
+          "preview": "previews/birds-phoenix.gif"
+        }
+      ]
+    },
+    "ai-symbols": {
+      "file": "spritesheets/ai-symbols.png",
+      "nativeFile": "retro-native/spritesheets/ai-symbols.png",
+      "width": 1024,
+      "height": 1024,
+      "animated": false
+    },
+    "platforms": {
+      "file": "spritesheets/platforms.png",
+      "nativeFile": "retro-native/spritesheets/platforms.png",
+      "width": 1024,
+      "height": 1024,
+      "animated": false
+    }
+  },
+  "icons": {
+    "chatgpt": {
+      "file": "icons/chatgpt.png",
+      "row": 0,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "claude": {
+      "file": "icons/claude.png",
+      "row": 0,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "gemini": {
+      "file": "icons/gemini.png",
+      "row": 0,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "deepseek": {
+      "file": "icons/deepseek.png",
+      "row": 0,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "copilot": {
+      "file": "icons/copilot.png",
+      "row": 1,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "grok": {
+      "file": "icons/grok.png",
+      "row": 1,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "perplexity": {
+      "file": "icons/perplexity.png",
+      "row": 1,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "meta-ai": {
+      "file": "icons/meta-ai.png",
+      "row": 1,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "mistral": {
+      "file": "icons/mistral.png",
+      "row": 2,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "qwen": {
+      "file": "icons/qwen.png",
+      "row": 2,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "manus": {
+      "file": "icons/manus.png",
+      "row": 2,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "cursor": {
+      "file": "icons/cursor.png",
+      "row": 2,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "midjourney": {
+      "file": "icons/midjourney.png",
+      "row": 3,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "stability-ai": {
+      "file": "icons/stability-ai.png",
+      "row": 3,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "leonardo-ai": {
+      "file": "icons/leonardo-ai.png",
+      "row": 3,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "replit": {
+      "file": "icons/replit.png",
+      "row": 3,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    }
+  },
+  "platforms": {
+    "grass-earth": {
+      "file": "platforms/grass-earth.png",
+      "row": 0,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "cherry-wood": {
+      "file": "platforms/cherry-wood.png",
+      "row": 0,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "castle-brick": {
+      "file": "platforms/castle-brick.png",
+      "row": 0,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "sandstone": {
+      "file": "platforms/sandstone.png",
+      "row": 0,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "lava-basalt": {
+      "file": "platforms/lava-basalt.png",
+      "row": 1,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "ice-crystal": {
+      "file": "platforms/ice-crystal.png",
+      "row": 1,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "cloud-stone": {
+      "file": "platforms/cloud-stone.png",
+      "row": 1,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "chaos-obsidian": {
+      "file": "platforms/chaos-obsidian.png",
+      "row": 1,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "cyan-tech": {
+      "file": "platforms/cyan-tech.png",
+      "row": 2,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "magenta-neon": {
+      "file": "platforms/magenta-neon.png",
+      "row": 2,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "gold-circuit": {
+      "file": "platforms/gold-circuit.png",
+      "row": 2,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "rusty-steel": {
+      "file": "platforms/rusty-steel.png",
+      "row": 2,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    },
+    "ocean-stone": {
+      "file": "platforms/ocean-stone.png",
+      "row": 3,
+      "column": 0,
+      "width": 256,
+      "height": 256
+    },
+    "emerald-forest": {
+      "file": "platforms/emerald-forest.png",
+      "row": 3,
+      "column": 1,
+      "width": 256,
+      "height": 256
+    },
+    "lavender-crystal": {
+      "file": "platforms/lavender-crystal.png",
+      "row": 3,
+      "column": 2,
+      "width": 256,
+      "height": 256
+    },
+    "orbital-metal": {
+      "file": "platforms/orbital-metal.png",
+      "row": 3,
+      "column": 3,
+      "width": 256,
+      "height": 256
+    }
+  },
+  "maps": [
+    {
+      "id": "01-neon-rooftop",
+      "name": "Cobertura Neon",
+      "file": "maps/01-neon-rooftop.png",
+      "nativeFile": "retro-native/maps/01-neon-rooftop.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "02-volcanic-forge",
+      "name": "Forja Vulcânica",
+      "file": "maps/02-volcanic-forge.png",
+      "nativeFile": "retro-native/maps/02-volcanic-forge.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "03-underwater-lab",
+      "name": "Laboratório Abissal",
+      "file": "maps/03-underwater-lab.png",
+      "nativeFile": "retro-native/maps/03-underwater-lab.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "04-storm-temple",
+      "name": "Templo da Tempestade",
+      "file": "maps/04-storm-temple.png",
+      "nativeFile": "retro-native/maps/04-storm-temple.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "05-chaos-citadel",
+      "name": "Cidadela do Caos",
+      "file": "maps/05-chaos-citadel.png",
+      "nativeFile": "retro-native/maps/05-chaos-citadel.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "06-sakura-dojo",
+      "name": "Dojo das Cerejeiras",
+      "file": "maps/06-sakura-dojo.png",
+      "nativeFile": "retro-native/maps/06-sakura-dojo.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "07-sky-islands",
+      "name": "Ilhas do Céu",
+      "file": "maps/07-sky-islands.png",
+      "nativeFile": "retro-native/maps/07-sky-islands.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "08-crystal-cavern",
+      "name": "Caverna de Cristais",
+      "file": "maps/08-crystal-cavern.png",
+      "nativeFile": "retro-native/maps/08-crystal-cavern.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "09-orbital-core",
+      "name": "Núcleo Orbital",
+      "file": "maps/09-orbital-core.png",
+      "nativeFile": "retro-native/maps/09-orbital-core.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    },
+    {
+      "id": "10-digital-forest",
+      "name": "Floresta Digital",
+      "file": "maps/10-digital-forest.png",
+      "nativeFile": "retro-native/maps/10-digital-forest.png",
+      "width": 1920,
+      "height": 1080,
+      "logicalWidth": 480,
+      "logicalHeight": 270,
+      "floorAlignment": "adjust during integration",
+      "flattened": true
+    }
+  ]
+}
