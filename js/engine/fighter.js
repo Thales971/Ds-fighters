@@ -305,8 +305,9 @@ class Fighter {
     }
     if (this.state === 'down' && !o.hazard) return false;
     // esquiva sináptica (passiva do Cromo e de quem estiver em overclock): desvia de projéteis/golpes leves
-    if (atk && !unblockable && !o.hazard && (this.sig.dodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
-      const chance = (this.sig.dodge || 0) + (this.has('overclock') ? 0.25 : 0);
+    const auraDodge = this.has('aura') && this.aura && this.aura.dodge ? this.aura.dodge : 0;
+    if (atk && !unblockable && !o.hazard && (this.sig.dodge || auraDodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
+      const chance = (this.sig.dodge || 0) + auraDodge + (this.has('overclock') ? 0.25 : 0);
       if (Math.random() < chance) {
         const sgn = Math.sign(this.x - atk.x) || 1;
         this.x = Math.max(50, Math.min(game.W - 50, this.x + sgn * 70));
