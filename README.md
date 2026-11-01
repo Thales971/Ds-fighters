@@ -310,3 +310,5 @@ Skins temporariamente desativadas, com preferências antigas preservadas. Cinco 
 ## Estabilidade — replay removido
 
 Replay foi excluído completamente (menu, gravação e reprodução). Corrigido o travamento reproduzido em iframe: a permissão negada de gamepad não encerra mais o loop; teclado/toque continuam. Gato Mistral atualizado com a animação oficial, música um pouco mais alta com narração protegida, dez clássicos refinados e mais leves. Versão: `stable-loop-mistral-v1`. Detalhes e limites em [ESTABILIDADE-SEM-REPLAY.md](ESTABILIDADE-SEM-REPLAY.md).
+
+**Versão atual: `stable-loop-mistral-v2`** — [abrir o jogo atualizado](https://online-server-one.vercel.app/?v=stable-loop-mistral-v2). Também corrigidos RNG ausente em power-ups e escopo incorreto nos eventos das arenas. Validação pública: 43 casos de eventos e partidas até o fim no mobile/iframe sem exceções. Veja [registro final](ESTABILIDADE-SEM-REPLAY.md).

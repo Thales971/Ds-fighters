@@ -35,3 +35,9 @@ Publicação confirmada após o commit `04ce574`: `https://online-server-one.ver
 ## Correção adicional de eventos tardios
 
 O teste público de 35 segundos encontrou outra causa de exceção no meio da luta: Pickup acessava this.game.rnd sem inicializar this.game, e callbacks de mecânicas usavam this.game embora recebessem o jogo no parâmetro g. Corrigidos ambos os contextos. Uma reprodução forçada de criação/coleta de power-up e eventos de todos os mapas falhou em 43/43 casos antes e passou em 43/43 depois. A luta não depende mais de evitar sorteios/eventos de mapa para continuar.
+
+## Validação final — versão v2
+
+URL atual: https://online-server-one.vercel.app/?v=stable-loop-mistral-v2. Após a correção de RNG do commit f07aaef, HTML e mechanics.js publicados foram confirmados pelo conteúdo/hash. Os 43 casos de eventos/power-ups passaram diretamente na publicação. Duas partidas reais com CPU, observadas por 35 segundos cada, chegaram ao fim normalmente em iframe sem permissão de gamepad e no viewport mobile, com troca de rounds, matchOver=true e nenhuma exceção JavaScript. O erro tardio de RNG não reapareceu nessa reprodução. Quatro cenários locais já haviam passado, incluindo pausa/retorno e recuperação de uma falha isolada.
+
+Abra a URL v2 ou recarregue a página para descartar o JavaScript antigo que pode continuar em uma aba já aberta. Skins continuam EM BREVE; Google permanece adiado. Não houve novas gerações pagas de imagens nesta etapa: gato oficial reutilizado e clássicos tratados dos masters existentes.

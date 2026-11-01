@@ -64,3 +64,5 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Dez fundos originais reempacotados dos masters: 24 quadros 768×432, piso estável, contraste/overlay mais leves, fallback/miniaturas dos JPGs. Dimensões verificadas e mapas 11+ não reconstruídos; total das dez folhas reduzido para aproximadamente 31 MiB.
 
 - [x] Causa tardia adicional: contexto RNG ausente em Pickup e incorreto nos callbacks de MECHS. Reprodução forçada: 43 falhas antes → 43 casos aprovados depois, incluindo coleta e eventos de todos os mapas; combate/mixer continuaram aprovados.
+
+- [x] Validação pública final v2: hash/conteúdo do deploy confirmados; 43/43 eventos/power-ups passaram; partidas reais no mobile e iframe observadas por 35s cada chegaram ao fim normalmente, sem exceções JavaScript. Não apenas ticks manuais nem apenas push.
