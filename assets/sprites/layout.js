@@ -66,3 +66,8 @@ const SPRITE_LAYOUT = {
     "fullstack": "assets/sprites/fullstack.png"
   }
 };
+
+/* Folhas refinadas têm quatro fases; folhas legadas mantêm o timing original. */
+SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen'].map((id) => [id, {
+  frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+}]));

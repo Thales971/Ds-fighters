@@ -96,8 +96,8 @@ const MAP_ANIM = {
   "rows": 4,
   "frames": 24,
   "fps": 10,
-  "frameW": 480,
-  "frameH": 270
+  "frameW": 640,
+  "frameH": 360
  },
  "kali": {
   "sheet": "assets/maps/anim/kali.png",
@@ -105,8 +105,8 @@ const MAP_ANIM = {
   "rows": 4,
   "frames": 24,
   "fps": 10,
-  "frameW": 480,
-  "frameH": 270
+  "frameW": 640,
+  "frameH": 360
  },
  "java": {
   "sheet": "assets/maps/anim/java.png",
@@ -114,8 +114,8 @@ const MAP_ANIM = {
   "rows": 4,
   "frames": 24,
   "fps": 10,
-  "frameW": 480,
-  "frameH": 270
+  "frameW": 640,
+  "frameH": 360
  },
  "chrome": {
   "sheet": "assets/maps/anim/chrome.png",
@@ -123,8 +123,8 @@ const MAP_ANIM = {
   "rows": 4,
   "frames": 24,
   "fps": 10,
-  "frameW": 480,
-  "frameH": 270
+  "frameW": 640,
+  "frameH": 360
  },
  "sesi": {
   "sheet": "assets/maps/anim/sesi.png",
@@ -132,8 +132,8 @@ const MAP_ANIM = {
   "rows": 4,
   "frames": 24,
   "fps": 10,
-  "frameW": 480,
-  "frameH": 270
+  "frameW": 640,
+  "frameH": 360
  },
  "01-neon-rooftop": {
   "sheet": "assets/maps/anim/01-neon-rooftop.png",
@@ -224,5 +224,14 @@ const MAP_ANIM = {
   "fps": 10,
   "frameW": 480,
   "frameH": 270
+ },
+ "sesi-patio": {
+  "sheet": "assets/maps/anim/sesi-patio.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
  }
 };

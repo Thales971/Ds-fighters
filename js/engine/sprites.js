@@ -17,7 +17,9 @@ const SpriteGen = {
     });
   },
 
-  count(pose) {
+  count(pose, id) {
+    const own = SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[id];
+    if (own && own.frames && own.frames[pose]) return own.frames[pose];
     return SPRITE_LAYOUT.frames[pose] || SPRITE_LAYOUT.frames.idle || 1;
   },
 
@@ -31,7 +33,7 @@ const SpriteGen = {
     const sc = scale || L.drawScale;
     const fw = L.frameW;
     const fh = L.frameH;
-    const n = this.count(pose);
+    const n = this.count(pose, id);
     const col = ((frame % n) + n) % n;
     const row = this.rowOf(pose);
     const dw = fw * sc;

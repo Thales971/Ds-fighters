@@ -31,6 +31,7 @@
       if (cloud.status === 'saved') return 'Salvo na nuvem';
       if (cloud.status === 'offline') return 'Offline';
       if (cloud.status === 'error') return cloud.error || 'Não foi possível sincronizar.';
+      if (cloud.status === 'signing-out') return 'Saindo…';
       if (cloud.status === 'loading' || cloud.status === 'signing') return 'Conectando…';
       return 'Não conectado';
     },
@@ -56,7 +57,7 @@
       }
 
       const user = cloud.user;
-      const busy = cloud.status === 'loading' || cloud.status === 'signing';
+      const busy = cloud.status === 'loading' || cloud.status === 'signing' || cloud.status === 'signing-out';
       const status = this._statusText(cloud);
       if (user) {
         const profile = typeof Profile !== 'undefined' ? Profile : null;
@@ -70,7 +71,7 @@
             </div>
             <p class="account-cloud-status" role="status" aria-live="polite">${this._escape(status)}</p>
             ${cloud.error ? `<p class="account-error">${this._escape(cloud.error)}</p>` : ''}
-            <button class="account-action account-signout" type="button">SAIR</button>
+            <button class="account-action account-signout" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>${cloud.status === 'signing-out' ? 'SAINDO…' : 'SAIR'}</button>
           </section>`;
         this.box.querySelector('.account-signout').addEventListener('click', () => { void global.Cloud.signOut(); });
       } else {

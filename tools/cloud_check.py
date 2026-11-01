@@ -8,6 +8,7 @@ exercitar a mesclagem e o cartão de conta.
 import glob
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -31,6 +32,9 @@ def launch_browser(playwright):
         return playwright.chromium.launch(args=args)
     except PlaywrightError:
         candidates = sorted(glob.glob(os.path.expanduser('~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome')))
+        executable = shutil.which('chromium') or shutil.which('google-chrome')
+        if executable:
+            return playwright.chromium.launch(executable_path=executable, args=args)
         if not candidates:
             raise
         return playwright.chromium.launch(executable_path=candidates[-1], args=args)

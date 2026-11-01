@@ -7,6 +7,10 @@
    ============================================================ */
 const GRAVITY_BASE = 0.64;
 const WALK_SPEED = 3.25;
+// Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
+// Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
+const HEALTH_MULTIPLIER = 1.12;
+const QUAKE_HOLD_MAX = 28;
 
 function boxesOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -33,7 +37,7 @@ class Fighter {
     this.vx = 0;
     this.vy = 0;
     this.dir = dir;
-    this.maxHp = def.stats.hp || 100;
+    this.maxHp = Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER));
     this.hp = this.maxHp;
     this.redHp = this.maxHp;
     this.charge = [0, 0];
@@ -42,6 +46,7 @@ class Fighter {
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     this.status = {};
+    this.statusSource = {};
     this.stolen = null;
     this.afo = 0;
     this.stunGauge = 0;
@@ -83,7 +88,11 @@ class Fighter {
   get alive() { return this.hp > 0; }
   get onGround() { return this.y >= -0.01 && this.vy >= 0; }
   has(s) { return (this.status[s] || 0) > this.now; }
-  addStatus(s, frames) { this.status[s] = Math.max(this.status[s] || 0, this.now + frames); }
+  addStatus(s, frames, source = null) {
+    const expiry = this.now + frames;
+    if (['burn', 'poison', 'bleed'].includes(s) && expiry >= (this.status[s] || 0)) this.statusSource[s] = source;
+    this.status[s] = Math.max(this.status[s] || 0, expiry);
+  }
   left(s) { return Math.max(0, (this.status[s] || 0) - this.now); }
   weight() { return this.def.stats.weight || 1; }
   get pfx() { return (this.pet && this.pet.fx) || {}; }
@@ -106,7 +115,7 @@ class Fighter {
   }
   chip(n, attacker) {
     if (!this.alive || this.has('invuln')) return;
-    this.hp = Math.max(0, this.hp - n);
+    this.hp = this.game.cfg && this.game.cfg.infiniteLife ? this.maxHp : Math.max(0, this.hp - n);
     if (attacker) attacker.stats.dmg += n;
     if (this.hp <= 0) this.defeat(attacker ? Math.sign(this.x - attacker.x) : -this.dir);
   }
@@ -265,7 +274,8 @@ class Fighter {
     const blocked = canBlock && ((height === 'high' && standBlock) || (height === 'low' && lowBlock) || (height === 'mid' && (standBlock || lowBlock)));
     if (blocked) {
       const chip = d * (o.projectile || o.ability ? 0.16 : 0.05);
-      this.hp = Math.max(o.ability ? 0 : 1, this.hp - chip);
+      this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(o.ability ? 0 : 1, this.hp - chip);
+      if (atk) atk.stats.dmg += chip;
       this.blockstun = o.blockstun || 11;
       this.state = 'blockstun';
       this.stateTime = 0;
@@ -286,12 +296,12 @@ class Fighter {
       game.spawnBurst('water', 2, this.x, this.y - 100, 1, 1.5);
       if (d <= 0) { game.floatText(this.x, this.y - 200, 'ESCUDO', '#7de0ff'); return true; }
     }
-    this.hp = Math.max(0, this.hp - d);
+    this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(0, this.hp - d);
     if (atk) { atk.stats.dmg += d; atk.stats.hits++; }
     const armored = this.has('armor') && !o.heavy && d < 16 && this.hp > 0;
     if (counter) game.floatText(this.x, this.y - 230, 'CONTRA-ATAQUE!', '#ff4b4b');
-    if (o.burn && !this.pfx.immune) this.addStatus('burn', o.burn);
-    if (o.poison && !this.pfx.immune) this.addStatus('poison', o.poison);
+    if (o.burn && !this.pfx.immune) this.addStatus('burn', o.burn, atk);
+    if (o.poison && !this.pfx.immune) this.addStatus('poison', o.poison, atk);
     if (o.slow) this.addStatus('slow', o.slow);
     this.applyEffects(o, atk, d);
     if (atk && atk.cast && o.ability) atk.cast.hit = true;
@@ -357,12 +367,13 @@ class Fighter {
     const fx = Object.assign({}, o.ability ? sig.ability : sig.basic, p && p.fx);
     if (!fx) return;
     const game = this.game;
+    const thermalPrepared = this.has('chill') || this.has('burn');
     if (fx.blind) this.addStatus('blind', fx.blind);
     if (fx.shock) this.addStatus('shock', fx.shock);
     if (fx.chill) this.addStatus('chill', fx.chill);
-    if (fx.bleed) this.addStatus('bleed', fx.bleed);
-    if (fx.burn) this.addStatus('burn', fx.burn);
-    if (fx.poison) this.addStatus('poison', fx.poison);
+    if (fx.bleed) this.addStatus('bleed', fx.bleed, atk);
+    if (fx.burn) this.addStatus('burn', fx.burn, atk);
+    if (fx.poison) this.addStatus('poison', fx.poison, atk);
     if (fx.vuln) this.addStatus('vuln', fx.vuln);
     if (fx.slow) this.addStatus('slow', fx.slow);
     if (fx.lock) this.addStatus('locked', fx.lock);
@@ -370,6 +381,12 @@ class Fighter {
     if (fx.drain) atk.heal(d * fx.drain);
     if (fx.meterBurn) { this.charge[0] = Math.max(0, this.charge[0] - fx.meterBurn); this.charge[1] = Math.max(0, this.charge[1] - fx.meterBurn); }
     if (fx.meterSlow) this.addStatus('meterSlow', fx.meterSlow);
+    // Xeon combina os dois elementos sem transformar todo acerto em stun:
+    // o bônus só existe quando gelo ou fogo já preparou o alvo.
+    if (fx.thermal && thermalPrepared && this.hp > 0) {
+      this.chip(fx.thermal, atk);
+      game.floatText(this.x, this.y - 210, 'CHOQUE TÉRMICO!', '#7fd4ff');
+    }
     if (fx.explode && this.hp > 0) {
       this.chip(fx.explode, atk);
       game.spawnBurst('fire', 3, this.x, this.y - 90, 1, 2.6);
@@ -594,10 +611,15 @@ class Fighter {
           if (!inRange) continue;
           const side = f.x >= this.x ? 1 : -1;
           const first = Math.round(p.dmg * 0.4);
-          if (f.takeHit(first, { attacker: this, kx: 0, dirSign: side, stun: (p.lock || 26) + 12, ability: true, power: p, element: el, height: p.screen ? 'unblockable' : undefined })) {
+          const wasGuarding = !p.screen && f.onGround && f.blocking && ['idle', 'walk', 'block', 'crouchblock', 'blockstun'].includes(f.state);
+          if (f.takeHit(first, { attacker: this, kx: 0, dirSign: side, stun: Math.min(12, p.lock || 24), ability: true, power: p, element: el, height: p.screen ? 'unblockable' : undefined })) {
+            // Um bloqueio absorve o primeiro tremor; não vira um segundo golpe
+            // unblockable nem um stunlock involuntário.
+            if (wasGuarding || !f.alive) continue;
+            const hold = Math.max(10, Math.min(QUAKE_HOLD_MAX, p.lock || 24));
             f.vx = 0;
-            f.addStatus('freeze', p.lock || 26);
-            f.quakeHold = { t: p.lock || 26, dmg: p.dmg - first, kx: p.kx || 22, launch: p.launch || -10, side, by: this, p, el };
+            f.addStatus('freeze', hold + 1);
+            f.quakeHold = { t: hold, dmg: Math.max(0, p.dmg - first), kx: p.kx || 22, launch: p.launch || -10, side, by: this, p, el };
           }
         }
         break;
@@ -606,20 +628,22 @@ class Fighter {
         /* All For One: Ação Final — cresce com cada poder acumulado. */
         const stacks = this.castAfo || 0;
         const dmg = p.dmg + stacks * (p.perAfo || 4);
-        if (tgt) {
+        if (tgt && tgt.alive) {
           this.dir = tgt.x >= this.x ? 1 : -1;
           for (let k = 0; k < 3; k++) game.spawnBurst(key, p.row, tgt.x + (k - 1) * 46, -120 - k * 30, this.dir, 1.6 + k * 0.5);
           game.spawnBurst('chaos', 3, tgt.x, -110, this.dir, 3.2);
           game.addCrack(tgt.x, -130, 2.2, this.dir);
-          tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 20, dirSign: this.dir, launch: -13, stun: 52, ability: true, power: p, element: el, heavy: true });
-          tgt.ultimate = Math.max(0, tgt.ultimate - 50);
-          tgt.charge[0] = Math.max(0, tgt.charge[0] - 50);
-          tgt.charge[1] = Math.max(0, tgt.charge[1] - 50);
-          this.heal(6 + stacks * 3);
+          const landed = tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 20, dirSign: this.dir, launch: -13, stun: 52, ability: true, power: p, element: el, heavy: true });
+          if (landed) {
+            tgt.ultimate = Math.max(0, tgt.ultimate - 50);
+            tgt.charge[0] = Math.max(0, tgt.charge[0] - 50);
+            tgt.charge[1] = Math.max(0, tgt.charge[1] - 50);
+            this.heal(6 + stacks * 3);
+            this.afo = 0;
+          }
         }
         this.flashText(`ALL FOR ONE x${stacks}`, '#ff3b6b');
         game.shake(22);
-        this.afo = 0;
         break;
       }
       case 'shadowport': {
@@ -684,7 +708,7 @@ class Fighter {
         break;
       }
       case 'zone': {
-        game.zones.push(new Zone(this, { fid, row: p.row, x: tx, w: 200, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 30 }));
+        game.zones.push(new Zone(this, { fid, row: p.row, x: tx, w: 200, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 0, burn: p.burn || 0, poison: p.poison || 0, fx: p.fx, power: p }));
         break;
       }
       case 'barrage': {
@@ -877,9 +901,9 @@ class Fighter {
     if (this.stunGauge > 0) this.stunGauge = Math.max(0, this.stunGauge - 0.18);
     // efeitos contínuos
     if (this.alive && !this.benched) {
-      if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9);
-      if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8);
-      if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
+      if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9, this.statusSource.burn);
+      if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8, this.statusSource.poison);
+      if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
       if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 60 - Math.random() * 100, '#7df9ff');
       if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 40 - Math.random() * 120, '#d8f6ff');
       if (this.afterimage > 0) this.afterimage--;
@@ -1156,7 +1180,7 @@ class Fighter {
           const hb = { x: this.x - 50, y: this.y - 150, w: 100, h: 130 };
           if (t.alive && boxesOverlap(hb, t.hurtbox())) {
             this.hasHit = true;
-            t.takeHit(p.dmg, { attacker: this, kx: 7, dirSign: this.dir, stun: 20, launch: -4, ability: true, power: p, element: this.elementOf(p) });
+            t.takeHit(p.dmg, { attacker: this, kx: 7, dirSign: this.dir, stun: 20, launch: -4, burn: p.burn, poison: p.poison, slow: p.slow, trap: p.trap, freeze: p.freeze, ability: true, power: p, element: this.elementOf(p) });
             this.game.spawnAbilityImpact(this, p, t.x, t.y - 100);
           }
         }
@@ -1308,7 +1332,7 @@ class Fighter {
     }
   }
   animFrame(pose) {
-    const n = SpriteGen.count(pose);
+    const n = SpriteGen.count(pose, this.spriteKey());
     switch (pose) {
       case 'idle': return Math.floor(this.frame / 8) % n;
       case 'walk': return Math.floor(Math.abs(this.walkPhase)) % n;
@@ -1376,21 +1400,21 @@ class Fighter {
       }
       case 'jump': {
         const v = Math.max(-1, Math.min(1, this.vy / 14));
-        sy = 1 + Math.abs(v) * 0.07; sx = 1 - Math.abs(v) * 0.05;
-        rot = -v * 0.05;
+        sy = 1 + Math.abs(v) * 0.04; sx = 1 - Math.abs(v) * 0.03;
+        rot = -v * 0.03;
         break;
       }
       case 'crouch': sy = 0.985; break;
       case 'hit': {
         const k = Math.max(0, 1 - this.stateTime / 14);
-        rot = -0.10 * k; dx = -6 * k;
-        dx += (t % 2 ? 1.5 : -1.5) * k;
+        rot = -0.07 * k; dx = -4 * k;
+        dx += (t % 2 ? 1 : -1) * k;
         break;
       }
       case 'block': dx = -2 * Math.max(0, 1 - this.stateTime / 8); break;
       case 'special': {
         const k = ease(this.stateTime / 10);
-        sx = 1 + 0.04 * k; sy = 1 - 0.02 * k; dx = 6 * k;
+        sx = 1 + 0.025 * k; sy = 1 - 0.012 * k; dx = 4 * k;
         break;
       }
       default: {
@@ -1399,14 +1423,14 @@ class Fighter {
         if (mv) {
           const st = this.stateTime;
           if (st < mv.startup) { const k = st / Math.max(1, mv.startup); dx = -3 * k; rot = -0.03 * k; }
-          else if (st < mv.startup + mv.active + 2) { dx = 9; rot = 0.045; sx = 1.03; }
-          else { const k = 1 - (st - mv.startup - mv.active) / Math.max(1, mv.recovery); dx = 9 * Math.max(0, k); rot = 0.045 * Math.max(0, k); }
+          else if (st < mv.startup + mv.active + 2) { dx = 6; rot = 0.03; sx = 1.02; }
+          else { const k = 1 - (st - mv.startup - mv.active) / Math.max(1, mv.recovery); dx = 6 * Math.max(0, k); rot = 0.03 * Math.max(0, k); }
         }
       }
     }
     if (this.landT > 0 && this.onGround) {
       const k = (this.landT / 9) * (0.5 + 0.5 * (this.landHard || 0.5));
-      sy *= 1 - 0.10 * k; sx *= 1 + 0.08 * k;
+      sy *= 1 - 0.06 * k; sx *= 1 + 0.05 * k;
     }
     return { sx, sy, rot, dx, dy };
   }

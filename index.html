@@ -63,6 +63,7 @@
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
         <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
         <button class="nav mm" data-go="training"><span>TREINO</span><small>Boneco, medidores infinitos</small></button>
+        <button class="nav mm" data-go="rules"><span>PERSONALIZADO</span><small>Vida infinita, rounds e salas ao vivo</small></button>
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
@@ -73,6 +74,24 @@
         <div id="account-box"></div>
         <div class="stats-card" id="stats-card"></div>
         <div class="demo-roster" id="menu-roster"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-rules" data-screen="rules">
+      <div class="select-bg"></div>
+      <div class="panel wide">
+        <h2>JOGOS PERSONALIZADOS</h2>
+        <p class="sub">Monte a luta do seu jeito. Local contra um amigo ou a CPU, ou entre em salas online reais.</p>
+        <div class="custom-rules">
+          <label>Adversário <select class="nav" id="rules-opponent"><option value="cpu">CPU</option><option value="human">Jogador 2 local</option></select></label>
+          <label>Vitórias para vencer <select class="nav" id="rules-rounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>7</option><option>9</option></select></label>
+          <label>Tempo por round <select class="nav" id="rules-timer"><option value="30">30 segundos</option><option value="60">60 segundos</option><option value="99" selected>99 segundos</option><option value="180">180 segundos</option></select></label>
+          <label><input class="nav" type="checkbox" id="rules-life" /> Vida infinita — ninguém morre</label>
+          <label><input class="nav" type="checkbox" id="rules-meter" /> Medidores sempre cheios</label>
+        </div>
+        <p class="sub small">Com vida infinita, o round termina por tempo e vence quem causar mais dano. Até 9 vitórias, com limite de 17 rounds.</p>
+        <div class="row"><button class="nav btn primary default" id="rules-start">ESCOLHER LUTADORES</button><button class="nav btn" id="rules-online">SALAS ONLINE AO VIVO</button></div>
+        <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
 

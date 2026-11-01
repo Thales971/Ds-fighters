@@ -21,11 +21,11 @@ Object.assign(POWERS, {
     element: 'termico',
     theme: 'Gelo e fogo: lentidão, queimadura e choque térmico',
     powers: [
-      { id: 'icespear', name: 'Lança de Gelo', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 11, cd: 42, fx: { chill: 160 }, sfx: 'magic', desc: 'Cristal veloz que deixa o rival LENTO (gelo).' },
-      { id: 'flamefist', name: 'Punho Flamejante', slot: 'simple', row: 1, kind: 'dash', dmg: 12, speed: 15, cd: 46, burn: 180, sfx: 'fire', desc: 'Investida em chamas que QUEIMA (dano contínuo).' },
-      { id: 'glacier', name: 'Prisão Glacial', slot: 'charge', meter: 0, row: 2, kind: 'pillar', at: 'target', delay: 12, dmg: 14, stun: 70, launch: 0, fx: { chill: 220 }, sfx: 'magic', desc: 'Cristais brotam sob o rival e o CONGELAM no lugar.' },
-      { id: 'firewall', name: 'Muralha de Fogo', slot: 'charge', meter: 1, row: 3, kind: 'zone', time: 240, dmg: 3, burn: 120, sfx: 'fire', desc: 'Faixa de fogo no chão que queima quem pisar.' },
-      { id: 'thermal', name: 'Choque Térmico', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 36, fx: { chill: 120, burn: 200, explode: 8 }, sfx: 'ultimate', desc: 'Congela e explode em vapor: gelo + fogo ao mesmo tempo.' },
+      { id: 'icespear', name: 'Lança de Gelo', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 11, cd: 42, impactSheet: 'water', impactColor: '#7fd4ff', fx: { chill: 160 }, sfx: 'magic', desc: 'Cristal veloz que deixa o rival LENTO (gelo).' },
+      { id: 'flamefist', name: 'Punho Flamejante', slot: 'simple', row: 1, kind: 'dash', dmg: 12, speed: 15, cd: 46, impactSheet: 'fire', impactColor: '#ff6a1c', burn: 180, sfx: 'fire', desc: 'Investida em chamas que QUEIMA (dano contínuo).' },
+      { id: 'glacier', name: 'Prisão Glacial', slot: 'charge', meter: 0, row: 2, kind: 'pillar', at: 'target', delay: 12, dmg: 14, stun: 70, launch: 0, impactSheet: 'water', impactColor: '#7fd4ff', fx: { chill: 220 }, sfx: 'magic', desc: 'Cristais brotam sob o rival e o CONGELAM no lugar.' },
+      { id: 'firewall', name: 'Muralha de Fogo', slot: 'charge', meter: 1, row: 3, kind: 'zone', time: 240, dmg: 3, burn: 120, impactSheet: 'fire', impactColor: '#ff6a1c', sfx: 'fire', desc: 'Faixa de fogo no chão que queima quem pisar.' },
+      { id: 'thermal', name: 'Choque Térmico', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 36, impactSheets: ['water', 'fire'], impactColor: '#f5f1d0', fx: { chill: 120, burn: 200, thermal: 7, explode: 8 }, sfx: 'ultimate', desc: 'Congela e explode em vapor: gelo + fogo ao mesmo tempo.' },
     ],
   },
   qwen: {
@@ -54,8 +54,11 @@ POWERS.iales.powers.forEach((p) => {
 });
 /* ET 1155 mais forte */
 POWERS.stack.powers.forEach((p) => {
-  if (p.id === 'chip') { p.dmg = 14; p.cd = 36; p.fx = Object.assign({}, p.fx, { stun: 10 }); }
-  if (p.id === 'driver') { p.dmg = 15; p.cd = 34; }
+  if (p.id === 'chip') { p.dmg = 15; p.cd = 34; p.fx = Object.assign({}, p.fx, { stun: 8 }); }
+  if (p.id === 'driver') { p.dmg = 16; p.cd = 32; }
+  if (p.id === 'seco') { p.time = 300; p.dmgMult = 1.32; p.speedMult = 1.35; }
+  if (p.id === 'paste') { p.time = 320; p.dmg = 0.13; p.slow = 45; }
+  if (p.id === 'debloat') { p.dmg = 39; }
 });
 
 Object.assign(ELEMENT_FX, {
@@ -75,7 +78,7 @@ FIGHTERS.push(
     id: 'urbano',
     name: 'URBANO TREMOR',
     title: 'O Homem que Racha o Ar',
-    bio: 'Brutamontes de bigode e barba, casaco aberto. Comeu a fruta do tremor: cada soco racha o ar, trava o rival e o manda longe.',
+    bio: 'Jovem de cabelo curto castanho, sem barba, jaqueta de couro preta fechada, camisa cinza e jeans escuros. Comeu a fruta do tremor: cada soco racha o ar, trava o rival e o manda longe.',
     colors: { skin: '#d9a77f', hair: '#e8e8e8', shirt: '#f3f3f3', pants: '#2a2f45', shoes: '#111', accent: '#bfe9ff' },
     traits: { coat: true },
     stats: { power: 1.16, speed: 0.92, weight: 1.2, hp: 122, meterRate: 1.05 },

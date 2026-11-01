@@ -95,9 +95,9 @@ const FIGHTERS = [
     id: 'stack',
     name: 'ET 1155',
     title: 'O Alien das Latas',
-    bio: 'Alien de olhos grandes e antenas ciano. Conserta gabinete velho, joga chip de soquete e overclocka até esquentar.',
-    colors: { skin: '#8fd9a8', hair: '#243040', shirt: '#1a4e9a', pants: '#1c2230', shoes: '#c47a3e', accent: '#3ef0d8' },
-    traits: { beard: 'short', glasses: 'square', robe: true },
+    bio: 'Boné preto, óculos, barba e camisa estampada. O alien das latas é apelido: conserta gabinetes, arremessa chips e chega acelerando de carro.',
+    colors: { skin: '#d6aa8c', hair: '#29221f', shirt: '#303035', pants: '#45658a', shoes: '#343237', accent: '#3ef0d8' },
+    traits: { beard: 'short', glasses: 'square', cap: 'forward' },
     stats: { power: 1.1, speed: 1.2, weight: 0.96, hp: 106 },
     quotes: {
       intro: ['Essa lata ainda liga.', '1155 no lugar. Seco.'],

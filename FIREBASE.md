@@ -59,13 +59,15 @@ window.DS_FIREBASE_CONFIG = {
 };
 ```
 
+Neste checkout, [`js/config/firebase-config.js`](js/config/firebase-config.js) permanece deliberadamente como `null`: nenhuma credencial real foi fornecida e não há um projeto Firebase configurado para o DS Fighters. Portanto, o estado esperado atualmente é **LOGIN COM GOOGLE NÃO CONFIGURADO** e o jogo segue offline; não substitua `null` por valores inventados.
+
 Publique o arquivo junto com o restante do site. Não adicione `databaseURL` ou credenciais de Admin: este recurso usa somente Authentication e Firestore pelo SDK modular oficial carregado sob demanda.
 
 ## 6. Como a sincronização funciona
 
-Ao entrar, o perfil local e `players/{uid}` são mesclados. Personagens desbloqueados são unidos; `fights`, `wins`, `bestArcade` e `maxCombo` usam o maior valor para evitar duplicação; nome e mascotes usam o perfil com carimbo de atualização mais recente; e as configurações locais permanecem neste dispositivo. O resultado é salvo no localStorage e novamente no Firestore.
+Ao entrar, o perfil anônimo local é usado apenas na primeira sincronização de uma conta sem snapshot local. Depois disso, cada UID possui um snapshot local separado; trocar de conta nunca mescla o perfil da conta anterior com o novo usuário. Personagens desbloqueados são unidos; `fights`, `wins`, `bestArcade` e `maxCombo` usam o maior valor para evitar duplicação; nome e mascotes usam o perfil com carimbo de atualização mais recente; e as configurações locais permanecem neste dispositivo e não são substituídas pelo documento remoto. O resultado é salvo no localStorage e novamente no Firestore.
 
-Depois de qualquer `Profile.save()`, o envio aguarda cerca de dois segundos. A fila também é descarregada em `visibilitychange` e `pagehide`. Falhas de rede, popup fechado, domínio não autorizado ou regras incorretas viram mensagens claras no cartão; o jogo continua utilizável e preserva o progresso local.
+Depois de qualquer `Profile.save()`, o envio aguarda cerca de dois segundos. A fila também é descarregada em `visibilitychange`, `pagehide`, reconexão e antes do logout. Respostas de uma sessão antiga não podem aplicar dados nem atualizar o estado da conta nova. Falhas de rede, popup fechado, domínio não autorizado ou regras incorretas viram mensagens claras no cartão; o jogo continua utilizável e preserva o progresso local. As regras de atualização também impedem reduzir desbloqueios ou estatísticas já gravados.
 
 ## 7. Teste local
 
@@ -75,4 +77,4 @@ Na raiz do projeto, execute:
 python3 -m http.server 8099
 ```
 
-Abra `http://localhost:8099/`. Para testar o fluxo real, o `localhost` precisa estar em **Authorized domains**. O teste automatizado [`tools/cloud_check.py`](tools/cloud_check.py) usa um mock do SDK e não realiza login Google real. Portanto, a autenticação real só deve ser validada depois de preencher esta configuração e publicar/autorizar o domínio.
+Abra `http://localhost:8099/`. Para testar os contratos sem credenciais, execute `node tools/profile_cloud_test.js`; ele usa mocks locais e cobre isolamento por UID, merge, corrida de sincronização e flush no logout. O teste automatizado [`tools/cloud_check.py`](tools/cloud_check.py) usa um mock do SDK e não realiza login Google real. Para testar o fluxo real, o `localhost` precisa estar em **Authorized domains**, a configuração precisa ser preenchida e o domínio precisa estar publicado/ autorizado no Firebase.

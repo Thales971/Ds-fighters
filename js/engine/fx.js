@@ -82,6 +82,7 @@ const FX_LAYOUT = {
   },
 };
 const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };
+Object.assign(ELEMENT_TO_OLD, { tremor: 'terra', termico: 'gelo' });
 
 const Fx = {
   images: {},

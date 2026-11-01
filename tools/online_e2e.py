@@ -4,7 +4,7 @@ Uso: python3 tools/online_e2e.py [ws|p2p] [2|4]
   p2p = WebRTC direto entre navegadores (precisa de internet p/ o broker PeerJS)
   4   = sala 2x2 com 4 jogadores (troca + assist)
 """
-import os, subprocess, sys, time
+import os, shutil, subprocess, sys, time
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +21,8 @@ errs = []
 tag = f'{TRANSPORT}-{NP}p'
 try:
     with sync_playwright() as p:
-        b = p.chromium.launch()
+        executable = shutil.which('chromium') or shutil.which('google-chrome')
+        b = p.chromium.launch(**({'executable_path': executable} if executable else {}))
         pages = []
         names = ['Host', 'Guest', 'Ana', 'Beto'][:NP]
         for name in names:
@@ -98,6 +99,16 @@ try:
         print(tag, 'hp anfitrião', hp_h, 'hp visão convidado', hp_g, 'ping', pages[1].evaluate("Net.ping"), flush=True)
         pages[1].screenshot(path=f'{OUT}/21-online-guest-{tag}.png')
         h.screenshot(path=f'{OUT}/22-online-host-{tag}.png')
+        if TRANSPORT == 'ws':
+            h.evaluate("""() => {
+              DSGame.round=2; DSGame.teamWins=[1,0]; DSGame.activeOf(0).hp=77;
+              window.__resumeFighter=DSGame.activeOf(0); window.__oldSocket=Net.socket;
+              Net.socket.close();
+            }""")
+            h.wait_for_function("Net.socket && Net.socket!==__oldSocket && Net.status==='open' && !DSGame.paused", timeout=20000)
+            assert h.evaluate("DSGame.round===2 && DSGame.teamWins[0]===1 && DSGame.activeOf(0)===__resumeFighter"), 'resume do host reiniciou a simulação'
+            pages[1].wait_for_function('DSGame.round===2 && DSGame.teamWins[0]===1', timeout=10000)
+            print(tag, 'reconexão do host preserva round/placar/instância', flush=True)
         h.evaluate("""(() => { const g = DSGame; for (let r = 0; r < 2; r++) {
             for (let k = 0; k < 900 && g.running && g.roundState !== 'fight'; k++) g.tick();
             for (let k = 0; k < 900 && g.running && g.roundState === 'fight'; k++) { g.teams[1].members.forEach((m) => { if (m.alive && !m.benched) { m.hp = 1; m.takeHit(50, { attacker: g.activeOf(0) }); } }); g.tick(); }

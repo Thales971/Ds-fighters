@@ -4,7 +4,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**20 lutadores · 34 arenas · 5 habilidades animadas por lutador · CPU com 4 dificuldades · online grátis até 4 jogadores (1 × 1 e 2 × 2)**
+**23 lutadores · 36 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado**
 
 ## Novidades da Edição Turbo
 
@@ -79,7 +79,7 @@ Passo a passo completo, servidor dedicado (Render, Fly.io, VPS, Docker) e checkl
 | Troca (2 × 2) | `R` | `L` | L2 |
 | Pausa | `Esc` / `P` | | Options |
 
-O jogador 1 não usa mais `Q` nem `E` para golpear. A tecla `0` é o 10º poder (reservada; o IALES tem 5 habilidades hoje, nas teclas `1` a `5`). O botão direito do mouse não abre o menu do navegador em cima do jogo. Na seleção, o jogador 2 entra com `J`.
+O jogador 1 não usa mais `Q` nem `E` para golpear. A tecla `0` é o 10º poder (reservada); o IALES tem uma segunda ultimate na tecla `6`, que exige quatro acúmulos de All For One. O botão direito do mouse não abre o menu do navegador em cima do jogo. Na seleção, o jogador 2 entra com `J`.
 
 A tecla de cada habilidade aparece **embaixo do ícone** na HUD. Defender: segure para trás (agachado defende golpes baixos). Dash: toque duas vezes. Agarrão: perto do rival, frente/trás + soco. Combos: soco → soco → chute encadeiam sozinhos; qualquer golpe que acertar pode ser cancelado em habilidade, e habilidades simples podem ser canceladas em carga/ultimate. As entradas ficam guardadas por ~10 quadros (inclusive durante o hitstop), então dá para apertar o próximo golpe antes do atual terminar. Há controles de toque em telas sensíveis ao toque e a opção "movimento reduzido" nas Opções.
 
@@ -106,7 +106,7 @@ Cada lutador tem **5 habilidades animadas**: 2 simples (recarga), 2 de carga (ba
 
 ## Lutadores
 
-20 lutadores (o Senpai foi removido). **DU, IALES e Felipinho Maprim** são secretos: resgate o código **`Batata`** em *Resgatar código* para liberar os três juntos (fica salvo no navegador). Eles são propositalmente mais fortes; **IALES é o mais apelão**.
+O Senpai foi removido. **DU, IALES, Felipinho Maprim e Qwen** são secretos: resgate o código **`Batata`** em *Resgatar código* para liberar os quatro juntos (fica salvo no navegador). Eles são propositalmente mais fortes; **IALES é o mais apelão**.
 
 | Lutador | Assinatura | Estilo |
 |---|---|---|
@@ -268,3 +268,11 @@ As folhas ficam em `assets/sprites/`. Cada frame tem 320×260. A ordem das linha
 - **Sprites:** os quadros duplicados das folhas foram corrigidos (`tools/fix-doubles.py`) e as animações ganharam movimento procedural.
 - **Login com Google (Firebase):** salva o progresso e os personagens. Configure-o em `js/config/firebase-config.js` (veja `FIREBASE.md`).
 - **Balanceamento:** refeito com um torneio de todos contra todos.
+
+## Refinamento da V4
+
+Novas folhas transparentes de **Urbano**, **1155** e **Qwen**, efeitos distintos de gelo/fogo da **Xeon**, **+12% de vida** em todo o elenco e correções do soco sísmico e da segunda ultimate do IALES. O **Pátio SESI Valinhos** foi adicionado sem remover a quadra. Mapas novos ganharam maior resolução e animação menos agressiva.
+
+O menu **PERSONALIZADO** oferece vida/medidores infinitos, escolha CPU/P2 e até **9 vitórias / 17 rounds**. Vida infinita não causa KO; o tempo desempata pelo dano do round. No online, as regras são sincronizadas pelo anfitrião e a lista de salas ao vivo contém somente salas reais do servidor dedicado.
+
+**Atenção:** não há configuração Firebase real neste checkout nem um servidor permanente publicado por esta atualização. Login Google real depende de [FIREBASE.md](FIREBASE.md); a lista global de salas depende de [HOSPEDAGEM.md](HOSPEDAGEM.md). Os testes da conta usam Firebase simulado e os testes online usam servidor temporário local. Veja [REFINAMENTO-V4.md](REFINAMENTO-V4.md) para mudanças, testes e pendências completas.

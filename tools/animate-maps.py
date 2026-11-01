@@ -1,23 +1,20 @@
 """Transforma mapas estáticos em folhas animadas 6x4 (24 quadros, loop perfeito).
 Efeitos procedurais por mapa: luzes pulsando (fase própria por região), ondulação
-em faixas de água, balanço de folhagem/aurora e brilhos. Saída em meia resolução
-(480x270 por quadro) com paleta única — mesmo visual "pixel grosso" dos mapas
-originais, sem cintilação e com arquivos pequenos.
+em faixas de água, balanço de folhagem/aurora e brilhos. Saída 640x360 por quadro
+com paleta estável de 256 cores e brilho moderado, mantendo o piso firme.
 Uso: python3 tools/animate-maps.py [ids...]
 Gera assets/maps/anim/<id>.png e assets/maps/anim.js (registro MAP_ANIM).
 """
 import json
 import math
 import sys
+import zlib
 from pathlib import Path
-
 import numpy as np
 from PIL import Image, ImageFilter
-
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'assets/maps/anim'
-FW, FH, N = 480, 270, 24
-
+FW, FH, N = 640, 360, 24
 # faixas em fração da altura: water=(y0,y1,amp), sway=(y0,y1,amp), glow=intensidade
 CFG = {
     '11-oficina-latas': dict(src='stage', glow=0.35, sway=None),
@@ -33,8 +30,9 @@ CFG = {
     'kotlin': dict(glow=0.25, water=(0.52, 0.74, 2.0), sway=(0.0, 0.3, 1.0)),
     'kali': dict(glow=0.5),
     'java': dict(glow=0.45),
-    'chrome': dict(glow=0.5, water=(0.84, 1.0, 1.2)),
+    'chrome': dict(glow=0.5, water=(0.70, 0.80, 0.7)),
     'sesi': dict(glow=0.2, rays=True, sway=(0.0, 0.0, 0)),
+    'sesi-patio': dict(glow=0.12, rays=True),
     '01-neon-rooftop': dict(glow=0.5),
     '02-volcanic-forge': dict(glow=0.55),
     '03-underwater-lab': dict(glow=0.35, water=(0.0, 0.70, 1.2)),
@@ -71,7 +69,7 @@ def build(mid):
     # máscara de luzes: claro e saturado (neon, lava, telas, lanternas)
     m = ((hsv[..., 2] > 0.72) & (hsv[..., 1] > 0.3)).astype(np.uint8) * 255
     mask = np.asarray(Image.fromarray(m).filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.GaussianBlur(2)), dtype=np.float32) / 255.0
-    phase = smooth_noise(abs(hash(mid)) % 9999, FW, FH) * 2 * math.pi
+    phase = smooth_noise(zlib.crc32(mid.encode()), FW, FH) * 2 * math.pi
     ys = np.arange(FH)
     rng = np.random.default_rng(7)
     sparks = []
@@ -86,8 +84,8 @@ def build(mid):
         f = arr.copy()
         g = cfg.get('glow', 0.3)
         if g:
-            puls = 1 + g * 0.5 * np.sin(t * 2 + phase)
-            f = f * (1 + (puls[..., None] - 1) * mask[..., None] * 1.6)
+            puls = 1 + g * 0.18 * np.sin(t + phase)
+            f = f * (1 + (puls[..., None] - 1) * mask[..., None])
         if cfg.get('sway') and cfg['sway'][2]:
             y0, y1, amp = cfg['sway']
             r0, r1 = int(y0 * FH), int(y1 * FH)
@@ -117,8 +115,8 @@ def build(mid):
             xs = np.arange(FW)[None, :]
             ray = np.clip(np.sin((xs + ys[:, None] * 0.6) * 0.035 + t) * 0.5 + 0.5, 0, 1) ** 6
             fade = np.clip(1 - ys / (FH * 0.75), 0, 1)[:, None]
-            f = f + (ray * fade * 26)[..., None]
-        for (x, y, ph) in stars:
+            f = f + (ray * fade * 10)[..., None]
+        for (x, y, ph) in ([] if mid in ('sesi', 'sesi-patio', 'java', 'kali') else stars):
             a = max(0.0, math.sin(t + ph))
             if a > 0.85 and hsv[y, x, 2] < 0.35:
                 f[y, x] = 255
@@ -126,7 +124,7 @@ def build(mid):
     sheet = Image.new('RGB', (FW * 6, FH * 4))
     for k, fr in enumerate(frames):
         sheet.paste(Image.fromarray(fr), ((k % 6) * FW, (k // 6) * FH))
-    pal = Image.fromarray(frames[0]).quantize(200, method=Image.Quantize.MEDIANCUT)
+    pal = base.quantize(256, method=Image.Quantize.MEDIANCUT)
     sheet = sheet.quantize(palette=pal, dither=Image.Dither.NONE)
     OUT.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT / f'{mid}.png', optimize=True)

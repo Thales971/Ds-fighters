@@ -258,6 +258,17 @@ body.reduced .pet-spr { animation: none; }
 .net-status.err { color: var(--red); border-color: #6a1a1a; }
 .net-connect label, .net-lobby label { display: flex; align-items: center; gap: 8px; font-size: 8px; justify-content: center; margin: 6px 0; }
 .net-connect input[type=text] { width: 380px; }
+.net-directory { margin: 12px 0 4px; padding: 8px; border: 2px solid #3a2766; background: rgba(9,4,24,.65); text-align: left; }
+.net-directory-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--gold); font-size: 8px; }
+.net-directory .sub { margin: 6px 0; }
+.net-room-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid #3a2766; }
+.net-room-row span { display: flex; flex-direction: column; gap: 3px; }
+.net-room-row b { color: var(--gold); letter-spacing: 2px; }
+.net-room-row small { color: #d9ccff; font-size: 6px; }
+.lobby-config { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 8px 0; padding: 7px; border: 2px solid #3a2766; background: rgba(9,4,24,.65); font-size: 7px; }
+.lobby-config > b { color: var(--gold); }
+.lobby-config label { margin: 0; }
+.lobby-config input[type=checkbox] { accent-color: var(--lime); }
 .lobby-code { font-size: 12px; margin: 6px 0; }
 .lobby-code b { color: var(--gold); font-size: 22px; letter-spacing: 6px; text-shadow: 3px 3px 0 #a1271c; }
 .lobby-players { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
@@ -437,3 +448,11 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .sel-card .kit li { padding-top: 2px; padding-bottom: 2px; }
 .lp b { line-height: 1.6; display: block; }
 .lp .faces i { width: 36px; height: 36px; }
+
+/* Regras locais usam a mesma linguagem visual do lobby. */
+.main-menu { max-height: 354px; overflow-y: auto; overflow-x: hidden; padding-right: 10px; scrollbar-width: thin; touch-action: pan-y; }
+.custom-rules { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 18px 24px; margin: 22px 0; }
+.custom-rules label { display: flex; align-items: center; gap: 10px; font-size: 9px; line-height: 1.7; color: #c9b8ff; }
+.custom-rules select { font-size: 9px; }
+.custom-rules input { accent-color: #7dff5e; width: 20px; height: 20px; }
+.custom-rules .nav:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }

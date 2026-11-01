@@ -48,7 +48,8 @@ const STAGE_LIST = [
   { id: 'kali', name: 'Covil do Kali', image: 'assets/maps/kali.jpg', group: 'Expansão Turbo', weather: ['clear', 'rain', 'storm'], fauna: ['bat'], mech: 'hack', tint: '#00ff66' },
   { id: 'java', name: 'Torrefação JVM', image: 'assets/maps/java.jpg', group: 'Expansão Turbo', weather: ['clear'], fauna: [], mech: 'gc', tint: '#f89820', embers: true },
   { id: 'chrome', name: 'Cidade Cromada', image: 'assets/maps/chrome.jpg', group: 'Expansão Turbo', weather: ['rain', 'storm', 'clear'], fauna: ['bird'], mech: 'drones', tint: '#ff4fd8' },
-  { id: 'sesi', name: 'Quadra SESI Valinhos', image: 'assets/maps/sesi.jpg', group: 'Expansão V4', weather: ['clear'], fauna: ['bird'], mech: 'sesi', tint: '#e30613' },
+  { id: 'sesi', name: 'Quadra SESI Valinhos', image: 'assets/maps/sesi.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'sesi', tint: '#e30613' },
+  { id: 'sesi-patio', name: 'Pátio SESI Valinhos', image: 'assets/maps/sesi-patio.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'sesi', tint: '#ffcf95' },
 ];
 
 /* Compatibilidade com código antigo. */

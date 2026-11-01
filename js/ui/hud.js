@@ -31,7 +31,7 @@ const HUD = {
       side.innerHTML = `
         <div class="face" style="background-image:url(assets/ui/face-${f.def.id}.png)"></div>
         <div class="info">
-          <div class="nameline"><span class="name">${f.def.name}</span><span class="pips">${'<i></i>'.repeat(game.cfg.roundsToWin)}</span></div>
+          <div class="nameline"><span class="name">${f.def.name}</span><span class="pips">${game.mode === 'training' ? 'TREINO' : '<i></i>'.repeat(Math.min(9, game.cfg.roundsToWin))}</span></div>
           <div class="life"><div class="red"></div><div class="fill"></div><div class="shield"></div><div class="lifenum"></div></div>
           <div class="meters">
             <div class="m ult"><b>ULT</b><span><i></i></span></div>
@@ -91,7 +91,7 @@ const HUD = {
       q('.fill').style.width = hpPct + '%';
       q('.red').style.width = Math.max(0, f.redHp / f.maxHp) * 100 + '%';
       q('.shield').style.width = Math.min(100, ((f.shield || 0) / f.maxHp) * 100 * 3) + '%';
-      q('.lifenum').textContent = Math.ceil(Math.max(0, f.hp));
+      q('.lifenum').textContent = game.cfg.infiniteLife ? '∞' : Math.ceil(Math.max(0, f.hp));
       q('.life').classList.toggle('low', hpPct < 25);
       q('.ult i').style.width = f.ultimate + '%';
       q('.ult').classList.toggle('full', f.ultimate >= 100);

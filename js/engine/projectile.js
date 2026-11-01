@@ -169,13 +169,13 @@ class Strike {
         const hb = f.hurtbox();
         if (hb.x < this.x + this.w / 2 && hb.x + hb.w > this.x - this.w / 2 && hb.y < 0 && hb.y + hb.h > -this.h) {
           this.hit.add(f);
-          f.takeHit(this.dmg, {
+          const landed = f.takeHit(this.dmg, {
             attacker: this.owner, kx: this.kx || 3, dirSign: Math.sign(f.x - this.x) || 1,
             stun: this.stun || 18, launch: this.launch == null ? -6 : this.launch, height: this.unblockable ? 'unblockable' : 'mid',
-            burn: this.burn, poison: this.poison, slow: this.slow, element: this.element, heavy: true,
+            burn: this.burn, poison: this.poison, slow: this.slow, trap: this.trap, freeze: this.freeze, element: this.element, heavy: true,
             hazard: !this.owner, noScale: !this.owner, power: this.power, ability: !!this.owner,
           });
-          if (this.onHit) this.onHit(f, game);
+          if (landed && this.onHit) this.onHit(f, game);
         }
       }
     }
@@ -215,7 +215,7 @@ class Zone {
     this.id = ENTITY_SEQ++;
     this.type = 'zone';
     this.owner = owner;
-    Object.assign(this, { x: 0, w: 160, time: 300, dmg: 0.1, slow: 0, poison: 0, row: 0, fid: null, key: null }, opts);
+    Object.assign(this, { x: 0, w: 160, time: 300, dmg: 0.1, slow: 0, burn: 0, poison: 0, fx: null, power: null, row: 0, fid: null, key: null }, opts);
     this.age = 0;
     this.dead = false;
   }
@@ -227,7 +227,15 @@ class Zone {
       if (Math.abs(f.x - this.x) < this.w / 2 && f.y > -20) {
         if (this.dmg && this.age % 6 === 0) f.chip(this.dmg * 6, this.owner);
         if (this.slow) f.addStatus('slow', this.slow);
-        if (this.poison && this.age % 30 === 0) f.addStatus('poison', 90);
+        if (this.burn && this.age % 20 === 0) f.addStatus('burn', this.burn, this.owner);
+        if (this.poison && this.age % 30 === 0) f.addStatus('poison', this.poison, this.owner);
+        if (this.fx) {
+          if (this.fx.chill) f.addStatus('chill', this.fx.chill);
+          if (this.fx.bleed) f.addStatus('bleed', this.fx.bleed, this.owner);
+          if (this.fx.vuln) f.addStatus('vuln', this.fx.vuln);
+          if (this.fx.lock) f.addStatus('locked', this.fx.lock);
+          if (this.fx.meterSlow) f.addStatus('meterSlow', this.fx.meterSlow);
+        }
       }
     }
   }

@@ -21,6 +21,11 @@ const UI = {
     document.querySelectorAll('#scr-menu [data-go]').forEach((b) => b.addEventListener('click', () => this.menuGo(b.dataset.go)));
     this.$('btn-start').addEventListener('click', () => this.pressStart());
     this.$('btn-fight').addEventListener('click', () => this.confirmStage());
+    this.$('rules-start').addEventListener('click', () => this.startFlow('versus', {
+      customRules: { roundsToWin: Number(this.$('rules-rounds').value), timer: Number(this.$('rules-timer').value), infiniteLife: this.$('rules-life').checked, infiniteMeter: this.$('rules-meter').checked },
+      p2Human: this.$('rules-opponent').value === 'human',
+    }));
+    this.$('rules-online').addEventListener('click', () => this.show('online'));
     this.$('btn-resume').addEventListener('click', () => this.resume());
     this.$('btn-quit').addEventListener('click', () => this.quitFight());
     this.$('btn-pause-moves').addEventListener('click', () => this.show('moves', true));
@@ -61,7 +66,7 @@ const UI = {
   back() {
     AudioSys.back();
     if (this.stack.length) { const prev = this.stack.pop(); this.show(prev, false); this.stack = this.stack; return; }
-    if (['select', 'custom', 'redeem', 'options', 'moves', 'online'].includes(this.screen)) return this.toMenu();
+    if (['select', 'custom', 'rules', 'redeem', 'options', 'moves', 'online'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   toMenu() {
@@ -124,8 +129,10 @@ const UI = {
       <div><span>Vitórias</span><b>${s.wins}</b></div>
       <div><span>Maior combo</span><b>${s.maxCombo}</b></div>
       <div><span>Arcade (melhor)</span><b>${s.bestArcade}/7</b></div>
-      <div><span>Secretos</span><b>${Profile.data.unlocked.length}/3</b></div>
+      <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
+    const tagline = document.querySelector('.tagline');
+    if (tagline) tagline.textContent = `EDIÇÃO TURBO · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -167,7 +174,7 @@ const UI = {
     const f = this.flow;
     const grid = this.$('sel-grid');
     const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE' };
-    this.$('sel-mode').textContent = modeNames[f.mode] + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
+    this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
@@ -397,9 +404,10 @@ const UI = {
       cpu: [false, !f.p2Human],
       pets: [Profile.petFor(0), f.p2Human ? Profile.petFor(1) : PETS[0]],
       dummy: f.dummy,
-      infiniteMeter: f.infinite,
-      roundsToWin: f.mode === 'training' ? 99 : 2,
-      timer: 99,
+      infiniteLife: !!(f.customRules && f.customRules.infiniteLife),
+      infiniteMeter: f.customRules ? f.customRules.infiniteMeter : f.infinite,
+      roundsToWin: f.mode === 'training' ? 99 : f.customRules ? f.customRules.roundsToWin : 2,
+      timer: f.customRules ? f.customRules.timer : 99,
     };
   },
   launch(cfgOverride) {

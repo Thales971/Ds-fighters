@@ -5,6 +5,7 @@ const assert = require('assert');
 const WebSocket = require('ws');
 process.env.GRACE_MS = '1500';
 const { createServer } = require('./server');
+const RoomCore = require('./room-core');
 
 const PORT = 18787;
 const URL = `ws://localhost:${PORT}`;
@@ -38,6 +39,10 @@ const T = (t) => (m) => m.t === t;
   let ok = 0;
   const pass = (s) => { ok++; console.log('  ✔ ' + s); };
   try {
+    assert.equal(RoomCore.normalizeConfig({ roundsToWin: 9 }).roundsToWin, 9);
+    assert.equal(RoomCore.normalizeConfig({ roundsToWin: 99 }).roundsToWin, 9);
+    assert.equal(RoomCore.normalizeConfig({ roundsToWin: 0 }).roundsToWin, 1);
+    pass('normaliza rounds extras entre 1 e 9');
     // protocolo incompatível
     const bad = await new Promise((res) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 99 }))); ws.on('message', (d) => res(JSON.parse(d.toString()))); });
     assert.equal(bad.code, 'protocol'); pass('rejeita versão de protocolo diferente');
@@ -49,22 +54,37 @@ const T = (t) => (m) => m.t === t;
     A.send({ t: 'create', mode: '1v1', stagePool: STAGES });
     const ja = await A.wait(T('joined'));
     assert(/^[A-Z0-9]{6}$/.test(ja.code)); pass('cria sala com código ' + ja.code);
+    const directory = await B.wait((m) => m.t === 'rooms' && m.rooms.some((r) => r.code === ja.code));
+    const listed = directory.rooms.find((r) => r.code === ja.code);
+    assert.deepEqual({ players: listed.players, cap: listed.cap, open: listed.open }, { players: 1, cap: 2, open: true });
+    pass('diretório público anuncia somente a sala real e uma vaga livre');
 
     B.send({ t: 'join', code: 'ZZZZZZ' });
     assert.match((await B.wait(T('error'))).msg, /não encontrada/); pass('código inexistente é recusado');
 
-    B.send({ t: 'join', code: ja.code });
+    B.send({ t: 'join', code: listed.code });
     const jb = await B.wait(T('joined'));
     const room = await A.wait((m) => m.t === 'room' && m.room.players.length === 2);
     assert.equal(room.room.players[1].name, 'Beto'); pass('convidado entra e lobby atualiza');
+
+    A.send({ t: 'config', config: { roundsToWin: 9, timer: 120, infiniteLife: true, infiniteMeter: true } });
+    const configured = await B.wait((m) => m.t === 'room' && m.room.config && m.room.config.roundsToWin === 9);
+    assert.deepEqual(configured.room.config, { roundsToWin: 9, timer: 120, infiniteLife: true, infiniteMeter: true });
+    pass('anfitrião sincroniza vida infinita, medidores, tempo e até nove rounds');
+    B.send({ t: 'config', config: { roundsToWin: 1, timer: 30, infiniteLife: false } });
+    await B.none((m) => m.t === 'room' && m.room.config && m.room.config.roundsToWin === 1);
+    pass('convidado não pode substituir as regras da sala');
 
     C.send({ t: 'join', code: ja.code });
     assert.match((await C.wait(T('error'))).msg, /cheia/); pass('terceiro jogador recebe "Sala cheia"');
 
     // sala isolada para C
-    C.send({ t: 'create', mode: '2x2', stagePool: STAGES });
+    C.send({ t: 'create', mode: '2x2', stagePool: STAGES, config: null });
     const jc = await C.wait(T('joined'));
     assert.notEqual(jc.code, ja.code);
+    const cRoom = await C.wait((m) => m.t === 'room' && m.room.code === jc.code);
+    assert.deepEqual(cRoom.room.config, { roundsToWin: 2, timer: 99, infiniteLife: false, infiniteMeter: false });
+    pass('configuração nula usa regras padrão sem derrubar a conexão');
 
     // validação de escolhas
     A.send({ t: 'pick', fighters: ['senpai'] });
@@ -94,10 +114,19 @@ const T = (t) => (m) => m.t === t;
     // retransmissão
     B.send({ t: 'input', i: 0b10001 });
     assert.equal((await A.wait(T('input'))).i, 0b10001); pass('entrada do convidado chega ao anfitrião');
+    B.send({ t: 'input', i: 0b10010, seq: 9 });
+    assert.equal((await A.wait(T('input'))).seq, 9);
+    B.send({ t: 'input', i: '0x31', seq: 10 });
+    B.send({ t: 'input', i: 0b10011, seq: 8 });
+    await A.none((m) => m.t === 'input' && m.seq === 8);
+    pass('entrada com tipo inválido e sequência atrasada não entra na fila do anfitrião');
     A.send({ t: 'input', i: 1 });
     await B.none(T('input')); pass('anfitrião não envia entrada (autoridade é dele)');
     A.send({ t: 'snap', s: { t: 1, teams: [[], []] } });
     assert.equal((await B.wait(T('snap'))).s.t, 1); pass('snapshot do anfitrião chega ao convidado');
+    A.send({ t: 'snap', s: { t: 0, teams: [[], []] } });
+    await B.none((m) => m.t === 'snap' && m.s && m.s.t === 0);
+    pass('snapshot atrasado é descartado');
     B.send({ t: 'snap', s: { t: 2 } });
     await A.none(T('snap')); pass('convidado não consegue enviar snapshot');
     await C.none((m) => m.t === 'snap' || m.t === 'input'); pass('salas isoladas: outra sala não recebe nada');

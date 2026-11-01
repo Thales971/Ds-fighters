@@ -32,6 +32,13 @@ const Net = {
   wantRoom: false,
   bound: false,
   lastSent: -1,
+  inputSeq: 0,
+  outbox: [],
+  heartbeatTimer: null,
+  reconnectTimer: null,
+  socket: null,
+  lastPongAt: 0,
+  roomList: [],
   ping: 0,
   defaultUrl() {
     const h = location.hostname;
@@ -45,9 +52,87 @@ const Net = {
     if (el) { el.textContent = text; el.className = 'net-status ' + kind; }
   },
   p2pAvailable() { return typeof Peer === 'function' && typeof RTCPeerConnection === 'function'; },
+  ensureOnlineUi() {
+    const connect = this.$('net-connect');
+    const lobby = this.$('net-lobby');
+    if (connect && !this.$('net-directory')) connect.insertAdjacentHTML('beforeend', `
+      <section class="net-directory" id="net-directory" aria-labelledby="net-directory-title">
+        <div class="net-directory-head"><b id="net-directory-title">SALAS PÚBLICAS</b><button class="nav btn tiny" id="net-rooms-refresh" type="button">ATUALIZAR</button></div>
+        <p class="sub small" id="net-directory-hint">Disponível quando um servidor dedicado estiver conectado. P2P usa código ou link.</p>
+        <div id="net-rooms" aria-live="polite"></div>
+      </section>`);
+    if (lobby && !this.$('lobby-config')) lobby.insertAdjacentHTML('afterbegin', `
+      <div class="lobby-config" id="lobby-config">
+        <b>REGRAS DA SALA</b>
+        <label>Rounds para vencer <select id="lobby-rounds" aria-label="Rounds para vencer"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="7">7</option><option value="9">9</option></select></label>
+        <label>Tempo por round <select id="lobby-timer" aria-label="Tempo por round"><option value="60">60 s</option><option value="99">99 s</option><option value="120">120 s</option></select></label>
+        <label class="chk"><input type="checkbox" id="lobby-infinite-life" /> Vida infinita</label>
+        <label class="chk"><input type="checkbox" id="lobby-infinite-meter" /> Medidores infinitos</label>
+      </div>`);
+  },
+  startHeartbeat() {
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.link || this.status !== 'open') return;
+      if (this.lastPongAt && performance.now() - this.lastPongAt > 7500) {
+        try { this.link.close(); } catch (e) { /* conexão já fechada */ }
+        return;
+      }
+      this.send('ping', { at: performance.now() });
+    }, 2000);
+  },
+  stopHeartbeat() {
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
+  },
+  onlineConfig() {
+    const r = this.room && this.room.config;
+    const useControls = !this.room || this.isHost();
+    const val = (id, fallback) => { const e = this.$(id); return e ? e.value : fallback; };
+    const checked = (id) => !!(this.$(id) && this.$(id).checked);
+    return RoomCore.normalizeConfig({
+      roundsToWin: useControls ? +val('lobby-rounds', r && r.roundsToWin || 2) : +(r && r.roundsToWin || 2),
+      timer: useControls ? +val('lobby-timer', r && r.timer || 99) : +(r && r.timer || 99),
+      infiniteLife: useControls ? checked('lobby-infinite-life') : !!(r && r.infiniteLife),
+      infiniteMeter: useControls ? checked('lobby-infinite-meter') : !!(r && r.infiniteMeter),
+    });
+  },
+  syncConfigUi() {
+    const c = this.onlineConfig();
+    const host = this.isHost();
+    [['lobby-rounds', c.roundsToWin], ['lobby-timer', c.timer]].forEach(([id, value]) => { const e = this.$(id); if (e) { e.value = String(value); e.disabled = !host; } });
+    [['lobby-infinite-life', c.infiniteLife], ['lobby-infinite-meter', c.infiniteMeter]].forEach(([id, value]) => { const e = this.$(id); if (e) { e.checked = value; e.disabled = !host; } });
+  },
+  changeConfig() {
+    if (!this.room || !this.isHost()) return;
+    this.send('config', { config: this.onlineConfig() });
+  },
+  renderRooms(list) {
+    this.roomList = Array.isArray(list) ? list.filter((r) => r && /^[A-Z0-9]{6}$/.test(String(r.code).toUpperCase()) && Number.isInteger(r.players) && Number.isInteger(r.cap)) : [];
+    const box = this.$('net-directory');
+    const out = this.$('net-rooms');
+    if (!box || !out) return;
+    const enabled = this.$('net-transport') && this.$('net-transport').value === 'ws';
+    box.classList.toggle('hidden', !enabled);
+    if (!enabled) { out.innerHTML = ''; return; }
+    if (this.status !== 'open') { out.innerHTML = '<p class="sub small">Servidor dedicado não conectado; a lista ao vivo está indisponível.</p>'; return; }
+    if (!this.roomList.length) { out.innerHTML = '<p class="sub small">Nenhuma sala pública aberta agora.</p>'; return; }
+    out.innerHTML = this.roomList.map((r) => {
+      const mode = r.mode === '2x2-4' ? '2 × 2 · 4 jogadores' : r.mode === '2x2' ? '2 × 2 · duplas' : '1 × 1';
+      const code = String(r.code).toUpperCase();
+      const full = r.players >= r.cap;
+      return `<div class="net-room-row"><span><b>${escapeHtml(code)}</b><small>${mode} · ${r.players}/${r.cap}${r.stage && r.stage !== 'random' ? ' · ' + escapeHtml(r.stage) : ''}</small></span><button class="nav btn tiny" data-room-code="${escapeHtml(code)}" ${full ? 'disabled' : ''}>${full ? 'CHEIA' : 'ENTRAR'}</button></div>`;
+    }).join('');
+  },
+  async joinListed(code) {
+    const input = this.$('net-code');
+    if (input) input.value = code;
+    await this.join();
+  },
   bindUi() {
     if (!this.bound) {
       this.bound = true;
+      this.ensureOnlineUi();
       this.$('net-create').addEventListener('click', () => this.create());
       this.$('net-join').addEventListener('click', () => this.join());
       this.$('lobby-ready').addEventListener('click', () => this.toggleReady());
@@ -59,18 +144,28 @@ const Net = {
       this.$('chat-send').addEventListener('click', () => this.sendChat());
       this.$('chat-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.sendChat(); } e.stopPropagation(); });
       this.$('lobby-stage').addEventListener('change', (e) => this.send('stage', { id: e.target.value }));
+      ['lobby-rounds', 'lobby-timer', 'lobby-infinite-life', 'lobby-infinite-meter'].forEach((id) => this.$(id).addEventListener('change', () => this.changeConfig()));
       this.$('net-code').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
       const tr = this.$('net-transport');
       tr.value = Profile.setting('netTransport') || (this.defaultUrl() ? 'ws' : 'p2p');
-      tr.addEventListener('change', () => { Profile.setting('netTransport', tr.value); this.refreshConnectUi(); });
+      tr.addEventListener('change', () => {
+        if (this.room) { tr.value = this.transport; this.refreshConnectUi(); return; }
+        Profile.setting('netTransport', tr.value);
+        if (tr.value !== 'ws' && this.transport === 'ws') this.closeWs();
+        this.refreshConnectUi();
+        if (tr.value === 'ws') this.openDirectory(); else this.renderRooms([]);
+      });
       this.$('net-url').addEventListener('input', () => this.refreshConnectUi());
       const sel = this.$('lobby-stage');
       sel.innerHTML = `<option value="random">Aleatória</option>` + STAGE_LIST.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
-      setInterval(() => { if (this.room && this.status === 'open') this.send('ping', { at: performance.now() }); }, 2000);
+      this.$('net-rooms-refresh').addEventListener('click', () => this.openDirectory(true));
+      this.$('net-rooms').addEventListener('click', (e) => { const b = e.target.closest('[data-room-code]'); if (b && !b.disabled) this.joinListed(b.dataset.roomCode); });
+      this.startHeartbeat();
     }
     if (!this.$('net-url').value) this.$('net-url').value = Profile.setting('serverUrl') || this.defaultUrl();
     if (!this.$('net-name').value) this.$('net-name').value = Profile.data.name || 'Jogador';
     this.refreshConnectUi();
+    if (this.$('net-transport').value === 'ws' && !this.room) this.openDirectory();
   },
   refreshConnectUi() {
     const ws = this.$('net-transport').value === 'ws';
@@ -86,6 +181,7 @@ const Net = {
     } else if (!this.p2pAvailable()) {
       this.setStatus('P2P INDISPONÍVEL: este navegador não tem WebRTC ou a biblioteca não carregou. Use o servidor dedicado.', 'err');
     } else this.setStatus('P2P pronto: crie uma sala ou digite o código de um amigo.', 'ok');
+    this.renderRooms(this.roomList);
   },
   copy(text, what) {
     if (!text) return;
@@ -127,34 +223,53 @@ const Net = {
       return Promise.reject(new Error('sem servidor'));
     }
     if (this.link && this.status === 'open' && this.transport === 'ws' && this.url === url) return Promise.resolve();
+    if (this.socket && this.status !== 'closed') { try { this.socket.close(); } catch (e) { /* conexão antiga */ } }
     this.transport = 'ws';
     this.url = url;
     const name = this.myName();
+    const attempt = (this.socketAttempt || 0) + 1;
+    this.socketAttempt = attempt;
     return new Promise((resolve, reject) => {
       this.setStatus('Conectando a ' + url + '…', 'info');
       let ws;
       try { ws = new WebSocket(url); } catch (e) { this.setStatus('Endereço inválido.', 'err'); reject(e); return; }
+      this.socket = ws;
       this.status = 'connecting';
-      const to = setTimeout(() => { if (this.status === 'connecting') { ws.close(); this.setStatus('Servidor não respondeu. Confira o endereço e se ele está no ar.', 'err'); reject(new Error('timeout')); } }, 8000);
+      const to = setTimeout(() => { if (this.socketAttempt === attempt && this.status === 'connecting') { ws.close(); this.setStatus('Servidor não respondeu. Confira o endereço e se ele está no ar.', 'err'); reject(new Error('timeout')); } }, 8000);
       ws.onopen = () => {
+        if (this.socketAttempt !== attempt) return;
         clearTimeout(to);
         this.status = 'open';
         this.retries = 0;
+        this.lastPongAt = performance.now();
         this.link = { send: (o) => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, close: () => ws.close() };
         this.link.send({ t: 'hello', v: NET_PROTOCOL, name, resume: resume || null });
+        this.flushOutbox();
         resolve();
       };
-      ws.onmessage = (ev) => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } this.onMessage(m); };
+      ws.onmessage = (ev) => { if (this.socketAttempt !== attempt) return; let m; try { m = JSON.parse(ev.data); } catch (e) { return; } this.onMessage(m); };
       ws.onerror = () => {};
       ws.onclose = () => {
+        if (this.socketAttempt !== attempt) return;
         clearTimeout(to);
+        this.socket = null;
         const was = this.status;
         this.status = 'closed';
         this.link = null;
+        this.renderRooms([]);
         if (was === 'connecting') { this.setStatus('Não foi possível conectar. O servidor está offline ou o endereço está errado.', 'err'); reject(new Error('closed')); return; }
         this.onDrop();
       };
     });
+  },
+  closeWs() {
+    this.socketAttempt = (this.socketAttempt || 0) + 1;
+    const ws = this.socket;
+    this.socket = null;
+    this.link = null;
+    this.status = 'closed';
+    if (ws) { try { ws.close(); } catch (e) { /* conexão já fechada */ } }
+    this.renderRooms([]);
   },
   /* ---------------- transporte P2P (WebRTC / PeerJS) ---------------- */
   openPeer(id) {
@@ -179,12 +294,22 @@ const Net = {
     }
     if (err && (err.type === 'network' || err.type === 'server-error')) this.setStatus('Problema na rede P2P — tentando continuar…', 'warn');
   },
+  openDirectory(force) {
+    if (this.room || !this.$('net-transport') || this.$('net-transport').value !== 'ws') return;
+    if (!force && this.status === 'connecting') return;
+    this.connectWs().catch(() => { this.renderRooms([]); });
+  },
+  flushOutbox() {
+    if (!this.link || this.status !== 'open') return;
+    const queue = this.outbox.splice(0);
+    queue.forEach((m) => this.link && this.link.send(m));
+  },
   destroyPeer() {
     if (this.peer) { try { this.peer.destroy(); } catch (e) { /* */ } }
     this.peer = null;
     this.core = null;
   },
-  async hostP2P(mode) {
+  async hostP2P(mode, config) {
     const name = this.myName();
     this.destroyPeer();
     this.setStatus('Criando sala P2P…', 'info');
@@ -209,7 +334,7 @@ const Net = {
       dc.on('error', () => {});
     });
     this.link.send({ t: 'hello', v: NET_PROTOCOL, name });
-    this.link.send({ t: 'create', mode, stagePool: STAGE_LIST.map((s) => s.id) });
+    this.link.send({ t: 'create', mode, config, stagePool: STAGE_LIST.map((s) => s.id) });
     return true;
   },
   async joinP2P(code, resume) {
@@ -250,9 +375,10 @@ const Net = {
   /* ---------------- comum ---------------- */
   onDrop() {
     if (this.wantRoom && this.room) this.reconnect();
-    else if (this.room == null) this.setStatus('Desconectado.', 'warn');
+    else { this.renderRooms([]); if (this.room == null) this.setStatus('Desconectado.', 'warn'); }
   },
   reconnect() {
+    if (this.reconnectTimer) return;
     if (this.retries > 14) {
       this.setStatus('Conexão perdida de vez. A sala foi encerrada.', 'err');
       this.dropRoom();
@@ -260,28 +386,35 @@ const Net = {
     }
     this.retries++;
     this.setStatus(`Conexão perdida — tentando voltar (${this.retries}/15)…`, 'warn');
-    if (UI.game.mode === 'online' && UI.game.running) UI.banner('RECONECTANDO…', '#ffb03b', 'Aguarde');
+    if (UI.game && UI.game.mode === 'online' && UI.game.running) UI.banner('RECONECTANDO…', '#ffb03b', 'Aguarde');
     const resume = this.room && this.token ? { code: this.room.code, token: this.token } : null;
-    setTimeout(() => {
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
       const p = this.transport === 'ws' ? this.connectWs(resume) : this.joinP2P(this.room ? this.room.code : '', resume);
       p.catch(() => this.reconnect());
     }, 2000);
   },
   send(t, data) {
-    if (!this.link || this.status !== 'open') return false;
-    this.link.send(Object.assign({ t }, data || {}));
-    return true;
+    const msg = Object.assign({ t }, data || {});
+    if (this.link && this.status === 'open') { this.link.send(msg); return true; }
+    const queueable = ['create', 'join', 'config', 'pick', 'ready', 'team', 'stage', 'chat', 'leave', 'rematch'];
+    if (this.status === 'connecting' && queueable.includes(t)) {
+      if (t === 'create' || t === 'join' || t === 'config') this.outbox = this.outbox.filter((m) => m.t !== t);
+      if (this.outbox.length < 12) this.outbox.push(msg);
+    }
+    return false;
   },
   async create() {
     AudioSys.select();
     const mode = this.$('net-mode').value;
+    const config = this.onlineConfig();
     if (this.$('net-transport').value === 'ws') {
       try { await this.connectWs(); } catch (e) { return; }
       this.wantRoom = true;
-      this.send('create', { mode, stagePool: STAGE_LIST.map((s) => s.id) });
+      this.send('create', { mode, config, stagePool: STAGE_LIST.map((s) => s.id) });
     } else {
       this.wantRoom = true;
-      if (!(await this.hostP2P(mode))) this.wantRoom = false;
+      if (!(await this.hostP2P(mode, config))) this.wantRoom = false;
     }
   },
   async join() {
@@ -328,6 +461,10 @@ const Net = {
   requestRematch() { this.send('rematch', {}); },
   leave(silent) {
     if (this.room) this.send('leave', {});
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.retries = 0;
+    this.outbox = [];
     this.dropRoom();
     if (this.transport === 'p2p') setTimeout(() => this.destroyPeer(), 300);
     if (!silent) this.setStatus('Você saiu da sala.', 'info');
@@ -369,6 +506,7 @@ const Net = {
         <span class="st">${!p.connected ? 'DESCONECTADO' : p.ready ? 'PRONTO' : 'ESCOLHENDO'}</span></div>`;
     }).join('');
     const me = this.myPlayer();
+    this.syncConfigUi();
     this.$('lobby-ready').textContent = me && me.ready ? 'CANCELAR PRONTO' : 'PRONTO';
     const modeName = r.mode === '2x2-4' ? '2 × 2 · 4 jogadores' : r.mode === '2x2' ? '2 × 2 duplas' : '1 × 1';
     const cap = r.cap || (four ? 4 : 2);
@@ -382,14 +520,19 @@ const Net = {
       case 'welcome':
         this.me = m.id;
         break;
+      case 'rooms':
+        this.renderRooms(m.rooms);
+        break;
       case 'joined':
         this.token = m.token;
         this.me = m.id;
         try { sessionStorage.setItem('dsf.resume', JSON.stringify({ code: m.code, token: m.token })); } catch (e) { /* */ }
         break;
       case 'room':
+        if (!m.room || !/^[A-Z0-9]{6}$/.test(String(m.room.code || '').toUpperCase()) || !Array.isArray(m.room.players)) break;
+        m.room.config = RoomCore.normalizeConfig(m.room.config || {});
         this.room = m.room;
-        this.score = m.room.score;
+        this.score = Array.isArray(m.room.score) ? m.room.score.slice(0, 2) : [0, 0];
         this.renderLobby();
         if (UI.screen === 'menu' || UI.screen === 'title') UI.show('online');
         break;
@@ -397,13 +540,16 @@ const Net = {
         this.startMatch(m);
         break;
       case 'input':
-        this.mergeRemote(m.i, m.slot == null ? 2 : m.slot);
+        if (Number.isInteger(m.i) && m.i >= 0 && m.i <= 0x1ffff) this.mergeRemote(m.i, m.slot == null ? 2 : m.slot);
         break;
       case 'snap':
-        if (UI.game.netRole === 'guest' && UI.game.running) UI.game.applySnapshot(m.s);
+        if (UI.game && UI.game.netRole === 'guest' && UI.game.running && m.s && Number.isInteger(m.s.t)
+          && Array.isArray(m.s.teams) && m.s.teams.length === 2
+          && m.s.teams.every((t) => t && !Array.isArray(t) && Array.isArray(t.m))) UI.game.applySnapshot(m.s);
         break;
       case 'pong':
-        this.ping = Math.max(0, Math.round(performance.now() - m.at));
+        this.lastPongAt = performance.now();
+        this.ping = Math.max(0, Math.round(performance.now() - Number(m.at || performance.now())));
         if (this.$('lobby-ping')) this.$('lobby-ping').textContent = this.isHost() ? 'você é o anfitrião' : `ping ${this.ping} ms`;
         break;
       case 'chat':
@@ -411,8 +557,8 @@ const Net = {
         if (UI.game && UI.game.running && UI.game.mode === 'online') UI.toast(m.from + ': ' + m.text, 2500);
         break;
       case 'end':
-        this.score = m.score;
-        if (UI.game.netRole === 'guest' && UI.game.running) {
+        this.score = Array.isArray(m.score) ? m.score.slice(0, 2) : this.score;
+        if (UI.game && UI.game.netRole === 'guest' && UI.game.running) {
           UI.game.running = false;
           UI.game.stop();
           UI.onMatchEnd(m.result, UI.game);
@@ -420,6 +566,7 @@ const Net = {
         break;
       case 'peer': {
         const g = UI.game;
+        if (!g) break;
         if (m.ev === 'left') {
           UI.banner((m.name || 'JOGADOR') + ' CAIU', '#ffb03b', 'Aguardando reconexão (até 30 s)…');
           if (g.netRole === 'host' && g.running) g.paused = true;
@@ -431,7 +578,7 @@ const Net = {
       }
       case 'abort':
         UI.toast(m.msg || 'Partida cancelada.', 3500);
-        if (UI.game.mode === 'online' && UI.game.running) { UI.game.stop(); HUD.hide(); UI.$('stage-wrap').classList.remove('on'); }
+        if (UI.game && UI.game.mode === 'online' && UI.game.running) { UI.game.stop(); HUD.hide(); UI.$('stage-wrap').classList.remove('on'); }
         UI.show('online');
         break;
       case 'closed':
@@ -450,21 +597,47 @@ const Net = {
   },
   startMatch(m) {
     const r = m.room || this.room;
+    if (!r || !Array.isArray(r.players)) return;
     this.room = r;
     const me = this.myPlayer();
     if (!me) return;
     const host = r.hostId === this.me;
+    const game = UI.game;
+    if (m.resume && game && game.running && game.mode === 'online' && this.activeMatchId === m.matchId && this.activeRoomCode === r.code) {
+      // A queda do socket não destrói a simulação: não lançar outro Game.start.
+      this.remotes = [0, 1, 2, 3].map(() => Object.assign({}, EMPTY_INPUT));
+      this.lastSent = -1;
+      game.paused = false;
+      UI.show('fight');
+      UI.banner('CONEXÃO RESTAURADA', '#7dff5e', 'Round e placar preservados');
+      return;
+    }
+    if (m.resume && host) {
+      // Um reload perde entidades/casts autoritativos; não fingir recuperação.
+      this.send('leave');
+      this.dropRoom();
+      UI.show('online');
+      UI.toast('A página do anfitrião foi reiniciada. Crie outra sala; a partida anterior não pode ser restaurada.', 6000);
+      return;
+    }
+    this.activeMatchId = m.matchId;
+    this.activeRoomCode = r.code;
     const four = r.mode === '2x2-4';
     const teams = [0, 1].map((t) => {
       if (four) return r.players.filter((p) => p.team === t).sort((a, b) => a.slot - b.slot).map((p) => p.picks[0]);
       return (r.players.find((p) => p.team === t) || { picks: ['stack'] }).picks;
     });
     const pets = [0, 1].map((t) => { const p = r.players.find((x) => x.slot === t * 2) || r.players.find((x) => x.team === t); return PETS.find((x) => x.id === (p && p.pet)) || PETS[0]; });
+    const synced = RoomCore.normalizeConfig(m.config || r.config || {});
     const cfg = {
       mode: 'online', netRole: host ? 'host' : 'guest', localTeam: me.team, mySlot: me.slot, fourP: four, tag: r.mode !== '1v1',
-      teams, pets, stage: m.stage, weather: 'random', roundsToWin: 2, timer: 99, cpu: [false, false],
+      teams, pets, stage: m.stage, weather: 'random', roundsToWin: synced.roundsToWin, timer: synced.timer,
+      infiniteLife: synced.infiniteLife, infiniteMeter: synced.infiniteMeter, cpu: [false, false],
     };
+    r.config = synced;
     this.remotes = [0, 1, 2, 3].map(() => Object.assign({}, EMPTY_INPUT));
+    this.inputSeq = 0;
+    this.lastSent = -1;
     UI.game.onNetEnd = (result) => this.send('end', { result: { winner: result.winner, wins: result.wins, teams: result.teams } });
     UI.flow = { mode: 'online', picks: [[], []], need: 1 };
     UI.launch(cfg);
@@ -474,6 +647,7 @@ const Net = {
   encode(inp) { let b = 0; INPUT_BITS.forEach((k, i) => { if (inp[k]) b |= 1 << i; }); return b; },
   decode(b) { const o = {}; INPUT_BITS.forEach((k, i) => { o[k] = !!(b & (1 << i)); }); return o; },
   mergeRemote(bits, slot) {
+    if (!Number.isInteger(bits) || bits < 0 || bits > 0x1ffff) return;
     const d = this.decode(bits | 0);
     const r = this.remotes[slot & 3];
     ['left', 'right', 'up', 'down'].forEach((k) => { r[k] = d[k]; });
@@ -489,9 +663,16 @@ const Net = {
   frame(game) {
     if (game.mode !== 'online' || !game.running || game.paused || this.status !== 'open') return;
     if (game.netRole === 'guest') {
-      const bits = this.encode(Input.read(0));
+      const local = Input.read(0);
+      // O convidado é sempre o jogador local do seu navegador: aceite também
+      // setas para não depender do layout WASD do anfitrião.
+      ['left', 'right', 'up', 'down'].forEach((k) => { local[k] = local[k] || Input.down(['Arrow' + k[0].toUpperCase() + k.slice(1)]); });
+      const bits = this.encode(local);
       const edges = bits & ~0b1111;
-      if (bits !== this.lastSent || edges || game.time % 10 === 0) { this.send('input', { i: bits }); this.lastSent = bits; }
+      if (bits !== this.lastSent || edges || game.time % 10 === 0) {
+        this.send('input', { i: bits, seq: ++this.inputSeq });
+        this.lastSent = bits;
+      }
     } else if (game.netRole === 'host' && game.time % 2 === 0) {
       this.send('snap', { s: game.snapshot() });
     }

@@ -17,7 +17,14 @@ class StageRenderer {
     this.reducedFlag = false;
     this.img = new Image();
     this.ready = false;
+    this.usingSheet = !!def.sheet;
     this.img.onload = () => { this.ready = true; };
+    this.img.onerror = () => {
+      if (this.usingSheet && def.image) {
+        this.usingSheet = false;
+        this.img.src = def.image;
+      }
+    };
     this.img.src = def.sheet || def.image;
     this.ambient = [];
     this.fauna = [];
@@ -43,8 +50,8 @@ class StageRenderer {
   }
   frameRect() {
     const d = this.def;
-    if (!d.sheet) return [0, 0, this.img.naturalWidth || this.W, this.img.naturalHeight || this.H];
-    const f = Math.floor(this.t / (60 / (d.fps || 10))) % d.frames;
+    if (!this.usingSheet) return [0, 0, this.img.naturalWidth || this.W, this.img.naturalHeight || this.H];
+    const f = this.reducedFlag ? 0 : Math.floor(this.t / (60 / (d.fps || 10))) % d.frames;
     return [(f % d.cols) * d.frameW, Math.floor(f / d.cols) * d.frameH, d.frameW, d.frameH];
   }
   update(weather) {
@@ -107,7 +114,7 @@ class StageRenderer {
     }
     if (!this.reducedFlag) {
       ctx.globalCompositeOperation = 'soft-light';
-      ctx.globalAlpha = 0.22 + Math.sin(this.t * 0.02) * 0.05;
+      ctx.globalAlpha = 0.10 + Math.sin(this.t * 0.008) * 0.015;
       ctx.fillStyle = this.def.tint || '#ffffff';
       ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'source-over';
@@ -141,7 +148,7 @@ class StageRenderer {
       const x = c.getContext('2d');
       const g = x.createRadialGradient(this.W / 2, this.H * 0.55, this.H * 0.35, this.W / 2, this.H * 0.55, this.W * 0.7);
       g.addColorStop(0, 'rgba(0,0,0,0)');
-      g.addColorStop(1, 'rgba(0,0,0,0.55)');
+      g.addColorStop(1, 'rgba(0,0,0,0.35)');
       x.fillStyle = g;
       x.fillRect(0, 0, this.W, this.H);
       this.vignette = c;

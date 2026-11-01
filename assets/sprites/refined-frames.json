@@ -1,0 +1,1812 @@
+{
+  "version": 1,
+  "baseline": 246,
+  "frames": {
+    "urbano": [
+      {
+        "pose": "idle",
+        "frame": 0,
+        "bounds": [
+          64,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 1,
+        "bounds": [
+          65,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 2,
+        "bounds": [
+          65,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 3,
+        "bounds": [
+          64,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 0,
+        "bounds": [
+          67,
+          44,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 1,
+        "bounds": [
+          58,
+          44,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 2,
+        "bounds": [
+          73,
+          44,
+          205,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 3,
+        "bounds": [
+          62,
+          44,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 0,
+        "bounds": [
+          101,
+          53,
+          256,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 1,
+        "bounds": [
+          101,
+          53,
+          247,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 2,
+        "bounds": [
+          98,
+          53,
+          247,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 3,
+        "bounds": [
+          104,
+          53,
+          251,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 0,
+        "bounds": [
+          142,
+          111,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 1,
+        "bounds": [
+          142,
+          111,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 2,
+        "bounds": [
+          142,
+          111,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 3,
+        "bounds": [
+          142,
+          111,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 0,
+        "bounds": [
+          131,
+          44,
+          293,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 1,
+        "bounds": [
+          38,
+          44,
+          287,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 2,
+        "bounds": [
+          48,
+          44,
+          258,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 3,
+        "bounds": [
+          57,
+          44,
+          209,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 0,
+        "bounds": [
+          116,
+          44,
+          229,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 1,
+        "bounds": [
+          120,
+          44,
+          271,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 2,
+        "bounds": [
+          119,
+          44,
+          257,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 3,
+        "bounds": [
+          121,
+          44,
+          231,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 0,
+        "bounds": [
+          121,
+          112,
+          237,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 1,
+        "bounds": [
+          118,
+          112,
+          293,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 2,
+        "bounds": [
+          116,
+          112,
+          270,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 3,
+        "bounds": [
+          115,
+          112,
+          253,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 0,
+        "bounds": [
+          86,
+          112,
+          219,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 1,
+        "bounds": [
+          106,
+          112,
+          301,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 2,
+        "bounds": [
+          108,
+          112,
+          305,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 3,
+        "bounds": [
+          110,
+          112,
+          300,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 0,
+        "bounds": [
+          145,
+          53,
+          293,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 1,
+        "bounds": [
+          98,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 2,
+        "bounds": [
+          139,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 3,
+        "bounds": [
+          145,
+          53,
+          276,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 0,
+        "bounds": [
+          117,
+          53,
+          234,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 1,
+        "bounds": [
+          105,
+          53,
+          262,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 2,
+        "bounds": [
+          103,
+          53,
+          257,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 3,
+        "bounds": [
+          121,
+          53,
+          238,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 0,
+        "bounds": [
+          8,
+          44,
+          227,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 1,
+        "bounds": [
+          8,
+          65,
+          304,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 2,
+        "bounds": [
+          8,
+          44,
+          275,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 3,
+        "bounds": [
+          17,
+          44,
+          212,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 0,
+        "bounds": [
+          47,
+          50,
+          211,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 1,
+        "bounds": [
+          40,
+          50,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 2,
+        "bounds": [
+          45,
+          50,
+          208,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 3,
+        "bounds": [
+          52,
+          50,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 0,
+        "bounds": [
+          36,
+          46,
+          207,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 1,
+        "bounds": [
+          23,
+          46,
+          221,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 2,
+        "bounds": [
+          39,
+          46,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 3,
+        "bounds": [
+          21,
+          46,
+          221,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 0,
+        "bounds": [
+          87,
+          166,
+          233,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 1,
+        "bounds": [
+          88,
+          166,
+          233,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 2,
+        "bounds": [
+          24,
+          166,
+          296,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 3,
+        "bounds": [
+          14,
+          166,
+          307,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 0,
+        "bounds": [
+          53,
+          44,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 1,
+        "bounds": [
+          56,
+          44,
+          202,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 2,
+        "bounds": [
+          55,
+          44,
+          202,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 3,
+        "bounds": [
+          36,
+          44,
+          210,
+          246
+        ]
+      }
+    ],
+    "stack": [
+      {
+        "pose": "idle",
+        "frame": 0,
+        "bounds": [
+          80,
+          44,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 1,
+        "bounds": [
+          81,
+          44,
+          205,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 2,
+        "bounds": [
+          80,
+          44,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 3,
+        "bounds": [
+          84,
+          44,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 0,
+        "bounds": [
+          118,
+          44,
+          249,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 1,
+        "bounds": [
+          65,
+          44,
+          213,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 2,
+        "bounds": [
+          118,
+          44,
+          247,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 3,
+        "bounds": [
+          86,
+          44,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 0,
+        "bounds": [
+          93,
+          53,
+          219,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 1,
+        "bounds": [
+          118,
+          53,
+          243,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 2,
+        "bounds": [
+          118,
+          53,
+          261,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 3,
+        "bounds": [
+          134,
+          53,
+          260,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 0,
+        "bounds": [
+          136,
+          111,
+          239,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 1,
+        "bounds": [
+          136,
+          111,
+          246,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 2,
+        "bounds": [
+          136,
+          111,
+          247,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 3,
+        "bounds": [
+          137,
+          111,
+          243,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 0,
+        "bounds": [
+          144,
+          44,
+          263,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 1,
+        "bounds": [
+          51,
+          44,
+          242,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 2,
+        "bounds": [
+          128,
+          44,
+          286,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 3,
+        "bounds": [
+          67,
+          44,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 0,
+        "bounds": [
+          144,
+          44,
+          269,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 1,
+        "bounds": [
+          97,
+          44,
+          283,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 2,
+        "bounds": [
+          142,
+          44,
+          259,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 3,
+        "bounds": [
+          73,
+          44,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 0,
+        "bounds": [
+          84,
+          112,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 1,
+        "bounds": [
+          143,
+          112,
+          305,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 2,
+        "bounds": [
+          125,
+          112,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 3,
+        "bounds": [
+          135,
+          112,
+          252,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 0,
+        "bounds": [
+          89,
+          112,
+          205,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 1,
+        "bounds": [
+          116,
+          112,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 2,
+        "bounds": [
+          128,
+          112,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 3,
+        "bounds": [
+          89,
+          112,
+          207,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 0,
+        "bounds": [
+          145,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 1,
+        "bounds": [
+          145,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 2,
+        "bounds": [
+          108,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 3,
+        "bounds": [
+          145,
+          53,
+          288,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 0,
+        "bounds": [
+          133,
+          53,
+          279,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 1,
+        "bounds": [
+          48,
+          53,
+          184,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 2,
+        "bounds": [
+          106,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 3,
+        "bounds": [
+          109,
+          53,
+          260,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 0,
+        "bounds": [
+          55,
+          44,
+          232,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 1,
+        "bounds": [
+          25,
+          44,
+          247,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 2,
+        "bounds": [
+          34,
+          44,
+          235,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 3,
+        "bounds": [
+          50,
+          44,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 0,
+        "bounds": [
+          49,
+          50,
+          203,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 1,
+        "bounds": [
+          43,
+          50,
+          207,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 2,
+        "bounds": [
+          58,
+          50,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 3,
+        "bounds": [
+          72,
+          50,
+          209,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 0,
+        "bounds": [
+          52,
+          46,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 1,
+        "bounds": [
+          54,
+          46,
+          211,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 2,
+        "bounds": [
+          65,
+          46,
+          208,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 3,
+        "bounds": [
+          64,
+          46,
+          211,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 0,
+        "bounds": [
+          88,
+          166,
+          233,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 1,
+        "bounds": [
+          52,
+          166,
+          267,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 2,
+        "bounds": [
+          30,
+          166,
+          291,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 3,
+        "bounds": [
+          29,
+          166,
+          291,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 0,
+        "bounds": [
+          86,
+          44,
+          206,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 1,
+        "bounds": [
+          89,
+          44,
+          204,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 2,
+        "bounds": [
+          92,
+          44,
+          205,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 3,
+        "bounds": [
+          91,
+          44,
+          205,
+          246
+        ]
+      }
+    ],
+    "qwen": [
+      {
+        "pose": "idle",
+        "frame": 0,
+        "bounds": [
+          77,
+          44,
+          199,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 1,
+        "bounds": [
+          73,
+          44,
+          199,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 2,
+        "bounds": [
+          73,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "idle",
+        "frame": 3,
+        "bounds": [
+          73,
+          44,
+          200,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 0,
+        "bounds": [
+          123,
+          44,
+          265,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 1,
+        "bounds": [
+          119,
+          44,
+          267,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 2,
+        "bounds": [
+          121,
+          44,
+          263,
+          246
+        ]
+      },
+      {
+        "pose": "walk",
+        "frame": 3,
+        "bounds": [
+          120,
+          44,
+          262,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 0,
+        "bounds": [
+          94,
+          53,
+          225,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 1,
+        "bounds": [
+          80,
+          53,
+          219,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 2,
+        "bounds": [
+          83,
+          53,
+          223,
+          246
+        ]
+      },
+      {
+        "pose": "jump",
+        "frame": 3,
+        "bounds": [
+          90,
+          53,
+          224,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 0,
+        "bounds": [
+          102,
+          111,
+          213,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 1,
+        "bounds": [
+          110,
+          111,
+          218,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 2,
+        "bounds": [
+          105,
+          111,
+          217,
+          246
+        ]
+      },
+      {
+        "pose": "crouch",
+        "frame": 3,
+        "bounds": [
+          102,
+          111,
+          212,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 0,
+        "bounds": [
+          134,
+          44,
+          259,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 1,
+        "bounds": [
+          58,
+          44,
+          242,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 2,
+        "bounds": [
+          53,
+          44,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "punch",
+        "frame": 3,
+        "bounds": [
+          55,
+          44,
+          202,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 0,
+        "bounds": [
+          110,
+          44,
+          238,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 1,
+        "bounds": [
+          74,
+          44,
+          261,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 2,
+        "bounds": [
+          81,
+          44,
+          261,
+          246
+        ]
+      },
+      {
+        "pose": "kick",
+        "frame": 3,
+        "bounds": [
+          84,
+          44,
+          239,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 0,
+        "bounds": [
+          97,
+          112,
+          217,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 1,
+        "bounds": [
+          99,
+          112,
+          278,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 2,
+        "bounds": [
+          92,
+          112,
+          277,
+          246
+        ]
+      },
+      {
+        "pose": "cpunch",
+        "frame": 3,
+        "bounds": [
+          91,
+          112,
+          210,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 0,
+        "bounds": [
+          89,
+          112,
+          222,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 1,
+        "bounds": [
+          91,
+          112,
+          235,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 2,
+        "bounds": [
+          92,
+          112,
+          238,
+          246
+        ]
+      },
+      {
+        "pose": "ckick",
+        "frame": 3,
+        "bounds": [
+          91,
+          112,
+          217,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 0,
+        "bounds": [
+          147,
+          53,
+          272,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 1,
+        "bounds": [
+          141,
+          53,
+          312,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 2,
+        "bounds": [
+          146,
+          53,
+          297,
+          246
+        ]
+      },
+      {
+        "pose": "jpunch",
+        "frame": 3,
+        "bounds": [
+          147,
+          53,
+          270,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 0,
+        "bounds": [
+          124,
+          53,
+          236,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 1,
+        "bounds": [
+          111,
+          53,
+          278,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 2,
+        "bounds": [
+          110,
+          53,
+          278,
+          246
+        ]
+      },
+      {
+        "pose": "jkick",
+        "frame": 3,
+        "bounds": [
+          124,
+          53,
+          237,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 0,
+        "bounds": [
+          54,
+          44,
+          195,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 1,
+        "bounds": [
+          46,
+          44,
+          225,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 2,
+        "bounds": [
+          54,
+          44,
+          232,
+          246
+        ]
+      },
+      {
+        "pose": "special",
+        "frame": 3,
+        "bounds": [
+          65,
+          44,
+          198,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 0,
+        "bounds": [
+          101,
+          50,
+          250,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 1,
+        "bounds": [
+          38,
+          50,
+          194,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 2,
+        "bounds": [
+          55,
+          50,
+          201,
+          246
+        ]
+      },
+      {
+        "pose": "hit",
+        "frame": 3,
+        "bounds": [
+          79,
+          50,
+          196,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 0,
+        "bounds": [
+          62,
+          46,
+          196,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 1,
+        "bounds": [
+          58,
+          46,
+          199,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 2,
+        "bounds": [
+          58,
+          46,
+          197,
+          246
+        ]
+      },
+      {
+        "pose": "block",
+        "frame": 3,
+        "bounds": [
+          59,
+          46,
+          198,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 0,
+        "bounds": [
+          102,
+          166,
+          217,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 1,
+        "bounds": [
+          82,
+          166,
+          237,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 2,
+        "bounds": [
+          26,
+          166,
+          295,
+          246
+        ]
+      },
+      {
+        "pose": "ko",
+        "frame": 3,
+        "bounds": [
+          18,
+          166,
+          303,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 0,
+        "bounds": [
+          70,
+          44,
+          191,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 1,
+        "bounds": [
+          72,
+          44,
+          191,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 2,
+        "bounds": [
+          72,
+          44,
+          191,
+          246
+        ]
+      },
+      {
+        "pose": "win",
+        "frame": 3,
+        "bounds": [
+          75,
+          44,
+          192,
+          246
+        ]
+      }
+    ]
+  }
+}

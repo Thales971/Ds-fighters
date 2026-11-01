@@ -40,6 +40,7 @@ class Game {
   }
   resetWorld() {
     this.imgFx = [];
+    this.cracks = [];
     this.projectiles = [];
     this.strikes = [];
     this.zones = [];
@@ -112,6 +113,7 @@ class Game {
       t.tagCd = 0;
       t.members.forEach((f, k) => {
         f.hp = f.maxHp;
+        f.roundDamageStart = f.stats.dmg;
         f.redHp = f.maxHp;
         f.x = ti === 0 ? 260 : 700;
         f.y = 0;
@@ -123,9 +125,23 @@ class Game {
         f.hitstun = 0;
         f.blockstun = 0;
         f.status = {};
+        f.statusSource = {};
         f.stolen = null;
+        f.attack = null;
         f.cast = null;
+        f.dashHit = null;
         f.rush = null;
+        f.quakeHold = null;
+        f.shadowPort = null;
+        f.hidden = false;
+        f.launched = false;
+        f.phaseDash = 0;
+        f.afterimage = 0;
+        f.aura = null;
+        f.auraFid = null;
+        f.overclockHot = false;
+        f.overclockCut = false;
+        f.overclockUntil = 0;
         f.queue = [];
         f.cd = [0, 0, 0, 0, 0];
         f.afo = 0;
@@ -197,9 +213,7 @@ class Game {
         }
       }
       ctx.translate(-c.x, -c.y);
-      c.life--;
     }
-    this.cracks = this.cracks.filter((c) => c.life > 0);
     ctx.restore();
   }
   spawnBurst(sheet, row, x, y, dir = 1, scale = 2) {
@@ -213,8 +227,9 @@ class Game {
     const el = owner.elementOf(p);
     const fx = ELEMENT_FX[el] || { sheet: 'impact', color: '#fff' };
     this.spawnBurst('abil:' + fid, p.row, x, y, owner.dir, p.big ? 1.3 : 0.9);
-    this.spawnBurst(fx.sheet, 3, x, y, owner.dir, 2.2);
-    for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, fx.color);
+    const sheets = p.impactSheets || (p.impactSheet ? [p.impactSheet] : [fx.sheet]);
+    sheets.forEach((sheet) => this.spawnBurst(sheet, 3, x, y, owner.dir, 2.2));
+    for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, p.impactColor || fx.color);
   }
   spark(x, y, color) {
     if (this.sparks.length > 220) return;
@@ -477,6 +492,7 @@ class Game {
       this.separate();
       this.tickEntities();
       if (this.mode === 'training') this.trainingRefill();
+      else if (this.cfg.infiniteMeter) this.allFighters().forEach((f) => { f.charge = [100, 100]; f.ultimate = 100; });
       if (this.roundTimer <= 0 && this.roundState === 'fight') this.timeUp();
       return;
     }
@@ -538,6 +554,7 @@ class Game {
   tickFxOnly() {
     if (this.shakeMag > 0) this.shakeMag *= 0.85;
     if (this.shakeMag < 0.3) this.shakeMag = 0;
+    if (this.cracks) this.cracks = this.cracks.filter((c) => --c.life > 0);
     for (const b of this.bursts) b.age++;
     if (this.imgFx) {
       for (const fx of this.imgFx) fx.frame++;
@@ -560,8 +577,9 @@ class Game {
     this.roundState = 'end';
     this.roundStateTime = 0;
     const hpOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.hp) / m.maxHp, 0);
-    const a = hpOf(0);
-    const b = hpOf(1);
+    const damageOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.stats.dmg - (m.roundDamageStart || 0)), 0);
+    const a = this.cfg.infiniteLife ? damageOf(0) : hpOf(0);
+    const b = this.cfg.infiniteLife ? damageOf(1) : hpOf(1);
     this.audio.voice('timeup');
     if (Math.abs(a - b) < 0.001) {
       this.announce('EMPATE!', '#9adcff', 'Ninguém pontua');
@@ -571,11 +589,12 @@ class Game {
     this.teamWins[wt]++;
     const w = this.activeOf(wt);
     if (w) w.state = 'win';
-    this.announce('TEMPO!', '#ffd27d', (w ? w.def.name : 'Time') + ' vence pela vida');
+    this.announce('TEMPO!', '#ffd27d', (w ? w.def.name : 'Time') + (this.cfg.infiniteLife ? ' vence pelo dano causado' : ' vence pela vida'));
   }
   endRound() {
     const need = this.cfg.roundsToWin;
-    if (this.teamWins[0] >= need || this.teamWins[1] >= need || this.round >= 5) { this.finishMatch(); return; }
+    const maxRounds = Math.max(5, need * 2 - 1);
+    if (this.teamWins[0] >= need || this.teamWins[1] >= need || this.round >= maxRounds) { this.finishMatch(); return; }
     this.round++;
     this.beginRound();
   }
