@@ -55,3 +55,7 @@ Divisão: código de personagens/balanceamento em `js/data/powers-v5.js` + `figh
 Preservar Canvas 960×540 e desktop; separar menus responsivos, palco proporcional e controles de toque em tamanho físico útil. Adaptar retrato/paisagem, viewport visual/teclado e safe areas, sem cortar formulários. Viewport em js/main.js; estilos mobile dedicados; markup/input/UI existentes para navegação por toque e todas as habilidades.
 
 Online: verificar criação/entrada, protocolo, P2P público e WSS local; distinguir diretório que ainda exige WSS permanente. Conta: Google segue adiado; verificar Supabase e permitir email se o provedor já está habilitado, sem mexer em settings compartilhados ou criar usuários fictícios. Preservar RLS e isolamento de progresso. Divisão: pai cuida do mobile, um agente de conta, outro de online; testes e commits pelo pai.
+
+## Correção focada — Lobão / revisão Mistral
+
+Orçamento informado ~500 créditos: substituir somente sprite e retratos do Lobão por lutador humano de cabelo curto escuro, roupa verde/branca, gola de pele e cadeira; fotos para identidade e Beowulf para wrestling/silhueta, sem face de lobisomem. Reutilizar montagem, poses e motor; um lote de dois blocos. Corrigir apenas regressões recentes de combate e alcance/contrajogo da aura e cadeiras; preservar BHM original quando não houver regressão comprovada. Não recriar mapas, música, contas ou mobile.

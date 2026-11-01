@@ -40,3 +40,8 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Movimentação real, seleção/início só por toque, pular/agachar/ataques e até dez habilidades/segunda ultimate/troca/pausa disponíveis. Multitouch/captura, teclado simultâneo, blur e pausa sem comandos presos passaram.
 - [x] Online: WS local 2p/4p, P2P com broker público 2p/4p, código, chat, regras, movimento, HP e troca. Reconexão P2P real passou após corrigir heartbeat. WSS permanente/diretório global permanece pendência externa.
 - [x] Conta: email habilitado, cadastro/login e recuperação implementados; SDK real com Auth/REST simulados no mobile e testes Node passaram. Google adiado; sem senhas em localStorage, sem usuários fictícios no Supabase e sem alterar Aero Ball. Confirmação de email real ainda não foi testada.
+
+## Lobão e regressões recentes — orçamento ~500 créditos
+
+- [x] Lobão humano inspirado nas fotos e wrestling: uma geração em lote de dois blocos, folha final de 60 quadros, retratos e poses integrados; sem face/orelhas de lobo, sem substituir outros personagens.
+- [x] Regressores recentes corrigidos: aura local sem perseguição, sem armadura empilhada, dano x1,5/esquiva 10%, chuva 8 por cadeira. BHM original preservado e catálogo dedicado sincronizado. Testes focados, 16 grupos de combate e 38 verificações de protocolo passaram; vida/Qwen terceira mantidas, mapas/mobile intactos. Não foi feito torneio completo nem prometido balanceamento universal.

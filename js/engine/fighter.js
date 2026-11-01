@@ -594,12 +594,15 @@ class Fighter {
         this.aura = p;
         this.auraFid = fid;
         this.addStatus('aura', t);
-        // Golpe de ativaÃ§Ã£o: dano no oponente agora; depois vira sÃ³ buff no dono.
-        if (p.hitDmg && tgt && tgt.alive) {
+        // Golpe de ativação: só alcança a área local; não persegue um alvo
+        // que esteja do outro lado da arena durante a telemetria.
+        const hitRadius = p.hitRadius || 260;
+        const targetDistance = tgt ? Math.abs(tgt.x - this.x) : Infinity;
+        if (p.hitDmg && tgt && tgt.alive && targetDistance <= hitRadius) {
           game.strikes.push(new Strike(this, {
-            x: tgt.x, delay: 2, w: (p.hitRadius || 260) * 2, h: 320, dmg: p.hitDmg,
+            x: this.x + this.dir * hitRadius / 2, delay: 2, w: hitRadius, h: 320, dmg: p.hitDmg,
             stun: p.hitStun || 40, launch: p.hitLaunch == null ? -10 : p.hitLaunch,
-            sheet: { key, row: p.row, frames: 4 }, scale: 3, follow: tgt, element: el, power: p,
+            sheet: { key, row: p.row, frames: 4 }, scale: 3, element: el, power: p,
             sound: 'ultimate', shake: 14,
           }));
           game.shake(14);

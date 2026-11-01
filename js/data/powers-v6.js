@@ -31,15 +31,15 @@ Object.assign(POWERS, {
       },
       {
         id: 'chairrain', name: 'Chuva de Cadeiras', slot: 'charge', meter: 1, row: 3,
-        kind: 'rain', count: 6, dmg: 26, cd: 90, sfx: 'explosion',
+        kind: 'rain', count: 6, dmg: 8, cd: 90, sfx: 'explosion',
         desc: 'Cadeiras caem do céu na arena inteira. Longa distância, mas cada uma tira pouco.',
       },
       {
         id: 'wildmode', name: 'MODO SELVAGEM', slot: 'ultimate', row: 4,
-        kind: 'aura', time: 720, dmgMult: 2.0, speedMult: 1.8, armor: true, dodge: 0.18,
+        kind: 'aura', time: 720, dmgMult: 1.5, speedMult: 1.8, dodge: 0.1,
         hitDmg: 30, hitStun: 46, hitLaunch: -11, hitRadius: 300,
         burstDmg: 10, sfx: 'ultimate',
-        desc: 'Escudo verde e branco: golpe de 30 no rival na hora; depois 12 s de dano x2, +80% velocidade, armadura e esquiva selvagem.',
+        desc: 'Explosão verde e branca de alcance local: golpe de 30 se o rival estiver perto; 12 s de dano x1,5, +80% velocidade e 10% de esquiva, sem armadura permanente.',
       },
     ],
   },
@@ -52,7 +52,7 @@ Object.assign(ELEMENT_FX, {
 Object.assign(SIGNATURES, {
   lobao: {
     trait: 'SELVAGEM DE PERTO',
-    desc: 'Agarrões causam corte. O Modo Selvagem dobra dano/velocidade e dá esquiva.',
+    desc: 'Agarrões causam corte. O Modo Selvagem aumenta o dano em 50%, acelera e dá esquiva, sem armadura permanente.',
     ability: { bleed: 60 },
   },
 });
@@ -61,9 +61,9 @@ FIGHTERS.push({
   id: 'lobao',
   name: 'LOBÃO',
   title: 'O Lutador Selvagem',
-  bio: 'Wrestler tema lobo: jaqueta verde com gola de pele, rosto de lobo com presas e olhos âmbar. Pancadaria de perto que arremessa; de longe só manda cadeira. No modo selvagem dobra tudo e desvia dos golpes.',
-  colors: { skin: '#8d6248', hair: '#0e0a08', shirt: '#1e7a34', pants: '#eef0e8', shoes: '#f4f6ef', accent: '#155c28' },
-  traits: { wolfEars: true, fangs: true, amberEyes: true, furCollar: true, jacket: 'green-fur', gloves: 'white-green', facePhoto: true },
+  bio: 'Lutador humano de wrestling inspirado no amigo das fotos: cabelo curto castanho, rosto natural, roupa verde e branca, gola de pele e cadeira vermelha. Forte de perto com agarrões e suplex; a cadeira pressiona à distância sem dominar a arena.',
+  colors: { skin: '#d0a581', hair: '#33281f', shirt: '#165833', pants: '#eceee5', shoes: '#3a3231', accent: '#a09c83' },
+  traits: { furCollar: true, jacket: 'green-fur', gloves: 'dark-wraps' },
   stats: { power: 1.34, speed: 1.0, weight: 1.3, hp: 150, meterRate: 1.2 },
   secret: false,
   quotes: {

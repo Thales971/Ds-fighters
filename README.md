@@ -296,3 +296,7 @@ O projeto `supabase-aero-ball` foi reativado com autorização. `ds_fighters_pro
 ## Mobile e contas por email
 
 Menus e formulários agora se adaptam a retrato/paisagem; só a arena recebe escala 16:9. Toque multitouch de 44px, pausa, tela cheia e até dez habilidades. Email/senha permitem cadastro e login sem Google; confirmação de email real continua necessária. Online P2P testado com 2/4 navegadores e reconexão; diretório global ainda precisa de WSS permanente. Resultados e limites em [MOBILE-ONLINE-CONTAS.md](MOBILE-ONLINE-CONTAS.md).
+
+## Correção focada do Lobão
+
+Lobão agora usa rosto humano/cabelo das referências e visual de wrestling verde/branco, gola de pele e cadeira vermelha: 60 quadros e retratos novos. Aura de ativação com alcance local e sem perseguição; dano x1,5, esquiva 10% e sem armadura permanente. Chuva de cadeiras reduzida de 26 para 8 por cadeira. BHM preservado; catálogo do servidor sincronizado. Checagens: `python3 tools/lobao_render_check.py` e `node tools/lobao_combat_test.mjs`. O `tools/paint-lobao.py` é o gerador visual antigo; não o use para sobrescrever esta folha nova.
