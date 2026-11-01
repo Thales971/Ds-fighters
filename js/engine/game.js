@@ -88,7 +88,7 @@ class Game {
       return {
         members: ids.map((id, k) => {
           const def = FIGHTERS.find((f) => f.id === id) || FIGHTERS[3];
-          const f = new Fighter(def, ti === 0 ? 260 : 700, ti === 0 ? 1 : -1, this, { team: ti, slot: ti, pet: k === 0 ? pet : PETS[0] });
+          const f = new Fighter(def, ti === 0 ? 260 : 700, ti === 0 ? 1 : -1, this, { team: ti, slot: ti, pet: k === 0 ? pet : PETS[0], skinHue: (typeof Profile !== 'undefined' && Profile.skinFor) ? Profile.skinFor(def.id) : 0 });
           if (k > 0) f.benched = true;
           return f;
         }),

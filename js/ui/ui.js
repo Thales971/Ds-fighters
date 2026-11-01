@@ -258,6 +258,7 @@ const UI = {
       <div class="ttl">${d.title}</div>
       ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
       <p class="bio">${d.bio}</p>
+      ${d.quotes && d.quotes.intro && d.quotes.intro.length ? `<div class="quotes">“${d.quotes.intro[0]}”</div>` : ''}
       <div class="statbars">${bar('PODER', st.power, 1.6)}${bar('VELOC.', st.speed, 1.45)}${bar('PESO', st.weight, 1.3)}${bar('VIDA', st.hp || 100, 150)}</div>
       <div class="theme">${kit ? kit.theme : ''}${kit && kit.autoAim ? ' · <b>AUTO AIM</b>' : ''}</div>
       <ul class="kit">${(kit ? kit.powers : []).map((p, i) => `
@@ -610,6 +611,38 @@ const UI = {
 
   /* ---------- resgate ---------- */
   enter_replays() { this.listReplays(); },
+  SKIN_HUES: [
+    ['Original', 0], ['Vermelha', 330], ['Laranja', 25], ['Amarela', 55], ['Verde', 110],
+    ['Ciano', 175], ['Azul', 210], ['Roxa', 265], ['Rosa', 300], ['P&B', 0],
+  ],
+  enter_skins() {
+    const sel = this.$('skin-fighter');
+    sel.innerHTML = FIGHTERS.filter((f) => !f.secret || Profile.isUnlocked(f.id)).map((f) => `<option value="${f.id}">${f.name}</option>`).join('');
+    const hs = this.$('skin-hue');
+    hs.innerHTML = this.SKIN_HUES.map(([n, h]) => `<option value="${h}">${n}</option>`).join('');
+    const upd = () => {
+      const fid = sel.value;
+      const hue = +hs.value;
+      hs.querySelectorAll('option').forEach((o) => { if (+o.value === 0 && hue === 0) o.textContent = n0(o); });
+      const cur = Profile.skinFor(fid);
+      hs.value = String(cur || 0);
+      this.renderSkinPreview(fid, +hs.value);
+    };
+    function n0(o) { return 'Original'; }
+    sel.onchange = upd; hs.onchange = upd;
+    upd();
+    this.$('btn-skin-save').onclick = () => {
+      Profile.setSkin(sel.value, +hs.value);
+      AudioSys.select();
+      this.toast('Skin salva no perfil!');
+    };
+  },
+  renderSkinPreview(fid, hue) {
+    const el = this.$('skin-preview');
+    if (!el) return;
+    const d = FIGHTERS.find((f) => f.id === fid);
+    el.innerHTML = `<div class="skin-sprite" style="background-image:url(assets/sprites/${fid}.png);${hue ? `filter:hue-rotate(${hue}deg)` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${hue ? 'hue ' + hue + '°' : 'paleta original'}</small>`;
+  },
   enter_redeem() {
     this.$('redeem-msg').textContent = '';
     this.$('redeem-faces').innerHTML = '';

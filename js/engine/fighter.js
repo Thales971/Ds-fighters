@@ -42,6 +42,7 @@ class Fighter {
     this.redHp = this.maxHp;
     this.charge = [0, 0];
     this.ultimate = 0;
+    this.skinHue = (opts && opts.skinHue) || 0;
     this.kit = (typeof POWERS !== 'undefined' && POWERS[def.id]) || null;
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -370,9 +371,11 @@ class Fighter {
     this.applyEffects(o, atk, d, controlScale);
     if (atk && atk.cast && o.ability) atk.cast.hit = true;
     // Pet Gato Mistral: a cada 3 acertos de habilidade, choque no alvo
-    if (atk && o.ability && atk.pfx.shockOnHit) {
-      atk.petHitCounter = ((atk.petHitCounter || 0) + 1) % 3;
-      if (atk.petHitCounter === 0) this.addStatus('shock', atk.pfx.shockOnHit, atk);
+    if (atk && o.ability && (atk.pfx.shockOnHit || atk.pfx.burnOnHit || atk.pfx.explodeOnHit)) {
+      atk.petHitCounter = ((atk.petHitCounter || 0) + 1);
+      if (atk.pfx.shockOnHit && atk.petHitCounter % 3 === 0) this.addStatus('shock', atk.pfx.shockOnHit, atk);
+      if (atk.pfx.burnOnHit && atk.petHitCounter % 4 === 0) this.addStatus('burn', atk.pfx.burnOnHit, atk);
+      if (atk.pfx.explodeOnHit && atk.petHitCounter % 5 === 0) { this.chip(atk.pfx.explodeOnHit, atk); this.game.spawnBurst('fire', 3, this.x, this.y - 90, 1, 2.2); }
     }
     game.audio.hit(d >= 13);
     game.shake(Math.min(12, d >= 14 ? 8 : 4));
@@ -1591,7 +1594,8 @@ class Fighter {
     if (this.has('chill')) ctx.filter = 'saturate(0.6) hue-rotate(160deg) brightness(1.15)';
     else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';
     else if (this.has('overclock')) { ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; }
-    SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf);
+    const skinHue = (this.skinHue || 0);
+    SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
     ctx.restore();
     if (this.has('shock') && this.frame % 5 === 0) Art.fx2(ctx, 'lightning', 2, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.1, alpha: 0.7 });
