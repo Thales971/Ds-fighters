@@ -24,12 +24,13 @@ with sync_playwright() as p:
     assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power)[2].id==='qwen'")
     assert page.evaluate("!FIGHTERS.find(f=>f.id==='lobao').traits.wolfEars")
     assert page.evaluate("SpriteGen.count('punch','lobao')===4 && SpriteGen.count('special','lobao')===4")
-    page.evaluate("DSGame.start({teams:[['lobao'],['bhm']],stage:'japan',cpu:[false,false],mode:'versus',timer:180});UI.show('fight');DSGame.running=false;DSGame.roundState='fight';HUD.reset(DSGame);")
+    page.evaluate("DSGame.start({teams:[['lobao'],['bhm']],stage:'japan',cpu:[false,false],mode:'versus',timer:180});UI.show('fight');DSGame.roundState='fight';HUD.reset(DSGame);")
     assert page.evaluate('DSGame.activeOf(0).maxHp>250 && DSGame.activeOf(1).maxHp===272')
     for pose in ['idle','walk','crouch','punch','kick','special','hit','block','ko','win']:
         page.evaluate("s=>SpriteGen.blit(document.getElementById('game').getContext('2d'),'lobao',s,2,1,260,500)",pose)
     page.evaluate("DSGame.render(0);HUD.update(DSGame)")
-    page.wait_for_timeout(300)
+    page.wait_for_timeout(900)
+    assert page.evaluate("document.getElementById('game').getContext('2d').getImageData(0,0,960,540).data.some((v,i)=>i%4!==3&&v>30)"),'arena vazia'
     page.locator('#game').screenshot(path=str(OUT/'lobao-corrigido.png'))
     b.close()
 assert not errors,errors
