@@ -73,12 +73,13 @@ const FX_LAYOUT = {
     aura: { row: 2, frames: 8 },
     ultimate: { row: 3, frames: 8 },
     flash: { row: 4, frames: 4 },
+    grab: { row: 0, frames: 8 },
   },
   sheets: {
     fogo: 'assets/fx/fogo.png', gelo: 'assets/fx/gelo.png', raio: 'assets/fx/raio.png', vento: 'assets/fx/vento.png',
     sombra: 'assets/fx/sombra.png', veneno: 'assets/fx/veneno.png', neon: 'assets/fx/neon.png', terra: 'assets/fx/terra.png',
     metal: 'assets/fx/metal.png', acido: 'assets/fx/acido.png', tempo: 'assets/fx/tempo.png', arcano: 'assets/fx/arcano.png',
-    portal: 'assets/fx/portal.png', rastro: 'assets/fx/rastro.png', lata: 'assets/fx/lata.png', kernel: 'assets/fx/kernel.png', hackfx: 'assets/fx/hackfx.png',
+    portal: 'assets/fx/portal.png', rastro: 'assets/fx/rastro.png', lata: 'assets/fx/lata.png', kernel: 'assets/fx/kernel.png', hackfx: 'assets/fx/hackfx.png', grabfx: 'assets/fx/grabfx.png',
   },
 };
 const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };

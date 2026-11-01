@@ -153,7 +153,11 @@ class Fighter {
   }
   left(s) { return Math.max(0, (this.status[s] || 0) - this.now); }
   weight() { return this.def.stats.weight || 1; }
-  get pfx() { return (this.pet && this.pet.fx) || {}; }
+  get pfx() {
+    const pet = (this.pet && this.pet.fx) || {};
+    if (this.def.id === 'iales') return Object.assign({ immune: true }, pet);
+    return pet;
+  }
   applyPet() {
     this.shield = this.pfx.shield || 0;
     this.revived = false;
@@ -478,7 +482,7 @@ class Fighter {
     const p = this.currentKit()[i];
     if (!p) return { ready: false, pct: 0 };
     if (this.has('locked')) return { ready: false, pct: 0, locked: true, p };
-    if (p.slot === 'simple') {
+    if (p.slot === 'simple' || p.slot === 'extra') {
       const total = p.cd || 50;
       return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
     }
@@ -518,7 +522,7 @@ class Fighter {
   }
   startCast(i, p) {
     const game = this.game;
-    if (p.slot === 'simple') this.cd[i] = p.cd || 50;
+    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = p.cd || 50;
     else if (p.slot === 'charge') this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
     else this.ultimate = 0;
     this.cast = { p, i, t: 0, fired: false };
@@ -777,6 +781,17 @@ class Fighter {
           sheet: { key, row: p.row, frames: 4 }, scale: 1.8, power: p, sound: 'steal', shake: 8,
           onHit: (f) => this.stealFrom(f, p.time || 600),
         }));
+        break;
+      }
+      case 'grabsteal': {
+        /* Dash que agarra: avança rápido; se encostar no rival, segura ele
+           (estado grabbed) e rouba o kit inteiro na hora. */
+        if (tgt) this.dir = tgt.x >= this.x ? 1 : -1;
+        this.vx = this.dir * (p.speed || 20);
+        this.grabSteal = { p, t: 0, fid, key };
+        this.addStatus('invuln', 10);
+        this.state = 'rush';
+        this.stateTime = 0;
         break;
       }
       case 'wall': {
@@ -1283,6 +1298,19 @@ class Fighter {
     r.t++;
     const t = this.enemy();
     if (t && Math.abs(t.x - this.x) > 80) this.vx = this.dir * 7;
+    if (r.p.kind === 'grabsteal' && t && !r.grabbed && Math.abs(t.x - this.x) < 90 && Math.abs(t.y - this.y) < 120 && t.alive && !t.has('invuln')) {
+      r.grabbed = true;
+      r.hits = 0;
+      t.state = 'thrown';
+      t.stateTime = 0;
+      t.vx = 0;
+      t.takeHit(r.p.dmg || 12, { attacker: this, height: 'unblockable', kx: 0, dirSign: this.dir, stun: 40, noScale: true, ability: true, power: r.p });
+      this.stealFrom(t, r.p.time || 600);
+      this.game.spawnImgFx('grabfx', 'grab', t.x, t.y - 110, { scale: 3.2, life: 26, dir: this.dir });
+      this.game.spawnBurst('abil:' + r.fid, r.p.row, t.x, t.y - 120, this.dir, 2.2);
+      this.game.shake(12);
+      this.game.flashScreen && this.game.flashScreen('#c77dff', 8);
+    }
     if (r.t % 7 === 0 && r.hits > 0 && t) {
       r.hits--;
       const last = r.hits === 0;
