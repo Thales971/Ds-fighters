@@ -305,8 +305,9 @@ class Fighter {
     }
     if (this.state === 'down' && !o.hazard) return false;
     // esquiva sináptica (passiva do Cromo e de quem estiver em overclock): desvia de projéteis/golpes leves
-    if (atk && !unblockable && !o.hazard && (this.sig.dodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
-      const chance = (this.sig.dodge || 0) + (this.has('overclock') ? 0.25 : 0);
+    const auraDodge = this.has('aura') && this.aura && this.aura.dodge ? this.aura.dodge : 0;
+    if (atk && !unblockable && !o.hazard && (this.sig.dodge || auraDodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
+      const chance = (this.sig.dodge || 0) + auraDodge + (this.has('overclock') ? 0.25 : 0);
       if (Math.random() < chance) {
         const sgn = Math.sign(this.x - atk.x) || 1;
         this.x = Math.max(50, Math.min(game.W - 50, this.x + sgn * 70));
@@ -593,6 +594,16 @@ class Fighter {
         this.aura = p;
         this.auraFid = fid;
         this.addStatus('aura', t);
+        // Golpe de ativaÃ§Ã£o: dano no oponente agora; depois vira sÃ³ buff no dono.
+        if (p.hitDmg && tgt && tgt.alive) {
+          game.strikes.push(new Strike(this, {
+            x: tgt.x, delay: 2, w: (p.hitRadius || 260) * 2, h: 320, dmg: p.hitDmg,
+            stun: p.hitStun || 40, launch: p.hitLaunch == null ? -10 : p.hitLaunch,
+            sheet: { key, row: p.row, frames: 4 }, scale: 3, follow: tgt, element: el, power: p,
+            sound: 'ultimate', shake: 14,
+          }));
+          game.shake(14);
+        }
         if (p.armor) this.addStatus('armor', t);
         if (p.reflect) this.addStatus('reflect', t);
         if (p.dmgMult && p.id === 'rage') { this.addStatus('rage', t); this.status.rageMult = p.dmgMult; }

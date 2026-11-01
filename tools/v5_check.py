@@ -44,7 +44,7 @@ with sync_playwright() as p:
     page.goto('http://localhost:8099/',wait_until='load')
     page.wait_for_function("window.DSGame && Object.keys(SpriteGen.images).length>=Object.keys(SPRITE_LAYOUT.files).length")
     page.wait_for_function("Art.ready('abil:thl') && Art.ready('abil:dolynho') && AudioSys.playlist.tracks.length===38")
-    assert page.evaluate("FIGHTERS.length===25 && STAGE_LIST.length===39")
+    assert page.evaluate("FIGHTERS.length===26 && STAGE_LIST.length===39")
     assert page.evaluate("['thl','dolynho'].every(id=>Profile.isUnlocked(id)&&!Profile.SECRET_IDS.includes(id)&&SpriteGen.count('cpunch',id)===4)")
     assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power).slice(0,4).map(f=>f.id).join(',')==='iales,felipinho,qwen,thl'")
     page.evaluate("UI.startFlow('versus');UI.flow.picks=[[FIGHTERS.findIndex(f=>f.id==='thl')],[FIGHTERS.findIndex(f=>f.id==='dolynho')]]")

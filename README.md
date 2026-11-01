@@ -4,7 +4,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**25 lutadores · 39 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**26 lutadores · 39 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
 
 ## Novidades da V5
 

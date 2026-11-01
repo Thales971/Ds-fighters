@@ -65,11 +65,12 @@ const SPRITE_LAYOUT = {
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png",
     "thl": "assets/sprites/thl.png",
-    "dolynho": "assets/sprites/dolynho.png"
+    "dolynho": "assets/sprites/dolynho.png",
+    "lobao": "assets/sprites/lobao.png"
   }
 };
 
 /* Folhas refinadas têm quatro fases; folhas legadas mantêm o timing original. */
-SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl', 'dolynho'].map((id) => [id, {
+SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl', 'dolynho', 'lobao'].map((id) => [id, {
   frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
 }]));
