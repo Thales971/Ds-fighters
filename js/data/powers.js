@@ -45,13 +45,13 @@ const POWERS = {
   },
   stack: {
     element: 'lata',
-    theme: 'Latas velhas, soquete 1155 e overclock seco',
+    theme: 'Soquete 1155, overclock seco e o sedan no morro',
     powers: [
-      { id: 'chip', name: 'Chip 1155', slot: 'simple', row: 0, kind: 'shot', dmg: 11, speed: 9, heavy: true, cd: 44, sfx: 'heavy', desc: 'Arremessa um processador quadrado de soquete antigo.' },
-      { id: 'driver', name: 'Chave de Fenda', slot: 'simple', row: 1, kind: 'dash', dmg: 12, speed: 15, cd: 40, sfx: 'dash', desc: 'Três batidas de chave: abre o gabinete e o rival.' },
-      { id: 'seco', name: 'Overclock Seco', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 260, dmgMult: 1.28, speedMult: 1.32, overheat: true, sfx: 'fire', desc: 'Esquenta o clock. Aperte de novo para cortar; se durar até o fim, superaquece.' },
-      { id: 'paste', name: 'Pasta Térmica', slot: 'charge', meter: 1, row: 3, kind: 'zone', at: 'target', time: 280, dmg: 0.12, slow: 40, sfx: 'water', desc: 'Poça escorregadia no chão. Deixa lento e gruda.' },
-      { id: 'debloat', name: 'Debloat Total', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 36, sfx: 'ultimate', desc: 'Monta um PC retrô na hora e dispara o gabinete no rival.' },
+      { id: 'chip', name: 'Chip 1155', slot: 'simple', row: 0, kind: 'shot', dmg: 11, speed: 11, heavy: true, cd: 42, sfx: 'heavy', desc: 'Arremessa um processador quadrado de soquete antigo.' },
+      { id: 'driver', name: 'Chave de Fenda', slot: 'simple', row: 1, kind: 'rush', dmg: 18, hits: 4, cd: 48, imgFx: 'lata', sfx: 'whoosh', desc: 'Quatro batidas de chave. A última lança.' },
+      { id: 'seco', name: 'Overclock Seco', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 260, dmgMult: 1.22, speedMult: 1.18, overheat: true, sfx: 'fire', desc: 'Aura de calor. Aperte de novo para cortar; se durar até o fim, superaquece.' },
+      { id: 'paste', name: 'Pasta Térmica', slot: 'charge', meter: 1, row: 3, kind: 'zone', at: 'target', time: 320, dmg: 0.16, slow: 70, imgFx: 'lata', sfx: 'water', desc: 'Poça de pasta no chão. Gruda e deixa lento.' },
+      { id: 'liso', name: 'LISO!', slot: 'ultimate', row: 4, kind: 'sedan', dmg: 24, sfx: 'ultimate', desc: 'O sedan branco cruza o morro verde. LISO na largada, SECO no impacto.' },
     ],
   },
   gitmaster: {

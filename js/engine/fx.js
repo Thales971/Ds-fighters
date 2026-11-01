@@ -79,6 +79,7 @@ const FX_LAYOUT = {
     sombra: 'assets/fx/sombra.png', veneno: 'assets/fx/veneno.png', neon: 'assets/fx/neon.png', terra: 'assets/fx/terra.png',
     metal: 'assets/fx/metal.png', acido: 'assets/fx/acido.png', tempo: 'assets/fx/tempo.png', arcano: 'assets/fx/arcano.png',
     portal: 'assets/fx/portal.png', rastro: 'assets/fx/rastro.png', lata: 'assets/fx/lata.png', kernel: 'assets/fx/kernel.png', hackfx: 'assets/fx/hackfx.png',
+    morro: 'assets/fx/morro.png', sedan: 'assets/fx/sedan.png',
   },
 };
 const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };

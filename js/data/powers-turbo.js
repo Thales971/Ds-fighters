@@ -119,7 +119,7 @@ const SIGNATURES = {
   du: { trait: 'EXPLOSÃO + FÚRIA', desc: 'Habilidades explodem e queimam. Com pouca vida, +25% de dano.', ability: { explode: 3, burn: 60 }, lowHpRage: 1.25 },
   iales: { trait: 'AUTO AIM + ROUBO', desc: 'Tudo persegue o alvo e rouba vida. Rouba as 5 habilidades do rival.', ability: { drain: 0.08 } },
   felipinho: { trait: 'ÁGUA', desc: 'Habilidades deixam o rival lento e roubam vida.', ability: { slow: 90, drain: 0.1 } },
-  stack: { trait: 'OVERCLOCK SECO', desc: 'Chip 1155, chave de fenda e pasta térmica. O clock sobe — e queima se passar do ponto.', ability: { burn: 30 } },
+  stack: { trait: 'OVERCLOCK SECO', desc: 'Chip 1155, chave de fenda, aura de calor e o sedan no morro. O clock queima se passar do ponto.', ability: { burn: 30 } },
   gitmaster: { trait: 'CEGUEIRA', desc: 'Sombras embaçam a tela do rival.', ability: { blind: 120 } },
   bughunter: { trait: 'DANO CONTÍNUO', desc: 'Todo acerto de habilidade envenena.', ability: { poison: 120 } },
   frontend: { trait: 'ELÉTRICO', desc: 'Neon eletriza: os controles do rival se mexem sozinhos.', ability: { shock: 90 } },

@@ -9,7 +9,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 ## Novidades da Edição Turbo
 
 - **Lutadores novos nesta leva**: KATYA QUEUE, RIN SHADER e ASH VAULT, mais as arenas Oficina das Latas, Terminal Fósforo, Metrô de Pacotes e Catedral SQL.
-- **ET 1155** (antes Stack Overflow) e **ROOT PHANTOM** (antes RootKit) refeitos: chip 1155 / overclock seco, e rootkit com fantasma, backdoor, malware e Kernel Panic.
+- **ET 1155** (antes Stack Overflow) e **ROOT PHANTOM** (antes RootKit) refeitos: o ET é o técnico de boné 1155, óculos, bigode e camiseta floral (chip, chave de fenda, overclock, pasta térmica e o sedan branco no morro, com LISO! / SECO!). O Root Phantom fica com fantasma, backdoor, malware e Kernel Panic.
 - **5 lutadores da Edição Turbo**: Yumi Lambda, Root Phantom, Kael JVM, Cromo VX e BHM Noir.
 - **DU e Felipinho Maprim redesenhados**: DU careca, de óculos e barba grisalha; Maprim de boné e meia barba.
 - **Combos muito mais fluidos**: buffer de entrada (inclusive no hitstop), cadeias automáticas e cancelamentos em habilidades.
@@ -113,23 +113,23 @@ Cada lutador tem **5 habilidades animadas**: 2 simples (recarga), 2 de carga (ba
 | **IALES** (secreto) | AUTO AIM + ROUBO | *Todos* os ataques têm auto aim, IAs atrás dele ao conjurar, acúmulo estilo All For One. **Ctrl+C dos Poderes** acerta sempre e rouba as 5 habilidades do rival por 10 s. Dragão de Fogo Rust. Ultimate **All For One: Merge Total**. |
 | **DU** (secreto) | EXPLOSÃO + FÚRIA | Careca, óculos e barba grisalha. Machado de magma, PHP, Fúria do Guerreiro; com pouca vida causa +25 % de dano. |
 | **Felipinho Maprim** (secreto) | ÁGUA | Boné e meia barba. Água + React: deixa lento e rouba vida. |
-| **Yumi** (Kotlin) | RAPIDEZ + GELO | Baixinha, cabelo claro e óculos; a mais rápida do jogo. Ataques violeta/laranja/azul do Kotlin; corrotinas teleguiadas e cristais Null-Safe que congelam. |
-| **ROOT PHANTOM** (hacker) | ROOTKIT | Aproximação quase invisível, backdoor pelas costas, malware que atrasa o medidor, escalada de privilégio e ultimate **Kernel Panic**. |
-| **Mestre Java** | TANQUE + EXPLOSÃO | Mestre do back-end de jaqueta: armadura da JVM, Garbage Collector que puxa, StackOverflowError que explode e Meteoro de Beans. |
+| **YUMI LAMBDA** | RAPIDEZ + GELO | Baixinha, cabelo claro e óculos; a mais rápida do jogo. Ataques violeta/laranja/azul do Kotlin; corrotinas teleguiadas e cristais Null-Safe que congelam. |
+| **ROOT PHANTOM** | ROOTKIT | Aproximação quase invisível, backdoor pelas costas, malware que atrasa o medidor, escalada de privilégio e ultimate **Kernel Panic**. |
+| **KAEL JVM** | TANQUE + EXPLOSÃO | Jaqueta de back-end: armadura da JVM, Garbage Collector que puxa, StackOverflowError que explode e Meteoro de Beans. |
 | **CROMO VX** (mercenário) | ESQUIVA | Esquiva para a frente e para trás, atravessa o rival, intangível no meio do passo e ganha medidor num desvio limpo. |
 | **BHM NOIR** | RAIO + SOMBRA | Portal no chão: afunda na sombra e reaparece atrás ou por cima, com soco ou chute na saída. |
 | **KATYA QUEUE** | FILAS | Russa de trança platinada e casaco com forro vermelho. Tópicos, consumer lag e entrega exactly-once. |
 | **RIN SHADER** | SHADER | Japonesa de rabo de cavalo preto e fita vermelha. Cortes de vértice, fragmentos de shader e raster. |
 | **ASH VAULT** | CIFRA | Cabelo prateado e casaco longo. Hash, troca de chave e conhecimento zero. |
-| **ET 1155** | OVERCLOCK SECO | Alien das latas velhas: chip 1155, chave de fenda, overclock que superaquece se durar até o fim, pasta térmica e ultimate Debloat Total. |
-| Git Master | CEGUEIRA | Sombras embaçam a tela do rival. |
-| Bug Hunter | DANO CONTÍNUO | Todo acerto de habilidade envenena. |
-| Front Dev | ELÉTRICO | Neon eletriza os controles do rival. |
-| Back Dev | STUN | Barra de tontura enche 50 % mais rápido. |
-| DevOps | EXPLOSÃO | Explosões extras. |
-| QA Tester | CORROSÃO | Ácido: vulnerável e envenenado. |
-| Scrum Master | GELO / LENTIDÃO | Habilidades deixam lento. |
-| Fullstack | COMBOS | Cadeias com 2 golpes a mais. |
+| **ET 1155** | OVERCLOCK SECO | Boné 1155, óculos, bigode e cavanhaque, camiseta floral e jeans. Chip 1155, combo de chave de fenda, aura de calor, pasta térmica e ultimate do sedan branco no morro, com o grito **LISO!** / **SECO!**. |
+| **KAGE COMMIT** | CEGUEIRA | Sombras embaçam a tela do rival. |
+| **LYRA TRACE** | DANO CONTÍNUO | Todo acerto de habilidade envenena. |
+| **MIRA PIXEL** | ELÉTRICO | Neon eletriza os controles do rival. |
+| **TITAN 500** | STUN | Barra de tontura enche 50 % mais rápido. |
+| **CID PIPE** | EXPLOSÃO | Explosões extras. |
+| **ADA ASSERT** | CORROSÃO | Ácido: vulnerável e envenenado. |
+| **KAIRO SPRINT** | GELO / LENTIDÃO | Habilidades deixam lento. |
+| **OMNI STACK** | COMBOS | Cadeias com 2 golpes a mais. |
 
 **Balanceamento**: torneio CPU × CPU (`python3 tools/balance_sim.py`), dificuldade normal, sem clima e sem mecânica de arena, 2 partidas em cada sentido. Amostra curta (varia cerca de 10 pontos). Meta dos normais: cerca de 40–60 %. O trio secreto continua de propósito acima disso.
 
@@ -147,25 +147,25 @@ Antes desta leva (1 partida por sentido, elenco antigo):
 | DevOps, Cromo | 65 % |
 | Back, Java | 69 % |
 
-Depois (nomes novos; ROOT PHANTOM no topo da faixa normal, não mais entre os fracos):
+Depois (2 partidas em cada sentido, nomes finais). Amostra curta, cerca de 10 pontos de variação:
 
 | Lutador | Vitórias |
 |---|---|
-| KATYA QUEUE | ~40 % |
-| BHM NOIR | ~40 % |
-| ASH VAULT | ~40–60 % |
-| MIRA PIXEL | ~40 % |
-| KAGE COMMIT | ~40–60 % |
-| LYRA TRACE, CROMO VX, YUMI LAMBDA | ~45–55 % |
-| ET 1155, CID PIPE, ADA ASSERT, OMNI STACK, KAEL JVM | ~50–60 % |
-| TITAN 500, KAIRO SPRINT, RIN SHADER | ~55–60 % |
-| ROOT PHANTOM | ~55–65 % |
+| MIRA PIXEL, BHM NOIR | 38 % |
+| ADA ASSERT | 42 % |
+| KAGE COMMIT, TITAN 500, YUMI LAMBDA, RIN SHADER | 45 % |
+| KAIRO SPRINT, CROMO VX | 47 % |
+| KATYA QUEUE, ASH VAULT | 48 % |
+| CID PIPE, ROOT PHANTOM | 55 % |
+| LYRA TRACE, ET 1155 | 59 % |
+| OMNI STACK | 64 % |
+| KAEL JVM | 69 % |
 
-Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: continuam apelões.
+ET 1155 fica no topo da faixa normal. Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: continuam apelões.
 
-## Arenas (30)
+## Arenas (34)
 
-10 cenários animados originais, 10 do pacote retrô, 6 de tecnologia (**Floresta Spring Boot**, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python) e 4 da Edição Turbo:
+10 cenários animados originais, 10 do pacote retrô, 6 de tecnologia (**Floresta Spring Boot**, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python), 4 da Edição Turbo e 4 novas desta leva:
 
 | Arena | Mecânica |
 |---|---|
@@ -173,6 +173,10 @@ Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: cont
 | **Covil do Kali** | INVASÃO: um lutador é hackeado e fica com os controles eletrizados |
 | **Torrefação JVM** | GARBAGE COLLECTOR: apaga projéteis e zonas e puxa todos ao centro |
 | **Cidade Cromada** | DRONES: disparos do céu miram um lutador |
+| **Oficina das Latas** | BANCADA: peças caem da prateleira |
+| **Terminal Fósforo** | SCROLL: colunas de texto empurram para o lado |
+| **Metrô de Pacotes** | TREM: o vagão empurra a plataforma |
+| **Catedral SQL** | QUERY: um feixe marca quem está no centro |
 
 Todas as arenas têm **mecânica exclusiva** (lava, esteira, glitch que troca lugares, git revert, holofote, gelo escorregadio, enxame de abelhas, mel que gruda, containers que caem, serpente, gongo, baixa gravidade…) e **clima aleatório** com efeito real:
 
@@ -248,6 +252,10 @@ São os 10 fundos animados do dono, em `assets/stages/`. Cada PNG é uma folha d
 8. Startup 3am
 9. Deploy nas Nuvens
 10. Arena Git
+11. Oficina das Latas
+12. Terminal Fósforo
+13. Metrô de Pacotes
+14. Catedral SQL
 
 Os GIFs de origem estão em `assets/stages/source/`. Para reprocessar:
 

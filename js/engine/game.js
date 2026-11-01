@@ -57,6 +57,7 @@ class Game {
     this.slowmo = 0;
     this.bsod = 0;
     this.glitch = 0;
+    this.sedan = null;
     this.combo = { owner: null, count: 0, until: 0 };
     this.lastVictim = null;
     this.firstHit = false;
@@ -152,6 +153,23 @@ class Game {
   opponentsOf(f) { const e = this.enemyOf(f); return e ? [e] : []; }
 
   /* ---------- efeitos ---------- */
+  tickSedan() {
+    const s = this.sedan;
+    if (!s || this.netRole === 'guest') return;
+    s.t++;
+    s.life--;
+    s.x += s.dir * 18;
+    const owner = s.owner;
+    const opp = owner && owner.alive ? owner.enemy() : null;
+    if (opp && opp.alive && !s.hit && Math.abs(opp.x - s.x) < 120 && opp.y > -240) {
+      s.hit = true;
+      opp.takeHit(s.dmg, { attacker: owner, kx: 14, dirSign: s.dir, launch: -8, stun: 28, ability: true, heavy: true });
+      owner.flashText('SECO!', '#ffe14d');
+      this.spawnImgFx('lata', 'impact', opp.x, opp.y - 70, { scale: 2.3, life: 16, dir: s.dir });
+      this.shake(12);
+    }
+    if (s.life <= 0 || s.x < -420 || s.x > this.W + 420) this.sedan = null;
+  }
   spawnImgFx(sheet, clip, x, y, opts = {}) {
     if (!this.imgFx) this.imgFx = [];
     if (this.imgFx.length > 48) this.imgFx.shift();
@@ -390,6 +408,7 @@ class Game {
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
     if (this.glitch > 0) this.glitch--;
+    this.tickSedan();
     if (this.pendingTag && --this.pendingTag.at <= 0) { const p = this.pendingTag; this.pendingTag = null; this.tagIn(p.ti, p.idx, true); }
     if (this.roundState === 'intro') {
       if (this.roundStateTime === 1) {
@@ -585,6 +604,7 @@ class Game {
       rs: this.roundState, rst: this.roundStateTime, rnd: this.round, tw: this.teamWins, tm: this.roundTimer === Infinity ? 99 : Math.max(0, Math.ceil(this.roundTimer / 60)),
       wk: this.weather.kind, wind: Math.round(this.weather.wind * 100) / 100, wf: this.weather.flash,
       fr: this.freeze, bs: this.bsod, gl: this.glitch, sh: Math.round(this.shakeMag),
+      sd: this.sedan ? [Math.round(this.sedan.x), this.sedan.dir, this.sedan.life, this.sedan.t] : 0,
       teams: this.teams.map((t) => ({ a: t.active, cd: t.tagCd, ac: t.assistCd || 0, m: t.members.map((m) => m.snap()) })),
       e: [...this.projectiles, ...this.strikes, ...this.zones, ...this.walls].map((e) => this.ent(e)).filter(Boolean),
       pk: this.pickups.map((p) => [p.id, Math.round(p.x), Math.round(p.y), p.def.id, p.age]),
@@ -605,6 +625,9 @@ class Game {
     this.freeze = s.fr;
     this.bsod = s.bs;
     this.glitch = s.gl;
+    if (this.netRole === 'guest') {
+      this.sedan = s.sd ? { x: s.sd[0], dir: s.sd[1], life: s.sd[2], t: s.sd[3], hit: true, dmg: 0, owner: null } : null;
+    }
     if (s.sh) this.shake(s.sh);
     s.teams.forEach((ts, ti) => {
       const t = this.teams[ti];
@@ -693,6 +716,7 @@ class Game {
     }
     ctx.save();
     ctx.translate(0, GROUND_Y);
+    this.drawSedanHill(ctx);
     this.mech.draw(ctx);
     const guest = this.netRole === 'guest';
     if (guest) this.drawNetEntities(ctx, ['z', 'w']);
@@ -708,6 +732,7 @@ class Game {
     for (const fx of this.imgFx || []) {
       Fx.blit(ctx, fx.sheet, fx.clip, fx.frame, fx.x, fx.y, { scale: fx.scale, dir: fx.dir, alpha: fx.alpha * Math.max(0.15, fx.life / fx.max) });
     }
+    this.drawSedanCar(ctx);
     for (const bu of this.bursts) {
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }
@@ -753,6 +778,40 @@ class Game {
     ctx.restore();
     ctx.restore();
     UI.hud.update(this);
+  }
+  drawSedanHill(ctx) {
+    const s = this.sedan;
+    const hill = Fx.images.morro;
+    if (!s || !hill || !hill.naturalWidth) return;
+    const fade = Math.min(1, s.t / 6, s.life / 12);
+    ctx.save();
+    ctx.globalAlpha = 0.94 * fade;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(hill, -60, -430, this.W + 120, 440);
+    ctx.restore();
+  }
+  drawSedanCar(ctx) {
+    const s = this.sedan;
+    const car = Fx.images.sedan;
+    if (!s || !car || !car.naturalWidth) return;
+    const fade = Math.min(1, s.t / 6, s.life / 10);
+    const dw = 420;
+    const dh = Math.round(dw * car.naturalHeight / car.naturalWidth);
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(s.x), 6);
+    if (s.dir < 0) ctx.scale(-1, 1);
+    ctx.drawImage(car, Math.round(-dw / 2), -dh, dw, dh);
+    ctx.font = '20px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#000';
+    ctx.fillStyle = s.hit ? '#ffe14d' : '#ffffff';
+    const label = s.hit ? 'SECO!' : 'LISO!';
+    ctx.strokeText(label, 0, -dh - 18);
+    ctx.fillText(label, 0, -dh - 18);
+    ctx.restore();
   }
   drawBeams(ctx) {
     for (const b of this.beams) {

@@ -467,6 +467,7 @@ class Fighter {
           const ang = n > 1 ? (k - (n - 1) / 2) * (p.spread || 0.25) : 0;
           this.queue.push({ at: k * 5, fn: () => game.projectiles.push(new Projectile(this, p, { angle: ang, seek, fid })) });
         }
+        if (p.imgFx) game.spawnImgFx(p.imgFx, 'projectile', this.x + this.dir * 36, this.y - 110, { scale: 1.7, life: 16, dir: this.dir });
         break;
       }
       case 'pillar': {
@@ -558,6 +559,21 @@ class Fighter {
         }
         break;
       }
+      case 'sedan': {
+        game.sedan = {
+          x: this.dir > 0 ? -180 : game.W + 180,
+          dir: this.dir,
+          life: 100,
+          t: 0,
+          dmg: p.dmg || 32,
+          owner: this,
+          hit: false,
+        };
+        this.flashText('LISO!', '#ffffff');
+        game.spawnImgFx('lata', 'ultimate', this.x, this.y - 120, { scale: 2.4, life: 20, dir: this.dir });
+        game.shake(10);
+        break;
+      }
       case 'shadowport': {
         const above = Math.random() < 0.45;
         this.shadowPort = { phase: 'sink', t: 0, p, above, sinkX: this.x, follow: null };
@@ -620,7 +636,8 @@ class Fighter {
         break;
       }
       case 'zone': {
-        game.zones.push(new Zone(this, { fid, row: p.row, x: tx, w: 200, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 30 }));
+        game.zones.push(new Zone(this, { fid, row: p.row, x: tx, w: 220, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 30 }));
+        if (p.imgFx) game.spawnImgFx(p.imgFx, 'impact', tx, -16, { scale: 2.6, life: 36 });
         break;
       }
       case 'barrage': {
@@ -804,6 +821,9 @@ class Fighter {
       if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 40 - Math.random() * 120, '#d8f6ff');
       if (this.afterimage > 0) this.afterimage--;
       if (this.phaseDash > 0) this.phaseDash--;
+      if (this.overclockHot && this.has('aura') && this.frame % 8 === 0) {
+        this.game.spawnImgFx('lata', 'aura', this.x, this.y - 100, { scale: 2.2, life: 14, alpha: 0.9 });
+      }
       if (this.overclockHot && this.overclockUntil && this.now >= this.overclockUntil && !this.has('aura')) {
         this.overclockHot = false;
         if (!this.overclockCut) {
@@ -1104,6 +1124,7 @@ class Fighter {
       const last = r.hits === 0;
       if (Math.abs(t.x - this.x) < 140 && Math.abs(t.y - this.y) < 160) {
         t.takeHit(r.p.dmg / (r.p.hits || 5), { attacker: this, kx: last ? 12 : 1.5, dirSign: this.dir, stun: 22, launch: last ? -10 : 0, noScale: true, ability: true, power: r.p, element: this.elementOf(r.p), heavy: last });
+        if (r.p.imgFx) this.game.spawnImgFx(r.p.imgFx, 'impact', t.x, t.y - 90, { scale: last ? 2.1 : 1.45, life: 12, dir: this.dir });
         this.game.beams.push({ owner: this, fid: r.fid, row: r.p.row, x: t.x, dir: this.dir, len: 0, age: 0, life: 14, y: t.y - 110, single: true, scale: last ? 2.4 : 1.4 });
       }
       if (last && r.p.finisherPillars && t) {
