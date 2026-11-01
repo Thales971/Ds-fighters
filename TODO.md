@@ -22,3 +22,5 @@
 - [ ] Revisar as 20 tabelas antigas do projeto compartilhado que estão sem RLS. Não foram modificadas para não bloquear o aplicativo anterior; planejar políticas antes de ativá-las.
 
 Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPEDAGEM.md`. Torneios históricos não foram repetidos nesta etapa.
+
+**Decisão do proprietário (01/11/2026):** adiar o Google. A pendência OAuth acima é futura, não uma tarefa bloqueante a insistir nesta entrega. Supabase ativo; progresso local permanece disponível sem login.

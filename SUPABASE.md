@@ -47,3 +47,7 @@ O repositório indica **https://online-server-one.vercel.app**, e essa URL servi
 O banco real confirmou RLS habilitada, `anon SELECT = false`, permissões SELECT/INSERT/UPDATE autenticadas e `authenticated DELETE = false`. As três políticas usam igualdade entre `auth.uid()` e `user_id`. O trigger está habilitado, com `security_definer = false` e `search_path` fechado. A chamada REST anônima recebeu **HTTP 401**.
 
 `python3 tools/supabase_check.py` passou com SDK real: configuração real/aviso Google, depois Auth/REST isoladamente simulados para merge, namespace, autosave, offline/retorno e logout. O teste Firebase (`cloud_check.py`), os dois runners VM de conta e `senai_check.py` também passaram. Nenhum usuário ou progresso fictício foi criado no banco real. Como não há usuários Supabase existentes e Google permanece desativado, persistência de um usuário autenticado real e execução do merge de banco em sua linha ficam pendentes do primeiro login.
+
+## Decisão do proprietário
+
+Em 01/11/2026, o proprietário escolheu **deixar o Google para depois**. Não solicitar novamente a criação/configuração OAuth nesta etapa. O Supabase continua ativo com tabela privada e cliente integrado; o provedor Google permanece desativado, e o jogo mantém o progresso local até um login real ser habilitado. Nenhuma alteração adicional nos provedores ou nas tabelas anteriores foi feita por causa desse adiamento.
