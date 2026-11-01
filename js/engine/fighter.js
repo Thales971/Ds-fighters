@@ -15,7 +15,7 @@ function boxesOverlap(a, b) {
 const STATUS_LABEL = {
   atk: { t: 'ATQ+', c: '#ff4b4b' }, def: { t: 'DEF+', c: '#4ba3ff' }, spd: { t: 'VEL+', c: '#ffd84b' },
   rage: { t: 'FÚRIA', c: '#ff6a1c' }, armor: { t: 'ARMADURA', c: '#ffd27d' }, reflect: { t: 'REFLEXO', c: '#7de0ff' },
-  invuln: { t: 'INVULN.', c: '#ffffff' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
+  invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
   burn: { t: 'QUEIMANDO', c: '#ff7b1c' }, poison: { t: 'VENENO', c: '#9dff4a' }, slow: { t: 'LENTO', c: '#7db8ff' },
   locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' },
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
@@ -128,12 +128,14 @@ class Fighter {
   autoAim() { return !!(this.kit && this.kit.autoAim); }
 
   /* ---------- multiplicadores ---------- */
+  spriteKey() { return this.has('astra') && this.def.id === 'qwen' ? 'qwen-astra' : this.def.id; }
   dmgMult(p) {
     let m = this.def.stats.power || 1;
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
     if (this.has('spot')) m *= 1.25;
+    if (this.has('astra')) m *= 1.3;
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
@@ -155,6 +157,10 @@ class Fighter {
     return m;
   }
   speedMult() {
+    if (this.has('astra')) return this._speedBase() * 1.15;
+    return this._speedBase();
+  }
+  _speedBase() {
     let m = this.def.stats.speed || 1;
     if (this.has('spd')) m *= 1.4;
     if (this.has('aura') && this.aura && this.aura.speedMult) m *= this.aura.speedMult;
@@ -397,7 +403,8 @@ class Fighter {
       const v = this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter];
       return { ready: v >= 100, pct: v / 100, p };
     }
-    return { ready: this.ultimate >= 100, pct: this.ultimate / 100, p };
+    const needOk = !p.needAfo || this.afo >= p.needAfo;
+    return { ready: this.ultimate >= 100 && needOk, pct: this.ultimate / 100, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
   }
   canAct() {
     return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched;
@@ -439,7 +446,14 @@ class Fighter {
     this.blocking = false;
     this.crouching = false;
     if (this.onGround) this.vx *= 0.3;
-    if (this.def.id === 'iales') this.afo = Math.min(10, this.afo + 1);
+    this.castAfo = this.afo;
+    if (p.transform) {
+      this.addStatus(p.transform, p.time || 600);
+      this.addStatus('armor', 90);
+      this.flashText('QWEN ASTRA!', '#a78bff');
+      for (let k = 0; k < 3; k++) game.spawnBurst('chaos', 3, this.x, -60 - k * 50, this.dir, 2 + k * 0.4);
+    }
+    if (this.def.id === 'iales' && p.kind !== 'afo2') this.afo = Math.min(10, this.afo + 1);
     const ult = p.slot === 'ultimate';
     this.flashText(p.name.toUpperCase(), this.def.colors.accent);
     game.audio.sfx(p.sfx || 'magic');
@@ -556,6 +570,56 @@ class Fighter {
           game.spawnImgFx('kernel', 'ultimate', game.W / 2, 180, { scale: 5, life: 36 });
           game.audio.play('hazard');
         }
+        break;
+      }
+      case 'quake': {
+        /* Soco que racha o ar: trava (lock) e depois arremessa para longe. */
+        const range = p.range || 150;
+        const foes = p.both ? game.opponentsOf(this) : (tgt ? [tgt] : []);
+        if (p.pullFirst && tgt) {
+          const dx0 = (tgt.x - this.x) * this.dir;
+          if (dx0 > 0 && dx0 < range) { tgt.x = this.x + this.dir * 84; tgt.vx = 0; }
+        }
+        game.addCrack(this.x + this.dir * 62, -112, p.screen ? 2.4 : 1.2, this.dir);
+        if (p.screen) {
+          game.addCrack(this.x - this.dir * 230, -150, 1.8, -this.dir);
+          game.addCrack(this.x + this.dir * 280, -80, 1.8, this.dir);
+          game.flashScreen && game.flashScreen('#e8f6ff', 10);
+        }
+        game.spawnBurst(key, p.row, this.x + this.dir * 70, -110, this.dir, p.screen ? 2.4 : 1.4);
+        game.shake(p.screen ? 18 : 10);
+        for (const f of foes) {
+          const dx = (f.x - this.x) * this.dir;
+          const inRange = p.both ? (Math.abs(f.x - this.x) < range && f.onGround) : ((dx > -20 && dx < range + 30) || seek);
+          if (!inRange) continue;
+          const side = f.x >= this.x ? 1 : -1;
+          const first = Math.round(p.dmg * 0.4);
+          if (f.takeHit(first, { attacker: this, kx: 0, dirSign: side, stun: (p.lock || 26) + 12, ability: true, power: p, element: el, height: p.screen ? 'unblockable' : undefined })) {
+            f.vx = 0;
+            f.addStatus('freeze', p.lock || 26);
+            f.quakeHold = { t: p.lock || 26, dmg: p.dmg - first, kx: p.kx || 22, launch: p.launch || -10, side, by: this, p, el };
+          }
+        }
+        break;
+      }
+      case 'afo2': {
+        /* All For One: Ação Final — cresce com cada poder acumulado. */
+        const stacks = this.castAfo || 0;
+        const dmg = p.dmg + stacks * (p.perAfo || 4);
+        if (tgt) {
+          this.dir = tgt.x >= this.x ? 1 : -1;
+          for (let k = 0; k < 3; k++) game.spawnBurst(key, p.row, tgt.x + (k - 1) * 46, -120 - k * 30, this.dir, 1.6 + k * 0.5);
+          game.spawnBurst('chaos', 3, tgt.x, -110, this.dir, 3.2);
+          game.addCrack(tgt.x, -130, 2.2, this.dir);
+          tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 20, dirSign: this.dir, launch: -13, stun: 52, ability: true, power: p, element: el, heavy: true });
+          tgt.ultimate = Math.max(0, tgt.ultimate - 50);
+          tgt.charge[0] = Math.max(0, tgt.charge[0] - 50);
+          tgt.charge[1] = Math.max(0, tgt.charge[1] - 50);
+          this.heal(6 + stacks * 3);
+        }
+        this.flashText(`ALL FOR ONE x${stacks}`, '#ff3b6b');
+        game.shake(22);
+        this.afo = 0;
         break;
       }
       case 'shadowport': {
@@ -746,7 +810,9 @@ class Fighter {
     const game = this.game;
     const grav = (GRAVITY_BASE + this.weight() * 0.12) * (game.gravityMul || 1);
     const wasAir = this.y < 0;
+    if (this.landT > 0) this.landT--;
     if (this.y < 0 || this.vy !== 0) {
+      this.lastVy = this.vy;
       this.vy += grav;
       this.y += this.vy;
       if (this.y >= 0) {
@@ -762,6 +828,8 @@ class Fighter {
             game.shake(4);
             game.spawnBurst('impact', 2, this.x, -16, 1, 1.4);
           }
+          this.landT = 9;
+          this.landHard = Math.min(1, Math.abs(this.lastVy || 8) / 16);
           this.launched = false;
           game.audio.land();
           game.dust(this.x);
@@ -790,6 +858,18 @@ class Fighter {
     if (this.flashWhite) this.flashWhite--;
     for (let i = 0; i < this.cd.length; i++) if (this.cd[i] > 0) this.cd[i]--;
     Object.keys(this.buf).forEach((k) => { if (this.buf[k]) this.buf[k]--; });
+    if (this.quakeHold) {
+      const q = this.quakeHold;
+      this.vx = 0;
+      if (--q.t <= 0 || this.state === 'ko') {
+        this.quakeHold = null;
+        if (this.state !== 'ko') {
+          game.addCrack(this.x, this.y - 100, 1.4, q.side);
+          this.takeHit(q.dmg, { attacker: q.by, height: 'unblockable', kx: q.kx, dirSign: q.side, launch: q.launch, stun: 34, ability: true, power: q.p, element: q.el, heavy: true });
+          game.shake(12);
+        }
+      }
+    }
     if (this.stolen && this.now >= this.stolen.until) {
       this.stolen = null;
       this.flashText('KIT DEVOLVIDO');
@@ -1274,11 +1354,68 @@ class Fighter {
       ctx.restore();
     }
   }
+  /* Camada de movimento procedural: respiração, inclinação ao andar, estica no pulo,
+     achata no pouso, avanço no golpe e recuo ao apanhar. Deixa animações de poucos
+     quadros bem mais fluidas. Desligada em "movimento reduzido". */
+  motionXf(pose) {
+    if (this.game.reduced) return null;
+    const t = this.frame;
+    let sx = 1, sy = 1, rot = 0, dx = 0, dy = 0;
+    const ease = (k) => 1 - Math.pow(1 - Math.max(0, Math.min(1, k)), 3);
+    switch (pose) {
+      case 'idle': case 'win': {
+        const b = Math.sin(t * 0.075);
+        sy = 1 + b * 0.014; sx = 1 - b * 0.008;
+        break;
+      }
+      case 'walk': {
+        const ph = this.walkPhase * Math.PI;
+        dy = -Math.abs(Math.sin(ph)) * 3;
+        rot = 0.035 * Math.sign(this.vx * this.dir || 1);
+        break;
+      }
+      case 'jump': {
+        const v = Math.max(-1, Math.min(1, this.vy / 14));
+        sy = 1 + Math.abs(v) * 0.07; sx = 1 - Math.abs(v) * 0.05;
+        rot = -v * 0.05;
+        break;
+      }
+      case 'crouch': sy = 0.985; break;
+      case 'hit': {
+        const k = Math.max(0, 1 - this.stateTime / 14);
+        rot = -0.10 * k; dx = -6 * k;
+        dx += (t % 2 ? 1.5 : -1.5) * k;
+        break;
+      }
+      case 'block': dx = -2 * Math.max(0, 1 - this.stateTime / 8); break;
+      case 'special': {
+        const k = ease(this.stateTime / 10);
+        sx = 1 + 0.04 * k; sy = 1 - 0.02 * k; dx = 6 * k;
+        break;
+      }
+      default: {
+        // golpes: antecipação curta e avanço no quadro ativo
+        const mv = this.attack;
+        if (mv) {
+          const st = this.stateTime;
+          if (st < mv.startup) { const k = st / Math.max(1, mv.startup); dx = -3 * k; rot = -0.03 * k; }
+          else if (st < mv.startup + mv.active + 2) { dx = 9; rot = 0.045; sx = 1.03; }
+          else { const k = 1 - (st - mv.startup - mv.active) / Math.max(1, mv.recovery); dx = 9 * Math.max(0, k); rot = 0.045 * Math.max(0, k); }
+        }
+      }
+    }
+    if (this.landT > 0 && this.onGround) {
+      const k = (this.landT / 9) * (0.5 + 0.5 * (this.landHard || 0.5));
+      sy *= 1 - 0.10 * k; sx *= 1 + 0.08 * k;
+    }
+    return { sx, sy, rot, dx, dy };
+  }
   draw(ctx) {
     if (this.benched || this.hidden) return;
     const pose = this.animPose();
     const frame = this.animFrame(pose);
     const game = this.game;
+    const xf = this.motionXf(pose);
     // sombra
     ctx.fillStyle = 'rgba(0,0,0,0.42)';
     const sh = 34 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
@@ -1295,9 +1432,9 @@ class Fighter {
     if (ghost && !game.reduced) {
       ctx.save();
       ctx.globalAlpha = 0.25;
-      SpriteGen.blit(ctx, this.def.id, pose, frame, this.dir, this.x - this.dir * 22, this.y, false);
+      SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x - this.dir * 22, this.y, false, null, xf);
       ctx.globalAlpha = 0.12;
-      SpriteGen.blit(ctx, this.def.id, pose, frame, this.dir, this.x - this.dir * 44, this.y, false);
+      SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x - this.dir * 44, this.y, false, null, xf);
       ctx.restore();
       if (this.dashHit) Art.ability(ctx, this.kitOwnerId(this.dashHit.p), this.dashHit.p.row, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.2, dir: this.dir });
     }
@@ -1311,7 +1448,7 @@ class Fighter {
     if (this.has('chill')) ctx.filter = 'saturate(0.6) hue-rotate(160deg) brightness(1.15)';
     else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';
     else if (this.has('overclock')) { ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; }
-    SpriteGen.blit(ctx, this.def.id, pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0);
+    SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf);
     ctx.filter = 'none';
     ctx.restore();
     if (this.has('shock') && this.frame % 5 === 0) Art.fx2(ctx, 'lightning', 2, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.1, alpha: 0.7 });

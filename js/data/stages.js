@@ -48,6 +48,7 @@ const STAGE_LIST = [
   { id: 'kali', name: 'Covil do Kali', image: 'assets/maps/kali.jpg', group: 'Expansão Turbo', weather: ['clear', 'rain', 'storm'], fauna: ['bat'], mech: 'hack', tint: '#00ff66' },
   { id: 'java', name: 'Torrefação JVM', image: 'assets/maps/java.jpg', group: 'Expansão Turbo', weather: ['clear'], fauna: [], mech: 'gc', tint: '#f89820', embers: true },
   { id: 'chrome', name: 'Cidade Cromada', image: 'assets/maps/chrome.jpg', group: 'Expansão Turbo', weather: ['rain', 'storm', 'clear'], fauna: ['bird'], mech: 'drones', tint: '#ff4fd8' },
+  { id: 'sesi', name: 'Quadra SESI Valinhos', image: 'assets/maps/sesi.jpg', group: 'Expansão V4', weather: ['clear'], fauna: ['bird'], mech: 'sesi', tint: '#e30613' },
 ];
 
 /* Compatibilidade com código antigo. */
@@ -66,6 +67,7 @@ const MECH_INFO = {
   hack: 'INVASÃO: um lutador é hackeado e fica com os controles eletrizados.',
   gc: 'GARBAGE COLLECTOR: limpa projéteis e zonas e puxa todos ao centro.',
   drones: 'DRONES: disparos do céu miram um lutador.',
+  sesi: 'TORCIDA DO SESI: bolas de futsal caem da galeria e o sinal do intervalo enche a energia de todos.',
   overheat: 'SUPERAQUECIMENTO: zonas do piso esquentam e queimam.',
   glyphs: 'CHUVA DE CÓDIGO: colunas de glifos caem e deixam lento.',
   bsod: 'TELA AZUL: o sistema trava os dois e solta energia.',
@@ -96,3 +98,8 @@ const MECH_INFO = {
   train: 'TREM: o vagão empurra a plataforma.',
   query: 'QUERY: um feixe marca quem está no centro.',
 };
+
+/* Mapas estáticos viram loops animados de 24 quadros (tools/animate-maps.py). */
+if (typeof MAP_ANIM !== 'undefined') {
+  STAGE_LIST.forEach((s) => { const a = MAP_ANIM[s.id]; if (a) Object.assign(s, a); });
+}

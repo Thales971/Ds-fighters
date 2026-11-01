@@ -1,0 +1,22 @@
+/* ---------- conta e sincronização ---------- */
+#account-box { margin-bottom: 12px; }
+.account-card { background: rgba(16, 8, 34, .94); border: 3px solid #3a2766; box-shadow: 0 0 0 3px #000, 5px 5px 0 #000; padding: 10px; color: #fff; font-size: 7px; }
+.account-card h3 { margin: 0 0 7px; color: var(--gold); font-size: 10px; }
+.account-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.account-head h3 { margin: 0 0 4px; color: var(--cyan); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-avatar { width: 34px; height: 34px; flex: none; border: 2px solid var(--gold); border-radius: 50%; object-fit: cover; background: #120a24; image-rendering: auto; }
+.account-avatar-fallback { display: grid; place-items: center; color: var(--gold); font-size: 16px; }
+.account-state, .account-cloud-status { margin: 0; color: var(--cyan); line-height: 1.5; }
+.account-cloud-status { margin-top: 7px; color: var(--lime); }
+.account-help { margin: 0 0 8px; color: #b9aedb; font-size: 6px; line-height: 1.6; }
+.account-error { margin: 7px 0; color: #ff9380; font-size: 6px; line-height: 1.5; }
+.account-action { width: 100%; margin: 8px 0 0; padding: 7px 5px; border: 2px solid #6b4fb3; background: #2a1650; color: #fff; cursor: pointer; font: 7px 'Press Start 2P', monospace; box-shadow: 0 3px 0 #000; }
+.account-action:focus, .account-action:hover { border-color: var(--gold); background: #4a2a8a; color: var(--gold); transform: translateY(-1px); }
+.account-action:disabled { border-color: #51476d; background: #191329; color: #8f86a7; cursor: not-allowed; box-shadow: none; transform: none; }
+.account-signed { border-color: #317e63; }
+.account-disabled { border-color: #51476d; }
+@media (max-width: 720px) {
+  #account-box { margin-bottom: 8px; }
+  .account-card { padding: 8px; }
+  .account-help { font-size: 5px; }
+}

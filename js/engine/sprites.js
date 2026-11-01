@@ -26,7 +26,7 @@ const SpriteGen = {
     return i < 0 ? 0 : i;
   },
 
-  blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null) {
+  blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null) {
     const L = SPRITE_LAYOUT;
     const sc = scale || L.drawScale;
     const fw = L.frameW;
@@ -40,7 +40,15 @@ const SpriteGen = {
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.translate(Math.round(centerX), top);
+    ctx.translate(Math.round(centerX + (xf ? xf.dx * dir : 0)), top + (xf ? xf.dy : 0));
+    if (xf && (xf.sx !== 1 || xf.sy !== 1 || xf.rot)) {
+      // pivô no pé: o boneco estica/achata/inclina sem sair do chão
+      const py = L.baseline * sc;
+      ctx.translate(0, py);
+      if (xf.rot) ctx.rotate(xf.rot * dir);
+      ctx.scale(xf.sx, xf.sy);
+      ctx.translate(0, -py);
+    }
     if (dir < 0) ctx.scale(-1, 1);
 
     const img = this.images[id];

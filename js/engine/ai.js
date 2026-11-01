@@ -39,7 +39,7 @@ const AI = {
 
   /** Rota de combo conforme o nível; pode terminar com habilidade (cancel). */
   routes(me, L) {
-    const ps = [0, 1, 2, 3, 4].map((i) => me.powerState(i));
+    const ps = me.currentKit().map((_, i) => me.powerState(i));
     const ender = [4, 3, 2, 1, 0].find((i) => ps[i].ready && ['shot', 'beam', 'pillar', 'dash', 'rush', 'blast', 'pull', 'barrage', 'steal'].includes(ps[i].p.kind));
     const base = [
       ['punch'],
@@ -146,10 +146,11 @@ const AI = {
     }
     if (m.cd > 0) { if (dist > L.spacing + 40) fwd(); return input; }
     // 6) habilidades / ultimate
-    const ps = [0, 1, 2, 3, 4].map((i) => me.powerState(i));
+    const ps = me.currentKit().map((_, i) => me.powerState(i));
     const cast = (i) => { input['a' + i] = true; m.cd = 18 + (3 - lvl) * 14; return input; };
     const auto = me.autoAim();
-    if (ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal'].includes(ps[4].p.kind))) return cast(4);
+    if (ps[5] && ps[5].ready && Math.random() < L.ult) return cast(5);
+    if (ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);
     for (const i of [3, 2, 1, 0]) {
       const st = ps[i];
       if (!st.ready || Math.random() > L.ability) continue;
@@ -161,6 +162,7 @@ const AI = {
       if (k === 'shadowport' && dist < 380) return cast(i);
       if (['shot', 'pillar', 'zone', 'wall', 'blast', 'rain', 'barrage'].includes(k) && (dist > 150 || auto)) return cast(i);
       if (k === 'rush' && dist < 200) return cast(i);
+      if (k === 'quake' && dist < (st.p.range || 150) + 20) return cast(i);
     }
     // 7) perto: combo, agarrão ou erro proposital
     if (dist < 92 && me.onGround) {

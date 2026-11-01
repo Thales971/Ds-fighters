@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#120a24" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/account.css" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -69,6 +70,7 @@
         <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
       </nav>
       <div class="menu-side">
+        <div id="account-box"></div>
         <div class="stats-card" id="stats-card"></div>
         <div class="demo-roster" id="menu-roster"></div>
       </div>
@@ -271,10 +273,14 @@
 
   <script src="assets/sprites/layout.js"></script>
   <script src="assets/stages/sheets.js"></script>
+  <script src="assets/maps/anim.js"></script>
   <script src="js/core/profile.js"></script>
+  <script src="js/config/firebase-config.js"></script>
+  <script src="js/core/cloud.js"></script>
   <script src="js/data/fighters.js"></script>
   <script src="js/data/powers.js"></script>
   <script src="js/data/powers-turbo.js"></script>
+  <script src="js/data/powers-v4.js"></script>
   <script src="js/data/pets.js"></script>
   <script src="js/data/stages.js"></script>
   <script src="js/engine/sprites.js"></script>
@@ -293,6 +299,7 @@
   <script src="js/net/online.js"></script>
   <script src="js/ui/hud.js"></script>
   <script src="js/ui/ui.js"></script>
+  <script src="js/ui/account.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

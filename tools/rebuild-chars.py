@@ -13,12 +13,16 @@ from PIL import Image
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = Path('/home/ubuntu/work/v3/out')
+import os
+OUT = Path(os.environ.get('CHAR_OUT', '/home/ubuntu/work/v3/out'))
+TPL_DIR = Path(os.environ.get('CHAR_TPL', '/home/ubuntu/work/v3/orig'))
 CW, CH = 320, 260
 CHUNKS = [(0, 4), (4, 8), (8, 12), (12, 15)]
+CHUNKS2 = [(0, 8), (8, 15)]
 # id final -> (modelo, escala de altura)
 CHARS = {
     'du': ('du', 1.0), 'felipinho': ('felipinho', 1.0), 'bhm': ('felipinho', 1.0),
+    'xeon': ('frontend', 1.0, 2), 'urbano': ('backend', 1.06, 2), 'qwen': ('frontend', 1.0, 2),
     'kotlin': ('qa', 0.86), 'hacker': ('fullstack', 1.0), 'java': ('backend', 1.04), 'merc': ('gitmaster', 1.0),
 }
 
@@ -47,14 +51,14 @@ def clean(cell):
     return out, bbox_alpha(arr[..., 3])
 
 
-def build(cid, tpl_id, k):
+def build(cid, tpl_id, k, nchunks=4):
     # o modelo é sempre lido da cópia original (folhas podem ser substituídas no processo)
-    bak = Path('/home/ubuntu/work/v3/orig'); bak.mkdir(exist_ok=True)
+    bak = TPL_DIR; bak.mkdir(exist_ok=True)
     if not (bak / f'{tpl_id}.png').exists():
         Image.open(ROOT / f'assets/sprites/{tpl_id}.png').save(bak / f'{tpl_id}.png')
     tpl = Image.open(bak / f'{tpl_id}.png').convert('RGBA')
     sheet = Image.new('RGBA', tpl.size, (0, 0, 0, 0))
-    for n, (r0, r1) in enumerate(CHUNKS):
+    for n, (r0, r1) in enumerate(CHUNKS2 if nchunks == 2 else CHUNKS):
         rows = r1 - r0
         ed = Image.open(OUT / f'{cid}-{n}.png').convert('RGBA').resize((4 * CW, rows * CH), Image.LANCZOS)
         for r in range(rows):

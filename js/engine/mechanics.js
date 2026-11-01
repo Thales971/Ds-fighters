@@ -325,6 +325,31 @@ const MECHS = {
       }
     },
   },
+  /* SESI Valinhos: a torcida chuta bolas de futsal e o sinal do intervalo dá energia. */
+  sesi: {
+    every: 260,
+    fire(g) {
+      const n = (g.mech && g.mech.t) || 0;
+      if (Math.floor(n / 260) % 3 === 2) {
+        g.announce('SINAL DO INTERVALO!', '#e30613', '+ENERGIA PARA TODOS');
+        g.audio.play('hazard');
+        g.fighters().forEach((f) => { f.charge[0] = Math.min(100, f.charge[0] + 30); f.charge[1] = Math.min(100, f.charge[1] + 30); f.ultimate = Math.min(100, f.ultimate + 12); });
+        g.spawnPickup();
+        return;
+      }
+      const fs = g.fighters().filter((f) => f.alive);
+      const tgt = fs[(Math.random() * fs.length) | 0];
+      g.hazard({ x: tgt ? tgt.x : g.randX(), label: 'BOLA!', delay: 48, sheet: ['fx2:impact', 1], dmg: 7, warnColor: '#ffffff', fromSky: true, sound: 'heavy', scale: 1.1, w: 70 });
+    },
+    drawFront(ctx, g, t) {
+      for (let k = 0; k < 14; k++) {
+        const x = 40 + k * 68;
+        const y = -330 + Math.sin(t * 0.05 + k) * 3;
+        ctx.fillStyle = k % 2 ? '#e30613' : '#ffffff';
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 18, y); ctx.lineTo(x + 9, y + 16 + Math.sin(t * 0.08 + k) * 2); ctx.closePath(); ctx.fill();
+      }
+    },
+  },
 };
 
 class StageMechanic {

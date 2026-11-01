@@ -71,7 +71,7 @@ const FIGHTERS = [
     bio: 'Jovem de boné para trás, meia barba e corrente dourada. Domina a água como componentes React: cada onda é um re-render.',
     colors: { skin: '#c98e5f', hair: '#2b1c10', shirt: '#3fae5a', pants: '#3a6ea8', shoes: '#f2f2f2', accent: '#ffe14d' },
     traits: { nerd: true, glasses: 'round', cap: 'backwards', chain: true },
-    stats: { power: 1.25, speed: 1.2, weight: 0.95, hp: 124, meterRate: 1.4 },
+    stats: { power: 1.4, speed: 1.22, weight: 1.0, hp: 136, meterRate: 1.5 },
     secret: true,
     quotes: {
       intro: ['Teu estado vai mudar agora, doido.', 'useEffect: afogar o adversário.'],
@@ -175,7 +175,7 @@ const FIGHTERS = [
     bio: 'Pinta a tela de gradientes e joga caixas de layout no inimigo.',
     colors: { skin: '#f2c9a0', hair: '#ff4fa3', shirt: '#7b61ff', pants: '#2b2b3a', shoes: '#fff', accent: '#00e0ff' },
     traits: { hairStyle: 'long', glasses: 'round', stylish: true },
-    stats: { power: 1.24, speed: 1.18, weight: 0.92, hp: 112, meterRate: 1.15 },
+    stats: { power: 1.3, speed: 1.2, weight: 0.96, hp: 128, meterRate: 1.2 },
     quotes: {
       intro: [' Essa luta vai ficar LINDA. Like e share!', 'centralizado com flexbox, pô!'],
       win: ['#vitória { display: block; }'],
@@ -201,7 +201,7 @@ const FIGHTERS = [
     bio: 'Musculoso, mora no servidor. Um erro 500 seu e acabou.',
     colors: { skin: '#b5793f', hair: '#151515', shirt: '#20242b', pants: '#101216', shoes: '#000', accent: '#ff3b30' },
     traits: { muscular: true, beard: 'full', tank: true },
-    stats: { power: 0.98, speed: 0.84, weight: 1.2, hp: 108 },
+    stats: { power: 1.12, speed: 0.9, weight: 1.24, hp: 124 },
     quotes: {
       intro: ['Bem-vindo ao servidor. Check-in: agora. Check-out: nunca.', 'Meu backend aguenta 1 milhão de requisições... e 1 milhão de socos.'],
       win: ['HTTP 200: você foi processado.'],
@@ -227,7 +227,7 @@ const FIGHTERS = [
     bio: 'Tudo automatizado: até a surra. CI/CD de socos.',
     colors: { skin: '#e0b090', hair: '#4a3a2a', shirt: '#0e7a5f', pants: '#23303a', shoes: '#f5c542', accent: '#f5c542' },
     traits: { helmet: true, vest: true },
-    stats: { power: 1.05, speed: 1.0, weight: 1.08, hp: 106 },
+    stats: { power: 1.12, speed: 1.02, weight: 1.1, hp: 116 },
     quotes: {
       intro: ['Pipeline iniciado: build, test, deploy... de soco.', 'Se quebrou o build, eu quebro você.'],
       win: ['Deploy em produção: vitória. Zero downtime.'],
@@ -253,7 +253,7 @@ const FIGHTERS = [
     bio: 'Testa tudo. Se falhar o teste, leva stun longo.',
     colors: { skin: '#f0c8a0', hair: '#5a3a1a', shirt: '#ffffff', pants: '#37474f', shoes: '#263238', accent: '#e53935' },
     traits: { clipboard: true, vest: true, hairStyle: 'bun' },
-    stats: { power: 1.18, speed: 1.08, weight: 1.02, hp: 114, meterRate: 1.08 },
+    stats: { power: 1.2, speed: 1.08, weight: 1.04, hp: 120, meterRate: 1.1 },
     quotes: {
       intro: ['Vou rodar o teste... em você.', 'Critério de aceite: você derrotado.'],
       win: ['Teste aprovado: minha vitória. Bug seu: derrota.'],
@@ -304,7 +304,7 @@ const FIGHTERS = [
     bio: 'Front, back, banco, deploy... e ainda sobra soco.',
     colors: { skin: '#e8b98f', hair: '#3b2a1a', shirt: '#6d28d9', pants: '#1f2937', shoes: '#e5e7eb', accent: '#22d3ee' },
     traits: { hoodie: true, glasses: 'square', beard: 'short' },
-    stats: { power: 1.03, speed: 1.03, weight: 1.0, hp: 102 },
+    stats: { power: 1.09, speed: 1.03, weight: 1.0, hp: 110 },
     quotes: {
       intro: ['Eu faço o front, o back... e o KO.', 'É fullstack: até a derrota é completa.'],
       win: ['Deploy completo: frontend, backend e vitória.'],
@@ -414,7 +414,7 @@ const FIGHTERS = [
     bio: 'Cabelo preto raspado nas laterais, moletom verde, jeans baggy e tênis. Raios azuis e sombras do submundo.',
     colors: { skin: '#e9c3a5', hair: '#1a1410', shirt: '#6b7d4a', pants: '#8fb3d9', shoes: '#eee', accent: '#4da3ff' },
     traits: { hoodie: true },
-    stats: { power: 1.2, speed: 1.14, weight: 1.0, hp: 120, meterRate: 1.22 },
+    stats: { power: 1.34, speed: 1.16, weight: 1.02, hp: 136, meterRate: 1.24 },
     quotes: {
       intro: ['Vai chover raio.', 'Minha sombra já tá atrás de você.'],
       win: ['Relampejou e acabou.', 'Volta pras sombras.'],
@@ -435,7 +435,7 @@ const FIGHTERS = [
     bio: 'Russa de trança platinada e casaco longo com forro vermelho. Entrega cada golpe exatamente uma vez.',
     colors: { skin: '#f0d0c0', hair: '#6a2430', shirt: '#2c3140', pants: '#23262f', shoes: '#1a1c22', accent: '#d03040' },
     traits: { hairStyle: 'braid' },
-    stats: { power: 1.16, speed: 1.1, weight: 0.98, hp: 114, meterRate: 1.12 },
+    stats: { power: 1.24, speed: 1.12, weight: 1.0, hp: 130, meterRate: 1.18 },
     quotes: {
       intro: ['Sua mensagem está na fila.', 'Offset zero. Sem replay.'],
       win: ['Entrega confirmada.', 'Lag resolvido.'],
@@ -456,7 +456,7 @@ const FIGHTERS = [
     bio: 'Japonesa de rabo de cavalo preto e fita vermelha, jaqueta índigo de rua. Corta a arena em vértices.',
     colors: { skin: '#f0c8a8', hair: '#1a120f', shirt: '#243e86', pants: '#1c1c22', shoes: '#f2f2f4', accent: '#e23b3b' },
     traits: { hairStyle: 'long', visor: true },
-    stats: { power: 0.96, speed: 1.12, weight: 0.88, hp: 100 },
+    stats: { power: 1.12, speed: 1.14, weight: 0.94, hp: 116, meterRate: 1.1 },
     quotes: {
       intro: ['Vou rasterizar você.', 'Um vértice fora do lugar.'],
       win: ['Frame limpo.', 'Shader compilado.'],
@@ -477,7 +477,7 @@ const FIGHTERS = [
     bio: 'Cabelo prateado e casaco longo. Prova o golpe sem revelar a chave.',
     colors: { skin: '#d4b094', hair: '#d5dbe4', shirt: '#22242e', pants: '#14141c', shoes: '#101014', accent: '#9aa6ff' },
     traits: { coat: true, hairStyle: 'silver' },
-    stats: { power: 1.1, speed: 1.0, weight: 1.02, hp: 110 },
+    stats: { power: 1.18, speed: 1.0, weight: 1.02, hp: 120 },
     quotes: {
       intro: ['Conhecimento zero. Dano cheio.', 'A chave não é sua.'],
       win: ['Prova aceita.', 'Cifra fechada.'],

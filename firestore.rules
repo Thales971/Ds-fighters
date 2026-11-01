@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedInAs(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validProfile() {
+      let p = request.resource.data.profile;
+      return p is map
+        && p.keys().hasOnly(['unlocked', 'pets', 'name', 'settings', 'stats'])
+        && p.unlocked is list
+        && p.unlocked.size() <= 64
+        && p.pets is list
+        && p.pets.size() == 2
+        && p.name is string
+        && p.name.size() <= 64
+        && p.settings is map
+        && p.settings.keys().hasOnly(['music', 'sfx', 'voice', 'mute', 'reducedMotion', 'shake', 'fpsCap', 'smooth', 'showFps', 'difficulty', 'netTransport'])
+        && p.settings.size() <= 16
+        && p.stats is map
+        && p.stats.keys().hasOnly(['fights', 'wins', 'bestArcade', 'maxCombo'])
+        && p.stats.fights is number
+        && p.stats.wins is number
+        && p.stats.bestArcade is number
+        && p.stats.maxCombo is number
+        && p.stats.fights >= 0
+        && p.stats.wins >= 0
+        && p.stats.bestArcade >= 0
+        && p.stats.maxCombo >= 0;
+    }
+
+    function validPlayerDocument() {
+      return request.resource.data.keys().hasOnly(['profile', 'updatedAt', 'name', 'photo'])
+        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 64
+        && request.resource.data.photo is string
+        && request.resource.data.photo.size() <= 2048
+        && validProfile();
+    }
+
+    match /players/{uid} {
+      allow get: if signedInAs(uid);
+      allow list: if false;
+      allow create, update: if signedInAs(uid) && validPlayerDocument();
+      allow delete: if false;
+    }
+  }
+}

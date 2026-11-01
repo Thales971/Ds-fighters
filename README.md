@@ -258,3 +258,13 @@ node tools/process-stages.mjs
 ## Sprites dos lutadores
 
 As folhas ficam em `assets/sprites/`. Cada frame tem 320×260. A ordem das linhas está em `assets/sprites/layout.js`: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória. O jogo alinha o pé na linha `baseline`.
+
+
+## Atualização V4
+- **Novos lutadores:** Urbano Tremor (soco que racha o ar, trava e arremessa), Xeon (gelo e fogo: lentidão e queimadura) e **Qwen** (secreta, código `Batata`), cuja ultimate a transforma na **Qwen Astra** adulta por 12 s (+30% dano, +15% velocidade).
+- **IALES:** 2ª ultimate **All For One: Ação Final** (tecla 6), liberada com 4 acúmulos; o dano cresce a cada poder acumulado.
+- **Arena nova:** Quadra SESI Valinhos, onde a torcida chuta bolas e o sinal do intervalo enche a energia.
+- **Mapas:** 25 mapas estáticos viraram loops animados de 24 quadros (`tools/animate-maps.py`), e os mapas 11–14 deixaram de cintilar.
+- **Sprites:** os quadros duplicados das folhas foram corrigidos (`tools/fix-doubles.py`) e as animações ganharam movimento procedural.
+- **Login com Google (Firebase):** salva o progresso e os personagens. Configure-o em `js/config/firebase-config.js` (veja `FIREBASE.md`).
+- **Balanceamento:** refeito com um torneio de todos contra todos.

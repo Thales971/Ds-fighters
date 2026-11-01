@@ -157,6 +157,51 @@ class Game {
     if (this.imgFx.length > 48) this.imgFx.shift();
     this.imgFx.push({ sheet, clip, frame: 0, x, y, scale: opts.scale || 2, alpha: opts.alpha == null ? 1 : opts.alpha, life: opts.life || 16, max: opts.life || 16, dir: opts.dir || 1 });
   }
+  /* Rachadura no ar (Urbano / All For One). Coordenadas do mundo. */
+  addCrack(x, y, scale = 1, dir = 1, replay) {
+    if (!this.cracks) this.cracks = [];
+    const seed = replay ? replay : Math.floor(Math.random() * 1e6);
+    let r = seed;
+    const rnd = () => { r = (r * 16807) % 2147483647; return (r % 10000) / 10000; };
+    const rays = [];
+    const n = 9;
+    for (let k = 0; k < n; k++) {
+      const a0 = (k / n) * Math.PI * 2 + rnd() * 0.5;
+      const pts = [[0, 0]];
+      let len = 0;
+      const total = (60 + rnd() * 70) * scale;
+      let a = a0;
+      while (len < total) { len += 14 + rnd() * 16; a += (rnd() - 0.5) * 0.7; pts.push([Math.cos(a) * len, Math.sin(a) * len * 0.8]); }
+      rays.push(pts);
+    }
+    this.cracks.push({ x, y, rays, life: 54, max: 54, scale });
+    if (this.cracks.length > 8) this.cracks.shift();
+    if (this.netRole === 'host') this.netFx.push(['k', Math.round(x), Math.round(y), scale, dir, seed]);
+  }
+  drawCracks(ctx) {
+    if (!this.cracks || !this.cracks.length) return;
+    ctx.save();
+    for (const c of this.cracks) {
+      const a = Math.min(1, c.life / 20);
+      ctx.translate(c.x, c.y);
+      ctx.globalAlpha = a * 0.35;
+      ctx.fillStyle = '#e8f6ff';
+      ctx.beginPath(); ctx.arc(0, 0, 26 * c.scale * (1.2 - c.life / c.max), 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = a;
+      for (const [w, col] of [[5, 'rgba(0,0,0,0.75)'], [2, '#ffffff']]) {
+        ctx.lineWidth = w; ctx.strokeStyle = col;
+        for (const ray of c.rays) {
+          ctx.beginPath(); ctx.moveTo(ray[0][0], ray[0][1]);
+          for (const pt of ray) ctx.lineTo(pt[0], pt[1]);
+          ctx.stroke();
+        }
+      }
+      ctx.translate(-c.x, -c.y);
+      c.life--;
+    }
+    this.cracks = this.cracks.filter((c) => c.life > 0);
+    ctx.restore();
+  }
   spawnBurst(sheet, row, x, y, dir = 1, scale = 2) {
     if (this.bursts.length > 60) this.bursts.shift();
     const key = sheet.includes(':') ? sheet : 'fx2:' + sheet;
@@ -631,6 +676,7 @@ class Game {
       case 'n': UI.banner(f[1], f[2], f[3]); break;
       case 'c': { const fi = this.activeOf(f[1]); if (fi) UI.cutIn(fi, { name: f[3] }); break; }
       case 'h': UI.hud.combo(f[1], f[2]); break;
+      case 'k': this.addCrack(f[1], f[2], f[3], f[4], f[5]); break;
       default: break;
     }
   }
@@ -718,6 +764,7 @@ class Game {
     }
     ctx.globalAlpha = 1;
     this.mech.drawFront(ctx);
+    this.drawCracks(ctx);
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
