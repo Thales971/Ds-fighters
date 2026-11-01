@@ -20,7 +20,7 @@
 }(typeof self !== 'undefined' ? self : this, () => {
   const PROTOCOL = 2;
   const MAX_MSG = 96 * 1024;
-  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm'];
+  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'daon', 'noir'];
   const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const RATE = { input: 160, snap: 90, default: 30 };
@@ -243,7 +243,7 @@
         case 'input': {
           if (!r || !me || r.state !== 'match' || me.id === r.hostId) return;
           const i = m.i | 0;
-          if (i < 0 || i > 0x3fff) return;
+          if (i < 0 || i > 0x1ffff) return;
           const host = r.players.find((p) => p.id === r.hostId);
           send(host && host.conn, { t: 'input', i, slot: me.slot });
           return;

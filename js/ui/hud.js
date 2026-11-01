@@ -16,7 +16,7 @@ const HUD = {
     if (!human) return null;
     const slot = game.mode === 'online' ? 0 : (cfg.cpu && cfg.cpu[0] ? 0 : ti);
     const pad = Input.padCount > slot;
-    return ['a0', 'a1', 'a2', 'a3', 'a4', 'tag', 'punch', 'kick'].reduce((o, a) => {
+    return ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'tag', 'punch', 'kick'].reduce((o, a) => {
       o[a] = Input.label(slot, a) + (pad ? ' · ' + Input.padLabel(a) : '');
       return o;
     }, {});

@@ -44,14 +44,14 @@ const POWERS = {
     ],
   },
   stack: {
-    element: 'vento',
-    theme: 'Vento e respostas aceitas',
+    element: 'lata',
+    theme: 'Latas velhas, soquete 1155 e overclock seco',
     powers: [
-      { id: 'answer', name: 'Resposta Certa', slot: 'simple', row: 0, kind: 'shot', dmg: 10, speed: 8, heal: 3, cd: 50, sfx: 'magic', desc: 'Disco de vento que cura quem acerta.' },
-      { id: 'copy', name: 'Copy Rápido', slot: 'simple', row: 1, kind: 'shot', dmg: 7, speed: 14, count: 2, spread: 0.12, cd: 44, sfx: 'whoosh', desc: 'Duas rajadas cortantes muito rápidas.' },
-      { id: 'tabs', name: 'Tempestade de Abas', slot: 'charge', meter: 0, row: 2, kind: 'shot', dmg: 16, speed: 4, multiHit: 4, pierce: true, launch: -7, big: true, sfx: 'whoosh', desc: 'Tornado lento que prende e lança.' },
-      { id: 'accepted', name: 'Aceito', slot: 'charge', meter: 1, row: 3, kind: 'aura', time: 300, heal: 22, regen: 0.05, sfx: 'shield', desc: 'Cura grande e regeneração.' },
-      { id: 'paste', name: 'Copy-Paste Massivo', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 34, sfx: 'ultimate', desc: 'Ciclone duplicado que explode no rival.' },
+      { id: 'chip', name: 'Chip 1155', slot: 'simple', row: 0, kind: 'shot', dmg: 11, speed: 9, heavy: true, cd: 44, sfx: 'heavy', desc: 'Arremessa um processador quadrado de soquete antigo.' },
+      { id: 'driver', name: 'Chave de Fenda', slot: 'simple', row: 1, kind: 'dash', dmg: 12, speed: 15, cd: 40, sfx: 'dash', desc: 'Três batidas de chave: abre o gabinete e o rival.' },
+      { id: 'seco', name: 'Overclock Seco', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 260, dmgMult: 1.28, speedMult: 1.32, overheat: true, sfx: 'fire', desc: 'Esquenta o clock. Aperte de novo para cortar; se durar até o fim, superaquece.' },
+      { id: 'paste', name: 'Pasta Térmica', slot: 'charge', meter: 1, row: 3, kind: 'zone', at: 'target', time: 280, dmg: 0.12, slow: 40, sfx: 'water', desc: 'Poça escorregadia no chão. Deixa lento e gruda.' },
+      { id: 'debloat', name: 'Debloat Total', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 36, sfx: 'ultimate', desc: 'Monta um PC retrô na hora e dispara o gabinete no rival.' },
     ],
   },
   gitmaster: {

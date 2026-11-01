@@ -4,7 +4,7 @@
    resultados, mascotes, resgate, opções, lista de golpes e lobby.
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
-const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada' };
+const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
 
 const UI = {
   hud: HUD,
@@ -212,8 +212,8 @@ const UI = {
       c.classList.toggle('picked', picked);
     });
     [0, 1].forEach((ti) => this.renderCard(ti));
-    const keys = f.p2Human ? 'P1: setas + A confirma, S volta · P2: IJKL + 1 confirma, 2 volta' : 'Setas/controle movem · A, Enter ou ✕ confirma · S ou ○ volta';
-    this.$('sel-help').innerHTML = keys + (f.mode === 'versus' || f.mode === 'tag' ? (f.p2Human ? '' : ' · <b>Jogador 2: aperte 1 para entrar</b>') : '') + ' · <b>Esc</b> menu';
+    const keys = f.p2Human ? 'P1: WASD + Enter confirma, Backspace volta · P2: setas + J confirma, K volta' : 'WASD ou controle movem · Enter, Espaço ou ✕ confirma · Backspace ou ○ volta';
+    this.$('sel-help').innerHTML = keys + (f.mode === 'versus' || f.mode === 'tag' ? (f.p2Human ? '' : ' · <b>Jogador 2: aperte J para entrar</b>') : '') + ' · <b>Esc</b> menu';
   },
   renderCard(ti) {
     const f = this.flow;
@@ -312,12 +312,12 @@ const UI = {
     // P1 (setas + A / Enter / pad 0)
     const p1Who = f.p2Human ? 0 : w0;
     if (!f.done[p1Who] || !f.p2Human) {
-      if (Input.hit(['ArrowLeft']) || p0.leftHit) this.selMove(p1Who, -1, 0);
-      if (Input.hit(['ArrowRight']) || p0.rightHit) this.selMove(p1Who, 1, 0);
-      if (Input.hit(['ArrowUp']) || p0.upHit) this.selMove(p1Who, 0, -1);
-      if (Input.hit(['ArrowDown']) || p0.downHit) this.selMove(p1Who, 0, 1);
-      if (Input.hit(['KeyA', 'Enter', 'Space']) || p0.kickHit || p0.startHit) this.selConfirm(p1Who);
-      else if (Input.hit(['KeyS', 'Backspace']) || p0.a0Hit) this.selBack(p1Who);
+      if (Input.hit(['KeyA', 'ArrowLeft']) || p0.leftHit) this.selMove(p1Who, -1, 0);
+      if (Input.hit(['KeyD', 'ArrowRight']) || p0.rightHit) this.selMove(p1Who, 1, 0);
+      if (Input.hit(['KeyW', 'ArrowUp']) || p0.upHit) this.selMove(p1Who, 0, -1);
+      if (Input.hit(['KeyS', 'ArrowDown']) || p0.downHit) this.selMove(p1Who, 0, 1);
+      if (Input.hit(['Enter', 'Space']) || p0.kickHit || p0.startHit) this.selConfirm(p1Who);
+      else if (Input.hit(['Backspace']) || p0.a0Hit) this.selBack(p1Who);
     }
     if (f.p2Human && this.flow === f) {
       if (Input.hit(P.left) || (twoPads && p1.leftHit)) this.selMove(1, -1, 0);
@@ -344,7 +344,7 @@ const UI = {
     grid.innerHTML = `<button class="nav st-cell random" data-id="random"><span class="th q">?</span><span class="nm">ALEATÓRIA</span></button>` + STAGE_LIST.map((s) => {
       const thumb = s.image ? s.image : null;
       const head = s.group !== lastGroup ? ((lastGroup = s.group), `<div class="st-group">${s.group}</div>`) : '';
-      return head + `<button class="nav st-cell" data-id="${s.id}"><span class="th" style="${thumb ? `background-image:url(${thumb})` : `background-image:url(${s.sheet});background-size:600% 400%`}"></span><span class="nm">${s.name}</span></button>`;
+      return head + `<button class="nav st-cell" data-id="${s.id}"><span class="th" style="${thumb ? `background-image:url(${thumb})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`}"></span><span class="nm">${s.name}</span></button>`;
     }).join('');
     grid.querySelectorAll('.st-cell').forEach((b) => {
       const pick = () => { f.stage = b.dataset.id; this.renderStagePreview(); grid.querySelectorAll('.st-cell').forEach((x) => x.classList.toggle('on', x === b)); };
@@ -365,7 +365,7 @@ const UI = {
     const s = STAGE_LIST.find((x) => x.id === f.stage);
     const el = this.$('stage-preview');
     if (!s) { el.innerHTML = `<div class="sp-img q">?</div><h3>ARENA ALEATÓRIA</h3><p>Uma das ${STAGE_LIST.length} arenas, com clima sorteado.</p>`; return; }
-    const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%`;
+    const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`;
     const fauna = { bee: 'abelhas', bird: 'pássaros', butterfly: 'borboletas', bat: 'morcegos', fish: 'peixes' };
     const fz = [...new Set(s.fauna || [])].map((k) => fauna[k]).join(', ');
     el.innerHTML = `<div class="sp-img ${s.sheet ? 'anim' : ''}" style="${img}"></div>
@@ -587,11 +587,10 @@ const UI = {
     const K = (s, a) => `<kbd>${Input.label(s, a)}</kbd>`;
     this.$('moves-keys').innerHTML = `
       <table><thead><tr><th></th><th>Jogador 1</th><th>Jogador 2</th><th>Controle</th></tr></thead><tbody>
-      <tr><td>Mover / pular / agachar</td><td><kbd>← → ↑ ↓</kbd></td><td><kbd>J L I K</kbd></td><td>Analógico / D-pad</td></tr>
-      <tr><td>Soco · Chute</td><td>${K(0, 'punch')} ${K(0, 'kick')}</td><td>${K(1, 'punch')} ${K(1, 'kick')}</td><td>□ ✕</td></tr>
-      <tr><td>H1 · H2 (simples)</td><td>${K(0, 'a0')} ${K(0, 'a1')}</td><td>${K(1, 'a0')} ${K(1, 'a1')}</td><td>○ △</td></tr>
-      <tr><td>H3 · H4 (carga A/B)</td><td>${K(0, 'a2')} ${K(0, 'a3')}</td><td>${K(1, 'a2')} ${K(1, 'a3')}</td><td>L1 R1</td></tr>
-      <tr><td>ULTIMATE</td><td>${K(0, 'a4')}</td><td>${K(1, 'a4')}</td><td>R2</td></tr>
+      <tr><td>Mover / pular / agachar</td><td><kbd>A D W S</kbd></td><td><kbd>← → ↑ ↓</kbd></td><td>Analógico / D-pad</td></tr>
+      <tr><td>Soco · Chute</td><td>mouse esq. · dir.</td><td>${K(1, 'punch')} ${K(1, 'kick')}</td><td>□ ✕</td></tr>
+      <tr><td>Poderes 1 a 5</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd></td><td><kbd>N1</kbd>…<kbd>N5</kbd></td><td>○ △ L1 R1 R2</td></tr>
+      <tr><td>Poderes 6 a 10 (IALES)</td><td><kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></td><td><kbd>N6</kbd>…<kbd>N0</kbd></td><td>L3 R3 Tpad</td></tr>
       <tr><td>Troca (2x2)</td><td>${K(0, 'tag')}</td><td>${K(1, 'tag')}</td><td>L2</td></tr>
       <tr><td>Defender</td><td colspan="3">Segure para trás (em pé = alto, agachado = baixo)</td></tr>
       <tr><td>Dash / recuo</td><td colspan="3">Toque duas vezes para frente / para trás</td></tr>
