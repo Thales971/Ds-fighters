@@ -20,3 +20,7 @@ Replays antigos gravados com inputs incorretos não podem ser reconstruídos ret
 ## Publicação
 
 A correção deve estar no repositório e na versão realmente servida. Um push sozinho não comprova publicação: conferir `index.html` e `js/core/profile.js?v=hotfix450-skins-off` na URL do jogo. Google permanece adiado e servidor WSS permanente continua uma pendência externa, não alterada neste hotfix.
+
+Verificado em 01/11/2026 após o commit `7ef28aa`: a publicação `https://online-server-one.vercel.app/` retornou HTTP 200 com a tela **SKINS — EM BREVE**, scripts versionados e `SKINS_ENABLED: false`. O SHA-256 de `assets/abilities/lobao.png` publicado é idêntico ao arquivo local. Portanto, essa versão não foi confirmada apenas pelo push.
+
+Os 13 casos de `hotfix_smoke.py` foram repetidos diretamente nessa URL publicada, incluindo defesa/alcance dos roubos, saída de replay, relógio, todos os pets e 133 poderes. Todos passaram, sem exceções JavaScript. Captura gerada a partir da própria publicação.

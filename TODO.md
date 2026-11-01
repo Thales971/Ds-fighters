@@ -51,6 +51,6 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Skins desativadas com EM BREVE, sem aplicação/salvamento; dados preservados. Pets: escala corrigida, cinco conjuntos novos e oito clássicos idênticos em pixels; IDs mantidos.
 - [x] Falhas reproduzidas de replay, relógio e investida corrigidas. Roubo remoto e agarrão testados contra defesa, alcance e erro; cópia de cinco poderes e ícones separados de AFO2. 133 poderes renderizados sem exceções.
 - [x] Lobão: cinco linhas de ícones refeitas, retratos humanos reenquadrados e URLs de sprite atualizadas; escudo e esquiva preservados. BHM não alterado nesta etapa.
-- [ ] Distinguir versão publicada/cache da versão no repositório e entregar somente resultados verificados, sem prometer que push equivale a publicação.
+- [x] Publicação real verificada: HTTP 200 no index com EM BREVE/versão do hotfix e no perfil com skins desativadas; hash da arte Lobão publicada idêntico ao arquivo local. Commit 7ef28aa enviado sem sobrescrever alterações remotas.
 
 **Decisão de 18:47:** skins devem ficar desativadas com aviso **EM BREVE**, sem seletor/salvamento/aplicação de paletas. Preservar dados antigos e focar nos outros problemas; esta decisão substitui a entrega de skins ativas no hotfix anterior.
