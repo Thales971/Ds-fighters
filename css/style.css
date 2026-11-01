@@ -394,3 +394,12 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 .tbtns .ult { background: rgba(255,122,42,.35) !important; }
 .tbtns .pause { position: fixed; top: 0; right: 0; }
 .kit.big .ico { width: 64px; height: 64px; }
+
+/* ---------- tela de carregamento ---------- */
+#loader { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #1b1838; color: #ffd76a; font-family: 'Press Start 2P', monospace; transition: opacity .35s; }
+#loader.done { opacity: 0; pointer-events: none; }
+#loader img { image-rendering: pixelated; width: 96px; height: 96px; border: 3px solid #ffd76a; box-shadow: 0 0 0 3px #1b1838, 0 0 0 6px #6b4fb3; }
+#loader .ld-title { font-size: 22px; letter-spacing: 2px; text-shadow: 3px 3px 0 #c4302b; }
+#loader .ld-bar { width: min(360px, 70vw); height: 14px; border: 3px solid #6b4fb3; background: #0c0a1e; }
+#loader .ld-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff9a2e, #ffd76a); transition: width .15s; }
+#loader #ld-text { font-size: 9px; color: #cfc6ff; }

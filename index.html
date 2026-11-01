@@ -6,10 +6,17 @@
   <title>DS Fighters — Expansão Arcade</title>
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 12 lutadores devs, 5 habilidades cada, 26 cenários com clima e mecânicas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
-  <link rel="icon" href="assets/ui/face-iales.png" />
+  <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <div id="loader" role="status" aria-live="polite">
+    <img src="assets/share/favicon.png" alt="" width="64" height="64" />
+    <div class="ld-title">DS FIGHTERS</div>
+    <div class="ld-bar"><i id="ld-fill"></i></div>
+    <div id="ld-text">Carregando sprites… 0%</div>
+    <button id="ld-retry" class="btn" hidden>Tentar de novo</button>
+  </div>
   <div id="app" class="crt">
     <div id="stage-wrap" aria-hidden="true">
       <canvas id="game" width="960" height="540"></canvas>

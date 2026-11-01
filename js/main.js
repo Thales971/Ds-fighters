@@ -1,7 +1,36 @@
 /* ============================================================
    DS FIGHTERS — Inicialização e loop principal (60 Hz fixo).
    ============================================================ */
+/* Pré-carrega as folhas principais com progresso real antes de liberar o título. */
+function preloadAll() {
+  const urls = new Set(Object.values(ART_SHEETS).map((s) => s.src));
+  Object.values((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((u) => urls.add(u));
+  const list = [...urls];
+  const fill = document.getElementById('ld-fill');
+  const text = document.getElementById('ld-text');
+  const retry = document.getElementById('ld-retry');
+  const box = document.getElementById('loader');
+  let done = 0; const failed = [];
+  const step = () => {
+    const pct = Math.round((done / list.length) * 100);
+    fill.style.width = pct + '%';
+    text.textContent = 'Carregando sprites… ' + pct + '%';
+    if (done < list.length) return;
+    if (failed.length) {
+      text.textContent = 'Falha ao carregar ' + failed.length + ' arquivo(s). Verifique a conexão.';
+      retry.hidden = false;
+      retry.onclick = () => location.reload();
+    } else {
+      box.classList.add('done');
+      setTimeout(() => box.remove(), 400);
+    }
+  };
+  list.forEach((u) => { const i = new Image(); i.onload = () => { done++; step(); }; i.onerror = () => { done++; failed.push(u); step(); }; i.src = u; });
+  step();
+}
+
 (function boot() {
+  preloadAll();
   const canvas = document.getElementById('game');
   SpriteGen.load();
   Art.load();
