@@ -281,7 +281,7 @@ SPECS = {
     'zoya': dict(skin=(236, 206, 186), hair=(92, 28, 36), shirt=(48, 52, 64), pants=(32, 34, 44),
                  shoe=(28, 26, 32), accent=(196, 48, 58), coat=(36, 38, 48), lining=(168, 36, 48),
                  hair_style='braid', head=20, heady=23),
-    'daon': dict(skin=(228, 186, 156), hair=(18, 16, 22), streak=(40, 220, 230), shirt=(24, 26, 36),
+    'rin': dict(skin=(228, 186, 156), hair=(18, 16, 22), streak=(226, 59, 59), shirt=(36, 62, 134),
                  pants=(30, 32, 48), shoe=(230, 230, 236), accent=(40, 220, 230), visor=True,
                  hair_style='long', head=20, heady=22),
     'noir': dict(skin=(214, 176, 150), hair=(198, 206, 214), shirt=(28, 30, 40), pants=(18, 18, 26),
@@ -420,7 +420,7 @@ def zoya_rows():
             p.disk(20 + i * 18, 30 + (i + f) % 3 * 16, 8, 6, (180, 60, 220))
     return [shot, lag, wall, pull, ult]
 
-def daon_rows():
+def rin_rows():
     def slash(p, f):
         p.capsule(20, 90, 40 + f * 18, 30, 4, (40, 230, 240))
     def rain(p, f):
@@ -528,7 +528,7 @@ def main():
         sheet_for(fid)
     ability_sheet('stack', et_rows())
     ability_sheet('zoya', zoya_rows())
-    ability_sheet('daon', daon_rows())
+    ability_sheet('rin', rin_rows())
     ability_sheet('noir', noir_rows())
     ability_sheet('hacker', hacker_rows())
     fx_sheet('portal', portal_painter)

@@ -409,9 +409,9 @@ SPECS = {
         coat=C('2a2e38'), lining=C('c02838'), hair_style='braid', tie=C('d03040'),
         eye=C('3a4a6a'),
     ),
-    'daon': dict(
-        skin=C('e4b898'), hair=C('16141a'), streak=C('2ad4dc'), shirt=C('1c1e2a'),
-        sleeve=C('14161f'), pants=C('2a2c3a'), shoe=C('e8e8ee'), accent=C('2ad4dc'),
+    'rin': dict(
+        skin=C('f0c8a8'), hair=C('1a120f'), streak=C('e23b3b'), shirt=C('243e86'),
+        sleeve=C('1a3068'), pants=C('1c1c22'), shoe=C('f2f2f4'), accent=C('e23b3b'),
         hair_style='long', hair_back=False, eye=C('2a241c'),
     ),
     'noir': dict(
@@ -457,7 +457,7 @@ def save_sheet(fid):
 
 def preview():
     os.makedirs('/tmp/preview', exist_ok=True)
-    for fid in ('stack', 'hacker', 'zoya', 'daon', 'noir'):
+    for fid in ('stack', 'hacker', 'zoya', 'rin', 'noir'):
         row = []
         for name, fr in (('idle', 0), ('walk', 0), ('punch', 2), ('kick', 2), ('win', 0)):
             cell = render_one(fid, name, fr)
@@ -544,7 +544,7 @@ def ability_icons():
             for i in range(5):
                 p.ellipse(18 + i * 20, 40 + ((i + c) % 3) * 16, 8, 6, col, False)
 
-    def daon(p, r, c):
+    def rin(p, r, c):
         col = (40, 220, 230)
         if r == 0:
             p.capsule(20, 96, 40 + c * 16, 28, 5, col)
@@ -575,7 +575,7 @@ def ability_icons():
             p.ellipse(64, 64, 6, 6, (230, 230, 255), False)
 
     out = {
-        'stack': et, 'hacker': hack, 'zoya': zoya, 'daon': daon, 'noir': noir,
+        'stack': et, 'hacker': hack, 'zoya': zoya, 'rin': rin, 'noir': noir,
     }
     for fid, fn in out.items():
         im = Image.fromarray(icon(fn), 'RGBA')

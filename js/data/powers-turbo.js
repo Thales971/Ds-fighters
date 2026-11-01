@@ -75,7 +75,7 @@ Object.assign(POWERS, {
       { id: 'once', name: 'Exactly-Once', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 6, count: 7, homing: 0.5, finisher: 16, sfx: 'ultimate', desc: 'A fila inteira é entregue de uma vez só.' },
     ],
   },
-  daon: {
+  rin: {
     element: 'shader',
     theme: 'GPU, vértices e raster',
     powers: [
@@ -134,6 +134,6 @@ const SIGNATURES = {
   merc: { trait: 'ESQUIVA', desc: 'Passo fantasma atravessa o rival; um desvio limpo devolve medidor.', ability: { bleed: 100 }, dodge: 0.1 },
   bhm: { trait: 'RAIO + SOMBRA', desc: 'Eletriza os controles, cega e atravessa o chão como um portal.', ability: { shock: 70 } },
   zoya: { trait: 'FILAS', desc: 'Mensagens que atrasam, puxam e atravessam a arena.', ability: { slow: 60 } },
-  daon: { trait: 'SHADER', desc: 'Cortes de luz e velocidade de GPU.', ability: { chill: 40 } },
+  rin: { trait: 'SHADER', desc: 'Cortes de luz e velocidade de GPU.', ability: { chill: 40 } },
   noir: { trait: 'CIFRA', desc: 'Trava a leitura do rival e reflete o que vem de frente.', ability: { blind: 50 } },
 };

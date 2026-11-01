@@ -8,7 +8,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 
 ## Novidades da Edição Turbo
 
-- **Lutadores novos nesta leva**: ZOYA KAFKA, DAON SHADER e NOIR CIPHER, mais as arenas Oficina das Latas, Terminal Fósforo, Metrô de Pacotes e Catedral SQL.
+- **Lutadores novos nesta leva**: KATYA QUEUE, RIN SHADER e ASH VAULT, mais as arenas Oficina das Latas, Terminal Fósforo, Metrô de Pacotes e Catedral SQL.
 - **ET 1155** (antes Stack Overflow) e **ROOT PHANTOM** (antes RootKit) refeitos: chip 1155 / overclock seco, e rootkit com fantasma, backdoor, malware e Kernel Panic.
 - **5 lutadores da Edição Turbo**: Yumi Lambda, Root Phantom, Kael JVM, Cromo VX e BHM Noir.
 - **DU e Felipinho Maprim redesenhados**: DU careca, de óculos e barba grisalha; Maprim de boné e meia barba.
@@ -106,7 +106,7 @@ Cada lutador tem **5 habilidades animadas**: 2 simples (recarga), 2 de carga (ba
 
 ## Lutadores
 
-17 lutadores (o Senpai foi removido). **DU, IALES e Felipinho Maprim** são secretos: resgate o código **`Batata`** em *Resgatar código* para liberar os três juntos (fica salvo no navegador). Eles são propositalmente mais fortes; **IALES é o mais apelão**.
+20 lutadores (o Senpai foi removido). **DU, IALES e Felipinho Maprim** são secretos: resgate o código **`Batata`** em *Resgatar código* para liberar os três juntos (fica salvo no navegador). Eles são propositalmente mais fortes; **IALES é o mais apelão**.
 
 | Lutador | Assinatura | Estilo |
 |---|---|---|
@@ -118,6 +118,9 @@ Cada lutador tem **5 habilidades animadas**: 2 simples (recarga), 2 de carga (ba
 | **Mestre Java** | TANQUE + EXPLOSÃO | Mestre do back-end de jaqueta: armadura da JVM, Garbage Collector que puxa, StackOverflowError que explode e Meteoro de Beans. |
 | **CROMO VX** (mercenário) | ESQUIVA | Esquiva para a frente e para trás, atravessa o rival, intangível no meio do passo e ganha medidor num desvio limpo. |
 | **BHM NOIR** | RAIO + SOMBRA | Portal no chão: afunda na sombra e reaparece atrás ou por cima, com soco ou chute na saída. |
+| **KATYA QUEUE** | FILAS | Russa de trança platinada e casaco com forro vermelho. Tópicos, consumer lag e entrega exactly-once. |
+| **RIN SHADER** | SHADER | Japonesa de rabo de cavalo preto e fita vermelha. Cortes de vértice, fragmentos de shader e raster. |
+| **ASH VAULT** | CIFRA | Cabelo prateado e casaco longo. Hash, troca de chave e conhecimento zero. |
 | **ET 1155** | OVERCLOCK SECO | Alien das latas velhas: chip 1155, chave de fenda, overclock que superaquece se durar até o fim, pasta térmica e ultimate Debloat Total. |
 | Git Master | CEGUEIRA | Sombras embaçam a tela do rival. |
 | Bug Hunter | DANO CONTÍNUO | Todo acerto de habilidade envenena. |
@@ -148,14 +151,14 @@ Depois (nomes novos; ROOT PHANTOM no topo da faixa normal, não mais entre os fr
 
 | Lutador | Vitórias |
 |---|---|
-| ZOYA KAFKA | ~40 % |
+| KATYA QUEUE | ~40 % |
 | BHM NOIR | ~40 % |
-| NOIR CIPHER | ~40–60 % |
+| ASH VAULT | ~40–60 % |
 | MIRA PIXEL | ~40 % |
 | KAGE COMMIT | ~40–60 % |
 | LYRA TRACE, CROMO VX, YUMI LAMBDA | ~45–55 % |
 | ET 1155, CID PIPE, ADA ASSERT, OMNI STACK, KAEL JVM | ~50–60 % |
-| TITAN 500, KAIRO SPRINT, DAON SHADER | ~55–60 % |
+| TITAN 500, KAIRO SPRINT, RIN SHADER | ~55–60 % |
 | ROOT PHANTOM | ~55–65 % |
 
 Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: continuam apelões.
@@ -223,7 +226,7 @@ tools/                  scripts de build de assets e testes automáticos
 
 Testes:
 
-- `python3 tools/smoke.py` — todas as 30 arenas, 17 lutadores e habilidades no Chromium.
+- `python3 tools/smoke.py` — arenas, os 20 lutadores e habilidades no Chromium.
 - `python3 tools/abilities_check.py` — as 5 habilidades dos lutadores novos e os efeitos de tela (cegueira/choque).
 - `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
 - `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).

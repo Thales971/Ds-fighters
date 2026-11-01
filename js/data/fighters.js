@@ -1,7 +1,7 @@
 /* ============================================================
-   DS FIGHTERS — Os 17 lutadores (tema: desenvolvimento de sistemas)
-   Cada lutador define paleta, traços físicos (para o sprite
-   procedural), atributos, golpes, special e super, além de falas.
+   DS FIGHTERS — Lutadores.
+   O nome que aparece na seleção, na HUD e no placar é só o campo
+   `name` deste arquivo. Para renomear alguém, mude esse campo.
    ============================================================ */
 
 const FIGHTERS = [
@@ -430,9 +430,9 @@ const FIGHTERS = [
   },
   {
     id: 'zoya',
-    name: 'ZOYA KAFKA',
+    name: 'KATYA QUEUE',
     title: 'A Imperatriz das Filas',
-    bio: 'Trança escura, casaco de gola vermelha e fone de ouvido. Entrega cada golpe exatamente uma vez.',
+    bio: 'Russa de trança platinada e casaco longo com forro vermelho. Entrega cada golpe exatamente uma vez.',
     colors: { skin: '#f0d0c0', hair: '#6a2430', shirt: '#2c3140', pants: '#23262f', shoes: '#1a1c22', accent: '#d03040' },
     traits: { hairStyle: 'braid' },
     stats: { power: 1.16, speed: 1.1, weight: 0.98, hp: 114, meterRate: 1.12 },
@@ -450,11 +450,11 @@ const FIGHTERS = [
     super: { name: 'Exactly-Once', type: 'multi-projectile', dmg: 6, count: 7 },
   },
   {
-    id: 'daon',
-    name: 'DAON SHADER',
+    id: 'rin',
+    name: 'RIN SHADER',
     title: 'A Arquiteta de Luz',
-    bio: 'Cabelo preto com uma mecha ciano, jaqueta curta e visor. Corta a arena em vértices.',
-    colors: { skin: '#e4b898', hair: '#16141a', shirt: '#1c1e2a', pants: '#2a2c3a', shoes: '#e8e8ee', accent: '#2ad4dc' },
+    bio: 'Japonesa de rabo de cavalo preto e fita vermelha, jaqueta índigo de rua. Corta a arena em vértices.',
+    colors: { skin: '#f0c8a8', hair: '#1a120f', shirt: '#243e86', pants: '#1c1c22', shoes: '#f2f2f4', accent: '#e23b3b' },
     traits: { hairStyle: 'long', visor: true },
     stats: { power: 0.96, speed: 1.12, weight: 0.88, hp: 100 },
     quotes: {
@@ -472,7 +472,7 @@ const FIGHTERS = [
   },
   {
     id: 'noir',
-    name: 'NOIR CIPHER',
+    name: 'ASH VAULT',
     title: 'O Quebrador de Chaves',
     bio: 'Cabelo prateado e casaco longo. Prova o golpe sem revelar a chave.',
     colors: { skin: '#d4b094', hair: '#d5dbe4', shirt: '#22242e', pants: '#14141c', shoes: '#101014', accent: '#9aa6ff' },

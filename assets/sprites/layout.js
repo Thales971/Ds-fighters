@@ -56,7 +56,7 @@ const SPRITE_LAYOUT = {
     "merc": "assets/sprites/merc.png",
     "bhm": "assets/sprites/bhm.png",
     "zoya": "assets/sprites/zoya.png",
-    "daon": "assets/sprites/daon.png",
+    "rin": "assets/sprites/rin.png",
     "noir": "assets/sprites/noir.png",
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png"
