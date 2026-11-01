@@ -23,6 +23,7 @@ with sync_playwright() as p:
     page.wait_for_function("window.DSGame && !document.getElementById('loader') && SpriteGen.images.lobao")
     page.locator('#btn-start').click()
     assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power)[2].id==='qwen'")
+    assert page.evaluate("!!ART_SHEETS['abil:lobao']"),'folha de habilidades desconectada'
     assert page.evaluate("!FIGHTERS.find(f=>f.id==='lobao').traits.wolfEars")
     assert page.evaluate("SpriteGen.count('punch','lobao')===4 && SpriteGen.count('special','lobao')===4")
     page.evaluate("DSGame.start({teams:[['lobao'],['bhm']],stage:'japan',cpu:[false,false],mode:'versus',timer:180});UI.show('fight');DSGame.roundState='fight';HUD.reset(DSGame);")
