@@ -44,7 +44,7 @@ Object.assign(POWERS, {
 
 /* 2ª ultimate do IALES (tecla 6): só com 4+ poderes acumulados no All For One. */
 POWERS.iales.powers.push({
-  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 4, kind: 'afo2', needAfo: 4, dmg: 30, perAfo: 4,
+  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 6, kind: 'afo2', needAfo: 4, dmg: 40, perAfo: 6,
   sfx: 'ultimate', desc: 'Precisa de 4+ poderes acumulados: braço colossal de IAs, acerto garantido, cura e drena energia. Mais forte a cada acúmulo.',
 });
 POWERS.iales.powers.forEach((p) => {
@@ -148,7 +148,7 @@ FIGHTERS.push(
 
 /* reforços de atributos */
 FIGHTERS.forEach((f) => {
-  if (f.id === 'iales') { f.stats.power = 1.5; f.stats.hp = 150; f.stats.meterRate = 1.65; f.bio += ' Agora com uma 2ª ultimate: All For One: Ação Final (tecla 6).'; }
+  if (f.id === 'iales') { f.stats.power = 1.55; f.stats.hp = 150; f.stats.meterRate = 1.65; f.bio += ' Agora com uma 2ª ultimate: All For One: Ação Final (tecla 6).'; }
   if (f.id === 'stack') { f.stats.power = Math.max(f.stats.power || 1, 1.16); f.stats.hp = Math.max(f.stats.hp || 100, 118); f.stats.speed = Math.max(f.stats.speed || 1, 1.08); }
 });
 
