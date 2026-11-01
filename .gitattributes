@@ -1,0 +1,3 @@
+# SDK oficial: seu literal multilinha contém whitespace significativo.
+# Não reformatar fornecedor; integridade registrada em supabase-version.json.
+js/vendor/supabase-2.118.0.js -whitespace

@@ -50,7 +50,7 @@
           <section class="account-card account-disabled" aria-labelledby="account-title">
             <h3 id="account-title">CONTA</h3>
             <p class="account-state">LOGIN COM GOOGLE NÃO CONFIGURADO</p>
-            <p class="account-help">O dono do jogo precisa preencher a configuração do Firebase para ativar a nuvem.</p>
+            <p class="account-help">O dono do jogo precisa configurar o Supabase ou Firebase para ativar a nuvem.</p>
             <button class="account-action" type="button" disabled aria-disabled="true">LOGIN COM GOOGLE NÃO CONFIGURADO</button>
           </section>`;
         return;
@@ -75,12 +75,14 @@
           </section>`;
         this.box.querySelector('.account-signout').addEventListener('click', () => { void global.Cloud.signOut(); });
       } else {
+        const googleDisabled = cloud.provider === 'supabase' && cloud.googleEnabled === false;
+        const help = googleDisabled ? 'Supabase conectado. Falta ativar o provedor Google no painel do projeto.' : 'Salve desbloqueios e estatísticas em qualquer dispositivo.';
         this.box.innerHTML = `
           <section class="account-card" aria-labelledby="account-title">
             <h3 id="account-title">CONTA</h3>
             <p class="account-state">${this._escape(status)}</p>
-            ${cloud.error ? `<p class="account-error">${this._escape(cloud.error)}</p>` : '<p class="account-help">Salve desbloqueios e estatísticas em qualquer dispositivo.</p>'}
-            <button class="account-action account-signin" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>${busy ? 'CONECTANDO…' : 'ENTRAR COM GOOGLE'}</button>
+            ${cloud.error ? `<p class="account-error">${this._escape(cloud.error)}</p>` : `<p class="account-help">${this._escape(help)}</p>`}
+            <button class="account-action account-signin" type="button" ${busy || googleDisabled ? 'disabled aria-disabled="true"' : ''}>${busy ? 'CONECTANDO…' : googleDisabled ? 'GOOGLE AGUARDANDO CONFIGURAÇÃO' : 'ENTRAR COM GOOGLE'}</button>
           </section>`;
         const button = this.box.querySelector('.account-signin');
         if (button) button.addEventListener('click', () => { void global.Cloud.signIn(); });

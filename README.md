@@ -275,7 +275,7 @@ Novas folhas transparentes de **Urbano**, **1155** e **Qwen**, efeitos distintos
 
 O menu **PERSONALIZADO** oferece vida/medidores infinitos, escolha CPU/P2 e até **9 vitórias / 17 rounds**. Vida infinita não causa KO; o tempo desempata pelo dano do round. No online, as regras são sincronizadas pelo anfitrião e a lista de salas ao vivo contém somente salas reais do servidor dedicado.
 
-**Atenção:** não há configuração Firebase real neste checkout nem um servidor permanente publicado por esta atualização. Login Google real depende de [FIREBASE.md](FIREBASE.md); a lista global de salas depende de [HOSPEDAGEM.md](HOSPEDAGEM.md). Os testes da conta usam Firebase simulado e os testes online usam servidor temporário local. Veja [REFINAMENTO-V4.md](REFINAMENTO-V4.md) para mudanças, testes e pendências completas.
+**Atenção:** o Supabase está integrado; login Google real ainda depende de configuração OAuth em [SUPABASE.md](SUPABASE.md). Firebase permanece alternativa opcional. A lista global de salas depende de [HOSPEDAGEM.md](HOSPEDAGEM.md); os testes dedicados foram locais. Veja [REFINAMENTO-V4.md](REFINAMENTO-V4.md) para o histórico das mudanças.
 
 ## SENAI Valinhos e Qwen
 
@@ -283,4 +283,6 @@ O menu **PERSONALIZADO** oferece vida/medidores infinitos, escolha CPU/P2 e até
 
 Qwen agora é a **terceira no poder permanente**: IALES 1,50, Felipinho 1,40, Qwen 1,39. Batata, cinco habilidades e Astra foram mantidos; HP e ganho de medidor receberam reforço moderado. O resultado de uma luta continua dependente de transformação, matchup e jogador.
 
-O conector Supabase foi consultado, mas só retornou o projeto inativo `supabase-aero-ball`. Sua reutilização aguarda confirmação para não alterar outro jogo. Detalhes e testes em [SENAI-QWEN.md](SENAI-QWEN.md).
+O projeto `supabase-aero-ball` foi reativado com autorização. `ds_fighters_profiles` tem RLS própria e não altera tabelas antigas. Cliente Supabase com chave publicável, SDK local fixo e perfis/sessões separados. Testes de merge, autosave, offline, troca de conta e fallback passaram; a API real bloqueou leitura anônima. **Google ainda aguarda Client ID/Secret e redirect autorizado**. Detalhes em [SUPABASE.md](SUPABASE.md).
+
+**Segurança do projeto compartilhado:** 20 tabelas anteriores estão sem RLS. Não foram alteradas para evitar bloquear outro aplicativo; devem ser revisadas separadamente antes de armazenar dados privados.

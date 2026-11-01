@@ -101,6 +101,8 @@ def main():
 
             offline_context = browser.new_context(viewport={'width': 960, 'height': 540})
             offline_page = offline_context.new_page()
+            offline_page.route('**/js/config/supabase-config.js', lambda route: route.fulfill(
+                content_type='application/javascript', body='window.DS_SUPABASE_CONFIG = null;'))
             collect_errors(offline_page, errors)
             offline_page.goto(f'http://127.0.0.1:{port}/index.html', wait_until='load')
             offline_page.wait_for_selector('#account-box .account-action', state='attached', timeout=15000)
@@ -119,6 +121,8 @@ def main():
             }
             remote_context = browser.new_context(viewport={'width': 960, 'height': 540})
             remote_page = remote_context.new_page()
+            remote_page.route('**/js/config/supabase-config.js', lambda route: route.fulfill(
+                content_type='application/javascript', body='window.DS_SUPABASE_CONFIG = null;'))
             remote_page.add_init_script(
                 "localStorage.setItem('dsfighters.profile.v2', %s);"
                 "localStorage.setItem('dsfighters.cloud.meta.v1', %s);"

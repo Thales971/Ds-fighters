@@ -14,9 +14,9 @@ A ordem de força solicitada é registrada no ranking **permanente de poder** do
 
 ## Supabase
 
-O conector está disponível e foi consultado. O único projeto retornado foi **supabase-aero-ball**, com estado **INACTIVE**. Como o nome indica outro jogo, sua reutilização/reativação foi solicitada ao proprietário antes de qualquer gravação ou mudança no projeto.
+O proprietário autorizou reutilizar e reativar **supabase-aero-ball**. O projeto agora está **ACTIVE_HEALTHY** e possui a tabela exclusiva `ds_fighters_profiles`, protegida por RLS. As tabelas do aplicativo anterior não foram alteradas.
 
-Nenhuma tabela ou dado do Aero Ball foi alterado nesta etapa de descoberta. O login atual continua usando a implementação Firebase opcional até a definição do projeto Supabase. Para uma integração Supabase real, será necessário projeto ativo, tabela exclusiva de perfis protegida por RLS e configuração do provedor Google; chave de serviço nunca deve ser colocada no frontend.
+O cliente Supabase está integrado e testado, preservando Firebase/offline como fallback. **Login Google real ainda precisa de configuração OAuth**, pois o provedor está desativado. Veja [SUPABASE.md](SUPABASE.md) para a configuração e o alerta de segurança das tabelas antigas sem RLS. Somente a chave publicável entra no frontend.
 
 ## Resultado verificado
 

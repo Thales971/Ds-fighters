@@ -27,3 +27,9 @@ Manter as duas arenas SESI existentes sem modificar suas artes. Adicionar uma ar
 Qwen deve ocupar a terceira posição no ranking permanente de poder do elenco, sem empates nem alteração arbitrária das duas posições superiores. Manter cinco habilidades, transformação Astra e desbloqueio por Batata. Registrar o critério e testá-lo; ranking projetado não significa vitória garantida em toda partida.
 
 O conector Supabase foi consultado: único projeto visível `supabase-aero-ball`, inativo. Não reativar ou gravar nesse projeto antes de esclarecer sua autorização, pois pode ter dados de outro jogo. Uma integração de progresso deve reutilizar o isolamento por UID, oferecer Google pelo Supabase Auth, manter fallback offline e aplicar RLS em tabelas exclusivas; depende da escolha/ativação do projeto e da configuração OAuth Google. Nenhuma chave de serviço pode entrar no frontend.
+
+## Supabase autorizado — 01/11/2026
+
+O proprietário autorizou explicitamente reativar e compartilhar `supabase-aero-ball` (`ownxbuailthavxgfxtem`). A reativação foi aceita. Criar somente `public.ds_fighters_profiles` com UID proprietário, JSON de progresso, nome/avatar e timestamps; RLS SELECT/INSERT/UPDATE pelo próprio `auth.uid()`, sem acesso anônimo. Não alterar tabelas/dados/políticas do Aero Ball, não mudar Site URL global, não criar usuários reais ou credenciais fictícias para testes.
+
+Integrar um provedor Supabase preferencial por arquivo separado sobre o contrato existente `Cloud`, preservando o fallback Firebase/offline e a mesclagem/isolamento de contas. SDK local em versão fixa, sessão de autenticação com chave exclusiva e IDs locais separados por provedor/projeto. Usar Google OAuth com PKCE, callbacks fora do lock de `onAuthStateChange`, autosave e erros claros. Testar merge, sessões, rede offline e RLS. Se Google não estiver habilitado ou não houver acesso ao painel, completar banco/cliente e solicitar somente a configuração OAuth restante ao proprietário.
