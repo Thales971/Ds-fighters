@@ -12,7 +12,7 @@ with sync_playwright() as pw:
  for scenario in a.scenarios:
   mobile=scenario=='mobile';embedded=scenario=='iframe-sem-gamepad'
   ctx=b.new_context(viewport={'width':390,'height':844} if mobile else {'width':1280,'height':720},is_mobile=mobile,has_touch=mobile)
-  page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));item={'scenario':scenario}
+  page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)+'\n'+(e.stack or '')));item={'scenario':scenario}
   try:
    if embedded:
     page.goto('http://localhost:8099/test-results/loop-host.html')

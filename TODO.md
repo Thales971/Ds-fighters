@@ -57,8 +57,10 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 
 ## Remoção de replay e estabilidade real — 01/11/2026
 
-- [ ] Excluir função de replay: menu, tela, reprodução, gravação por quadro e escrita de replay ao terminar luta; não prejudicar perfil/progresso.
-- [ ] Corrigir tela parada ao iniciar luta e travamentos durante batalhas no loop real, incluindo modo embutido/mobile, CPU e controles; verificar além de chamadas manuais a Game.tick.
-- [ ] Disponibilizar o gato Mistral/Le Chat de forma reconhecível, preservando o ID salvo e evitando duplicata desnecessária.
-- [ ] Aumentar levemente a música de fundo, mantendo volume escolhido pelo usuário e redução durante a narração.
-- [ ] Refinar os dez fundos clássicos originais, preservando suas identidades e mecânicas; não refazer os outros mapas nem aumentar indiscriminadamente a memória.
+- [x] Replay excluído do menu, tela, handlers, leitura/gravação por quadro e escrita ao fim; perfil intacto. Ausência confirmada também na publicação real.
+- [x] Travamento reproduzido com gamepad negado em iframe e loop encerrado por exceção; API protegida e próximo frame agendado antes do processamento. Quatro cenários locais com CPU/RAF/pausa passaram, incluindo mobile e iframe, sem exceções inesperadas.
+- [x] Gato Mistral oficial em quatro quadros, com coleira laranja; ID e bônus mantidos, sem duplicata. Outros doze pets idênticos. Atlas publicado confirmado por hash.
+- [x] Fundo musical de 0,6 para 0,7 de ganho, configurações/mute respeitados e ducking a 25% durante narração. Regressões do mixer passaram.
+- [x] Dez fundos originais reempacotados dos masters: 24 quadros 768×432, piso estável, contraste/overlay mais leves, fallback/miniaturas dos JPGs. Dimensões verificadas e mapas 11+ não reconstruídos; total das dez folhas reduzido para aproximadamente 31 MiB.
+
+- [x] Causa tardia adicional: contexto RNG ausente em Pickup e incorreto nos callbacks de MECHS. Reprodução forçada: 43 falhas antes → 43 casos aprovados depois, incluindo coleta e eventos de todos os mapas; combate/mixer continuaram aprovados.

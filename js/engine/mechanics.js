@@ -72,7 +72,7 @@ const MECHS = {
     every: 420,
     fire(g) {
       if (!g.weather) return;
-      g.weather.windTarget = ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1) * 3.6;
+      g.weather.windTarget = ((g.rnd ? g.rnd() : Math.random()) < 0.5 ? -1 : 1) * 3.6;
       g.announce('RAJADA!', '#a8e4ff', 'Vento forte ' + (g.weather.windTarget > 0 ? '→' : '←'));
       g.audio.play('whoosh');
     },
@@ -117,7 +117,7 @@ const MECHS = {
     every: 250,
     fire(g) {
       const fs = g.fighters().filter((f) => f.alive && !f.benched);
-      const f = fs[((this.game.rnd ? this.game.rnd() : Math.random()) * fs.length) | 0];
+      const f = fs[((g.rnd ? g.rnd() : Math.random()) * fs.length) | 0];
       g.hazard({ x: f ? f.x : g.randX(), label: 'RAIO!', delay: 46, sheet: ['fx2:lightning', 1], dmg: 9, warnColor: '#ffe14d', sound: 'thunder', scale: 4.2, h: 600 });
     },
   },
@@ -131,7 +131,7 @@ const MECHS = {
         for (const f of g.fighters()) {
           if (!f.alive || r.used.has(f) || Math.abs(f.x - r.x) > 40 || f.y < -60) continue;
           r.used.add(f);
-          const good = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.55;
+          const good = (g.rnd ? g.rnd() : Math.random()) < 0.55;
           if (good) { f.addStatus('atk', 300); g.floatText(f.x, f.y - 220, 'BÊNÇÃO DO CAOS', '#ff4b4b'); } else { f.addStatus('poison', 200); f.addStatus('slow', 150); g.floatText(f.x, f.y - 220, 'MALDIÇÃO!', '#9dff4a'); }
           g.audio.play('magic');
         }
@@ -209,14 +209,14 @@ const MECHS = {
     init() { this.side = 0; },
     fire(g) {
       this.side = 1 - this.side;
-      const x = this.side ? 140 + (this.game.rnd ? this.game.rnd() : Math.random()) * 200 : g.W - 140 - (this.game.rnd ? this.game.rnd() : Math.random()) * 200;
+      const x = this.side ? 140 + (g.rnd ? g.rnd() : Math.random()) * 200 : g.W - 140 - (g.rnd ? g.rnd() : Math.random()) * 200;
       g.hazard({ x, label: 'METAL QUENTE!', sheet: ['fx2:fire', 3], dmg: 10, burn: 200, warnColor: '#ff7a2a', sound: 'explosion', fromSky: true, scale: 2 });
     },
   },
   serpent: {
     every: 470,
     fire(g) {
-      const left = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.5;
+      const left = (g.rnd ? g.rnd() : Math.random()) < 0.5;
       g.hazard({ x: left ? 90 : g.W - 90, label: 'SERPENTE!', sheet: ['fx2:chaos', 2], dmg: 11, poison: 200, warnColor: '#5cff8d', sound: 'hazard', scale: 2.4, w: 170 });
     },
   },
@@ -224,7 +224,7 @@ const MECHS = {
     init() { this.wave = 0; this.dir = 1; },
     every: 480,
     fire(g) {
-      this.dir = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1;
+      this.dir = (g.rnd ? g.rnd() : Math.random()) < 0.5 ? -1 : 1;
       this.wave = 130;
       g.announce('MARÉ ALTA!', '#7f52ff', this.dir > 0 ? 'A água empurra para a direita →' : '← A água empurra para a esquerda');
       g.audio.play('water');
@@ -251,7 +251,7 @@ const MECHS = {
     fire(g) {
       const fs = g.fighters().filter((f) => f.alive);
       if (!fs.length) return;
-      const v = fs[((this.game.rnd ? this.game.rnd() : Math.random()) * fs.length) | 0];
+      const v = fs[((g.rnd ? g.rnd() : Math.random()) * fs.length) | 0];
       v.addStatus('shock', 150);
       g.glitch = 22;
       g.announce('INVASÃO!', '#00ff66', v.def.name + ' foi hackeado: controles eletrizados');
@@ -275,7 +275,7 @@ const MECHS = {
       for (const f of g.fighters()) { if (f.alive && f.onGround) f.vx += 480 - f.x > 0 ? 7 : -7; }
       g.announce('GARBAGE COLLECTOR!', '#f89820', n ? n + ' objetos coletados — arena limpa' : 'Todos puxados para o centro');
       g.audio.play('whoosh');
-      if ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.6) g.spawnPickup('spd');
+      if ((g.rnd ? g.rnd() : Math.random()) < 0.6) g.spawnPickup('spd');
     },
   },
   bench: {
@@ -285,14 +285,14 @@ const MECHS = {
   scroll: {
     every: 280,
     fire(g) {
-      g.pushX = ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1) * 1.4;
+      g.pushX = ((g.rnd ? g.rnd() : Math.random()) < 0.5 ? -1 : 1) * 1.4;
       g.floatText(480, -300, 'SCROLL', '#3dff7a');
     },
   },
   train: {
     every: 460,
     fire(g) {
-      const dir = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1;
+      const dir = (g.rnd ? g.rnd() : Math.random()) < 0.5 ? -1 : 1;
       g.fighters().forEach((f) => { if (f.alive && f.onGround) f.vx += dir * 7; });
       g.announce('TREM!', '#c8d4e4', 'O vagão empurra todo mundo');
       g.audio.play('whoosh');
@@ -309,7 +309,7 @@ const MECHS = {
     every: 300,
     fire(g) {
       const fs = g.fighters().filter((f) => f.alive);
-      const tgt = fs[((this.game.rnd ? this.game.rnd() : Math.random()) * fs.length) | 0];
+      const tgt = fs[((g.rnd ? g.rnd() : Math.random()) * fs.length) | 0];
       const x = tgt ? tgt.x : g.randX();
       g.hazard({ x, label: 'DRONE!', delay: 55, sheet: ['fx2:lightning', 3], dmg: 9, warnColor: '#ff4fd8', fromSky: true, sound: 'thunder_cast', scale: 1.4, w: 90 });
     },
@@ -338,7 +338,7 @@ const MECHS = {
         return;
       }
       const fs = g.fighters().filter((f) => f.alive);
-      const tgt = fs[((this.game.rnd ? this.game.rnd() : Math.random()) * fs.length) | 0];
+      const tgt = fs[((g.rnd ? g.rnd() : Math.random()) * fs.length) | 0];
       g.hazard({ x: tgt ? tgt.x : g.randX(), label: 'BOLA!', delay: 48, sheet: ['fx2:impact', 1], dmg: 7, warnColor: '#ffffff', fromSky: true, sound: 'heavy', scale: 1.1, w: 70 });
     },
     drawFront(ctx, g, t) {
@@ -383,6 +383,7 @@ class StageMechanic {
 
 class Pickup {
   constructor(game, kind) {
+    this.game = game;
     this.def = PICKUPS.find((p) => p.id === kind) || PICKUPS[((this.game.rnd ? this.game.rnd() : Math.random()) * PICKUPS.length) | 0];
     this.x = 120 + (this.game.rnd ? this.game.rnd() : Math.random()) * (game.W - 240);
     this.y = -520;

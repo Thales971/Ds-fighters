@@ -29,3 +29,9 @@ python3 tools/live_loop_check.py exercita VS → início real da luta, CPU, RAF,
 python3 tools/hotfix_smoke.py mantém os contratos de combate, pets, IALES, skins EM BREVE e ausência de replay. Os testes Node de mixer, combate e perfil verificam os caminhos associados. A publicação deve ser confirmada por conteúdo/execução, e não só pelo push.
 
 Resultados locais confirmados: quatro cenários de loop real passaram, cada um observado por dez segundos (janela, iframe sem gamepad, mobile e recuperação de uma exceção deliberada de um único frame). A CPU atacou e alterou HP; pausa/retorno passou nos quatro. Nenhuma exceção inesperada. Passaram também 12 casos de hotfix com todos os 133 poderes, 16 grupos de combate, mixer e perfil. As dez folhas tiveram dimensões/metadata verificados. Testes finitos não garantem ausência de todo erro possível em qualquer aparelho.
+
+Publicação confirmada após o commit `04ce574`: `https://online-server-one.vercel.app/?v=stable-loop-mistral-v1` serve HTML sem menu replay, input.js com proteção de gamepad e game.js sem gravação. O hash do atlas de pets publicado é igual ao local e o JPG das miniaturas clássicas responde HTTP 200. Os 12 casos de hotfix/133 poderes passaram diretamente nessa URL, sem exceções JavaScript.
+
+## Correção adicional de eventos tardios
+
+O teste público de 35 segundos encontrou outra causa de exceção no meio da luta: Pickup acessava this.game.rnd sem inicializar this.game, e callbacks de mecânicas usavam this.game embora recebessem o jogo no parâmetro g. Corrigidos ambos os contextos. Uma reprodução forçada de criação/coleta de power-up e eventos de todos os mapas falhou em 43/43 casos antes e passou em 43/43 depois. A luta não depende mais de evitar sorteios/eventos de mapa para continuar.

@@ -306,3 +306,7 @@ Lobão agora usa rosto humano/cabelo das referências e visual de wrestling verd
 ## Hotfix: skins EM BREVE, pets e roubos do IALES
 
 Skins temporariamente desativadas, com preferências antigas preservadas. Cinco pets novos receberam sprites limpos; escala da seleção corrigida e oito clássicos preservados. Corrigidos inputs/relógio dos replays, término da investida de roubo, bloqueio/alcance do roubo remoto e ícones/retratos do Lobão, sem retirar escudo/esquiva da ultimate. URLs versionadas evitam arte antiga em cache. Testes e limites em [HOTFIX-PETS-IALES.md](HOTFIX-PETS-IALES.md).
+
+## Estabilidade — replay removido
+
+Replay foi excluído completamente (menu, gravação e reprodução). Corrigido o travamento reproduzido em iframe: a permissão negada de gamepad não encerra mais o loop; teclado/toque continuam. Gato Mistral atualizado com a animação oficial, música um pouco mais alta com narração protegida, dez clássicos refinados e mais leves. Versão: `stable-loop-mistral-v1`. Detalhes e limites em [ESTABILIDADE-SEM-REPLAY.md](ESTABILIDADE-SEM-REPLAY.md).
