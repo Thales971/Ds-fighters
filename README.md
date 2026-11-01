@@ -2,6 +2,22 @@
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, sons e código são originais (inspirado no gênero, sem copiar Street Fighter ou outro jogo). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
+![DS Fighters — Edição Turbo](assets/ui/logo.png)
+
+**17 lutadores · 30 arenas · 5 habilidades animadas por lutador · CPU com 4 dificuldades · online grátis até 4 jogadores (1 × 1 e 2 × 2)**
+
+## Novidades da Edição Turbo
+
+- **5 lutadores novos**: Yumi (Kotlin), RootKit (hacker do Kali), Mestre Java, Cromo (mercenário com esquiva) e BHM (raio + sombra).
+- **DU e Felipinho Maprim redesenhados**: DU careca, de óculos e barba grisalha; Maprim de boné e meia barba.
+- **Combos muito mais fluidos**: buffer de entrada (inclusive no hitstop), cadeias automáticas e cancelamentos em habilidades.
+- **Efeitos de status por lutador**: explosão, dano contínuo, stun, cegueira (tela embaçada), elétrico (teclas se mexem sozinhas), gelo (lentidão), vulnerável e sem poderes.
+- **Balanceamento** feito com torneios automáticos CPU × CPU; o trio secreto continua acima, IALES no topo.
+- **CPU com 4 níveis reais**: Fácil, Normal, Difícil e Pesadelo.
+- **120+ FPS** com imagem interpolada (simulação fixa em 60 Hz).
+- **Nova logo** estilo arcade e **4 arenas novas** com mecânicas próprias.
+- **Online P2P sem servidor**, 2 × 2 com 4 jogadores, troca e assist, chat, link de convite e ping.
+
 ![Elenco](assets/sprites/elenco.png)
 
 ## Como rodar
@@ -13,11 +29,30 @@ python3 -m http.server 8080
 # abra http://localhost:8080
 ```
 
-Para o online local, rode também o servidor de salas (veja [HOSPEDAGEM.md](HOSPEDAGEM.md)):
+O online já funciona assim, sem servidor próprio (P2P). O servidor dedicado é **opcional** (veja [HOSPEDAGEM.md](HOSPEDAGEM.md)):
 
 ```bash
-cd online-server && npm install && npm start   # ws://localhost:8787
+cd online-server && npm install && npm start   # ws://localhost:8787 (opcional)
 ```
+
+## Jogar online (grátis)
+
+1. Abra o jogo pelo endereço publicado e vá em **Online**. A conexão padrão é **P2P** (não precisa de servidor).
+2. Escolha o modo (**1 × 1**, **2 × 2 — duplas, 2 jogadores** ou **2 × 2 — 4 jogadores**) e clique em **CRIAR SALA**.
+3. Mande o **código de 6 letras** ou o **link de convite** para os amigos; eles digitam o código e clicam em **ENTRAR NA SALA** (pelo link, o código já vem preenchido).
+4. No lobby, cada um escolhe lutador (e equipe, no 2 × 2), a arena é definida pelo anfitrião e a luta começa quando **todos marcam PRONTO**.
+
+Quem cria a sala é o anfitrião: o navegador dele simula a luta, então ele não pode fechar a aba. Quem cair tem 30 s para voltar. Se alguma rede bloquear a conexão direta (redes de empresa, alguns 4G), use o servidor dedicado opcional.
+
+## Publicar para todo mundo jogar
+
+O jogo é só arquivos estáticos, então qualquer hospedagem estática gratuita serve:
+
+- **Vercel**: importe o repositório, preset **Other**, sem comando de build, diretório = raiz. O `vercel.json` e o `.vercelignore` já estão prontos.
+- **Netlify / Cloudflare Pages**: mesmo esquema.
+- **GitHub Pages**: *Settings → Pages → `main` / `(root)`* → `https://thales971.github.io/Ds-fighters/`.
+
+Passo a passo completo, servidor dedicado (Render, Fly.io, VPS, Docker) e checklist em [HOSPEDAGEM.md](HOSPEDAGEM.md).
 
 ## Modos
 
