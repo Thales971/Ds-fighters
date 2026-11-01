@@ -369,6 +369,11 @@ class Fighter {
     if (o.slow) this.addStatus('slow', o.slow);
     this.applyEffects(o, atk, d, controlScale);
     if (atk && atk.cast && o.ability) atk.cast.hit = true;
+    // Pet Gato Mistral: a cada 3 acertos de habilidade, choque no alvo
+    if (atk && o.ability && atk.pfx.shockOnHit) {
+      atk.petHitCounter = ((atk.petHitCounter || 0) + 1) % 3;
+      if (atk.petHitCounter === 0) this.addStatus('shock', atk.pfx.shockOnHit, atk);
+    }
     game.audio.hit(d >= 13);
     game.shake(Math.min(12, d >= 14 ? 8 : 4));
     game.registerHit(atk, this, d, false, o.hitstop || (d >= 14 ? 8 : 5), counter);
