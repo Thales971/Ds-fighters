@@ -7,13 +7,17 @@ const SpriteGen = {
   images: {},
   _flash: null,
 
+  url(id) {
+    const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
+    return id === 'lobao' ? src + '?v=hotfix450-skins-off' : src;
+  },
   load() {
     const files = SPRITE_LAYOUT.files || {};
     Object.entries(files).forEach(([id, src]) => {
       const img = new Image();
       img.onload = () => { this.images[id] = img; };
       img.onerror = () => { this.images[id] = null; };
-      img.src = src;
+      img.src = this.url(id);
     });
   },
 
@@ -29,7 +33,6 @@ const SpriteGen = {
   },
 
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
-    if (skinHue) { try { ctx.filter = `hue-rotate(${skinHue}deg)`; } catch (e) {} }
     const L = SPRITE_LAYOUT;
     const sc = scale || L.drawScale;
     const fw = L.frameW;
@@ -42,6 +45,8 @@ const SpriteGen = {
     const top = Math.round(feetY - L.baseline * sc);
 
     ctx.save();
+    if (skinHue === -1) { try { ctx.filter = 'grayscale(1)'; } catch (e) {} }
+    else if (skinHue) { try { ctx.filter = `hue-rotate(${skinHue}deg)`; } catch (e) {} }
     ctx.imageSmoothingEnabled = false;
     ctx.translate(Math.round(centerX + (xf ? xf.dx * dir : 0)), top + (xf ? xf.dy : 0));
     if (xf && (xf.sx !== 1 || xf.sy !== 1 || xf.rot)) {

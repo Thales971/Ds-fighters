@@ -59,3 +59,13 @@ Online: verificar criação/entrada, protocolo, P2P público e WSS local; distin
 ## Correção focada — Lobão / revisão Mistral
 
 Orçamento informado ~500 créditos: substituir somente sprite e retratos do Lobão por lutador humano de cabelo curto escuro, roupa verde/branca, gola de pele e cadeira; fotos para identidade e Beowulf para wrestling/silhueta, sem face de lobisomem. Reutilizar montagem, poses e motor; um lote de dois blocos. Corrigir apenas regressões recentes de combate e alcance/contrajogo da aura e cadeiras; preservar BHM original quando não houver regressão comprovada. Não recriar mapas, música, contas ou mobile.
+
+## Hotfix de regressões — limite informado 450 créditos
+
+Priorizar travamentos reais do combate e compatibilidade de skins/pets, corrigir o segundo roubo IALES e reconectar os visuais de Lobão. Reutilizar arte válida existente e o sprite humano já gerado; sem novo lote de imagens/mapas, torneio amplo ou alterações de conta. Testar caminhos afetados num único smoke de navegador, preservar mudanças não relacionadas e tratar cache/publicação separadamente do GitHub.
+
+## Decisão do proprietário — skins adiadas
+
+Desativar o recurso de skins na navegação, aplicação em combate e salvamento, mostrar “SKINS — EM BREVE” e preservar os dados antigos para uma implementação futura. Concentrar o hotfix em pets (enquadramento/transparência e efeitos), controles presos a replay, segundo roubo IALES, retratos/arte Lobão e atualização da versão publicada. Reaproveitar arte existente antes de considerar gerações pagas.
+
+A inspeção confirmou que os oito pets clássicos são idênticos à versão anterior: o menu os espremia na altura errada. As cinco linhas novas e os ícones Lobão apresentam blocos/desenhos defeituosos. Substituir somente esses dois conjuntos por um lote econômico de duas folhas transparentes, preservando os oito clássicos e as mecânicas. Não refazer mapas nem todos os sprites humanos.

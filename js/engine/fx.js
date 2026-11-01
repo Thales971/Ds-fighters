@@ -17,11 +17,12 @@ const ART_SHEETS = {
 
 const Art = {
   images: {},
+  url(src) { return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=hotfix450-skins-off' : src; },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
       const img = new Image();
       img.onload = () => { this.images[key] = img; };
-      img.src = s.src;
+      img.src = this.url(s.src);
     });
   },
   ready(key) { const i = this.images[key]; return !!(i && i.naturalWidth); },
@@ -57,7 +58,7 @@ const Art = {
     const img = this.images[key];
     const w = img ? img.naturalWidth : s.size * s.cols;
     const h = img ? img.naturalHeight : s.size * 5;
-    return `background-image:url(${s.src});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-row * px}px;`;
+    return `background-image:url(${this.url(s.src)});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-row * px}px;`;
   },
 };
 Art.load();

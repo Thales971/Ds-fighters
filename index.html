@@ -7,9 +7,9 @@
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 20 lutadores, 5 habilidades cada, arenas animadas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/account.css" />
-  <link rel="stylesheet" href="css/mobile.css" />
+  <link rel="stylesheet" href="css/style.css?v=hotfix450-skins-off" />
+  <link rel="stylesheet" href="css/account.css?v=hotfix450-skins-off" />
+  <link rel="stylesheet" href="css/mobile.css?v=hotfix450-skins-off" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -71,7 +71,7 @@
         <button class="nav mm" data-go="rules"><span>PERSONALIZADO</span><small>Vida infinita, rounds e salas ao vivo</small></button>
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
-        <button class="nav mm" data-go="skins"><span>SKINS</span><small>Paletas alternativas pros lutadores</small></button>
+        <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
         <button class="nav mm" data-go="replays"><span>REPLAYS</span><small>Assista suas últimas 5 lutas gravadas</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
@@ -188,12 +188,10 @@
 
     <section class="screen" id="scr-skins" data-screen="skins">
       <div class="panel wide">
-        <h2>SKINS</h2>
-        <p class="sub">Escolha um lutador e uma paleta alternativa (muda a cor do sprite na hora). Fica salvo no seu perfil.</p>
-        <div class="skin-pick"><label class="sub">Lutador <select class="nav" id="skin-fighter"></select></label>
-        <label class="sub">Paleta <select class="nav" id="skin-hue"></select></label></div>
-        <div class="skin-preview" id="skin-preview"></div>
-        <div class="row"><button class="nav btn primary" id="btn-skin-save">SALVAR SKIN</button><button class="nav btn" data-back>VOLTAR</button></div>
+        <h2>SKINS — EM BREVE</h2>
+        <p class="sub">As skins estão desativadas enquanto aprimoramos o recurso. Todos os lutadores usam seu visual original.</p>
+        <p class="sub small">Suas preferências antigas foram preservadas. Nenhuma paleta alternativa é aplicada nas lutas.</p>
+        <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
 
@@ -321,42 +319,42 @@
     </div>
   </div>
 
-  <script src="assets/sprites/layout.js"></script>
+  <script src="assets/sprites/layout.js?v=hotfix450-skins-off"></script>
   <script src="assets/stages/sheets.js"></script>
   <script src="assets/maps/anim.js"></script>
-  <script src="js/core/profile.js"></script>
-  <script src="js/config/firebase-config.js"></script>
-  <script src="js/core/cloud.js"></script>
-  <script src="js/config/supabase-config.js"></script>
+  <script src="js/core/profile.js?v=hotfix450-skins-off"></script>
+  <script src="js/config/firebase-config.js?v=hotfix450-skins-off"></script>
+  <script src="js/core/cloud.js?v=hotfix450-skins-off"></script>
+  <script src="js/config/supabase-config.js?v=hotfix450-skins-off"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js"></script>
-  <script src="js/data/fighters.js"></script>
-  <script src="js/data/powers.js"></script>
-  <script src="js/data/powers-turbo.js"></script>
-  <script src="js/data/powers-v4.js"></script>
-  <script src="js/data/powers-v5.js"></script>
-  <script src="js/data/powers-v6.js"></script>
-  <script src="js/data/powers-balance-v6.js"></script>
-  <script src="js/data/pets.js"></script>
-  <script src="js/data/stages.js"></script>
-  <script src="js/engine/sprites.js"></script>
-  <script src="js/engine/fx.js"></script>
-  <script src="js/engine/audio.js"></script>
-  <script src="js/engine/input.js"></script>
-  <script src="js/ui/viewport.js"></script>
-  <script src="js/engine/projectile.js"></script>
-  <script src="js/engine/fighter.js"></script>
-  <script src="js/engine/weather.js"></script>
-  <script src="js/engine/mechanics.js"></script>
-  <script src="js/engine/stage.js"></script>
-  <script src="js/engine/ai.js"></script>
-  <script src="js/engine/game.js"></script>
+  <script src="js/core/supabase-cloud.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/fighters.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers-turbo.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers-v4.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers-v5.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers-v6.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/powers-balance-v6.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/pets.js?v=hotfix450-skins-off"></script>
+  <script src="js/data/stages.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/sprites.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/fx.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/audio.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/input.js?v=hotfix450-skins-off"></script>
+  <script src="js/ui/viewport.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/projectile.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/fighter.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/weather.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/mechanics.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/stage.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/ai.js?v=hotfix450-skins-off"></script>
+  <script src="js/engine/game.js?v=hotfix450-skins-off"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js"></script>
-  <script src="js/net/online.js"></script>
-  <script src="js/ui/hud.js"></script>
-  <script src="js/ui/ui.js"></script>
-  <script src="js/ui/account.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/net/room-core.js?v=hotfix450-skins-off"></script>
+  <script src="js/net/online.js?v=hotfix450-skins-off"></script>
+  <script src="js/ui/hud.js?v=hotfix450-skins-off"></script>
+  <script src="js/ui/ui.js?v=hotfix450-skins-off"></script>
+  <script src="js/ui/account.js?v=hotfix450-skins-off"></script>
+  <script src="js/main.js?v=hotfix450-skins-off"></script>
 </body>
 </html>

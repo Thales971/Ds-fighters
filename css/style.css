@@ -211,7 +211,7 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .pet em { position: absolute; top: 4px; right: 4px; font-size: 6px; background: var(--lime); color: #000; padding: 2px 3px; font-style: normal; }
 .pet.on { border-color: var(--lime); }
 .pet:focus, .pet:hover { border-color: var(--gold); transform: translateY(-2px); }
-.pet-spr { width: 96px; height: 96px; background-size: 384px 768px; background-position: 0 calc(var(--row) * -96px); image-rendering: pixelated; animation: pet4 .8s steps(4) infinite; transform: scale(.7); margin: -14px; }
+.pet-spr { width: 96px; height: 96px; background-size: 384px auto; background-position: 0 calc(var(--row) * -96px); image-rendering: pixelated; animation: pet4 .8s steps(4) infinite; transform: scale(.7); margin: -14px; }
 .pet-spr.none { background: none; animation: none; display: grid; place-items: center; }
 .pet-spr.none::before { content: '∅'; font-size: 30px; color: #6b4fb3; }
 @keyframes pet4 { from { background-position-x: 0; } to { background-position-x: -384px; } }
@@ -468,6 +468,6 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 /* Skins */
 .skin-pick { display: flex; gap: 18px; justify-content: center; align-items: center; margin: 10px 0; flex-wrap: wrap; }
 .skin-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 14px 0; min-height: 150px; }
-.skin-sprite { width: 128px; height: 104px; background-size: 400% 346.15%; background-position: 0 0; image-rendering: pixelated; filter: none; }
+.skin-sprite { width: 128px; height: 104px; background-size: 400% 1500%; background-position: 0 0; image-rendering: pixelated; filter: none; }
 .skin-preview b { color: var(--c, var(--gold)); font-size: 11px; }
 .skin-preview small { color: #9a90b8; font-size: 7px; }

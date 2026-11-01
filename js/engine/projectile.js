@@ -166,6 +166,7 @@ class Strike {
       for (const f of game.fighters()) {
         if (!f.alive || this.hit.has(f)) continue;
         if (this.owner && f.team === this.owner.team) continue;
+        if (this.maxOwnerRange && this.owner && Math.abs(f.x - this.owner.x) > this.maxOwnerRange) continue;
         const hb = f.hurtbox();
         if (hb.x < this.x + this.w / 2 && hb.x + hb.w > this.x - this.w / 2 && hb.y < 0 && hb.y + hb.h > -this.h) {
           this.hit.add(f);

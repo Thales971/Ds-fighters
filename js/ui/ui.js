@@ -112,7 +112,7 @@ const UI = {
   cutIn(f, p) {
     if (this.game && this.game.mode === 'demo') return;
     const c = this.$('cutin');
-    c.querySelector('.ci-face').style.backgroundImage = `url(assets/ui/face-${f.def.id}.png)`;
+    c.querySelector('.ci-face').style.backgroundImage = `url(assets/ui/face-${f.def.id}.png?v=hotfix450-skins-off)`;
     c.querySelector('.ci-name').textContent = f.def.name;
     c.querySelector('.ci-move').textContent = p.name || '';
     c.style.setProperty('--accent', f.def.colors.accent || '#ffd27d');
@@ -182,7 +182,7 @@ const UI = {
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face" style="background-image:url(assets/ui/face-${d.id}.png)"></span>
+        <span class="face" style="background-image:url(assets/ui/face-${d.id}.png?v=hotfix450-skins-off)"></span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
@@ -251,9 +251,9 @@ const UI = {
     const keyFor = ti === 1 && f.p2Human ? 1 : 0;
     el.innerHTML = `
       <div class="who">${ti === 0 ? 'P1' : f.p2Human ? 'P2' : f.mode === 'training' ? 'BONECO' : 'CPU'}${f.need > 1 ? ` · ${f.picks[ti].length}/${f.need}` : ''}</div>
-      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(assets/ui/face-${id}.png)"></span>`).join('')}</div>
+      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(assets/ui/face-${id}.png?v=hotfix450-skins-off)"></span>`).join('')}</div>
       ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>???</h3><p class="bio">Lutador secreto. Resgate um código no menu para liberar.</p>` : `
-      <div class="big-sprite" style="background-image:url(assets/sprites/${d.id}.png)"></div>
+      <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
       <div class="ttl">${d.title}</div>
       ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
@@ -430,7 +430,7 @@ const UI = {
   showVs(cfg, then) {
     const side = (ti) => cfg.teams[ti].map((id) => {
       const d = FIGHTERS.find((x) => x.id === id);
-      return `<div class="vs-f"><div class="vs-sprite" style="background-image:url(assets/sprites/${id}.png)"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
+      return `<div class="vs-f"><div class="vs-sprite" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
     }).join('');
     this.$('vs-0').innerHTML = side(0);
     this.$('vs-1').innerHTML = side(1);
@@ -575,7 +575,7 @@ const UI = {
     const d = FIGHTERS.find((x) => x.id === winIds[0]);
     const q = d && d.quotes.win ? d.quotes.win[(Math.random() * d.quotes.win.length) | 0] : '';
     this.$('res-body').innerHTML = `
-      <div class="res-win">${winIds.map((id) => `<div class="win-sprite" style="background-image:url(assets/sprites/${id}.png)"></div>`).join('')}<blockquote>“${q}”</blockquote></div>
+      <div class="res-win">${winIds.map((id) => `<div class="win-sprite" style="background-image:url(${SpriteGen.url(id)})"></div>`).join('')}<blockquote>“${q}”</blockquote></div>
       <table class="res-table"><thead><tr><th>Time</th><th>Lutador</th><th>Dano</th><th>Acertos</th><th>Maior combo</th></tr></thead><tbody>
       ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td></tr>`).join('')).join('')}
       </tbody></table>
@@ -596,7 +596,7 @@ const UI = {
     const grid = this.$('pet-grid');
     grid.innerHTML = PETS.map((p) => `
       <button class="nav pet ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
-        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.row >= 0 ? `background-image:url(assets/pets/pets.png);--row:${p.row}` : ''}"></span>
+        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=hotfix450-skins-off);--row:${p.row}` : ''}"></span>
         <b>${p.name}</b><small>${p.buff}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
       </button>`).join('');
     grid.querySelectorAll('.pet').forEach((b) => b.addEventListener('click', () => {
@@ -613,35 +613,19 @@ const UI = {
   enter_replays() { this.listReplays(); },
   SKIN_HUES: [
     ['Original', 0], ['Vermelha', 330], ['Laranja', 25], ['Amarela', 55], ['Verde', 110],
-    ['Ciano', 175], ['Azul', 210], ['Roxa', 265], ['Rosa', 300], ['P&B', 0],
+    ['Ciano', 175], ['Azul', 210], ['Roxa', 265], ['Rosa', 300], ['P&B', -1],
   ],
   enter_skins() {
-    const sel = this.$('skin-fighter');
-    sel.innerHTML = FIGHTERS.filter((f) => !f.secret || Profile.isUnlocked(f.id)).map((f) => `<option value="${f.id}">${f.name}</option>`).join('');
-    const hs = this.$('skin-hue');
-    hs.innerHTML = this.SKIN_HUES.map(([n, h]) => `<option value="${h}">${n}</option>`).join('');
-    const upd = () => {
-      const fid = sel.value;
-      const hue = +hs.value;
-      hs.querySelectorAll('option').forEach((o) => { if (+o.value === 0 && hue === 0) o.textContent = n0(o); });
-      const cur = Profile.skinFor(fid);
-      hs.value = String(cur || 0);
-      this.renderSkinPreview(fid, +hs.value);
-    };
-    function n0(o) { return 'Original'; }
-    sel.onchange = upd; hs.onchange = upd;
-    upd();
-    this.$('btn-skin-save').onclick = () => {
-      Profile.setSkin(sel.value, +hs.value);
-      AudioSys.select();
-      this.toast('Skin salva no perfil!');
-    };
+    // Recurso adiado: esta tela contém apenas o aviso e o botão VOLTAR.
   },
   renderSkinPreview(fid, hue) {
     const el = this.$('skin-preview');
     if (!el) return;
     const d = FIGHTERS.find((f) => f.id === fid);
-    el.innerHTML = `<div class="skin-sprite" style="background-image:url(assets/sprites/${fid}.png);${hue ? `filter:hue-rotate(${hue}deg)` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${hue ? 'hue ' + hue + '°' : 'paleta original'}</small>`;
+    if (!d) return;
+    const filter = hue === -1 ? 'grayscale(1)' : hue ? `hue-rotate(${hue}deg)` : '';
+    const label = hue === -1 ? 'P&B' : hue ? 'hue ' + hue + '°' : 'paleta original';
+    el.innerHTML = `<div class="skin-sprite" style="background-image:url(${SpriteGen.url(fid)});${filter ? `filter:${filter}` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${label}</small>`;
   },
   enter_redeem() {
     this.$('redeem-msg').textContent = '';
@@ -658,7 +642,7 @@ const UI = {
       const ids = r.already ? Profile.SECRET_IDS : r.ids;
       this.$('redeem-faces').innerHTML = ids.map((id, k) => {
         const d = FIGHTERS.find((x) => x.id === id);
-        return `<div class="rf" style="--d:${k * 0.25}s"><div class="vs-sprite" style="background-image:url(assets/sprites/${id}.png)"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
+        return `<div class="rf" style="--d:${k * 0.25}s"><div class="vs-sprite" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
       }).join('');
       if (!r.already) { AudioSys.play('unlock'); AudioSys.voice('unlocked'); }
       input.value = '';
@@ -736,7 +720,7 @@ const UI = {
       </tbody></table>
       <p class="sub small">Carga A e B enchem batendo e apanhando; a ULT enche mais devagar. Defender demais enche a barra de tontura do rival… e a sua.</p>`;
     const pick = this.$('moves-pick');
-    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(assets/ui/face-${d.id}.png)" aria-label="${d.name}"></button>`).join('');
+    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(assets/ui/face-${d.id}.png?v=hotfix450-skins-off)" aria-label="${d.name}"></button>`).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);
       const kit = POWERS[id];

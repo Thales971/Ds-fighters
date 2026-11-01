@@ -45,3 +45,12 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 
 - [x] Lobão humano inspirado nas fotos e wrestling: uma geração em lote de dois blocos, folha final de 60 quadros, retratos e poses integrados; sem face/orelhas de lobo, sem substituir outros personagens.
 - [x] Regressores recentes corrigidos: aura local sem perseguição, sem armadura empilhada, dano x1,5/esquiva 10%, chuva 8 por cadeira. BHM original preservado e catálogo dedicado sincronizado. Testes focados, 16 grupos de combate e 38 verificações de protocolo passaram; vida/Qwen terceira mantidas, mapas/mobile intactos. Não foi feito torneio completo nem prometido balanceamento universal.
+
+## Hotfix Mistral — 450 créditos
+
+- [x] Skins desativadas com EM BREVE, sem aplicação/salvamento; dados preservados. Pets: escala corrigida, cinco conjuntos novos e oito clássicos idênticos em pixels; IDs mantidos.
+- [x] Falhas reproduzidas de replay, relógio e investida corrigidas. Roubo remoto e agarrão testados contra defesa, alcance e erro; cópia de cinco poderes e ícones separados de AFO2. 133 poderes renderizados sem exceções.
+- [x] Lobão: cinco linhas de ícones refeitas, retratos humanos reenquadrados e URLs de sprite atualizadas; escudo e esquiva preservados. BHM não alterado nesta etapa.
+- [ ] Distinguir versão publicada/cache da versão no repositório e entregar somente resultados verificados, sem prometer que push equivale a publicação.
+
+**Decisão de 18:47:** skins devem ficar desativadas com aviso **EM BREVE**, sem seletor/salvamento/aplicação de paletas. Preservar dados antigos e focar nos outros problemas; esta decisão substitui a entrega de skins ativas no hotfix anterior.

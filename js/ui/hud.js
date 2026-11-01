@@ -29,7 +29,7 @@ const HUD = {
       const f = t.members[t.active];
       const partner = t.members.find((m, k) => k !== t.active);
       side.innerHTML = `
-        <div class="face" style="background-image:url(assets/ui/face-${f.def.id}.png)"></div>
+        <div class="face" style="background-image:url(assets/ui/face-${f.def.id}.png?v=hotfix450-skins-off)"></div>
         <div class="info">
           <div class="nameline"><span class="name">${f.def.name}</span><span class="pips">${game.mode === 'training' ? 'TREINO' : '<i></i>'.repeat(Math.min(9, game.cfg.roundsToWin))}</span></div>
           <div class="life"><div class="red"></div><div class="fill"></div><div class="shield"></div><div class="lifenum"></div></div>
@@ -41,7 +41,7 @@ const HUD = {
           </div>
           <div class="statuses"></div>
         </div>
-        ${partner ? `<div class="partner"><div class="pface" style="background-image:url(assets/ui/face-${partner.def.id}.png)"></div><div class="plife"><i></i></div><div class="ptag"></div></div>` : ''}`;
+        ${partner ? `<div class="partner"><div class="pface" style="background-image:url(assets/ui/face-${partner.def.id}.png?v=hotfix450-skins-off)"></div><div class="plife"><i></i></div><div class="ptag"></div></div>` : ''}`;
       const keys = this.keyLabels(game, ti);
       const sk = this.$('skills-' + ti);
       const kit = f.currentKit();

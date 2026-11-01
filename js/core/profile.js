@@ -6,6 +6,7 @@ const Profile = {
   KEY: 'dsfighters.profile.v2',
   ACCOUNT_KEY_PREFIX: 'dsfighters.profile.account.v1.',
   DEVICE_SETTINGS_KEY: 'dsfighters.profile.device-settings.v1',
+  SKINS_ENABLED: false,
   SECRET_IDS: ['du', 'iales', 'felipinho', 'qwen'],
   data: null,
   accountUid: null,
@@ -43,6 +44,17 @@ const Profile = {
     return Object.assign({}, base || this.defaults().settings, source);
   },
 
+  _skins(raw, base) {
+    const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    const skins = Object.assign({}, base || {});
+    Object.keys(source).forEach((fid) => {
+      if (!/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(fid)) return;
+      const hue = Number(source[fid]);
+      if (hue === -1 || (Number.isFinite(hue) && hue >= 0 && hue <= 360)) skins[fid] = Math.round(hue);
+    });
+    return skins;
+  },
+
   _normalize(raw) {
     const base = this.defaults();
     const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
@@ -53,17 +65,22 @@ const Profile = {
     while (pets.length < 2) pets.push(base.pets[pets.length] || 'none');
     const stats = source.stats && typeof source.stats === 'object' && !Array.isArray(source.stats) ? source.stats : {};
     const name = typeof source.name === 'string' && source.name.trim() ? source.name.slice(0, 64) : base.name;
+    const normalizedStats = {
+      fights: this._number(stats.fights, 0),
+      wins: this._number(stats.wins, 0),
+      bestArcade: this._number(stats.bestArcade, 0),
+      maxCombo: this._number(stats.maxCombo, 0),
+    };
+    if (Object.prototype.hasOwnProperty.call(stats, 'bestSurvival')) {
+      normalizedStats.bestSurvival = this._number(stats.bestSurvival, 0);
+    }
     return Object.assign({}, source, {
       unlocked,
       pets,
+      skins: this._skins(source.skins, base.skins),
       name,
       settings: this._settings(source.settings, base.settings),
-      stats: {
-        fights: this._number(stats.fights, 0),
-        wins: this._number(stats.wins, 0),
-        bestArcade: this._number(stats.bestArcade, 0),
-        maxCombo: this._number(stats.maxCombo, 0),
-      },
+      stats: normalizedStats,
     });
   },
 
@@ -158,20 +175,27 @@ const Profile = {
     while (remotePets.length > 0 && remotePets.length < 2) remotePets.push('none');
     const ls = local.stats || {};
     const rs = remote.stats && typeof remote.stats === 'object' && !Array.isArray(remote.stats) ? remote.stats : {};
+    const localSkins = this._skins(local.skins);
+    const remoteSkins = this._skins(remote.skins);
+    const mergedStats = {
+      fights: Math.max(this._number(ls.fights, 0), this._number(rs.fights, 0)),
+      wins: Math.max(this._number(ls.wins, 0), this._number(rs.wins, 0)),
+      bestArcade: Math.max(this._number(ls.bestArcade, 0), this._number(rs.bestArcade, 0)),
+      maxCombo: Math.max(this._number(ls.maxCombo, 0), this._number(rs.maxCombo, 0)),
+    };
+    if (Object.prototype.hasOwnProperty.call(ls, 'bestSurvival') || Object.prototype.hasOwnProperty.call(rs, 'bestSurvival')) {
+      mergedStats.bestSurvival = Math.max(this._number(ls.bestSurvival, 0), this._number(rs.bestSurvival, 0));
+    }
     const remoteName = typeof remote.name === 'string' && remote.name.trim() ? remote.name :
       (remoteData && typeof remoteData.name === 'string' && remoteData.name.trim() ? remoteData.name : '');
     this.data = this._normalize(Object.assign({}, local, {
       unlocked: unique([...(Array.isArray(local.unlocked) ? local.unlocked : []), ...unique(remote.unlocked)]),
       pets: remoteIsNewer && remoteHasPets ? remotePets : localPets,
+      skins: Object.assign({}, localSkins, remoteIsNewer ? remoteSkins : {}),
       name: remoteIsNewer && remoteName ? remoteName.slice(0, 64) : local.name,
       // Configurações de dispositivo permanecem sempre locais.
       settings: Object.assign({}, local.settings || {}),
-      stats: {
-        fights: Math.max(this._number(ls.fights, 0), this._number(rs.fights, 0)),
-        wins: Math.max(this._number(ls.wins, 0), this._number(rs.wins, 0)),
-        bestArcade: Math.max(this._number(ls.bestArcade, 0), this._number(rs.bestArcade, 0)),
-        maxCombo: Math.max(this._number(ls.maxCombo, 0), this._number(rs.maxCombo, 0)),
-      },
+      stats: mergedStats,
     }));
     this._applyDeviceSettings(this.data);
     return this.data;
@@ -211,13 +235,17 @@ const Profile = {
   },
 
   skinFor(fid) {
-    const sk = (this.data && this.data.skins && this.data.skins[fid]) || 0;
-    return sk;
+    if (!this.SKINS_ENABLED) return 0;
+    const sk = this.data && this.data.skins && this.data.skins[fid];
+    return sk === -1 || (Number.isFinite(sk) && sk >= 0 && sk <= 360) ? sk : 0;
   },
   setSkin(fid, hue) {
+    if (!this.SKINS_ENABLED) return false;
     this.data = this._normalize(this.data || this.load());
-    this.data.skins = this.data.skins || {};
-    this.data.skins[fid] = hue;
+    const id = String(fid || '').trim();
+    const value = Number(hue);
+    if (!id || !(value === -1 || (Number.isFinite(value) && value >= 0 && value <= 360))) return;
+    this.data.skins[id] = Math.round(value);
     this.save();
   },
   petFor(slot) {

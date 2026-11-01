@@ -69,7 +69,10 @@ class Game {
   start(cfg) {
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
-    this.rec = (this.mode !== 'online' && this.mode !== 'demo') ? { seed: ((this.rnd ? this.rnd() : Math.random()) * 1e9) | 0, frames: [] } : null;
+    this.time = 0;
+    if (this.mode !== 'replay') { this.replayFrames = null; this.replaySeed = null; }
+    this._frameInputs = null;
+    this.rec = (!['online', 'demo', 'replay'].includes(this.mode)) ? { seed: ((this.rnd ? this.rnd() : Math.random()) * 1e9) | 0, frames: [] } : null;
     // RNG com seed pro replay: em gravacao usa seed fixa; em replay vem do arquivo
     if (this.rec) { let sd = this.rec.seed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
     else if (this.replaySeed != null) { let sd = this.replaySeed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
@@ -393,6 +396,7 @@ class Game {
   }
   /* ---------- entradas ---------- */
   inputFor(ti) {
+    if (this._frameInputs && this._frameInputs[ti]) return this._frameInputs[ti];
     if (this.replayFrames) {
       const fr = this.replayFrames[this.time] || [];
       const b = fr[ti] || fr[0] || [];
@@ -420,12 +424,14 @@ class Game {
 
   /* ---------- loop ---------- */
   tick() {
-    if (this.rec && this.roundState === 'fight') {
-      const ins = this.teams.map((t, ti) => this.inputFor(t.members[t.active], ti));
-      this.rec.frames.push(ins.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
-        i.a0?1:0, i.a1?1:0, i.a2?1:0, i.a3?1:0, i.a4?1:0, i.a5?1:0, i.a6?1:0, i.a7?1:0, i.a8?1:0, i.a9?1:0, i.tag?1:0]));
-    }
     if (!this.running || this.paused) return;
+    this._frameInputs = null;
+    if (this.rec && this.roundState === 'fight') {
+      const ins = this.teams.map((_t, ti) => this.inputFor(ti));
+      this._frameInputs = ins;
+      this.rec.frames[this.time + 1] = ins.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
+        i.a0?1:0, i.a1?1:0, i.a2?1:0, i.a3?1:0, i.a4?1:0, i.a5?1:0, i.a6?1:0, i.a7?1:0, i.a8?1:0, i.a9?1:0, i.tag?1:0]);
+    }
     this.time++;
     if (this.netRole === 'guest') { this.guestTick(); return; }
     if (this.freeze > 0) {

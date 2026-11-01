@@ -790,10 +790,12 @@ class Fighter {
       }
       case 'steal': {
         if (!tgt) break;
+        if (p.range && Math.abs(tgt.x - this.x) > p.range) break;
         game.strikes.push(new Strike(this, {
-          x: tgt.x, delay: 10, w: 220, h: 400, dmg: p.dmg || 8, stun: 30, launch: 0, unblockable: true, follow: tgt,
-          sheet: { key, row: p.row, frames: 4 }, scale: 1.8, power: p, sound: 'steal', shake: 8,
-          onHit: (f) => this.stealFrom(f, p.time || 600),
+          x: tgt.x, delay: p.delay || 10, w: p.range ? 130 : 220, h: 400, dmg: p.dmg || 8, stun: 30, launch: 0, unblockable: !p.blockable, follow: tgt,
+          maxOwnerRange: p.range || 0, label: p.range ? 'CÓPIA!' : '', warnColor: '#b58bff',
+          sheet: { key, row: p.row, frames: 4 }, scale: p.range ? 1.2 : 1.8, power: p, sound: 'steal', shake: p.range ? 4 : 8,
+          onHit: (f) => { if (f.state !== 'blockstun') this.stealFrom(f, p.time || 600); },
         }));
         break;
       }
@@ -802,7 +804,7 @@ class Fighter {
            (estado grabbed) e rouba o kit inteiro na hora. */
         if (tgt) this.dir = tgt.x >= this.x ? 1 : -1;
         this.vx = this.dir * (p.speed || 20);
-        this.grabSteal = { p, t: 0, fid, key };
+        this.rush = { p, t: 0, fid, key, hits: 0, grabbed: false };
         this.addStatus('invuln', 10);
         this.state = 'rush';
         this.stateTime = 0;
@@ -858,7 +860,7 @@ class Fighter {
   stealFrom(f, time) {
     const game = this.game;
     if (!f.kit) return;
-    const powers = f.ownKit().map((p) => Object.assign({}, p, { _fid: f.def.id }));
+    const powers = f.ownKit().slice(0, 5).map((p) => Object.assign({}, p, { _fid: f.def.id }));
     this.stolen = { powers, from: f.def.id, fromName: f.def.name, until: this.now + time, total: time };
     this.addStatus('stolen', time);
     f.addStatus('locked', time);
@@ -1311,20 +1313,22 @@ class Fighter {
     if (!r) { this.state = 'idle'; return; }
     r.t++;
     const t = this.enemy();
-    if (t && Math.abs(t.x - this.x) > 80) this.vx = this.dir * 7;
-    if (r.p.kind === 'grabsteal' && t && !r.grabbed && Math.abs(t.x - this.x) < 90 && Math.abs(t.y - this.y) < 120 && t.alive && !t.has('invuln')) {
-      r.grabbed = true;
-      r.hits = 0;
-      t.state = 'thrown';
-      t.stateTime = 0;
-      t.vx = 0;
-      t.takeHit(r.p.dmg || 12, { attacker: this, height: 'unblockable', kx: 0, dirSign: this.dir, stun: 40, noScale: true, ability: true, power: r.p });
-      this.stealFrom(t, r.p.time || 600);
-      this.game.spawnImgFx('grabfx', 'grab', t.x, t.y - 110, { scale: 3.2, life: 26, dir: this.dir });
-      this.game.spawnBurst('abil:' + r.fid, r.p.row, t.x, t.y - 120, this.dir, 2.2);
-      this.game.shake(12);
-      this.game.flashScreen && this.game.flashScreen('#c77dff', 8);
+    if (r.p.kind === 'grabsteal') {
+      const finish = () => { this.rush = null; this.cast = null; this.vx = 0; this.state = 'idle'; this.stateTime = 0; };
+      if (r.t > 28 || !t || !t.alive) { finish(); return; }
+      this.vx = this.dir * (r.p.speed || 20);
+      if (Math.abs(t.x - this.x) < 90 && Math.abs(t.y - this.y) < 120 && !t.has('invuln')) {
+        const landed = t.takeHit(r.p.dmg || 12, { attacker: this, height: 'high', kx: 0, dirSign: this.dir, stun: 28, ability: true, power: r.p });
+        if (landed && t.state !== 'blockstun') {
+          this.stealFrom(t, r.p.time || 600);
+          this.game.spawnBurst('abil:' + r.fid, r.p.row, t.x, t.y - 110, this.dir, 1.4);
+          this.game.shake(8);
+        }
+        finish();
+      }
+      return;
     }
+    if (t && Math.abs(t.x - this.x) > 80) this.vx = this.dir * 7;
     if (r.t % 7 === 0 && r.hits > 0 && t) {
       r.hits--;
       const last = r.hits === 0;

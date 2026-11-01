@@ -44,7 +44,7 @@ Object.assign(POWERS, {
 
 /* 2ª ultimate do IALES (tecla 6): só com 4+ poderes acumulados no All For One. */
 POWERS.iales.powers.push({
-  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 6, kind: 'afo2', needAfo: 4, dmg: 40, perAfo: 6,
+  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 7, kind: 'afo2', needAfo: 4, dmg: 40, perAfo: 6,
   sfx: 'ultimate', desc: 'Precisa de 4+ poderes acumulados: braço colossal de IAs, acerto garantido, cura e drena energia. Mais forte a cada acúmulo.',
 });
 POWERS.iales.powers.forEach((p) => {
