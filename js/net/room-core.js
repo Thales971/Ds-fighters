@@ -21,7 +21,7 @@
   const PROTOCOL = 2;
   const MAX_MSG = 96 * 1024;
   const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao'];
-  const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo'];
+  const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo', 'mistral'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const RATE = { input: 160, snap: 90, default: 30 };
   const DEFAULT_CONFIG = Object.freeze({ roundsToWin: 2, timer: 180, infiniteLife: false, infiniteMeter: false });

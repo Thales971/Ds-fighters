@@ -13,6 +13,7 @@ const PETS = [
   { id: 'gopher', name: 'Gopher Concorrente', row: 5, buff: '+10% de velocidade de movimento.', fx: { speed: 0.10 } },
   { id: 'leaf', name: 'Espírito da Primavera', row: 6, buff: 'Power-ups duram 50% mais.', fx: { pickup: 0.5 } },
   { id: 'octo', name: 'Polvo do Commit', row: 7, buff: 'Abaixo de 25% de HP, restaura 18 HP (1x por round).', fx: { revive: 18 } },
+  { id: 'mistral', name: 'Gato Mistral (Le Chat)', row: 8, buff: '+10% de dano e +10% de velocidade; a cada 3º acerto de habilidade aplica CHOQUE no rival.', fx: { dmg: 0.10, speed: 0.10, shockOnHit: 90 } },
 ];
 
 /* Power-ups do mapa. `row` em assets/pickups/pickups.png (64px). */
