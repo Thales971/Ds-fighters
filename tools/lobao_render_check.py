@@ -21,6 +21,7 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto('http://localhost:8099/')
     page.wait_for_function("window.DSGame && !document.getElementById('loader') && SpriteGen.images.lobao")
+    page.locator('#btn-start').click()
     assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power)[2].id==='qwen'")
     assert page.evaluate("!FIGHTERS.find(f=>f.id==='lobao').traits.wolfEars")
     assert page.evaluate("SpriteGen.count('punch','lobao')===4 && SpriteGen.count('special','lobao')===4")
