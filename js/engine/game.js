@@ -20,6 +20,8 @@ class Game {
     this.H = H;
     this.running = false;
     this.paused = false;
+    this.rnd = null;
+    this.replaySeed = null;
     this.time = 0;
     this.netFx = [];
     this.netRole = null;
@@ -67,6 +69,10 @@ class Game {
   start(cfg) {
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
+    this.rec = (this.mode !== 'online' && this.mode !== 'demo') ? { seed: ((this.rnd ? this.rnd() : Math.random()) * 1e9) | 0, frames: [] } : null;
+    // RNG com seed pro replay: em gravacao usa seed fixa; em replay vem do arquivo
+    if (this.rec) { let sd = this.rec.seed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
+    else if (this.replaySeed != null) { let sd = this.replaySeed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
     this.netRole = this.cfg.netRole || null;
     this.reduced = Profile.reducedMotion();
     this.stageDef = this.pickStage(this.cfg.stage);
@@ -96,7 +102,7 @@ class Game {
     if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
   }
   pickStage(id) {
-    if (!id || id === 'random') return STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    if (!id || id === 'random') return STAGE_LIST[((this.rnd ? this.rnd() : Math.random()) * STAGE_LIST.length) | 0];
     return STAGE_LIST.find((s) => s.id === id) || STAGE_LIST[0];
   }
   beginRound() {
@@ -177,7 +183,7 @@ class Game {
   /* Rachadura no ar (Urbano / All For One). Coordenadas do mundo. */
   addCrack(x, y, scale = 1, dir = 1, replay) {
     if (!this.cracks) this.cracks = [];
-    const seed = replay ? replay : Math.floor(Math.random() * 1e6);
+    const seed = replay ? replay : Math.floor((this.rnd ? this.rnd() : Math.random()) * 1e6);
     let r = seed;
     const rnd = () => { r = (r * 16807) % 2147483647; return (r % 10000) / 10000; };
     const rays = [];
@@ -234,12 +240,12 @@ class Game {
   }
   spark(x, y, color) {
     if (this.sparks.length > 220) return;
-    this.sparks.push({ x, y, vx: (Math.random() - 0.5) * 7, vy: -Math.random() * 6 - 1, life: 22 + Math.random() * 14, color });
+    this.sparks.push({ x, y, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 7, vy: -(this.rnd ? this.rnd() : Math.random()) * 6 - 1, life: 22 + (this.rnd ? this.rnd() : Math.random()) * 14, color });
   }
   dust(x) {
-    for (let k = 0; k < (this.reduced ? 2 : 6); k++) this.sparks.push({ x: x + (Math.random() - 0.5) * 30, y: -4, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 1.6, life: 18, color: 'rgba(220,210,190,0.7)', dust: true });
+    for (let k = 0; k < (this.reduced ? 2 : 6); k++) this.sparks.push({ x: x + ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y: -4, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 3, vy: -(this.rnd ? this.rnd() : Math.random()) * 1.6, life: 18, color: 'rgba(220,210,190,0.7)', dust: true });
   }
-  splash(x) { if (this.sparks.length < 200) this.sparks.push({ x, y: -2, vx: (Math.random() - 0.5) * 2, vy: -1.5 - Math.random() * 1.5, life: 10, color: 'rgba(190,220,255,0.7)', dust: true }); }
+  splash(x) { if (this.sparks.length < 200) this.sparks.push({ x, y: -2, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 2, vy: -1.5 - (this.rnd ? this.rnd() : Math.random()) * 1.5, life: 10, color: 'rgba(190,220,255,0.7)', dust: true }); }
   floatText(x, y, text, color) {
     this.texts.push({ x, y, text, color: color || '#fff', life: 54, vy: -1.1 });
     if (this.texts.length > 18) this.texts.shift();
@@ -259,7 +265,7 @@ class Game {
     ctx.fillText('⚠ ' + label, x, -36);
     ctx.restore();
   }
-  randX() { return 90 + Math.random() * (W - 180); }
+  randX() { return 90 + (this.rnd ? this.rnd() : Math.random()) * (W - 180); }
   hazard(o) {
     const sheet = { key: o.sheet[0], row: o.sheet[1], frames: 4 };
     this.strikes.push(new Strike(null, Object.assign({ delay: 56, w: 110, h: 260, scale: 2, stun: 18, launch: -6, shake: 6 }, o, { sheet })));
@@ -286,7 +292,7 @@ class Game {
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
     }
-    this.texts.push({ x: victim.x + (Math.random() - 0.5) * 24, y: victim.y - 150, text: String(Math.max(1, Math.round(d))), color: blocked ? '#9adcff' : d >= 14 ? '#ff5a3c' : '#ffe14d', life: 36, vy: -1.4, small: true });
+    this.texts.push({ x: victim.x + ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 24, y: victim.y - 150, text: String(Math.max(1, Math.round(d))), color: blocked ? '#9adcff' : d >= 14 ? '#ff5a3c' : '#ffe14d', life: 36, vy: -1.4, small: true });
   }
 
   /* ---------- K.O. ---------- */
@@ -309,7 +315,7 @@ class Game {
     if (winner) {
       winner.state = 'win';
       const q = winner.def.quotes.win;
-      if (q) this.say(winner, q[(Math.random() * q.length) | 0]);
+      if (q) this.say(winner, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]);
     }
     const perfect = winner && winner.hp >= winner.maxHp - 0.5;
     this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
@@ -387,6 +393,12 @@ class Game {
   }
   /* ---------- entradas ---------- */
   inputFor(ti) {
+    if (this.replayFrames) {
+      const fr = this.replayFrames[this.time] || [];
+      const b = fr[ti] || fr[0] || [];
+      const g = (i) => !!b[i];
+      return { left: g(0), right: g(1), down: g(2), up: g(3), punch: g(4), kick: g(5), a0: g(6), a1: g(7), a2: g(8), a3: g(9), a4: g(10), a5: g(11), a6: g(12), a7: g(13), a8: g(14), a9: g(15), tag: g(16) };
+    }
     if (this.bsod > 0) return EMPTY_INPUT;
     const f = this.activeOf(ti);
     const opp = this.activeOf(1 - ti);
@@ -408,6 +420,11 @@ class Game {
 
   /* ---------- loop ---------- */
   tick() {
+    if (this.rec && this.roundState === 'fight') {
+      const ins = this.teams.map((t, ti) => this.inputFor(t.members[t.active], ti));
+      this.rec.frames.push(ins.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
+        i.a0?1:0, i.a1?1:0, i.a2?1:0, i.a3?1:0, i.a4?1:0, i.a5?1:0, i.a6?1:0, i.a7?1:0, i.a8?1:0, i.a9?1:0, i.tag?1:0]));
+    }
     if (!this.running || this.paused) return;
     this.time++;
     if (this.netRole === 'guest') { this.guestTick(); return; }
@@ -457,7 +474,7 @@ class Game {
         const wi = WEATHER_INFO[this.weather.kind];
         this.announce('ROUND ' + this.round, '#ffd27d', this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name);
         this.audio.voice('round' + Math.min(3, this.round));
-        if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[(Math.random() * q.length) | 0]); });
+        if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]); });
       }
       if (this.roundStateTime === 70) { this.announce('LUTA!', '#7dff5e'); this.audio.voice('fight'); }
       if (this.roundStateTime > 100) { this.roundState = 'fight'; this.roundStateTime = 0; }
@@ -621,6 +638,15 @@ class Game {
       teams: this.teams.map((t) => t.members.map((m) => ({ id: m.def.id, name: m.def.name, dmg: Math.round(m.stats.dmg), combo: m.stats.maxCombo, hits: m.stats.hits }))),
       mode: this.mode,
     };
+    if (this.rec) {
+      try {
+        const rec = { v: 1, cfg: { mode: this.mode, teams: this.cfg.teams, stage: this.cfg.stage, roundsToWin: this.cfg.roundsToWin, timer: this.cfg.timer }, seed: this.rec.seed, frames: this.rec.frames };
+        const key = 'dsfighters.replay.' + Date.now();
+        localStorage.setItem(key, JSON.stringify(rec));
+        const all = Object.keys(localStorage).filter((k) => k.startsWith('dsfighters.replay.')).sort();
+        while (all.length > 5) localStorage.removeItem(all.shift());
+      } catch (e) { /* espaco cheio */ }
+    }
     if (this.netRole === 'host' && this.onNetEnd) this.onNetEnd(result);
     UI.onMatchEnd(result, this);
   }
@@ -741,8 +767,8 @@ class Game {
     let zoom = 1;
     if (this.freeze > 0 && !this.reduced) zoom = 1.06;
     else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) zoom = 1.04;
-    const sx = this.shakeMag ? (Math.random() - 0.5) * this.shakeMag : 0;
-    const sy = this.shakeMag ? (Math.random() - 0.5) * this.shakeMag : 0;
+    const sx = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
+    const sy = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
     ctx.save();
     ctx.clearRect(0, 0, W, H);
     if (zoom !== 1) {
@@ -799,9 +825,9 @@ class Game {
     }
     if (this.glitch > 0 && !this.reduced) {
       for (let k = 0; k < 6; k++) {
-        const y = Math.random() * H;
-        const h = 6 + Math.random() * 18;
-        ctx.drawImage(this.canvas, 0, y, W, h, (Math.random() - 0.5) * 30, y, W, h);
+        const y = (this.rnd ? this.rnd() : Math.random()) * H;
+        const h = 6 + (this.rnd ? this.rnd() : Math.random()) * 18;
+        ctx.drawImage(this.canvas, 0, y, W, h, ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y, W, h);
       }
     }
     this.stage.drawVignette(ctx);
