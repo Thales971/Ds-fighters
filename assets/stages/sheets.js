@@ -1,119 +1,129 @@
-/* Gerado por tools/process-stages.mjs */
+/* Gerado por tools/refine-classic-maps.py */
 const STAGE_SHEETS = [
   {
     "id": "01-centro-de-dados",
     "name": "Centro de Dados",
-    "sheet": "assets/stages/01-centro-de-dados.png",
+    "sheet": "assets/stages/01-centro-de-dados.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/01-centro-de-dados.jpg"
   },
   {
     "id": "02-chuva-de-codigo",
     "name": "Chuva de Código",
-    "sheet": "assets/stages/02-chuva-de-codigo.png",
+    "sheet": "assets/stages/02-chuva-de-codigo.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/02-chuva-de-codigo.jpg"
   },
   {
     "id": "03-laboratorio-95",
     "name": "Laboratório 95",
-    "sheet": "assets/stages/03-laboratorio-95.png",
+    "sheet": "assets/stages/03-laboratorio-95.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/03-laboratorio-95.jpg"
   },
   {
     "id": "04-neon-city-exe",
     "name": "Neon City.exe",
-    "sheet": "assets/stages/04-neon-city-exe.png",
+    "sheet": "assets/stages/04-neon-city-exe.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/04-neon-city-exe.jpg"
   },
   {
     "id": "05-fight-exe",
     "name": "Fight.exe",
-    "sheet": "assets/stages/05-fight-exe.png",
+    "sheet": "assets/stages/05-fight-exe.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/05-fight-exe.jpg"
   },
   {
     "id": "06-fabrica-de-bugs",
     "name": "Fábrica de Bugs",
-    "sheet": "assets/stages/06-fabrica-de-bugs.png",
+    "sheet": "assets/stages/06-fabrica-de-bugs.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/06-fabrica-de-bugs.jpg"
   },
   {
     "id": "07-placa-mae",
     "name": "Placa-Mãe",
-    "sheet": "assets/stages/07-placa-mae.png",
+    "sheet": "assets/stages/07-placa-mae.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/07-placa-mae.jpg"
   },
   {
     "id": "08-startup-3am",
     "name": "Startup 3am",
-    "sheet": "assets/stages/08-startup-3am.png",
+    "sheet": "assets/stages/08-startup-3am.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/08-startup-3am.jpg"
   },
   {
     "id": "09-deploy-nas-nuvens",
     "name": "Deploy nas Nuvens",
-    "sheet": "assets/stages/09-deploy-nas-nuvens.png",
+    "sheet": "assets/stages/09-deploy-nas-nuvens.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/09-deploy-nas-nuvens.jpg"
   },
   {
     "id": "10-arena-git",
     "name": "Arena Git",
-    "sheet": "assets/stages/10-arena-git.png",
+    "sheet": "assets/stages/10-arena-git.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
     "fps": 10,
-    "frameW": 960,
-    "frameH": 540
+    "frameW": 768,
+    "frameH": 432,
+    "image": "assets/stages/source/10-arena-git.jpg"
   },
   {
     "id": "11-oficina-latas",
     "name": "Oficina das Latas",
-    "sheet": "assets/stages/11-oficina-latas.png",
+    "sheet": "assets/stages/11-oficina-latas.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
@@ -124,7 +134,7 @@ const STAGE_SHEETS = [
   {
     "id": "12-terminal-fosforo",
     "name": "Terminal Fósforo",
-    "sheet": "assets/stages/12-terminal-fosforo.png",
+    "sheet": "assets/stages/12-terminal-fosforo.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
@@ -135,7 +145,7 @@ const STAGE_SHEETS = [
   {
     "id": "13-metro-pacotes",
     "name": "Metrô de Pacotes",
-    "sheet": "assets/stages/13-metro-pacotes.png",
+    "sheet": "assets/stages/13-metro-pacotes.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,
@@ -146,7 +156,7 @@ const STAGE_SHEETS = [
   {
     "id": "14-catedral-sql",
     "name": "Catedral SQL",
-    "sheet": "assets/stages/14-catedral-sql.png",
+    "sheet": "assets/stages/14-catedral-sql.png?v=stable-loop-mistral-v1",
     "cols": 6,
     "rows": 4,
     "frames": 24,

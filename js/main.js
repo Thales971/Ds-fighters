@@ -3,8 +3,8 @@
    ============================================================ */
 /* Pré-carrega as folhas principais com progresso real antes de liberar o título. */
 function preloadAll() {
-  const urls = new Set(Object.values(ART_SHEETS).map((s) => s.src));
-  Object.values((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((u) => urls.add(u));
+  const urls = new Set(Object.values(ART_SHEETS).map((s) => Art.url(s.src)));
+  Object.keys((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((id) => urls.add(SpriteGen.url(id)));
   const list = [...urls];
   const fill = document.getElementById('ld-fill');
   const text = document.getElementById('ld-text');
@@ -58,6 +58,7 @@ function preloadAll() {
   let fpsFrames = 0;
   let fpsT = last;
   function frame(now) {
+    requestAnimationFrame(frame);
     acc += Math.min(100, now - last);
     last = now;
     let steps = 0;
@@ -86,7 +87,6 @@ function preloadAll() {
       fpsFrames = 0;
       fpsT = now;
     }
-    requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 })();

@@ -37,7 +37,6 @@ const UI = {
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
     this.$('btn-res-menu').addEventListener('click', () => this.toMenu());
     this.$('redeem-form').addEventListener('submit', (e) => { e.preventDefault(); this.redeem(); });
-    this.$('btn-replays-back').addEventListener('click', () => this.toMenu());
     document.querySelectorAll('.pet-tabs .tab').forEach((t) => t.addEventListener('click', () => { this.petSlot = +t.dataset.slot; this.renderPets(); }));
     this.bindOptions();
     document.addEventListener('mouseover', (e) => { const n = e.target.closest && e.target.closest('.nav'); if (n && this.screenEl && this.screenEl.contains(n) && document.activeElement !== n) n.focus({ preventScroll: true }); });
@@ -112,7 +111,7 @@ const UI = {
   cutIn(f, p) {
     if (this.game && this.game.mode === 'demo') return;
     const c = this.$('cutin');
-    c.querySelector('.ci-face').style.backgroundImage = `url(assets/ui/face-${f.def.id}.png?v=hotfix450-skins-off)`;
+    c.querySelector('.ci-face').style.backgroundImage = `url(assets/ui/face-${f.def.id}.png?v=stable-loop-mistral-v1)`;
     c.querySelector('.ci-name').textContent = f.def.name;
     c.querySelector('.ci-move').textContent = p.name || '';
     c.style.setProperty('--accent', f.def.colors.accent || '#ffd27d');
@@ -182,7 +181,7 @@ const UI = {
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face" style="background-image:url(assets/ui/face-${d.id}.png?v=hotfix450-skins-off)"></span>
+        <span class="face" style="background-image:url(assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1)"></span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
@@ -251,7 +250,7 @@ const UI = {
     const keyFor = ti === 1 && f.p2Human ? 1 : 0;
     el.innerHTML = `
       <div class="who">${ti === 0 ? 'P1' : f.p2Human ? 'P2' : f.mode === 'training' ? 'BONECO' : 'CPU'}${f.need > 1 ? ` · ${f.picks[ti].length}/${f.need}` : ''}</div>
-      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(assets/ui/face-${id}.png?v=hotfix450-skins-off)"></span>`).join('')}</div>
+      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(assets/ui/face-${id}.png?v=stable-loop-mistral-v1)"></span>`).join('')}</div>
       ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>???</h3><p class="bio">Lutador secreto. Resgate um código no menu para liberar.</p>` : `
       <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
@@ -485,36 +484,6 @@ const UI = {
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 180,
     });
   },
-  listReplays() {
-    const box = this.$('replay-list');
-    if (!box) return;
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith('dsfighters.replay.')).sort().reverse();
-    if (!keys.length) { box.innerHTML = '<p class="sub">Nenhum replay ainda — termine uma luta local (versus/arcade/survival/treino) e ela fica salva aqui.</p>'; return; }
-    box.innerHTML = keys.map((k) => {
-      const r = JSON.parse(localStorage.getItem(k));
-      const names = (r.cfg.teams || []).map((t) => (FIGHTERS.find((f) => f.id === t[0]) || {}).name || '?').join(' vs ');
-      const secs = Math.floor((r.frames || []).length / 60);
-      const d = new Date(+k.split('.').pop());
-      return `<div class="replay-row"><button class="nav btn replay-play" data-k="${k}">▶ ASSISTIR</button><div><b>${names}</b><br><small>${r.cfg.mode} · ${secs}s · ${d.toLocaleString()}</small></div><button class="nav btn tiny danger replay-del" data-k="${k}">APAGAR</button></div>`;
-    }).join('');
-    box.querySelectorAll('.replay-play').forEach((b) => b.addEventListener('click', () => this.playReplay(b.dataset.k)));
-    box.querySelectorAll('.replay-del').forEach((b) => b.addEventListener('click', () => { localStorage.removeItem(b.dataset.k); this.listReplays(); }));
-  },
-  playReplay(key) {
-    const r = JSON.parse(localStorage.getItem(key));
-    if (!r || !r.frames) return;
-    this.game.stop();
-    this.game.replaySeed = r.seed >>> 0;
-    this.game.replayFrames = r.frames;
-    const cfg = Object.assign({}, r.cfg, { cpu: [true, true], mode: 'replay' });
-    this.lastCfg = null;
-    this.showVs(cfg, () => {
-      this.$('stage-wrap').classList.remove('demo');
-      this.$('stage-wrap').classList.add('on');
-      this.show('fight');
-      this.game.start(cfg);
-    });
-  },
   arcadeNext() {
     const f = this.flow;
     f.arcadeStep++;
@@ -596,7 +565,7 @@ const UI = {
     const grid = this.$('pet-grid');
     grid.innerHTML = PETS.map((p) => `
       <button class="nav pet ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
-        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=hotfix450-skins-off);--row:${p.row}` : ''}"></span>
+        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>
         <b>${p.name}</b><small>${p.buff}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
       </button>`).join('');
     grid.querySelectorAll('.pet').forEach((b) => b.addEventListener('click', () => {
@@ -610,7 +579,6 @@ const UI = {
   },
 
   /* ---------- resgate ---------- */
-  enter_replays() { this.listReplays(); },
   SKIN_HUES: [
     ['Original', 0], ['Vermelha', 330], ['Laranja', 25], ['Amarela', 55], ['Verde', 110],
     ['Ciano', 175], ['Azul', 210], ['Roxa', 265], ['Rosa', 300], ['P&B', -1],
@@ -720,7 +688,7 @@ const UI = {
       </tbody></table>
       <p class="sub small">Carga A e B enchem batendo e apanhando; a ULT enche mais devagar. Defender demais enche a barra de tontura do rival… e a sua.</p>`;
     const pick = this.$('moves-pick');
-    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(assets/ui/face-${d.id}.png?v=hotfix450-skins-off)" aria-label="${d.name}"></button>`).join('');
+    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1)" aria-label="${d.name}"></button>`).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);
       const kit = POWERS[id];

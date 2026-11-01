@@ -26,7 +26,7 @@ const AudioSys = {
   _lastPlay: {},
   voiceActive: 0,
   _voicePlaying: Object.create(null),
-  musicMixFactor: 0.6,
+  musicMixFactor: 0.7,
   musicDuckFactor: 0.25,
   init() {
     fetch('assets/music/playlist.json', { cache: 'no-cache' })

@@ -69,3 +69,7 @@ Priorizar travamentos reais do combate e compatibilidade de skins/pets, corrigir
 Desativar o recurso de skins na navegação, aplicação em combate e salvamento, mostrar “SKINS — EM BREVE” e preservar os dados antigos para uma implementação futura. Concentrar o hotfix em pets (enquadramento/transparência e efeitos), controles presos a replay, segundo roubo IALES, retratos/arte Lobão e atualização da versão publicada. Reaproveitar arte existente antes de considerar gerações pagas.
 
 A inspeção confirmou que os oito pets clássicos são idênticos à versão anterior: o menu os espremia na altura errada. As cinco linhas novas e os ícones Lobão apresentam blocos/desenhos defeituosos. Substituir somente esses dois conjuntos por um lote econômico de duas folhas transparentes, preservando os oito clássicos e as mecânicas. Não refazer mapas nem todos os sprites humanos.
+
+## Continuação — excluir replay e estabilizar o loop real
+
+Remover toda a funcionalidade de replay conforme o pedido, inclusive gravação e gravação em localStorage, mas preservar perfil e dados não relacionados. Investigar o caminho real menu → seleção → VS → luta com CPU e em iframe, não apenas a simulação chamada manualmente. Verificar permissões de gamepad e sobrecarga de carregamento. Disponibilizar claramente o pet Mistral existente sem duplicar IDs; aumentar pouco o ganho da música com ducking mantido. Refinar os dez clássicos com tratamento comum da arte existente/renderer, sem criar dez conjuntos novos nem pesquisa por cenário.

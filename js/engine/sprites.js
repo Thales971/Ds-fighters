@@ -9,7 +9,7 @@ const SpriteGen = {
 
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
-    return id === 'lobao' ? src + '?v=hotfix450-skins-off' : src;
+    return id === 'lobao' ? src + '?v=stable-loop-mistral-v1' : src;
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};

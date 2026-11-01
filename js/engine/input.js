@@ -113,7 +113,11 @@ const Input = {
     return o;
   },
   pollPads() {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    let pads = [];
+    if (!this.gamepadUnavailable && navigator.getGamepads) {
+      try { pads = navigator.getGamepads() || []; }
+      catch (_error) { this.gamepadUnavailable = true; } // Iframes podem negar a API.
+    }
     let count = 0;
     const next = [this.emptyPad(), this.emptyPad()];
     for (let i = 0; i < pads.length && count < 2; i++) {

@@ -17,7 +17,7 @@ const ART_SHEETS = {
 
 const Art = {
   images: {},
-  url(src) { return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=hotfix450-skins-off' : src; },
+  url(src) { return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=stable-loop-mistral-v1' : src; },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
       const img = new Image();

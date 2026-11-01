@@ -24,7 +24,7 @@ const STAGE_EXTRA = {
 };
 
 const STAGE_LIST = [
-  ...(typeof STAGE_SHEETS !== 'undefined' ? STAGE_SHEETS : []).map((s) => Object.assign({
+  ...(typeof STAGE_SHEETS !== 'undefined' ? STAGE_SHEETS : []).map((s) => Object.assign({}, s, {
     id: s.id, name: s.name, sheet: s.sheet, cols: s.cols, rows: s.rows, frames: s.frames, fps: s.fps,
     frameW: s.frameW, frameH: s.frameH, group: 'Clássicos animados',
   }, STAGE_EXTRA[s.id] || { weather: ['clear'], fauna: [], mech: null, tint: '#ffffff' })),

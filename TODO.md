@@ -54,3 +54,11 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Publicação real verificada: HTTP 200 no index com EM BREVE/versão do hotfix e no perfil com skins desativadas; hash da arte Lobão publicada idêntico ao arquivo local. Commit 7ef28aa enviado sem sobrescrever alterações remotas.
 
 **Decisão de 18:47:** skins devem ficar desativadas com aviso **EM BREVE**, sem seletor/salvamento/aplicação de paletas. Preservar dados antigos e focar nos outros problemas; esta decisão substitui a entrega de skins ativas no hotfix anterior.
+
+## Remoção de replay e estabilidade real — 01/11/2026
+
+- [ ] Excluir função de replay: menu, tela, reprodução, gravação por quadro e escrita de replay ao terminar luta; não prejudicar perfil/progresso.
+- [ ] Corrigir tela parada ao iniciar luta e travamentos durante batalhas no loop real, incluindo modo embutido/mobile, CPU e controles; verificar além de chamadas manuais a Game.tick.
+- [ ] Disponibilizar o gato Mistral/Le Chat de forma reconhecível, preservando o ID salvo e evitando duplicata desnecessária.
+- [ ] Aumentar levemente a música de fundo, mantendo volume escolhido pelo usuário e redução durante a narração.
+- [ ] Refinar os dez fundos clássicos originais, preservando suas identidades e mecânicas; não refazer os outros mapas nem aumentar indiscriminadamente a memória.

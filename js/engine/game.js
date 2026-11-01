@@ -21,7 +21,6 @@ class Game {
     this.running = false;
     this.paused = false;
     this.rnd = null;
-    this.replaySeed = null;
     this.time = 0;
     this.netFx = [];
     this.netRole = null;
@@ -70,12 +69,6 @@ class Game {
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
     this.time = 0;
-    if (this.mode !== 'replay') { this.replayFrames = null; this.replaySeed = null; }
-    this._frameInputs = null;
-    this.rec = (!['online', 'demo', 'replay'].includes(this.mode)) ? { seed: ((this.rnd ? this.rnd() : Math.random()) * 1e9) | 0, frames: [] } : null;
-    // RNG com seed pro replay: em gravacao usa seed fixa; em replay vem do arquivo
-    if (this.rec) { let sd = this.rec.seed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
-    else if (this.replaySeed != null) { let sd = this.replaySeed >>> 0; this.rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; }
     this.netRole = this.cfg.netRole || null;
     this.reduced = Profile.reducedMotion();
     this.stageDef = this.pickStage(this.cfg.stage);
@@ -184,9 +177,9 @@ class Game {
     this.imgFx.push({ sheet, clip, frame: 0, x, y, scale: opts.scale || 2, alpha: opts.alpha == null ? 1 : opts.alpha, life: opts.life || 16, max: opts.life || 16, dir: opts.dir || 1 });
   }
   /* Rachadura no ar (Urbano / All For One). Coordenadas do mundo. */
-  addCrack(x, y, scale = 1, dir = 1, replay) {
+  addCrack(x, y, scale = 1, dir = 1, crackSeed) {
     if (!this.cracks) this.cracks = [];
-    const seed = replay ? replay : Math.floor((this.rnd ? this.rnd() : Math.random()) * 1e6);
+    const seed = crackSeed ? crackSeed : Math.floor((this.rnd ? this.rnd() : Math.random()) * 1e6);
     let r = seed;
     const rnd = () => { r = (r * 16807) % 2147483647; return (r % 10000) / 10000; };
     const rays = [];
@@ -396,13 +389,6 @@ class Game {
   }
   /* ---------- entradas ---------- */
   inputFor(ti) {
-    if (this._frameInputs && this._frameInputs[ti]) return this._frameInputs[ti];
-    if (this.replayFrames) {
-      const fr = this.replayFrames[this.time] || [];
-      const b = fr[ti] || fr[0] || [];
-      const g = (i) => !!b[i];
-      return { left: g(0), right: g(1), down: g(2), up: g(3), punch: g(4), kick: g(5), a0: g(6), a1: g(7), a2: g(8), a3: g(9), a4: g(10), a5: g(11), a6: g(12), a7: g(13), a8: g(14), a9: g(15), tag: g(16) };
-    }
     if (this.bsod > 0) return EMPTY_INPUT;
     const f = this.activeOf(ti);
     const opp = this.activeOf(1 - ti);
@@ -425,13 +411,6 @@ class Game {
   /* ---------- loop ---------- */
   tick() {
     if (!this.running || this.paused) return;
-    this._frameInputs = null;
-    if (this.rec && this.roundState === 'fight') {
-      const ins = this.teams.map((_t, ti) => this.inputFor(ti));
-      this._frameInputs = ins;
-      this.rec.frames[this.time + 1] = ins.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
-        i.a0?1:0, i.a1?1:0, i.a2?1:0, i.a3?1:0, i.a4?1:0, i.a5?1:0, i.a6?1:0, i.a7?1:0, i.a8?1:0, i.a9?1:0, i.tag?1:0]);
-    }
     this.time++;
     if (this.netRole === 'guest') { this.guestTick(); return; }
     if (this.freeze > 0) {
@@ -644,15 +623,6 @@ class Game {
       teams: this.teams.map((t) => t.members.map((m) => ({ id: m.def.id, name: m.def.name, dmg: Math.round(m.stats.dmg), combo: m.stats.maxCombo, hits: m.stats.hits }))),
       mode: this.mode,
     };
-    if (this.rec) {
-      try {
-        const rec = { v: 1, cfg: { mode: this.mode, teams: this.cfg.teams, stage: this.cfg.stage, roundsToWin: this.cfg.roundsToWin, timer: this.cfg.timer }, seed: this.rec.seed, frames: this.rec.frames };
-        const key = 'dsfighters.replay.' + Date.now();
-        localStorage.setItem(key, JSON.stringify(rec));
-        const all = Object.keys(localStorage).filter((k) => k.startsWith('dsfighters.replay.')).sort();
-        while (all.length > 5) localStorage.removeItem(all.shift());
-      } catch (e) { /* espaco cheio */ }
-    }
     if (this.netRole === 'host' && this.onNetEnd) this.onNetEnd(result);
     UI.onMatchEnd(result, this);
   }
@@ -717,9 +687,9 @@ class Game {
     this.netPickups = s.pk;
     this.beams = s.bm.map((b) => ({ fid: b[0], row: b[1], x: b[2], dir: b[3], len: b[4], age: b[5], life: b[6], y: b[7], single: !!b[8], scale: b[9] }));
     this.combo = s.co ? { owner: this.activeOf(s.co[0]), count: s.co[1], until: this.time + s.co[2] } : { owner: null, count: 0, until: 0 };
-    for (const f of s.fx || []) this.replayFx(f);
+    for (const f of s.fx || []) this.applyNetworkFx(f);
   }
-  replayFx(f) {
+  applyNetworkFx(f) {
     switch (f[0]) {
       case 'a': { const fn = AudioSys[f[1]]; if (typeof fn === 'function') fn.apply(AudioSys, f[2]); break; }
       case 'b': this.bursts.push({ key: f[1], row: f[2], x: f[3], y: f[4], dir: f[5], scale: f[6], age: 0, dur: 16 }); break;

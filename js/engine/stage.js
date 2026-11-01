@@ -90,11 +90,16 @@ class StageRenderer {
     const W = this.W;
     const H = this.H;
     ctx.save();
-    ctx.imageSmoothingEnabled = false;
+    // Os masters são ilustrados, não pixel art: interpolação evita serrilha
+    // ao exibir folhas de 768x432 no canvas de combate.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'medium';
     if (this.ready) {
       const [sx, sy, sw, sh] = this.frameRect();
-      const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.006;
-      const z = 1.06 + breathe + (zoomPulse || 0) * 0.02;
+      // Antes havia zoom-base de 1.06, que cortava as bordas dos masters.
+      // Mantemos apenas uma respiração quase imperceptível e o zoom de impacto.
+      const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.002;
+      const z = 1 + breathe + (zoomPulse || 0) * 0.01;
       const dw = W * z;
       const dh = H * z;
       const ox = (W - dw) / 2 - camX * (dw - W) * 0.5;
@@ -113,20 +118,23 @@ class StageRenderer {
       else Art.cell(ctx, 'fauna', f.row, Math.floor(this.t / 4 + f.ph), f.x, f.y, { scale: 0.75 * f.s, dir: -dir });
     }
     if (!this.reducedFlag) {
-      ctx.globalCompositeOperation = 'soft-light';
-      ctx.globalAlpha = 0.10 + Math.sin(this.t * 0.008) * 0.015;
-      ctx.fillStyle = this.def.tint || '#ffffff';
-      ctx.fillRect(0, 0, W, H);
+      // Tint leve, source-over e limitado à área acima do piso: custa menos
+      // que uma blendagem avançada em toda a tela e deixa os masters legíveis.
       ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 0.035 + Math.sin(this.t * 0.008) * 0.006;
+      ctx.fillStyle = this.def.tint || '#ffffff';
+      ctx.fillRect(0, 0, W, Math.min(H, this.groundY + 8));
       ctx.globalAlpha = 1;
     }
     const gy = this.groundY;
-    const fg = ctx.createLinearGradient(0, gy - 30, 0, H);
+    // Escurecimento curto e moderado, só no piso de combate; a versão antiga
+    // cobria 30 px acima dele e chegava a 55% de opacidade.
+    const fg = ctx.createLinearGradient(0, gy, 0, H);
     fg.addColorStop(0, 'rgba(0,0,0,0)');
-    fg.addColorStop(0.35, 'rgba(0,0,0,0.25)');
-    fg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    fg.addColorStop(0.45, 'rgba(0,0,0,0.08)');
+    fg.addColorStop(1, 'rgba(0,0,0,0.28)');
     ctx.fillStyle = fg;
-    ctx.fillRect(0, gy - 30, W, H - gy + 30);
+    ctx.fillRect(0, gy, W, H - gy);
     ctx.restore();
   }
   drawAmbient(ctx) {
@@ -148,7 +156,7 @@ class StageRenderer {
       const x = c.getContext('2d');
       const g = x.createRadialGradient(this.W / 2, this.H * 0.55, this.H * 0.35, this.W / 2, this.H * 0.55, this.W * 0.7);
       g.addColorStop(0, 'rgba(0,0,0,0)');
-      g.addColorStop(1, 'rgba(0,0,0,0.35)');
+      g.addColorStop(1, 'rgba(0,0,0,0.22)');
       x.fillStyle = g;
       x.fillRect(0, 0, this.W, this.H);
       this.vignette = c;

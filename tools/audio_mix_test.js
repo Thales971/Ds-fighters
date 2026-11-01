@@ -172,7 +172,7 @@ function testDefaultBaseAndPlayContract() {
   audio.playlist.fallback = [{ title: 'Fallback', file: 'fallback-a' }];
   audio.buffers.sfx = { duration: 0.1 };
   audio.playMusic('battle');
-  closeTo(audio.music.volume, 0.35 * 0.6, 'normal music uses the moderate mix factor');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor, 'normal music uses the moderate mix factor');
   assert.equal(audio.play('sfx'), true, 'play keeps returning true for available SFX');
   assert.equal(audio.play('missing'), false, 'play keeps returning false for missing buffers');
   assert.equal(webAudio.sources.length, 1, 'the available SFX creates one buffer source');
@@ -192,13 +192,13 @@ function testOverlappingVoicesDuckAndResume() {
   assert.equal(second, true, 'a new narrator is allowed despite the play gap');
   assert.equal(webAudio.sources.length, 2, 'only distinct overlapping narrator buffers start');
   assert.equal(audio.voiceActive, 2, 'overlapping voices increment the active counter');
-  closeTo(audio.music.volume, 0.35 * 0.6 * 0.25, 'music ducks to one quarter while voices play');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'music ducks to one quarter while voices play');
   webAudio.sources[0].emitEnded();
   assert.equal(audio.voiceActive, 1, 'the first ended narrator decrements the counter');
-  closeTo(audio.music.volume, 0.35 * 0.6 * 0.25, 'music remains ducked until the last narrator ends');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'music remains ducked until the last narrator ends');
   webAudio.sources[1].emitEnded();
   assert.equal(audio.voiceActive, 0, 'the last ended narrator clears the counter');
-  closeTo(audio.music.volume, 0.35 * 0.6, 'music resumes after the last narrator ends');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor, 'music resumes after the last narrator ends');
 }
 
 function testMuteAndSafeVolumeClamping() {
@@ -221,7 +221,7 @@ function testMuteAndSafeVolumeClamping() {
   profile.data.settings.sfx = -4;
   profile.data.settings.voice = Number.NaN;
   audio.applyVolumes();
-  closeTo(audio.music.volume, 0.6, 'finite high music settings clamp before mixing');
+  closeTo(audio.music.volume, audio.musicMixFactor, 'finite high music settings clamp before mixing');
   assert.equal(audio.buses.sfx.gain.value, 0, 'negative SFX volume clamps to zero');
   assert.equal(audio.buses.voice.gain.value, 0.9, 'non-finite voice volume falls back safely');
   profile.data.settings.music = Number.NaN;
@@ -242,9 +242,9 @@ function testMissingVoiceAndMusicReplacement() {
   audio.playMusic('battle');
   assert.notEqual(audio.music, oldMusic, 'replacing music creates a new HTMLAudio element');
   assert.equal(oldMusic.paused, true, 'replaced music is stopped');
-  closeTo(audio.music.volume, 0.35 * 0.6 * 0.25, 'replacement inherits active voice ducking');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'replacement inherits active voice ducking');
   webAudio.sources[0].emitEnded();
-  closeTo(audio.music.volume, 0.35 * 0.6, 'replacement restores after the active voice ends');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor, 'replacement restores after the active voice ends');
 }
 
 function testDeterministicSelectionAndFallback() {
@@ -300,7 +300,7 @@ function testEndOfTrackAdvancesWithoutStaleCallbacks() {
   audio.voice('a');
   first.onended();
   assert.equal(audio.music.src, 'own-b', 'ending a track chooses a different next track');
-  closeTo(audio.music.volume, 0.35 * 0.6 * 0.25, 'new track remains ducked during narration');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'new track remains ducked during narration');
   audio.playMusic('menu');
   const menu = audio.music;
   assert.equal(menu.loop, true, 'the menu keeps its own loop');

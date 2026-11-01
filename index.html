@@ -7,9 +7,9 @@
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 20 lutadores, 5 habilidades cada, arenas animadas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=hotfix450-skins-off" />
-  <link rel="stylesheet" href="css/account.css?v=hotfix450-skins-off" />
-  <link rel="stylesheet" href="css/mobile.css?v=hotfix450-skins-off" />
+  <link rel="stylesheet" href="css/style.css?v=stable-loop-mistral-v1" />
+  <link rel="stylesheet" href="css/account.css?v=stable-loop-mistral-v1" />
+  <link rel="stylesheet" href="css/mobile.css?v=stable-loop-mistral-v1" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -72,7 +72,6 @@
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
-        <button class="nav mm" data-go="replays"><span>REPLAYS</span><small>Assista suas últimas 5 lutas gravadas</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
         <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
@@ -84,12 +83,6 @@
       </div>
     </section>
 
-    <section class="screen" id="scr-replays" data-screen="replays">
-      <h2>REPLAYS</h2>
-      <p class="sub">Suas últimas 5 lutas locais ficam gravadas e podem ser revistas aqui (o jogo é determinístico a 60 Hz).</p>
-      <div id="replay-list" class="replay-list"></div>
-      <div class="row"><button class="nav btn" id="btn-replays-back">VOLTAR</button></div>
-    </section>
     <section class="screen" id="scr-rules" data-screen="rules">
       <div class="select-bg"></div>
       <div class="panel wide">
@@ -319,42 +312,42 @@
     </div>
   </div>
 
-  <script src="assets/sprites/layout.js?v=hotfix450-skins-off"></script>
-  <script src="assets/stages/sheets.js"></script>
+  <script src="assets/sprites/layout.js?v=stable-loop-mistral-v1"></script>
+  <script src="assets/stages/sheets.js?v=stable-loop-mistral-v1"></script>
   <script src="assets/maps/anim.js"></script>
-  <script src="js/core/profile.js?v=hotfix450-skins-off"></script>
-  <script src="js/config/firebase-config.js?v=hotfix450-skins-off"></script>
-  <script src="js/core/cloud.js?v=hotfix450-skins-off"></script>
-  <script src="js/config/supabase-config.js?v=hotfix450-skins-off"></script>
+  <script src="js/core/profile.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/config/firebase-config.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/core/cloud.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/config/supabase-config.js?v=stable-loop-mistral-v1"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/fighters.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers-turbo.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers-v4.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers-v5.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers-v6.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/powers-balance-v6.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/pets.js?v=hotfix450-skins-off"></script>
-  <script src="js/data/stages.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/sprites.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/fx.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/audio.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/input.js?v=hotfix450-skins-off"></script>
-  <script src="js/ui/viewport.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/projectile.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/fighter.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/weather.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/mechanics.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/stage.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/ai.js?v=hotfix450-skins-off"></script>
-  <script src="js/engine/game.js?v=hotfix450-skins-off"></script>
+  <script src="js/core/supabase-cloud.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/fighters.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers-turbo.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers-v4.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers-v5.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers-v6.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/powers-balance-v6.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/pets.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/data/stages.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/sprites.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/fx.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/audio.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/input.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/ui/viewport.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/projectile.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/fighter.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/weather.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/mechanics.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/stage.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/ai.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/engine/game.js?v=stable-loop-mistral-v1"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=hotfix450-skins-off"></script>
-  <script src="js/net/online.js?v=hotfix450-skins-off"></script>
-  <script src="js/ui/hud.js?v=hotfix450-skins-off"></script>
-  <script src="js/ui/ui.js?v=hotfix450-skins-off"></script>
-  <script src="js/ui/account.js?v=hotfix450-skins-off"></script>
-  <script src="js/main.js?v=hotfix450-skins-off"></script>
+  <script src="js/net/room-core.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/net/online.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/ui/hud.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/ui/ui.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/ui/account.js?v=stable-loop-mistral-v1"></script>
+  <script src="js/main.js?v=stable-loop-mistral-v1"></script>
 </body>
 </html>
