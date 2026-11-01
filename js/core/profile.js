@@ -15,7 +15,7 @@ const Profile = {
       unlocked: [],
       pets: ['tux', 'none'],
       name: 'Jogador',
-      settings: { music: 0.55, sfx: 0.8, voice: 0.9, mute: false, reducedMotion: null, shake: true, touch: 'auto', serverUrl: '' },
+      settings: { music: 0.35, sfx: 0.8, voice: 0.9, mute: false, reducedMotion: null, shake: true, touch: 'auto', serverUrl: '' },
       stats: { fights: 0, wins: 0, bestArcade: 0, maxCombo: 0 },
     };
   },

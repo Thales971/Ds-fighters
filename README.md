@@ -1,10 +1,16 @@
-# DS FIGHTERS — Edição Turbo
+# DS FIGHTERS — Expansão V5
 
-Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, sons e código são originais (inspirado no gênero, sem copiar Street Fighter ou outro jogo). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
+Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**23 lutadores · 37 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado**
+**25 lutadores · 39 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+
+## Novidades da V5
+
+THL, vigilante tático normal com vários debuffs e quarto poder permanente do elenco, e Dolynho, seu amiguinho de guaraná com bolhas e stun. Qwen continua terceira, desbloqueada por Batata. Novas arenas Jardim do Sol Nascente e Distrito Neon 2077; SENAI e SESI preservados. Vida global 2,00 × a base (78,6% a mais que na V4), rounds padrão 180 segundos e personalizados/online até 300. Resistência progressiva contra controle em sequência e reforços específicos de Caça-Bugs e Kairo Sprint.
+
+As 38 músicas recebidas são sorteadas sem repetição consecutiva, com volume moderado e redução automática durante a narração. Google continua adiado. Veja [EXPANSAO-V5.md](EXPANSAO-V5.md) para arte, balanceamento, testes e limitações.
 
 ## Novidades da Edição Turbo
 

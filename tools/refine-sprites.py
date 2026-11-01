@@ -33,7 +33,7 @@ def subject(cell):
     return out.crop(box)
 
 
-def figures(master, cid, block):
+def figures(master, cid, block, expected_count=None):
     """O gerador deixa alturas variáveis: isola corpos completos antes de montar."""
     arr = np.asarray(master.convert('RGBA'))
     mask = arr[..., 3] > 32
@@ -41,6 +41,10 @@ def figures(master, cid, block):
     sizes = ndimage.sum(mask, labels, range(1, n + 1))
     boxes = ndimage.find_objects(labels)
     expected = 28 if block == 1 or cid == 'urbano' else 32
+    if cid in ('thl', 'dolynho') and block == 0 and int(np.count_nonzero(sizes >= 3000)) < 32:
+        expected = 28
+    if expected_count is not None:
+        expected = expected_count
     ids = sorted(range(1, n + 1), key=lambda i: sizes[i - 1], reverse=True)[:expected]
     if len(ids) != expected or min(sizes[i - 1] for i in ids) < 3000:
         raise ValueError(f'{cid}-{block}: número de corpos completos inesperado')
@@ -71,6 +75,13 @@ def build(src, cid):
         if master.mode != 'RGBA' or master.getextrema()[3][0] != 0:
             raise ValueError(f'{cid}-{block}: alpha nativo ausente')
         source_rows = figures(master, cid, block)
+        if cid in ('thl', 'dolynho') and block == 0 and len(source_rows) == 7:
+            # Ambos mestres omitiram cpunch: integra os quadros corretos gerados,
+            # sem achatar uma pose em pé ou duplicar a guarda.
+            extra = figures(Image.open(src / 'cpunch-extra.png'), 'cpunch-extra', 0, expected_count=8)
+            source_rows.insert(6, extra[0 if cid == 'thl' else 1])
+        if len(source_rows) != rows:
+            raise ValueError(f'{cid}-{block}: faltam poses para o contrato')
         for local_row in range(rows):
             row = start + local_row
             for col in range(4):
@@ -112,4 +123,7 @@ if __name__ == '__main__':
     parser.add_argument('fighters', nargs='+')
     args = parser.parse_args()
     result = {cid: build(args.source, cid) for cid in args.fighters}
-    (ROOT / 'assets/sprites/refined-frames.json').write_text(json.dumps({'version': 1, 'baseline': BASE, 'frames': result}, indent=2) + '\n')
+    target = ROOT / 'assets/sprites/refined-frames.json'
+    previous = json.loads(target.read_text()) if target.exists() else {'version': 1, 'baseline': BASE, 'frames': {}}
+    previous['frames'].update(result)
+    target.write_text(json.dumps(previous, indent=2) + '\n')

@@ -20,11 +20,11 @@
 }(typeof self !== 'undefined' ? self : this, () => {
   const PROTOCOL = 2;
   const MAX_MSG = 96 * 1024;
-  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen'];
+  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl'];
   const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const RATE = { input: 160, snap: 90, default: 30 };
-  const DEFAULT_CONFIG = Object.freeze({ roundsToWin: 2, timer: 99, infiniteLife: false, infiniteMeter: false });
+  const DEFAULT_CONFIG = Object.freeze({ roundsToWin: 2, timer: 180, infiniteLife: false, infiniteMeter: false });
 
   function rand(n) {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
@@ -40,7 +40,7 @@
     const timer = Number(raw.timer);
     return {
       roundsToWin: Number.isInteger(rounds) ? Math.max(1, Math.min(9, rounds)) : DEFAULT_CONFIG.roundsToWin,
-      timer: Number.isInteger(timer) ? Math.max(30, Math.min(180, timer)) : DEFAULT_CONFIG.timer,
+      timer: Number.isInteger(timer) ? Math.max(30, Math.min(300, timer)) : DEFAULT_CONFIG.timer,
       infiniteLife: raw.infiniteLife === true,
       infiniteMeter: raw.infiniteMeter === true,
     };

@@ -65,7 +65,7 @@ class Game {
 
   /* ---------- configuração ---------- */
   start(cfg) {
-    this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 99 }, cfg);
+    this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
     this.netRole = this.cfg.netRole || null;
     this.reduced = Profile.reducedMotion();
@@ -126,6 +126,7 @@ class Game {
         f.blockstun = 0;
         f.status = {};
         f.statusSource = {};
+        if (typeof f.resetControlMemory === 'function') f.resetControlMemory(this.round);
         f.stolen = null;
         f.attack = null;
         f.cast = null;

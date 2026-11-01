@@ -284,7 +284,7 @@ body.reduced .pet-spr { animation: none; }
 
 /* ---------- HUD ---------- */
 #hud { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-.hud-top { position: absolute; top: 8px; left: 8px; right: 8px; display: grid; grid-template-columns: 1fr 76px 1fr; align-items: start; }
+.hud-top { position: absolute; top: 8px; left: 8px; right: 8px; display: grid; grid-template-columns: 1fr 104px 1fr; align-items: start; }
 .side { position: relative; display: flex; gap: 6px; }
 .side.p2 { flex-direction: row-reverse; }
 .side .face { width: 52px; height: 52px; flex: none; background-size: cover; image-rendering: pixelated; border: 3px solid #000; box-shadow: 0 0 0 2px var(--gold); background-color: #241640; }

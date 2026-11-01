@@ -27,7 +27,7 @@
       <div class="hud-top">
         <div class="side p1" data-team="0"></div>
         <div class="center">
-          <div class="timer" id="hud-timer">99</div>
+          <div class="timer" id="hud-timer">180</div>
           <div class="round-label" id="hud-round">ROUND 1</div>
         </div>
         <div class="side p2" data-team="1"></div>
@@ -49,10 +49,10 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EDIÇÃO TURBO · 20 LUTADORES · 34 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
+      <p class="tagline">EDIÇÃO V5 · 25 LUTADORES · 39 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
-      <p class="credit">Arte, código e trilha originais · Jogo gratuito</p>
+      <p class="credit">Arte e código originais · Música enviada pelo proprietário · Jogo gratuito</p>
     </section>
 
     <section class="screen" id="scr-menu" data-screen="menu">
@@ -85,7 +85,7 @@
         <div class="custom-rules">
           <label>Adversário <select class="nav" id="rules-opponent"><option value="cpu">CPU</option><option value="human">Jogador 2 local</option></select></label>
           <label>Vitórias para vencer <select class="nav" id="rules-rounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>7</option><option>9</option></select></label>
-          <label>Tempo por round <select class="nav" id="rules-timer"><option value="30">30 segundos</option><option value="60">60 segundos</option><option value="99" selected>99 segundos</option><option value="180">180 segundos</option></select></label>
+          <label>Tempo por round <select class="nav" id="rules-timer"><option value="30">30 segundos</option><option value="60">60 segundos</option><option value="99">99 segundos</option><option value="120">120 segundos</option><option value="180" selected>180 segundos</option><option value="240">240 segundos</option><option value="300">300 segundos</option></select></label>
           <label><input class="nav" type="checkbox" id="rules-life" /> Vida infinita — ninguém morre</label>
           <label><input class="nav" type="checkbox" id="rules-meter" /> Medidores sempre cheios</label>
         </div>
@@ -303,6 +303,7 @@
   <script src="js/data/powers.js"></script>
   <script src="js/data/powers-turbo.js"></script>
   <script src="js/data/powers-v4.js"></script>
+  <script src="js/data/powers-v5.js"></script>
   <script src="js/data/pets.js"></script>
   <script src="js/data/stages.js"></script>
   <script src="js/engine/sprites.js"></script>

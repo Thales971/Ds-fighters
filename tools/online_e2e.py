@@ -53,8 +53,15 @@ try:
             pg.wait_for_function(f"Net.room && Net.room.players.length === {NP}", timeout=20000)
         slots = [pg.evaluate("Net.myPlayer().slot") for pg in pages]
         print(tag, 'slots', slots, flush=True)
+        assert h.evaluate('Net.room.config.timer===180'), 'tempo padrão online não é 180s'
+        h.select_option('#lobby-timer', '300')
+        for pg in pages:
+            pg.wait_for_function('Net.room.config.timer===300', timeout=10000)
+        h.select_option('#lobby-stage', 'cyberpunk')
+        for pg in pages:
+            pg.wait_for_function("Net.room.stage==='cyberpunk'", timeout=10000)
         h.screenshot(path=f'{OUT}/20-lobby-{tag}.png')
-        picks = ['stack', 'qa', 'kotlin', 'hacker']
+        picks = ['thl', 'dolynho', 'kotlin', 'hacker']
         for pg, f in zip(pages, picks):
             pg.evaluate(f"Net.pickFighters(['{f}'])")
         for pg in pages:
@@ -69,6 +76,8 @@ try:
         for g in pages[1:]:
             g.wait_for_function("DSGame.running && DSGame.netRole === 'guest'", timeout=20000)
         print(tag, 'roles', [pg.evaluate("DSGame.netRole") for pg in pages], flush=True)
+        assert all(pg.evaluate('DSGame.cfg.timer===300') for pg in pages), 'tempo da sala não chegou aos motores'
+        assert h.evaluate("DSGame.teams[0].members[0].def.id==='thl' && DSGame.teams[0].members[0].maxHp===280")
         ctrl = pages[slots.index(2)]
         x0 = h.evaluate("DSGame.activeOf(1).x")
         ctrl.keyboard.down('ArrowLeft'); ctrl.wait_for_timeout(700); ctrl.keyboard.up('ArrowLeft')

@@ -34,6 +34,8 @@ CFG = {
     'sesi': dict(glow=0.2, rays=True, sway=(0.0, 0.0, 0)),
     'sesi-patio': dict(glow=0.12, rays=True),
     'senai-valinhos': dict(glow=0.15, rays=True),
+    'japan': dict(glow=0.12, water=(0.63, 0.74, 0.8), sway=(0.0, 0.23, 0.7)),
+    'cyberpunk': dict(glow=0.35),
     '01-neon-rooftop': dict(glow=0.5),
     '02-volcanic-forge': dict(glow=0.55),
     '03-underwater-lab': dict(glow=0.35, water=(0.0, 0.70, 1.2)),

@@ -132,7 +132,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO TURBO · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
+    if (tagline) tagline.textContent = `EDIÇÃO V5 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -140,7 +140,7 @@ const UI = {
     let b = ids[(Math.random() * ids.length) | 0];
     if (b === a) b = ids[(ids.indexOf(a) + 1) % ids.length];
     this.$('stage-wrap').classList.add('on', 'demo');
-    this.game.start({ mode: 'demo', teams: [[a], [b]], stage: 'random', timer: 99, roundsToWin: 9 });
+    this.game.start({ mode: 'demo', teams: [[a], [b]], stage: 'random', timer: 180, roundsToWin: 9 });
     AudioSys.stopMusic();
     AudioSys.playMusic('menu');
     HUD.hide();
@@ -407,7 +407,7 @@ const UI = {
       infiniteLife: !!(f.customRules && f.customRules.infiniteLife),
       infiniteMeter: f.customRules ? f.customRules.infiniteMeter : f.infinite,
       roundsToWin: f.mode === 'training' ? 99 : f.customRules ? f.customRules.roundsToWin : 2,
-      timer: f.customRules ? f.customRules.timer : 99,
+      timer: f.customRules ? f.customRules.timer : 180,
     };
   },
   launch(cfgOverride) {
@@ -452,7 +452,7 @@ const UI = {
     const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random', difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
-      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 99,
+      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 180,
     });
   },
   arcadeNext() {

@@ -5,7 +5,7 @@
    ============================================================ */
 const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
-  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen']
+  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
@@ -82,7 +82,7 @@ const FX_LAYOUT = {
   },
 };
 const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };
-Object.assign(ELEMENT_TO_OLD, { tremor: 'terra', termico: 'gelo' });
+Object.assign(ELEMENT_TO_OLD, { tremor: 'terra', termico: 'gelo', fizz: 'veneno', tactical: 'metal' });
 
 const Fx = {
   images: {},

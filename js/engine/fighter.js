@@ -9,7 +9,7 @@ const GRAVITY_BASE = 0.64;
 const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
-const HEALTH_MULTIPLIER = 1.12;
+const HEALTH_MULTIPLIER = 2.00;
 const QUAKE_HOLD_MAX = 28;
 
 function boxesOverlap(a, b) {
@@ -50,6 +50,9 @@ class Fighter {
     this.stolen = null;
     this.afo = 0;
     this.stunGauge = 0;
+    this.hardControl = { last: -Infinity, chain: 0, dizzyLast: -Infinity, dizzyCount: 0 };
+    this.statusPulse = {};
+    this._controlRound = game && game.round != null ? game.round : 0;
     this.state = 'idle';
     this.frame = 0;
     this.stateTime = 0;
@@ -88,8 +91,63 @@ class Fighter {
   get alive() { return this.hp > 0; }
   get onGround() { return this.y >= -0.01 && this.vy >= 0; }
   has(s) { return (this.status[s] || 0) > this.now; }
+  roundKey() { return this.game && this.game.round != null ? this.game.round : 0; }
+  resetControlMemory(round = this.roundKey()) {
+    this._controlRound = round;
+    this.hardControl = { last: -Infinity, chain: 0, dizzyLast: -Infinity, dizzyCount: 0 };
+    this.statusPulse = {};
+  }
+  syncControlMemory() {
+    const round = this.roundKey();
+    if (this._controlRound !== round) this.resetControlMemory(round);
+  }
+  controlScaleFor(o = {}) {
+    const p = o.power || null;
+    const pfx = p && p.fx || {};
+    const owner = p && this.kitOwnerId(p);
+    const sig = owner && typeof SIGNATURES !== 'undefined' ? SIGNATURES[owner] : null;
+    const hard = !!(o.hardControl || o.freeze || o.trap || o.stun >= 20 || pfx.stun || (sig && sig.ability && sig.ability.stun));
+    if (!hard) return 1;
+    this.syncControlMemory();
+    const memory = this.hardControl;
+    if (this.now - memory.last > 90) memory.chain = 0;
+    const scale = [1, 0.72, 0.5, 0.36][Math.min(3, memory.chain)];
+    memory.chain = Math.min(3, memory.chain + 1);
+    memory.last = this.now;
+    return scale;
+  }
+  dizzyScale() {
+    this.syncControlMemory();
+    const memory = this.hardControl;
+    if (this.now - memory.dizzyLast > 240) memory.dizzyCount = 0;
+    const scale = [1, 0.72, 0.5, 0.36][Math.min(3, memory.dizzyCount)];
+    memory.dizzyCount = Math.min(3, memory.dizzyCount + 1);
+    memory.dizzyLast = this.now;
+    return scale;
+  }
   addStatus(s, frames, source = null) {
-    const expiry = this.now + frames;
+    this.syncControlMemory();
+    let expiry = this.now + frames;
+    /* Cegueira/choque podem ser renovados por vários projéteis. Uma sequência
+       curta ganha extensão decrescente, mas tem teto absoluto para não virar
+       um loop visual/controlável permanente. */
+    if (frames > 0 && (s === 'blind' || s === 'shock')) {
+      const current = this.statusPulse[s];
+      if (!current || this.now - current.last > 75 || !this.has(s)) {
+        this.statusPulse[s] = {
+          start: this.now,
+          last: this.now,
+          count: 0,
+          cap: this.now + Math.min(220, Math.max(120, Math.round(frames * 1.35))),
+        };
+        expiry = Math.min(expiry, this.statusPulse[s].cap);
+      } else {
+        current.count = Math.min(4, (current.count || 0) + 1);
+        current.last = this.now;
+        const scale = [0.7, 0.48, 0.3, 0.2][Math.min(3, current.count - 1)];
+        expiry = Math.min(this.now + Math.max(18, Math.round(frames * scale)), current.cap);
+      }
+    }
     if (['burn', 'poison', 'bleed'].includes(s) && expiry >= (this.status[s] || 0)) this.statusSource[s] = source;
     this.status[s] = Math.max(this.status[s] || 0, expiry);
   }
@@ -288,6 +346,7 @@ class Fighter {
       if (this.hp <= 0) this.defeat(sign);
       return true;
     }
+    const controlScale = this.controlScaleFor(o);
     // escudo do mascote
     if (this.shield > 0) {
       const absorb = Math.min(this.shield, d);
@@ -303,7 +362,7 @@ class Fighter {
     if (o.burn && !this.pfx.immune) this.addStatus('burn', o.burn, atk);
     if (o.poison && !this.pfx.immune) this.addStatus('poison', o.poison, atk);
     if (o.slow) this.addStatus('slow', o.slow);
-    this.applyEffects(o, atk, d);
+    this.applyEffects(o, atk, d, controlScale);
     if (atk && atk.cast && o.ability) atk.cast.hit = true;
     game.audio.hit(d >= 13);
     game.shake(Math.min(12, d >= 14 ? 8 : 4));
@@ -311,7 +370,7 @@ class Fighter {
     if (atk) atk.gain(true);
     this.gain(false);
     // tontura
-    this.stunGauge += d * 2.3 * (atk && atk.sig.stunMult ? atk.sig.stunMult : 1);
+    this.stunGauge += d * 2.3 * (atk && atk.sig.stunMult ? atk.sig.stunMult : 1) * controlScale;
     if (this.hp <= 0) { this.defeat(sign); return true; }
     if (!this.revived && this.pfx.revive && this.hp < this.maxHp * 0.25) {
       this.revived = true;
@@ -336,10 +395,15 @@ class Fighter {
       this.launched = true;
     }
     if (o.sweep) { this.vy = -4; this.y = -1; this.launched = true; }
-    this.hitstun = juggled ? Math.min(o.stun || 14, 12) : (o.stun || 14);
+    const hardStun = Math.max(1, Math.round((o.stun || 14) * controlScale));
+    this.hitstun = juggled ? Math.min(hardStun, 12) : hardStun;
     if (this.has('chill')) this.hitstun += 3;
-    if (o.trap) { this.addStatus('trap', o.trap); this.hitstun = Math.max(this.hitstun, o.trap); }
-    if (o.freeze) { this.addStatus('freeze', o.stun || 60); }
+    if (o.trap) {
+      const trap = Math.max(1, Math.round(o.trap * controlScale));
+      this.addStatus('trap', trap);
+      this.hitstun = Math.max(this.hitstun, trap);
+    }
+    if (o.freeze) this.addStatus('freeze', Math.max(1, Math.round((o.stun || 60) * controlScale)));
     this.blocking = false;
     this.attack = null;
     this.cast = null;
@@ -351,15 +415,16 @@ class Fighter {
     this.flashWhite = 4;
     if (this.stunGauge >= 100 && this.hp > 0) {
       this.stunGauge = 0;
-      this.addStatus('dizzy', 100);
-      this.hitstun = Math.max(this.hitstun, 100);
+      const dizzy = Math.max(28, Math.round(100 * this.dizzyScale()));
+      this.addStatus('dizzy', dizzy);
+      this.hitstun = Math.max(this.hitstun, dizzy);
       game.floatText(this.x, this.y - 240, 'TONTO!', '#ffe14d');
       game.audio.voice('combo');
     }
     return true;
   }
   /** Efeitos de status: assinatura do lutador + campo fx do poder. */
-  applyEffects(o, atk, d) {
+  applyEffects(o, atk, d, controlScale = 1) {
     if (!atk || this.pfx.immune || !this.alive) return;
     const p = o.power || null;
     const owner = p ? atk.kitOwnerId(p) : atk.def.id;
@@ -377,7 +442,7 @@ class Fighter {
     if (fx.vuln) this.addStatus('vuln', fx.vuln);
     if (fx.slow) this.addStatus('slow', fx.slow);
     if (fx.lock) this.addStatus('locked', fx.lock);
-    if (fx.stun) this.stunGauge += fx.stun;
+    if (fx.stun) this.stunGauge += fx.stun * controlScale;
     if (fx.drain) atk.heal(d * fx.drain);
     if (fx.meterBurn) { this.charge[0] = Math.max(0, this.charge[0] - fx.meterBurn); this.charge[1] = Math.max(0, this.charge[1] - fx.meterBurn); }
     if (fx.meterSlow) this.addStatus('meterSlow', fx.meterSlow);
@@ -576,9 +641,9 @@ class Fighter {
           game.projectiles.push(pr);
           game.shake(10);
         } else if (p.at === 'self') {
-          game.strikes.push(new Strike(this, { x: this.x, delay: 4, w: (p.radius || 240) * 2, h: 300, dmg: p.dmg, stun: 26, launch: -9, sheet: { key, row: p.row, frames: 4 }, scale: 3, element: el, power: p, sound: 'explosion', shake: 12 }));
+          game.strikes.push(new Strike(this, { x: this.x, delay: 4, w: (p.radius || 240) * 2, h: 300, dmg: p.dmg, stun: p.stun == null ? 26 : p.stun, launch: p.launch == null ? -9 : p.launch, sheet: { key, row: p.row, frames: 4 }, scale: 3, element: el, power: p, sound: 'explosion', shake: 12 }));
         } else {
-          game.strikes.push(new Strike(this, { x: tx, delay: 14, w: 200, h: 320, dmg: p.dmg, stun: 26, launch: -9, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, follow: tgt, element: el, power: p, sound: 'explosion', shake: 12 }));
+          game.strikes.push(new Strike(this, { x: tx, delay: 14, w: 200, h: 320, dmg: p.dmg, stun: p.stun == null ? 26 : p.stun, launch: p.launch == null ? -9 : p.launch, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, follow: tgt, element: el, power: p, sound: 'explosion', shake: 12 }));
         }
         if (p.heal) this.heal(p.heal);
         if (p.kernel) {
@@ -875,6 +940,7 @@ class Fighter {
   update(input, ctxFlags = {}) {
     const game = this.game;
     this.now = game.time;
+    this.syncControlMemory();
     this.frame++;
     this.stateTime++;
     this.lastInput = input;
@@ -1515,7 +1581,7 @@ class Fighter {
   }
   /* estado serializável (online) */
   snap() {
-    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge)];
+    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound];
   }
   applySnap(s) {
     [this.x, this.y, this.dir, this.state, this.stateTime, this.hp, this.charge[0], this.charge[1], this.ultimate, this.frame, this.walkPhase] = s;
@@ -1535,5 +1601,8 @@ class Fighter {
     this.redHp = s[20];
     this.shield = s[21];
     this.stunGauge = s[22];
+    this.statusPulse = s[23] || {};
+    this.hardControl = Object.assign({ last: -Infinity, chain: 0, dizzyLast: -Infinity, dizzyCount: 0 }, s[24] || {});
+    if (s[25] != null) this._controlRound = s[25];
   }
 }

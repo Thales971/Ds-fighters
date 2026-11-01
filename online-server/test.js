@@ -43,6 +43,12 @@ const T = (t) => (m) => m.t === t;
     assert.equal(RoomCore.normalizeConfig({ roundsToWin: 99 }).roundsToWin, 9);
     assert.equal(RoomCore.normalizeConfig({ roundsToWin: 0 }).roundsToWin, 1);
     pass('normaliza rounds extras entre 1 e 9');
+    assert.equal(RoomCore.normalizeConfig({}).timer, 180);
+    assert.equal(RoomCore.normalizeConfig({ timer: 300 }).timer, 300);
+    assert.equal(RoomCore.normalizeConfig({ timer: 999 }).timer, 300);
+    assert.equal(RoomCore.normalizeConfig({ timer: 1 }).timer, 30);
+    assert(RoomCore.FIGHTER_IDS.includes('thl') && RoomCore.FIGHTER_IDS.includes('dolynho'));
+    pass('padrão 180s, limite 300s e novos lutadores permitidos');
     // protocolo incompatível
     const bad = await new Promise((res) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 99 }))); ws.on('message', (d) => res(JSON.parse(d.toString()))); });
     assert.equal(bad.code, 'protocol'); pass('rejeita versão de protocolo diferente');
@@ -83,7 +89,7 @@ const T = (t) => (m) => m.t === t;
     const jc = await C.wait(T('joined'));
     assert.notEqual(jc.code, ja.code);
     const cRoom = await C.wait((m) => m.t === 'room' && m.room.code === jc.code);
-    assert.deepEqual(cRoom.room.config, { roundsToWin: 2, timer: 99, infiniteLife: false, infiniteMeter: false });
+    assert.deepEqual(cRoom.room.config, { roundsToWin: 2, timer: 180, infiniteLife: false, infiniteMeter: false });
     pass('configuração nula usa regras padrão sem derrubar a conexão');
 
     // validação de escolhas

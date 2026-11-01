@@ -24,3 +24,12 @@
 Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPEDAGEM.md`. Torneios históricos não foram repetidos nesta etapa.
 
 **Decisão do proprietário (01/11/2026):** adiar o Google. A pendência OAuth acima é futura, não uma tarefa bloqueante a insistir nesta entrega. Supabase ativo; progresso local permanece disponível sem login.
+
+## Expansão V5 — executar sem perguntas
+
+- [x] Balanceamento: vida global 2,00 aplicada uma vez (78,6% acima da V4), padrão 180s e local/online até 300s. Reforços de Caça-Bugs e Kairo guiados pela amostra; Qwen terceira, THL quarto no poder permanente.
+- [x] Dolynho, seu amiguinho: normal sem código, garrafa verde/tampa branca/luvas/tênis, cinco habilidades com bastante stun e resistência a controles repetidos; folha de 60 quadros e retratos.
+- [x] THL vigilante/justiceiro: rosto inspirado na foto, normal mais poderoso no atributo permanente, cinco habilidades com múltiplos debuffs; folha de 60 quadros e retratos.
+- [x] Japão oriental e Distrito Neon 2077: duas arenas originais com 24 quadros cada, preservando SENAI/SESI e o restante do catálogo. Total 25 lutadores/39 arenas.
+- [x] 38 músicas recebidas em MP4: áudio normalizado e compacto, sorteio sem repetição imediata, troca ao fim da faixa e ducking do narrador com sobreposição/mute corretos. Vídeos/fotos originais não entram na distribuição.
+- [x] Seleção, arte, kits, stun/vida/timer, cronômetro de três dígitos, mixer, mapas anteriores, perfil/Firebase/Supabase e online local 2p/4p verificados. Commit autorizado preparado com documentação e pacote de arte; publicação WSS permanente e Google continuam nas pendências externas acima.

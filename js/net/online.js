@@ -65,7 +65,7 @@ const Net = {
       <div class="lobby-config" id="lobby-config">
         <b>REGRAS DA SALA</b>
         <label>Rounds para vencer <select id="lobby-rounds" aria-label="Rounds para vencer"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="7">7</option><option value="9">9</option></select></label>
-        <label>Tempo por round <select id="lobby-timer" aria-label="Tempo por round"><option value="60">60 s</option><option value="99">99 s</option><option value="120">120 s</option></select></label>
+        <label>Tempo por round <select id="lobby-timer" aria-label="Tempo por round"><option value="30">30 s</option><option value="60">60 s</option><option value="99">99 s</option><option value="120">120 s</option><option value="180" selected>180 s</option><option value="240">240 s</option><option value="300">300 s</option></select></label>
         <label class="chk"><input type="checkbox" id="lobby-infinite-life" /> Vida infinita</label>
         <label class="chk"><input type="checkbox" id="lobby-infinite-meter" /> Medidores infinitos</label>
       </div>`);
@@ -92,7 +92,7 @@ const Net = {
     const checked = (id) => !!(this.$(id) && this.$(id).checked);
     return RoomCore.normalizeConfig({
       roundsToWin: useControls ? +val('lobby-rounds', r && r.roundsToWin || 2) : +(r && r.roundsToWin || 2),
-      timer: useControls ? +val('lobby-timer', r && r.timer || 99) : +(r && r.timer || 99),
+      timer: useControls ? +val('lobby-timer', r && r.timer || 180) : +(r && r.timer || 180),
       infiniteLife: useControls ? checked('lobby-infinite-life') : !!(r && r.infiniteLife),
       infiniteMeter: useControls ? checked('lobby-infinite-meter') : !!(r && r.infiniteMeter),
     });

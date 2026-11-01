@@ -242,5 +242,23 @@ const MAP_ANIM = {
   "fps": 10,
   "frameW": 640,
   "frameH": 360
+ },
+ "japan": {
+  "sheet": "assets/maps/anim/japan.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
+ },
+ "cyberpunk": {
+  "sheet": "assets/maps/anim/cyberpunk.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
  }
 };

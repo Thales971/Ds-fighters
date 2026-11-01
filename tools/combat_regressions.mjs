@@ -29,6 +29,7 @@ const scripts = [
   'js/data/powers.js',
   'js/data/powers-turbo.js',
   'js/data/powers-v4.js',
+  'js/data/powers-v5.js',
   'js/engine/projectile.js',
   'js/engine/fighter.js',
 ];
@@ -45,6 +46,7 @@ function makeGame() {
     W: 960,
     H: 540,
     time: 0,
+    round: 1,
     reduced: true,
     gravityMul: 1,
     jumpMul: 1,
@@ -106,22 +108,31 @@ function runZone(zone, game, frames) {
 for (const fdef of api.FIGHTERS) {
   const game = makeGame();
   const f = new api.Fighter(fdef, 200, 1, game, { team: 0, pet: ctx.PETS[0] });
-  assert.equal(f.maxHp, Math.round((fdef.stats.hp || 100) * 1.12), `${fdef.id} hp multiplier`);
+  assert.equal(f.maxHp, Math.round((fdef.stats.hp || 100) * 2.00), `${fdef.id} hp multiplier`);
 }
 
 // 2) Slots V4, resgate e ranking: a força permanente é apenas stats.power,
 //    sem contar o status temporário Astra ou qualquer aura.
-for (const id of ['urbano', 'xeon', 'qwen']) {
+for (const id of ['urbano', 'xeon', 'qwen', 'dolynho', 'thl']) {
   const kit = api.POWERS[id].powers;
   assert.equal(kit.length, 5, `${id} has five powers`);
   assert.equal(new Set(kit.map((p) => p.id)).size, 5, `${id} powers are distinct`);
 }
 assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'afo2', 'IALES AFO2 is the sixth hotkey contract');
 assert.ok(api.Profile.SECRET_IDS.includes('qwen'), 'Batata unlock includes Qwen');
+assert.ok(!api.Profile.SECRET_IDS.includes('dolynho') && !api.Profile.SECRET_IDS.includes('thl'), 'Dolynho and THL are normal unlocked fighters');
+assert.equal(def('dolynho').stats.power, 1.08, 'Dolynho permanent power');
+assert.equal(def('dolynho').stats.hp, 126, 'Dolynho catalog HP');
+assert.equal(def('dolynho').stats.meterRate, 1.1, 'Dolynho meter rate');
+assert.equal(def('dolynho').stats.speed, 1.03, 'Dolynho speed');
+assert.equal(def('thl').stats.power, 1.36, 'THL permanent power');
+assert.equal(def('thl').stats.hp, 140, 'THL catalog HP');
+assert.equal(def('thl').stats.meterRate, 1.35, 'THL meter rate');
+assert.equal(def('thl').stats.speed, 1.0, 'THL speed');
 const permanentPowerRanking = [...api.FIGHTERS].sort((a, b) => b.stats.power - a.stats.power);
 const permanentTop5 = permanentPowerRanking.slice(0, 5);
-assert.deepEqual([...permanentTop5].map((f) => f.id), ['iales', 'felipinho', 'qwen', 'bhm', 'du'], 'permanent top five power ranking');
-assert.deepEqual([...permanentTop5].map((f) => f.stats.power), [1.5, 1.4, 1.39, 1.34, 1.3], 'permanent top five power values');
+assert.deepEqual([...permanentTop5].map((f) => f.id), ['iales', 'felipinho', 'qwen', 'thl', 'bhm'], 'permanent top five power ranking');
+assert.deepEqual([...permanentTop5].map((f) => f.stats.power), [1.5, 1.4, 1.39, 1.36, 1.34], 'permanent top five power values');
 assert.deepEqual([...permanentPowerRanking.slice(0, 2)].map((f) => [f.id, f.stats.power]), [['iales', 1.5], ['felipinho', 1.4]], 'existing top two remain unchanged');
 assert.equal(new Set(permanentPowerRanking.slice(0, 3).map((f) => f.stats.power)).size, 3, 'permanent top three have no power ties');
 assert.equal(def('qwen').stats.hp, 134, 'Qwen has a strong but bounded permanent HP value');
@@ -263,4 +274,167 @@ assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '115
   assert.equal(a.stats.dmg, attributed, 'environment/self status is not enemy score');
 }
 
-console.log('combat_regressions: PASS (10 grupos + ranking/Astra contracts)');
+// 11) Os dez poderes V5 usam somente kinds executados e criam a entidade correta.
+{
+  const expected = { shot: 'projectiles', dash: 'dashHit', pillar: 'strikes', zone: 'zones', blast: 'strikes', barrage: 'projectiles' };
+  for (const id of ['dolynho', 'thl']) {
+    for (const p of api.POWERS[id].powers) {
+      const { game, a } = pair(id, 'stack');
+      a.fire(p);
+      const bucket = expected[p.kind];
+      assert.ok(bucket, `${id}/${p.id} kind is an executor contract`);
+      if (bucket === 'dashHit') assert.ok(a.dashHit, `${id}/${p.id} creates dash hit state`);
+      else if (p.kind === 'shot' || p.kind === 'barrage') {
+        assert.ok(a.queue.length > 0, `${id}/${p.id} queues projectile creation`);
+        a.queue[0].fn();
+        assert.ok(game.projectiles.length > 0, `${id}/${p.id} creates projectiles after queue flush`);
+      }
+      else assert.ok(game[bucket].length > 0, `${id}/${p.id} creates ${bucket}`);
+    }
+  }
+}
+
+// 12) Dolynho stun, THL expose/bleed/zone/pillar and Lockdown apply real effects.
+{
+  const dol = pair('dolynho', 'stack');
+  const fizz = api.POWERS.dolynho.powers[0];
+  const fizzShot = new api.Projectile(dol.a, fizz, {});
+  fizzShot.x = dol.b.x; fizzShot.y = -100;
+  const fizzHp = dol.b.hp;
+  fizzShot.update(dol.game);
+  assert.ok(dol.b.hp < fizzHp, 'Dolynho shot deals damage');
+  assert.ok(dol.b.stunGauge > 0, 'Dolynho shot adds stun pressure');
+  assert.ok(dol.b.has('slow'), 'Dolynho shot applies slow');
+
+  const expose = pair('thl', 'stack');
+  const exposePower = api.POWERS.thl.powers[0];
+  const exposeShot = new api.Projectile(expose.a, exposePower, {});
+  exposeShot.x = expose.b.x; exposeShot.y = -100;
+  exposeShot.update(expose.game);
+  assert.ok(expose.b.has('vuln'), 'THL expose applies vulnerability');
+  assert.ok(expose.b.has('blind'), 'THL expose applies bounded blind');
+  assert.ok(expose.b.has('meterSlow'), 'THL expose slows meter gain');
+
+  const dash = pair('thl', 'stack');
+  const bleed = api.POWERS.thl.powers[1];
+  dash.a.cast = { p: bleed, t: 0, fired: true };
+  dash.a.x = 470;
+  dash.b.x = 520;
+  dash.a.fire(bleed);
+  dash.a.stepCast();
+  assert.ok(dash.b.has('bleed'), 'THL dash applies bleed');
+
+  const zonePair = pair('thl', 'stack');
+  zonePair.a.fire(api.POWERS.thl.powers[2]);
+  runZone(zonePair.game.zones[0], zonePair.game, 6);
+  assert.ok(zonePair.b.has('chill'), 'THL zone applies chill');
+  assert.ok(zonePair.b.has('vuln'), 'THL zone applies vulnerability');
+  assert.ok(zonePair.b.has('meterSlow'), 'THL zone applies meter slow');
+
+  const pillar = pair('thl', 'stack');
+  const skull = api.POWERS.thl.powers[3];
+  pillar.a.fire(skull);
+  for (let i = 0; i < 16; i++) { pillar.game.time++; pillar.game.strikes[0].update(pillar.game); }
+  assert.ok(pillar.b.has('vuln') && pillar.b.has('bleed'), 'THL pillar applies tactical debuffs');
+  assert.ok(pillar.b.hitstun > 0, 'THL pillar confirms a real hit stun');
+
+  const barrage = pair('thl', 'stack');
+  const lockdown = api.POWERS.thl.powers[4];
+  barrage.a.fire(lockdown);
+  const firstQueued = barrage.a.queue.find((q) => q.fn);
+  assert.ok(firstQueued, 'THL barrage has a queued projectile');
+  firstQueued.fn();
+  const lockdownShot = barrage.game.projectiles[0];
+  lockdownShot.x = barrage.b.x; lockdownShot.y = -100;
+  lockdownShot.update(barrage.game);
+  assert.ok(barrage.b.has('locked'), 'THL Lockdown disables powers, not movement');
+  assert.ok(barrage.b.powerState(0).locked, 'locked status is visible to power readiness');
+  barrage.b.state = 'idle';
+  barrage.b.hitstun = 0;
+  assert.ok(barrage.b.canAct(), 'locked status does not freeze movement state');
+  assert.ok(barrage.b.has('vuln'), 'THL Lockdown applies vulnerability');
+}
+
+// 13) Hard crowd control is bounded/diminishing while a single normal hit keeps its stun.
+{
+  const { game, a, b } = pair('dolynho', 'stack');
+  const hardPower = api.POWERS.dolynho.powers[0];
+  const durations = [];
+  for (let i = 0; i < 3; i++) {
+    b.now = i + 1;
+    b.state = 'idle';
+    b.hitstun = 0;
+    b.takeHit(0, { attacker: a, height: 'unblockable', noScale: true, stun: 60, freeze: true, ability: true, power: hardPower });
+    durations.push(b.hitstun);
+  }
+  assert.deepEqual(durations, [60, 43, 30], 'repeated hard control diminishes deterministically');
+  assert.ok(b.has('freeze'), 'freeze remains functional after diminishing');
+  b.now = 200;
+  b.state = 'idle'; b.hitstun = 0;
+  b.takeHit(0, { attacker: a, height: 'unblockable', noScale: true, stun: 60, freeze: true, ability: true, power: hardPower });
+  assert.equal(b.hitstun, 60, 'hard-control chain recovers after a quiet window');
+
+  const normal = pair('stack', 'urbano');
+  normal.b.resetControlMemory(1);
+  normal.b.takeHit(0, { attacker: normal.a, height: 'unblockable', noScale: true, stun: 14 });
+  assert.equal(normal.b.hitstun, 14, 'single normal hit stun is unchanged');
+  assert.equal(normal.b.hardControl.chain, 0, 'normal hit does not consume hard-control budget');
+}
+
+// 14) Repeated dizzy events diminish, blind/shock loops expire, and round reset clears memory.
+{
+  const dizzy = pair('stack', 'urbano');
+  dizzy.b.now = 0;
+  dizzy.b.stunGauge = 99;
+  dizzy.b.takeHit(1, { attacker: dizzy.a, height: 'unblockable', noScale: true, stun: 14 });
+  assert.equal(dizzy.b.left('dizzy'), 100, 'first dizzy keeps the documented duration');
+  dizzy.b.now = 101;
+  dizzy.b.state = 'idle'; dizzy.b.hitstun = 0; dizzy.b.stunGauge = 99;
+  dizzy.b.takeHit(1, { attacker: dizzy.a, height: 'unblockable', noScale: true, stun: 14 });
+  assert.equal(dizzy.b.left('dizzy'), 72, 'repeated dizzy duration diminishes');
+
+  const effects = pair('thl', 'stack').b;
+  effects.now = 0;
+  for (let i = 0; i < 21; i++) {
+    effects.addStatus('blind', 180);
+    effects.addStatus('shock', 180);
+    effects.now += 10;
+  }
+  effects.now = 221;
+  assert.ok(!effects.has('blind') && !effects.has('shock'), 'blind/shock refresh loops have an absolute expiry');
+  effects.hardControl.chain = 3;
+  effects.statusPulse = { blind: { start: 1, last: 2, count: 2, cap: 220 } };
+  effects.game.round = 2;
+  effects.syncControlMemory();
+  assert.equal(effects.hardControl.chain, 0, 'round change resets hard-control memory');
+  assert.equal(Object.keys(effects.statusPulse).length, 0, 'round change resets status-loop memory');
+}
+
+// 15) Fighter snapshots preserve new control fields and round/replay state deterministically.
+{
+  const { game, a } = pair('thl', 'dolynho');
+  a.now = 12;
+  a.addStatus('blind', 120);
+  a.hardControl = { last: 9, chain: 2, dizzyLast: 5, dizzyCount: 1 };
+  const snap = a.snap();
+  assert.ok(snap[23] && snap[24] && snap[25] === 1, 'snapshot includes status pulse, control memory, and round');
+  const restored = new api.Fighter(def('thl'), 300, 1, game, { team: 0, pet: ctx.PETS[0] });
+  restored.applySnap(snap);
+  assert.equal(JSON.stringify(restored.snap()), JSON.stringify(snap), 'fighter snapshot round-trips deterministically');
+  assert.equal(JSON.stringify(restored.snap()), JSON.stringify(snap), 'snapshot encoding is stable');
+}
+
+// 16) Explosões respeitam stun/launch declarados; reforços modestos não mudam o top.
+{
+  const { game, a } = pair('dolynho', 'stack');
+  const ultimate = api.POWERS.dolynho.powers[4];
+  a.fire(ultimate);
+  assert.equal(game.strikes[0].stun, ultimate.stun, 'blast uses configured stun');
+  assert.equal(game.strikes[0].launch, ultimate.launch, 'blast uses configured launch');
+  assert.equal(def('bughunter').stats.hp, 112);
+  assert.equal(def('scrum').stats.hp, 118);
+  assert.equal(api.POWERS.bughunter.powers[1].range, 380);
+  assert.equal(api.POWERS.scrum.powers[1].range, 280);
+}
+
+console.log('combat_regressions: PASS (16 grupos + V5/ranking/control contracts)');

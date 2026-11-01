@@ -1,9 +1,171 @@
 {
-  "_como_usar": "Envie seus rocks pesados (mp3/ogg) para assets/music/rock/ e liste cada um em 'tracks'. A cada batalha uma faixa é sorteada. Enquanto 'tracks' estiver vazio, o jogo usa as faixas originais de 'fallback'.",
-  "tracks": [],
-  "fallback": [
-    { "title": "DS Fighters — Overclock Riff (original)", "file": "assets/music/battle_rock_1.mp3" },
-    { "title": "DS Fighters — Kernel Panic Rock (original)", "file": "assets/music/battle_rock_2.mp3" }
+  "_como_usar": "Faixas fornecidas pelo proprietário, importadas com FFmpeg. Sorteio por luta, sem repetição consecutiva; volume moderado e ducking durante narrador. Não inclui vídeos originais.",
+  "tracks": [
+    {
+      "title": "Audioslave — Like a Stone",
+      "file": "assets/music/rock/audioslave-like-a-stone-7QU1nvuxaMA.mp3"
+    },
+    {
+      "title": "Disturbed — Down with the Sickness",
+      "file": "assets/music/rock/disturbed-down-with-the-sickness-09LTT0xwdfw.mp3"
+    },
+    {
+      "title": "Drowning Pool — Bodies",
+      "file": "assets/music/rock/drowning-pool-bodies-04F4xlWSFh0.mp3"
+    },
+    {
+      "title": "Godsmack — I Stand Alone",
+      "file": "assets/music/rock/godsmack-i-stand-alone-OYjZK_6i37M.mp3"
+    },
+    {
+      "title": "Korn — Falling Away from Me",
+      "file": "assets/music/rock/korn-falling-away-from-me-2s3iGpDqQpQ.mp3"
+    },
+    {
+      "title": "Korn — Freak on a Leash",
+      "file": "assets/music/rock/korn-freak-on-a-leash-jRGrNDV2mKc.mp3"
+    },
+    {
+      "title": "Limp Bizkit — Break Stuff",
+      "file": "assets/music/rock/limp-bizkit-break-stuff-ZpUYjpKg9KY.mp3"
+    },
+    {
+      "title": "Limp Bizkit — My Way",
+      "file": "assets/music/rock/limp-bizkit-my-way-Dn8vzTsnPps.mp3"
+    },
+    {
+      "title": "Limp Bizkit — Rollin' (Air Raid Vehicle)",
+      "file": "assets/music/rock/limp-bizkit-rollin-air-raid-vehicle-RYnFIRc0k6E.mp3"
+    },
+    {
+      "title": "Linkin Park — Faint",
+      "file": "assets/music/rock/linkin-park-faint-LYU-8IFcDPw.mp3"
+    },
+    {
+      "title": "Linkin Park — One Step Closer",
+      "file": "assets/music/rock/linkin-park-one-step-closer-4qlCC1GOwFw.mp3"
+    },
+    {
+      "title": "Linkin Park — Papercut",
+      "file": "assets/music/rock/linkin-park-papercut-vjVkXlxsO8Q.mp3"
+    },
+    {
+      "title": "Metal Gear Rising — It Has to Be This Way",
+      "file": "assets/music/rock/metal-gear-rising-it-has-to-be-this-way-2l0RMGid6vo.mp3"
+    },
+    {
+      "title": "Metal Gear Rising — The Hot Wind Blowing (Platinum Mix)",
+      "file": "assets/music/rock/metal-gear-rising-the-hot-wind-blowing-platinum-mix-mUfTybEv1HU.mp3"
+    },
+    {
+      "title": "Nirvana — Smells Like Teen Spirit",
+      "file": "assets/music/rock/nirvana-smells-like-teen-spirit-hTWKbfoikeg.mp3"
+    },
+    {
+      "title": "Pantera — Walk",
+      "file": "assets/music/rock/pantera-walk-AkFqg5wAuFk.mp3"
+    },
+    {
+      "title": "Papa Roach — Between Angels and Insects",
+      "file": "assets/music/rock/papa-roach-between-angels-and-insects-H2jCbXiEQI4.mp3"
+    },
+    {
+      "title": "Papa Roach — Last Resort (Squeaky Clean Version)",
+      "file": "assets/music/rock/papa-roach-last-resort-squeaky-clean-version-j0lSpNtjPM8.mp3"
+    },
+    {
+      "title": "Rage Against the Machine — Killing in the Name",
+      "file": "assets/music/rock/rage-against-the-machine-killing-in-the-name-bWXazVhlyxQ.mp3"
+    },
+    {
+      "title": "Skillet — Hero",
+      "file": "assets/music/rock/skillet-hero-uGcsIdGOuZY.mp3"
+    },
+    {
+      "title": "Skillet — Monster",
+      "file": "assets/music/rock/skillet-monster-1mjlM_RnsVE.mp3"
+    },
+    {
+      "title": "Slipknot — Before I Forget",
+      "file": "assets/music/rock/slipknot-before-i-forget-qw2LU1yS7aw.mp3"
+    },
+    {
+      "title": "Slipknot — Dead Memories",
+      "file": "assets/music/rock/slipknot-dead-memories-9gsAz6S_zSw.mp3"
+    },
+    {
+      "title": "Slipknot — Duality",
+      "file": "assets/music/rock/slipknot-duality-6fVE8kSM43I.mp3"
+    },
+    {
+      "title": "Slipknot — Killpop",
+      "file": "assets/music/rock/slipknot-killpop-mhJh5_6MuCk.mp3"
+    },
+    {
+      "title": "Slipknot — Left Behind",
+      "file": "assets/music/rock/slipknot-left-behind-D1jQKpse7Yw.mp3"
+    },
+    {
+      "title": "Slipknot — Nero Forte",
+      "file": "assets/music/rock/slipknot-nero-forte-JGNqvH9ykfA.mp3"
+    },
+    {
+      "title": "Slipknot — Psychosocial",
+      "file": "assets/music/rock/slipknot-psychosocial-5abamRO41fE.mp3"
+    },
+    {
+      "title": "Slipknot — Spit It Out",
+      "file": "assets/music/rock/slipknot-spit-it-out-ZPUZwriSX4M.mp3"
+    },
+    {
+      "title": "Slipknot — Sulfur",
+      "file": "assets/music/rock/slipknot-sulfur-PAAvNmoqDq0.mp3"
+    },
+    {
+      "title": "Slipknot — The Devil in I",
+      "file": "assets/music/rock/slipknot-the-devil-in-i-XEEasR7hVhA.mp3"
+    },
+    {
+      "title": "Slipknot — Unsainted",
+      "file": "assets/music/rock/slipknot-unsainted-VpATBBRajP8.mp3"
+    },
+    {
+      "title": "Slipknot — Wait and Bleed",
+      "file": "assets/music/rock/slipknot-wait-and-bleed-B1zCN0YhW1s.mp3"
+    },
+    {
+      "title": "System of a Down — Aerials",
+      "file": "assets/music/rock/system-of-a-down-aerials-L-iepu3EtyE.mp3"
+    },
+    {
+      "title": "System of a Down — Chop Suey!",
+      "file": "assets/music/rock/system-of-a-down-chop-suey-CSvFpBOe8eY.mp3"
+    },
+    {
+      "title": "System of a Down — Toxicity",
+      "file": "assets/music/rock/system-of-a-down-toxicity-iywaBOMvYLI.mp3"
+    },
+    {
+      "title": "Three Days Grace — I Hate Everything About You",
+      "file": "assets/music/rock/three-days-grace-i-hate-everything-about-you-d8ekz_CSBVg.mp3"
+    },
+    {
+      "title": "Three Days Grace — Riot",
+      "file": "assets/music/rock/three-days-grace-riot-ixZDTiXiHsc.mp3"
+    }
   ],
-  "menu": { "title": "DS Fighters — Tema do Menu", "file": "assets/music/menu_theme.mp3" }
+  "fallback": [
+    {
+      "title": "DS Fighters — Overclock Riff (original)",
+      "file": "assets/music/battle_rock_1.mp3"
+    },
+    {
+      "title": "DS Fighters — Kernel Panic Rock (original)",
+      "file": "assets/music/battle_rock_2.mp3"
+    }
+  ],
+  "menu": {
+    "title": "DS Fighters — Tema do Menu",
+    "file": "assets/music/menu_theme.mp3"
+  }
 }

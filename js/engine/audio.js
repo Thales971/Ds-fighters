@@ -24,6 +24,10 @@ const AudioSys = {
   nowPlaying: '',
   pending: null,
   _lastPlay: {},
+  voiceActive: 0,
+  _voicePlaying: Object.create(null),
+  musicMixFactor: 0.6,
+  musicDuckFactor: 0.25,
   init() {
     fetch('assets/music/playlist.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
@@ -58,21 +62,52 @@ const AudioSys = {
     SFX_FILES.forEach((n) => load(n, 'assets/audio/sfx/' + n + '.mp3'));
     VOICE_FILES.forEach((n) => load('v_' + n, 'assets/audio/voice/' + n + '.mp3'));
   },
+  safeVol(value, fallback = 0) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      const f = Number(fallback);
+      return Number.isFinite(f) ? Math.max(0, Math.min(1, f)) : 0;
+    }
+    return Math.max(0, Math.min(1, n));
+  },
   vol(kind) {
-    const s = (typeof Profile !== 'undefined' && Profile.data) ? Profile.data.settings : { music: 0.5, sfx: 0.8, voice: 0.9, mute: false };
+    const s = (typeof Profile !== 'undefined' && Profile.data) ? Profile.data.settings : { music: 0.35, sfx: 0.8, voice: 0.9, mute: false };
     if (s.mute) return 0;
-    return s[kind] == null ? 0.8 : s[kind];
+    const defaults = { music: 0.35, sfx: 0.8, voice: 0.9 };
+    return this.safeVol(s[kind], defaults[kind] == null ? 0.8 : defaults[kind]);
+  },
+  musicVolume() {
+    const mix = this.safeVol(this.musicMixFactor, 1);
+    const duck = this.voiceActive > 0 ? this.safeVol(this.musicDuckFactor, 0.25) : 1;
+    return this.safeVol(this.vol('music') * mix * duck);
+  },
+  _beginVoice(key) {
+    this.voiceActive += 1;
+    if (key) this._voicePlaying[key] = (this._voicePlaying[key] || 0) + 1;
+    this.applyVolumes();
+  },
+  _endVoice(key) {
+    this.voiceActive = Math.max(0, this.voiceActive - 1);
+    if (key) {
+      const count = (this._voicePlaying[key] || 0) - 1;
+      if (count > 0) this._voicePlaying[key] = count;
+      else delete this._voicePlaying[key];
+    }
+    this.applyVolumes();
   },
   applyVolumes() {
-    if (this.buses.sfx) this.buses.sfx.gain.value = this.vol('sfx');
-    if (this.buses.voice) this.buses.voice.gain.value = this.vol('voice');
-    if (this.music) this.music.volume = Math.min(1, this.vol('music'));
-    Object.values(this.loops).forEach((l) => { if (l.g) l.g.gain.value = l.base; });
+    if (this.buses.sfx) this.buses.sfx.gain.value = this.safeVol(this.vol('sfx'));
+    if (this.buses.voice) this.buses.voice.gain.value = this.safeVol(this.vol('voice'));
+    if (this.music) this.music.volume = this.musicVolume();
+    Object.values(this.loops).forEach((l) => { if (l.g) l.g.gain.value = this.safeVol(l.base); });
   },
   play(name, opts = {}) {
     if (!this.enabled || !this.ctx || !this.unlocked) return false;
     const buf = this.buffers[name];
     if (!buf) return false;
+    const isVoice = opts.bus === 'voice';
+    const voiceKey = isVoice && opts.voiceKey ? String(opts.voiceKey) : null;
+    if (voiceKey && this._voicePlaying[voiceKey]) return true;
     const t = performance.now();
     if (!opts.force && this._lastPlay[name] && t - this._lastPlay[name] < (opts.gap || 35)) return true;
     this._lastPlay[name] = t;
@@ -81,13 +116,31 @@ const AudioSys = {
     if (opts.rate) src.playbackRate.value = opts.rate;
     else if (!opts.exact) src.playbackRate.value = 0.94 + Math.random() * 0.12;
     const g = this.ctx.createGain();
-    g.gain.value = opts.vol == null ? 1 : opts.vol;
-    src.connect(g).connect(this.buses[opts.bus || 'sfx']);
-    src.start();
+    g.gain.value = this.safeVol(opts.vol == null ? 1 : opts.vol, 1);
+    const bus = this.buses[opts.bus || 'sfx'];
+    if (!bus) return false;
+    let ended = false;
+    const finishVoice = () => {
+      if (ended) return;
+      ended = true;
+      if (isVoice) this._endVoice(voiceKey);
+    };
+    if (isVoice) {
+      src.onended = finishVoice;
+      this._beginVoice(voiceKey);
+    }
+    src.connect(g).connect(bus);
+    try {
+      src.start();
+    } catch (e) {
+      finishVoice();
+      return false;
+    }
     return true;
   },
   voice(name) {
-    return this.play('v_' + name, { bus: 'voice', exact: true, force: true });
+    const key = 'v_' + name;
+    return this.play(key, { bus: 'voice', exact: true, force: true, voiceKey: key });
   },
   loop(name, on, vol = 0.5) {
     if (!this.ctx) return;
@@ -96,10 +149,10 @@ const AudioSys = {
       src.buffer = this.buffers[name];
       src.loop = true;
       const g = this.ctx.createGain();
-      g.gain.value = vol;
+      g.gain.value = this.safeVol(vol, 0.5);
       src.connect(g).connect(this.buses.sfx);
       src.start();
-      this.loops[name] = { src, g, base: vol };
+      this.loops[name] = { src, g, base: this.safeVol(vol, 0.5) };
     } else if (!on && this.loops[name]) {
       try { this.loops[name].src.stop(); } catch (e) { /* já parado */ }
       delete this.loops[name];
@@ -158,14 +211,21 @@ const AudioSys = {
 
   /* ---------- música ---------- */
   pickBattleTrack() {
-    const own = (this.playlist.tracks || []).filter((t) => t && t.file);
-    const pool = own.length ? own : (this.playlist.fallback || []);
+    const uniqueByFile = (list) => {
+      const seen = new Set();
+      return (Array.isArray(list) ? list : []).filter((t) => {
+        if (!t || !t.file || seen.has(t.file)) return false;
+        seen.add(t.file);
+        return true;
+      });
+    };
+    const own = uniqueByFile(this.playlist.tracks);
+    const pool = own.length ? own : uniqueByFile(this.playlist.fallback);
     if (!pool.length) return null;
-    let choice = pool[(Math.random() * pool.length) | 0];
-    let guard = 0;
-    while (pool.length > 1 && this.lastTrack && choice.file === this.lastTrack && guard++ < 10) {
-      choice = pool[(Math.random() * pool.length) | 0];
-    }
+    const choices = pool.length > 1 && this.lastTrack ? pool.filter((t) => t.file !== this.lastTrack) : pool;
+    const source = choices.length ? choices : pool;
+    const index = Math.floor(Math.random() * source.length);
+    const choice = source[index] || source[0];
     this.lastTrack = choice.file;
     return choice;
   },
@@ -177,18 +237,25 @@ const AudioSys = {
     this.musicKind = kind;
     if (!track || !track.file) return;
     const a = new Audio(track.file);
-    a.loop = true;
-    a.volume = Math.min(1, this.vol('music'));
+    a.loop = kind === 'menu';
+    a.volume = this.musicVolume();
+    a.onended = () => {
+      if (kind !== 'menu' && this.music === a && this.musicKind === kind) this.playMusic(kind);
+    };
     a.onerror = () => {
       // faixa listada mas ainda não enviada: cai para a trilha original
-      if (kind !== 'menu' && (this.playlist.tracks || []).length) {
+      if (this.music !== a) return;
+      if (kind !== 'menu' && Array.isArray(this.playlist.tracks) && this.playlist.tracks.length) {
         this.playlist.tracks = this.playlist.tracks.filter((t) => t.file !== track.file);
         this.playMusic(kind);
       }
     };
-    a.play().catch(() => {});
     this.music = a;
     this.nowPlaying = track.title || track.file.split('/').pop();
+    try {
+      const playback = a.play();
+      if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    } catch (e) { /* política de autoplay ou falha do elemento */ }
     if (typeof UI !== 'undefined' && UI.toast && kind !== 'menu') UI.toast('♪ ' + this.nowPlaying, 2600);
   },
   stopMusic() {
