@@ -12,7 +12,7 @@ const FIGHTERS = [
     bio: 'Careca, barba grisalha (preta e branca) e óculos. Machado de magma na mão e fúria que compila em runtime.',
     colors: { skin: '#d9a066', hair: '#3a2a1a', shirt: '#7a1f1f', pants: '#4a3524', shoes: '#2a1c10', accent: '#ffd27d' },
     traits: { bald: true, beard: 'full', glasses: 'square', muscular: true, scar: true },
-    stats: { power: 1.3, speed: 1.0, weight: 1.25, hp: 128, meterRate: 1.3 },
+    stats: { power: 1.38, speed: 1.02, weight: 1.25, hp: 138, meterRate: 1.38 },
     secret: true,
     quotes: {
       intro: ['Garoto... o build vai quebrar. Em você.', 'A barba cresce. A fúria compila.'],
@@ -98,7 +98,7 @@ const FIGHTERS = [
     bio: 'Boné preto, óculos, barba e camisa estampada. O alien das latas é apelido: conserta gabinetes, arremessa chips e chega acelerando de carro.',
     colors: { skin: '#d6aa8c', hair: '#29221f', shirt: '#303035', pants: '#45658a', shoes: '#343237', accent: '#3ef0d8' },
     traits: { beard: 'short', glasses: 'square', cap: 'forward' },
-    stats: { power: 1.1, speed: 1.2, weight: 0.96, hp: 106 },
+    stats: { power: 1.35, speed: 1.2, weight: 0.96, hp: 122, meterRate: 1.15 },
     quotes: {
       intro: ['Essa lata ainda liga.', '1155 no lugar. Seco.'],
       win: ['Ficou seco.', 'Debloat concluído.'],

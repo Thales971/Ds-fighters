@@ -13,11 +13,11 @@ const POWERS = {
     element: 'magma',
     theme: 'Machado, fúria guerreira, magma e PHP',
     powers: [
-      { id: 'axe', name: 'Machado $_POST', slot: 'simple', row: 0, kind: 'shot', dmg: 11, speed: 10, boomerang: true, homing: 0.25, heavy: true, burn: 120, cd: 46, sfx: 'axe', desc: 'Arremessa o machado de magma, que volta para a mão.' },
-      { id: 'geyser', name: 'Erupção de Magma', slot: 'simple', row: 1, kind: 'pillar', dmg: 13, at: 'target', delay: 16, burn: 180, launch: -8, cd: 70, sfx: 'fire', desc: 'O chão explode em lava sob o adversário.' },
-      { id: 'rage', name: 'Fúria do Guerreiro', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 480, dmgMult: 1.55, armor: true, speedMult: 1.15, heal: 10, burstDmg: 8, sfx: 'ultimate', desc: 'Super armadura, +55% de dano e cura.' },
-      { id: 'quake', name: 'Composer Quake', slot: 'charge', meter: 1, row: 3, kind: 'shot', ground: true, dmg: 17, speed: 8, multiHit: 2, pierce: true, launch: -9, height: 'low', heavy: true, sfx: 'explosion', desc: 'Onda sísmica de basalto pelo chão. Golpe baixo.' },
-      { id: 'apoc', name: 'Fatal Error: Apocalipse PHP', slot: 'ultimate', row: 4, kind: 'rush', dmg: 44, hits: 5, teleport: true, finisherPillars: 3, sfx: 'ultimate', desc: 'Salta no inimigo e parte o mundo com um machado colossal.' },
+      { id: 'axe', name: 'Machado $_POST', slot: 'simple', row: 0, kind: 'shot', dmg: 13, speed: 10, boomerang: true, homing: 0.25, heavy: true, burn: 160, fx: { explode: 2, stun: 6 }, cd: 44, sfx: 'axe', desc: 'Machado de magma que volta: queima, explode e enche tontura.' },
+      { id: 'geyser', name: 'Erupção de Magma', slot: 'simple', row: 1, kind: 'pillar', dmg: 16, at: 'target', delay: 16, burn: 240, launch: -9, fx: { explode: 3, stun: 10 }, cd: 66, sfx: 'fire', desc: 'Lava sob o rival: queimadura forte + explosão + stun.' },
+      { id: 'rage', name: 'Fúria do Guerreiro', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 520, dmgMult: 1.6, armor: true, speedMult: 1.18, heal: 12, burstDmg: 10, sfx: 'ultimate', desc: 'Fúria viva: armadura, +60% dano, velocidade e cura.' },
+      { id: 'quake', name: 'Composer Quake', slot: 'charge', meter: 1, row: 3, kind: 'shot', ground: true, dmg: 20, speed: 8, multiHit: 2, pierce: true, launch: -10, height: 'low', heavy: true, burn: 140, fx: { explode: 2 }, sfx: 'explosion', desc: 'Onda de basalto: dano maior, queima e explode no fim.' },
+      { id: 'apoc', name: 'Fatal Error: Apocalipse PHP', slot: 'ultimate', row: 4, kind: 'rush', dmg: 52, hits: 6, teleport: true, finisherPillars: 3, fx: { burn: 300, explode: 4, stun: 20 }, sfx: 'ultimate', desc: 'Machado colossal: 6 golpes, queimadura longa, explosões e stun no fim.' },
     ],
   },
   iales: {
@@ -25,11 +25,11 @@ const POWERS = {
     theme: 'IAs, código, roubo e acumulação de poderes (auto aim)',
     autoAim: true,
     powers: [
-      { id: 'prompt', name: 'Prompt Teleguiado', slot: 'simple', row: 0, kind: 'shot', dmg: 7, speed: 9, count: 3, spread: 0.35, seek: true, cd: 40, sfx: 'magic', desc: 'Três orbes neurais que sempre encontram o alvo.' },
-      { id: 'dragon', name: 'Dragão de Fogo Rust', slot: 'simple', row: 1, kind: 'shot', dmg: 19, speed: 8, seek: true, pierce: true, multiHit: 3, heavy: true, big: true, burn: 240, cd: 90, sfx: 'dragon', desc: 'Um dragão memory-safe de fogo que persegue e queima.' },
-      { id: 'steal', name: 'Ctrl+C dos Poderes', slot: 'charge', meter: 0, row: 2, kind: 'steal', time: 600, dmg: 8, sfx: 'steal', desc: 'Acerto garantido: rouba as 5 habilidades do rival por 10 s.' },
-      { id: 'neural', name: 'Rede Neural', slot: 'charge', meter: 1, row: 3, kind: 'pillar', at: 'target', delay: 6, dmg: 17, stun: 60, seek: true, sfx: 'thunder_cast', desc: 'Neurônios elétricos prendem o alvo onde ele estiver.' },
-      { id: 'afo', name: 'All For One: Merge Total', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 6, count: 10, seek: true, finisher: 26, sfx: 'ultimate', desc: 'Funde todos os poderes acumulados numa rajada de IAs.' },
+      { id: 'prompt', name: 'Prompt Teleguiado', slot: 'simple', row: 0, kind: 'shot', dmg: 8, speed: 9, count: 3, spread: 0.35, seek: true, cd: 38, fx: { drain: 0.08, vuln: 120 }, sfx: 'magic', desc: 'Três orbes que sempre acertam: roubam vida e deixam vulnerável.' },
+      { id: 'dragon', name: 'Dragão de Fogo Rust', slot: 'simple', row: 1, kind: 'shot', dmg: 21, speed: 8, seek: true, pierce: true, multiHit: 3, heavy: true, big: true, burn: 260, fx: { explode: 2, shock: 80 }, cd: 86, sfx: 'dragon', desc: 'Dragão de fogo: queima, explode e eletriza os controles.' },
+      { id: 'steal', name: 'Ctrl+C dos Poderes', slot: 'charge', meter: 0, row: 2, kind: 'steal', time: 600, dmg: 10, fx: { blind: 140, lock: 90, meterSlow: 200 }, sfx: 'steal', desc: 'Rouba as 5 habilidades por 10 s: cega, bloqueia poderes e atrasa o medidor.' },
+      { id: 'neural', name: 'Rede Neural', slot: 'charge', meter: 1, row: 3, kind: 'pillar', at: 'target', delay: 6, dmg: 19, stun: 70, seek: true, fx: { shock: 120, poison: 160, chill: 100, bleed: 120 }, sfx: 'thunder_cast', desc: 'Neurônios prendem o alvo: choque + veneno + gelo + sangramento + tontura.' },
+      { id: 'afo', name: 'All For One: Merge Total', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 7, count: 12, seek: true, finisher: 30, fx: { vuln: 240, slow: 100, meterBurn: 8 }, sfx: 'ultimate', desc: 'Rajada de IAs acumuladas: vulnerável, lento e medidor queimado no finisher.' },
     ],
   },
   felipinho: {

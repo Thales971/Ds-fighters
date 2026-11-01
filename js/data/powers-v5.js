@@ -130,7 +130,7 @@ FIGHTERS.push(
     bio: 'Vigilante tático com insígnia de caveira e colete preto e cinza. Lê o campo, expõe a ameaça e não deixa brechas.',
     colors: { skin: '#c48f70', hair: '#1b1b1f', shirt: '#25282e', pants: '#15171b', shoes: '#111217', accent: '#d6d9df' },
     traits: { tacticalSkull: true, vest: 'black-grey', facePhoto: true },
-    stats: { power: 1.36, speed: 1.0, weight: 1.1, hp: 140, meterRate: 1.35 },
+    stats: { power: 1.38, speed: 1.0, weight: 1.1, hp: 140, meterRate: 1.35 },
     secret: false,
     quotes: {
       intro: ['A área está sob controle.', 'Você foi identificado como ameaça.'],
