@@ -36,6 +36,14 @@ Quedas: quem cair tem **30 s** para voltar (o navegador reconecta sozinho). A lu
 
 O `vercel.json` do repositório já define o cache dos assets, e o `.vercelignore` deixa de fora ferramentas e o servidor.
 
+**Erro `500 FUNCTION_INVOCATION_FAILED`?** O Vercel tentou rodar o servidor Node em vez de servir os arquivos. No projeto do Vercel, vá em **Settings → Build and Deployment** e confira:
+
+- **Root Directory**: vazio (raiz do repositório), **não** `online-server`.
+- **Framework Preset**: **Other**.
+- **Build Command**, **Output Directory** e **Install Command**: desligados/vazios (sem override).
+
+Salve e faça **Deployments → ⋯ → Redeploy** (desmarque "Use existing Build Cache").
+
 ### Netlify / Cloudflare Pages
 
 Mesmo esquema: importe o repositório, sem comando de build, diretório de publicação = raiz.
