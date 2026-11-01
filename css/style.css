@@ -11,7 +11,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #05020b; overflow: hidden; }
-body { font-family: 'Press Start 2P', monospace; color: #fff; -webkit-font-smoothing: none; user-select: none; touch-action: none; }
+body { font-family: 'Press Start 2P', monospace; color: #fff; -webkit-font-smoothing: none; user-select: none; touch-action: manipulation; }
 button, input, select { font-family: inherit; }
 kbd { display: inline-block; min-width: 20px; padding: 3px 5px; border: 2px solid #ffd27d; border-bottom-width: 4px; border-radius: 4px; background: #241640; color: var(--gold); font: 9px 'Press Start 2P', monospace; text-align: center; }
 .hidden, [hidden] { display: none !important; }
@@ -402,7 +402,7 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 .t-up { left: 50px; top: 0; } .t-down { left: 50px; bottom: 0; } .t-left { left: 0; top: 50px; } .t-right { right: 0; top: 50px; }
 .tbtns { position: absolute; right: 16px; bottom: 90px; display: grid; grid-template-columns: repeat(4, 54px); gap: 6px; }
 .tbtns button { width: 54px; height: 54px; }
-.tbtns .ult { background: rgba(255,122,42,.35) !important; }
+.tbtns .ult { background-color: rgba(255,122,42,.35) !important; }
 .tbtns .pause { position: fixed; top: 0; right: 0; }
 .kit.big .ico { width: 64px; height: 64px; }
 

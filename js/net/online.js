@@ -359,6 +359,7 @@ const Net = {
     });
     this.pendingJoin = null;
     this.status = 'open';
+    this.lastPongAt = performance.now();
     this.retries = 0;
     this.link = { send: (o) => { if (dc.open) dc.send(o); }, close: () => { try { dc.close(); } catch (e) { /* */ } } };
     dc.on('data', (m) => this.onMessage(m));

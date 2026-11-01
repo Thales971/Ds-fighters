@@ -21,6 +21,8 @@ const UI = {
     document.querySelectorAll('#scr-menu [data-go]').forEach((b) => b.addEventListener('click', () => this.menuGo(b.dataset.go)));
     this.$('btn-start').addEventListener('click', () => this.pressStart());
     this.$('btn-fight').addEventListener('click', () => this.confirmStage());
+    this.$('btn-mobile-account').addEventListener('click', () => this.$('account-box').scrollIntoView({ block: 'start', behavior: Profile.reducedMotion() ? 'auto' : 'smooth' }));
+    this.$('btn-fullscreen').addEventListener('click', () => AppViewport.fullscreen());
     this.$('rules-start').addEventListener('click', () => this.startFlow('versus', {
       customRules: { roundsToWin: Number(this.$('rules-rounds').value), timer: Number(this.$('rules-timer').value), infiniteLife: this.$('rules-life').checked, infiniteMeter: this.$('rules-meter').checked },
       p2Human: this.$('rules-opponent').value === 'human',
@@ -47,6 +49,7 @@ const UI = {
 
   /* ---------- telas ---------- */
   show(name, push) {
+    if (this.screen !== name) Input.releaseAll();
     if (push && this.screen) this.stack.push(this.screen);
     else if (!push) this.stack = [];
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.dataset.screen === name));
@@ -221,6 +224,7 @@ const UI = {
     [0, 1].forEach((ti) => this.renderCard(ti));
     const keys = f.p2Human ? 'P1: WASD + Enter confirma, Backspace volta · P2: setas + J confirma, K volta' : 'WASD ou controle movem · Enter, Espaço ou ✕ confirma · Backspace ou ○ volta';
     this.$('sel-help').innerHTML = keys + (f.mode === 'versus' || f.mode === 'tag' ? (f.p2Human ? '' : ' · <b>Jogador 2: aperte J para entrar</b>') : '') + ' · <b>Esc</b> menu';
+    if (document.body.classList.contains('mobile')) this.$('sel-help').textContent = 'Toque no lutador para escolher. A próxima escolha será o adversário ou parceiro, conforme o modo.';
   },
   renderCard(ti) {
     const f = this.flow;
@@ -586,8 +590,33 @@ const UI = {
   updateTouch() {
     const t = Profile.setting('touch');
     const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    const on = (t === 'on' || (t === 'auto' && coarse)) && this.screen === 'fight';
-    this.$('touch-controls').classList.toggle('hidden', !on);
+    const on = (t === 'on' || (t === 'auto' && (coarse || navigator.maxTouchPoints > 0))) && this.screen === 'fight';
+    const controls = this.$('touch-controls');
+    if (!on && !controls.classList.contains('hidden')) Input.releaseAll();
+    controls.classList.toggle('hidden', !on);
+    controls.setAttribute('aria-hidden', String(!on));
+    if (on) this.updateTouchPowers();
+    if (typeof AppViewport !== 'undefined' && AppViewport.ready) AppViewport.fit();
+  },
+  updateTouchPowers() {
+    if (!this.game || this.$('touch-controls').classList.contains('hidden')) return;
+    const team = this.game.mode === 'online' ? this.game.cfg.localTeam || 0 : 0;
+    const fighter = this.game.activeOf(team);
+    if (!fighter) return;
+    const kit = fighter.currentKit();
+    const key = fighter.def.id + ':' + kit.map((p) => p.id).join(',');
+    if (key === this._touchKitKey) return;
+    this._touchKitKey = key;
+    this.$('touch-controls').querySelectorAll('[data-power]').forEach((button) => {
+      const index = +button.dataset.power;
+      const power = kit[index];
+      button.hidden = !power;
+      button.setAttribute('aria-label', power ? `${index + 1}: ${power.name}` : 'Habilidade indisponível');
+      button.classList.toggle('ult', !!power && power.slot === 'ultimate');
+      button.innerHTML = `<span class="touch-key">${index === 9 ? '0' : index + 1}</span>`;
+      button.style.cssText = power ? Art.css('abil:' + fighter.kitOwnerId(power), power.row, 0, 44) : '';
+    });
+    if (typeof AppViewport !== 'undefined' && AppViewport.ready) AppViewport.fit();
   },
 
   /* ---------- lista de golpes ---------- */
@@ -662,7 +691,7 @@ const UI = {
   },
   tick() {
     const m = Input.menu();
-    const typing = document.activeElement && (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text');
+    const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if (this.screen === 'title') {
       if (Input.hit(['Enter', 'Space']) || m.confirm || m.start) this.pressStart();
       return;
@@ -670,6 +699,7 @@ const UI = {
     if (this.screen === 'select') { this.selectKeys(m); return; }
     if (this.screen === 'fight') {
       if (m.start) this.pause();
+      if ((this._touchTick = (this._touchTick || 0) + 1) % 15 === 0) this.updateTouchPowers();
       return;
     }
     if (this.screen === 'vs') return;

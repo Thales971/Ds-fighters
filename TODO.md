@@ -33,3 +33,10 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Japão oriental e Distrito Neon 2077: duas arenas originais com 24 quadros cada, preservando SENAI/SESI e o restante do catálogo. Total 25 lutadores/39 arenas.
 - [x] 38 músicas recebidas em MP4: áudio normalizado e compacto, sorteio sem repetição imediata, troca ao fim da faixa e ducking do narrador com sobreposição/mute corretos. Vídeos/fotos originais não entram na distribuição.
 - [x] Seleção, arte, kits, stun/vida/timer, cronômetro de três dígitos, mixer, mapas anteriores, perfil/Firebase/Supabase e online local 2p/4p verificados. Commit autorizado preparado com documentação e pacote de arte; publicação WSS permanente e Google continuam nas pendências externas acima.
+
+## Mobile e serviços — 01/11/2026
+
+- [x] Mobile jogável: menus e campos em pixels reais, scroll, retrato/paisagem, arena proporcional e controles de 44px. Seis tamanhos passaram sem overflow; viewport visual e campos com teclado testados.
+- [x] Movimentação real, seleção/início só por toque, pular/agachar/ataques e até dez habilidades/segunda ultimate/troca/pausa disponíveis. Multitouch/captura, teclado simultâneo, blur e pausa sem comandos presos passaram.
+- [x] Online: WS local 2p/4p, P2P com broker público 2p/4p, código, chat, regras, movimento, HP e troca. Reconexão P2P real passou após corrigir heartbeat. WSS permanente/diretório global permanece pendência externa.
+- [x] Conta: email habilitado, cadastro/login e recuperação implementados; SDK real com Auth/REST simulados no mobile e testes Node passaram. Google adiado; sem senhas em localStorage, sem usuários fictícios no Supabase e sem alterar Aero Ball. Confirmação de email real ainda não foi testada.

@@ -40,6 +40,10 @@ function makeSupabase(state, options) {
     callback: null,
     getSessionCalls: 0,
     oauthCalls: [],
+    emailSignInCalls: [],
+    signUpCalls: [],
+    recoveryCalls: [],
+    updatePasswordCalls: [],
     signOutCalls: [],
     onAuthStateChange(callback) {
       this.callback = callback;
@@ -53,6 +57,40 @@ function makeSupabase(state, options) {
     async signInWithOAuth(payload) {
       this.oauthCalls.push(payload);
       return { data: { url: 'https://accounts.google.test/oauth' }, error: null };
+    },
+    async signInWithPassword(payload) {
+      this.emailSignInCalls.push(payload);
+      if (state.emailSignInError) return { data: { user: null, session: null }, error: state.emailSignInError };
+      const session = state.emailSignInSession || null;
+      if (session) {
+        state.session = session;
+        if (typeof this.callback === 'function') setTimeout(() => this.callback('SIGNED_IN', session), 0);
+      }
+      return { data: { user: session && session.user ? session.user : null, session }, error: null };
+    },
+    async signUp(payload) {
+      this.signUpCalls.push(payload);
+      if (state.signUpError) return { data: { user: null, session: null }, error: state.signUpError };
+      const response = state.signUpResponse || {
+        user: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', email: payload.email },
+        session: null,
+      };
+      if (response.session) {
+        state.session = response.session;
+        if (typeof this.callback === 'function') setTimeout(() => this.callback('SIGNED_IN', response.session), 0);
+      }
+      return { data: response, error: null };
+    },
+    async resetPasswordForEmail(email, options) {
+      this.recoveryCalls.push({ email, options });
+      if (state.recoveryError) return { data: null, error: state.recoveryError };
+      return { data: {}, error: null };
+    },
+    async updateUser(payload) {
+      this.updatePasswordCalls.push(payload);
+      if (state.updatePasswordDelay) await sleep(state.updatePasswordDelay);
+      if (state.updatePasswordError) return { data: null, error: state.updatePasswordError };
+      return { data: { user: state.session && state.session.user ? state.session.user : null }, error: null };
     },
     async signOut(payload) {
       this.signOutCalls.push(payload);
@@ -114,6 +152,13 @@ function boot(options) {
     remote: Object.assign({}, opts.remote),
     queryDelay: Object.assign({}, opts.queryDelay),
     queryErrors: Object.assign({}, opts.queryErrors),
+    emailSignInSession: opts.emailSignInSession || null,
+    emailSignInError: opts.emailSignInError || null,
+    signUpResponse: opts.signUpResponse || null,
+    signUpError: opts.signUpError || null,
+    recoveryError: opts.recoveryError || null,
+    updatePasswordError: opts.updatePasswordError || null,
+    updatePasswordDelay: opts.updatePasswordDelay || 0,
     queries: [],
     upserts: [],
     createClientCalls: [],
@@ -283,6 +328,121 @@ async function testGooglePkceAndDisabledProvider() {
   assert.match(disabled.Cloud.error, /desativado/i);
 }
 
+async function testEmailAuthFlows() {
+  const uid = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const session = {
+    user: { id: uid, email: 'player@example.test', user_metadata: { full_name: 'Email Player' } },
+    access_token: 'fixture-access-token',
+    refresh_token: 'fixture-refresh-token',
+  };
+  const settings = {
+    external: { email: true, google: false },
+    disable_signup: false,
+    mailer_autoconfirm: false,
+  };
+  const env = boot({ settings, emailSignInSession: session });
+  assert.equal(await env.Cloud.init(), true);
+  assert.equal(env.Cloud.emailEnabled, true);
+  assert.equal(env.Cloud.emailSignupEnabled, true);
+  assert.equal(env.Cloud.emailConfirmationRequired, true);
+  assert.equal(env.Cloud.googleEnabled, false);
+
+  assert.equal(await env.Cloud.signUpWithEmail(' Player@Example.com ', 'secret123'), true);
+  assert.equal(env.state.auth.signUpCalls[0].email, 'player@example.com');
+  assert.equal(env.state.auth.signUpCalls[0].password, 'secret123');
+  assert.equal(env.state.auth.signUpCalls[0].options.emailRedirectTo, 'https://game.test/index.html');
+  assert.equal(env.Cloud.user, null, 'signup with confirmation must not claim a logged-in user');
+  assert.equal(env.Cloud.status, 'confirm-email');
+  assert.match(env.Cloud.error, /confira seu email/i);
+  assert.equal(Object.prototype.hasOwnProperty.call(env.Cloud, 'password'), false, 'password is not retained on Cloud');
+
+  assert.equal(await env.Cloud.signInWithEmail('PLAYER@example.com', 'secret123'), true);
+  await waitFor(() => env.Cloud.user && env.Cloud.user.uid === uid);
+  assert.equal(env.state.auth.emailSignInCalls[0].email, 'player@example.com');
+  assert.equal(env.state.auth.emailSignInCalls[0].password, 'secret123');
+  assert.equal(env.Profile.accountUid, 'supabase:ownxbuailthavxgfxtem:' + uid);
+
+  assert.equal(await env.Cloud.signOut(), true);
+  await waitFor(() => env.Cloud.user === null);
+  assert.equal(await env.Cloud.resetPasswordForEmail('PLAYER@example.com'), true);
+  assert.equal(env.Cloud.status, 'recovery-sent');
+  assert.match(env.Cloud.error, /se existir uma conta/i);
+  assert.equal(env.state.auth.recoveryCalls[0].email, 'player@example.com');
+  assert.equal(env.state.auth.recoveryCalls[0].options.redirectTo, 'https://game.test/index.html');
+
+  const invalid = boot({
+    settings,
+    emailSignInError: { code: 'invalid_credentials', message: 'Invalid login credentials' },
+  });
+  await invalid.Cloud.init();
+  assert.equal(await invalid.Cloud.signInWithEmail('player@example.com', 'wrong123'), false);
+  assert.match(invalid.Cloud.error, /email ou senha inválidos/i);
+
+  const disabled = boot({ settings: { external: { email: false, google: false }, disable_signup: false } });
+  await disabled.Cloud.init();
+  assert.equal(await disabled.Cloud.signInWithEmail('player@example.com', 'secret123'), false);
+  assert.equal(disabled.state.auth.emailSignInCalls.length, 0, 'disabled email provider must not call Auth');
+  assert.match(disabled.Cloud.error, /email.*desativado/i);
+}
+
+async function testPasswordRecovery() {
+  const uidA = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const uidB = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+  const session = {
+    user: { id: uidA, email: 'recovery@example.test' },
+    access_token: 'fixture-recovery-access-token',
+    refresh_token: 'fixture-recovery-refresh-token',
+  };
+  const settings = { external: { email: true, google: false }, disable_signup: false };
+
+  const env = boot({ settings });
+  await env.Cloud.init();
+  env.state.session = session;
+  env.state.auth.callback('PASSWORD_RECOVERY', session);
+  await waitFor(() => env.Cloud.passwordRecoveryPending && env.Cloud.user && env.Cloud.user.uid === uidA);
+  assert.equal(env.Cloud._passwordRecoveryUid, uidA);
+  assert.equal(await env.Cloud.updatePassword('new-secret-123'), true);
+  assert.equal(env.state.auth.updatePasswordCalls.length, 1);
+  assert.equal(env.state.auth.updatePasswordCalls[0].password, 'new-secret-123');
+  assert.equal(env.Cloud.passwordRecoveryPending, false, 'success clears the recovery flag');
+  assert.equal(env.Cloud._passwordRecoveryUid, '', 'success clears the recovery uid');
+  assert.equal(Object.prototype.hasOwnProperty.call(env.Cloud, 'password'), false, 'Cloud does not retain a password');
+
+  const failed = boot({ settings, session, updatePasswordError: { code: 'weak_password', message: 'Password should be stronger' } });
+  await failed.Cloud.init();
+  failed.state.auth.callback('PASSWORD_RECOVERY', session);
+  await waitFor(() => failed.Cloud.passwordRecoveryPending && failed.Cloud.user && failed.Cloud.user.uid === uidA);
+  assert.equal(await failed.Cloud.updatePassword('new-secret-123'), false);
+  assert.equal(failed.Cloud.passwordRecoveryPending, true, 'an Auth error keeps the recovery flag');
+  assert.match(failed.Cloud.error, /senha.*requisitos/i);
+  await failed.Cloud.signOut();
+  assert.equal(failed.Cloud.passwordRecoveryPending, false, 'logout clears a failed recovery flag');
+
+  const stale = boot({ settings, session, updatePasswordDelay: 30 });
+  await stale.Cloud.init();
+  stale.state.auth.callback('PASSWORD_RECOVERY', session);
+  await waitFor(() => stale.Cloud.passwordRecoveryPending && stale.Cloud.user && stale.Cloud.user.uid === uidA);
+  await sleep(10);
+  const pendingUpdate = stale.Cloud.updatePassword('new-secret-123');
+  await waitFor(() => stale.state.auth.updatePasswordCalls.length === 1);
+  await stale.Cloud._handleUser({ uid: uidB, displayName: 'Other session' });
+  assert.equal(await pendingUpdate, false, 'a stale update cannot report success');
+  assert.equal(stale.Cloud.passwordRecoveryPending, true, 'stale completion does not clear the flag');
+  assert.equal(stale.Cloud.user.uid, uidB);
+
+  const mismatch = boot({ settings, session });
+  await mismatch.Cloud.init();
+  mismatch.state.auth.callback('PASSWORD_RECOVERY', session);
+  await waitFor(() => mismatch.Cloud.passwordRecoveryPending && mismatch.Cloud.user && mismatch.Cloud.user.uid === uidA);
+  await sleep(10);
+  await mismatch.Cloud._handleUser({ uid: uidB, displayName: 'Wrong session' });
+  assert.equal(mismatch.Cloud.user.uid, uidB);
+  assert.equal(mismatch.state.session.user.id, uidA);
+  assert.equal(await mismatch.Cloud.updatePassword('new-secret-123'), false, 'a recovery session mismatch is rejected');
+  assert.equal(mismatch.state.auth.updatePasswordCalls.length, 0);
+  assert.equal(mismatch.Cloud.passwordRecoveryPending, true);
+}
+
 async function testAutosaveManualFlushAndDirtyInFlight() {
   const uid = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
   const env = boot({ fastTimers: true });
@@ -372,10 +532,12 @@ async function testLocalSignOut() {
   await testFallbackAndNamespace();
   await testRemoteMergeAndManualSync();
   await testGooglePkceAndDisabledProvider();
+  await testEmailAuthFlows();
+  await testPasswordRecovery();
   await testAutosaveManualFlushAndDirtyInFlight();
   await testStaleAccountSwitchAndAuthCallback();
   await testLocalSignOut();
-  console.log('supabase_cloud_test: PASS (fallback, namespace, merge, PKCE, autosave, stale sessions, callback safety, local signout)');
+  console.log('supabase_cloud_test: PASS (fallback, namespace, merge, PKCE, email auth, password recovery, autosave, stale sessions, callback safety, local signout)');
 })().catch((error) => {
   console.error(error.stack || error);
   process.exitCode = 1;

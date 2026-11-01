@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/account.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -19,6 +20,7 @@
     <button id="ld-retry" class="btn" hidden>Tentar de novo</button>
   </div>
   <div id="app" class="crt">
+    <div id="game-view">
     <div id="stage-wrap" aria-hidden="true">
       <canvas id="game" width="960" height="540"></canvas>
     </div>
@@ -44,6 +46,7 @@
     </div>
     <div id="banner" aria-live="polite"><div class="b-main"></div><div class="b-sub"></div></div>
     <div id="cutin" aria-hidden="true"><div class="ci-bg"></div><div class="ci-face"></div><div class="ci-name"></div><div class="ci-move"></div></div>
+    </div>
     <div id="toast" role="status"></div>
 
     <section class="screen" id="scr-title" data-screen="title">
@@ -58,6 +61,7 @@
     <section class="screen" id="scr-menu" data-screen="menu">
       <div class="menu-bg"></div>
       <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
+      <button class="nav btn mobile-only" id="btn-mobile-account">CONTA / SALVAR PROGRESSO</button>
       <nav class="main-menu" aria-label="Menu principal">
         <button class="nav mm" data-go="arcade"><span>ARCADE</span><small>Escada de 7 lutas contra a CPU</small></button>
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
@@ -109,6 +113,7 @@
         </div>
         <aside class="sel-card p2" id="card-1"></aside>
       </div>
+      <button class="nav btn mobile-only" data-back>VOLTAR AO MENU</button>
     </section>
 
     <section class="screen" id="scr-stage" data-screen="stage">
@@ -271,22 +276,28 @@
     <div id="fps" class="fps" hidden>-- FPS</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
-        <button data-k="KeyW" class="t-up">▲</button>
-        <button data-k="KeyA" class="t-left">◀</button>
-        <button data-k="KeyD" class="t-right">▶</button>
-        <button data-k="KeyS" class="t-down">▼</button>
+        <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
+        <button data-k="KeyA" class="t-left" aria-label="Mover para esquerda">◀</button>
+        <button data-k="KeyD" class="t-right" aria-label="Mover para direita">▶</button>
+        <button data-k="KeyS" class="t-down" aria-label="Agachar">▼</button>
       </div>
       <div class="tbtns">
-        <button data-k="MouseLeft">SOCO</button>
-        <button data-k="MouseRight">CHUTE</button>
-        <button data-k="Digit1">1</button>
-        <button data-k="Digit2">2</button>
-        <button data-k="Digit3">3</button>
-        <button data-k="Digit4">4</button>
-        <button data-k="Digit5" class="ult">5</button>
-        <button data-k="KeyR">TROCA</button>
-        <button data-k="Escape" class="pause">II</button>
+        <button data-k="MouseLeft" aria-label="Soco">SOCO</button>
+        <button data-k="MouseRight" aria-label="Chute">CHUTE</button>
+        <button data-k="KeyR" aria-label="Trocar lutador">TROCA</button>
+        <button data-k="Digit1" data-power="0">1</button>
+        <button data-k="Digit2" data-power="1">2</button>
+        <button data-k="Digit3" data-power="2">3</button>
+        <button data-k="Digit4" data-power="3">4</button>
+        <button data-k="Digit5" data-power="4" class="ult">5</button>
+        <button data-k="Digit6" data-power="5" hidden>6</button>
+        <button data-k="Digit7" data-power="6" hidden>7</button>
+        <button data-k="Digit8" data-power="7" hidden>8</button>
+        <button data-k="Digit9" data-power="8" hidden>9</button>
+        <button data-k="Digit0" data-power="9" hidden>0</button>
       </div>
+      <div class="touch-toolbar"><button data-k="Escape" aria-label="Pausar luta">PAUSA</button><button id="btn-fullscreen" aria-label="Alternar tela cheia">TELA CHEIA</button></div>
+      <p class="mobile-only mobile-landscape-hint">Em paisagem a arena fica maior.</p>
     </div>
   </div>
 
@@ -310,6 +321,7 @@
   <script src="js/engine/fx.js"></script>
   <script src="js/engine/audio.js"></script>
   <script src="js/engine/input.js"></script>
+  <script src="js/ui/viewport.js"></script>
   <script src="js/engine/projectile.js"></script>
   <script src="js/engine/fighter.js"></script>
   <script src="js/engine/weather.js"></script>

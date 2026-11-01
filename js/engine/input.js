@@ -9,6 +9,9 @@ const ACTIONS = ['punch', 'kick', 'tag'].concat(Array.from({ length: POWER_SLOTS
 const Input = {
   keys: new Set(),
   pressed: new Set(),
+  _physical: new Set(),
+  _touchPointers: new Map(),
+  _touchCodes: new Map(),
   padState: [{}, {}],
   padCount: 0,
   _prevPad: [new Set(), new Set()],
@@ -46,11 +49,14 @@ const Input = {
     };
     window.addEventListener('keydown', (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+      this._physical.add(e.code);
       mark(e.code);
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
     });
-    window.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('blur', () => { this.keys.clear(); });
+    window.addEventListener('keyup', (e) => { this._physical.delete(e.code); if (!this._touchCodes.has(e.code)) this.keys.delete(e.code); });
+    window.addEventListener('blur', () => this.releaseAll());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.releaseAll(); });
+    document.addEventListener('focusin', (e) => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) this.releaseAll(); });
     const app = document.getElementById('app');
     const area = document.getElementById('stage-wrap');
     const mouseCode = (btn) => (btn === 0 ? 'MouseLeft' : btn === 2 ? 'MouseRight' : '');
@@ -58,27 +64,45 @@ const Input = {
       const code = mouseCode(e.button);
       if (!code) return;
       e.preventDefault();
-      if (typeof UI !== 'undefined' && UI.screen === 'fight') mark(code);
+      if (typeof UI !== 'undefined' && UI.screen === 'fight') { this._physical.add(code); mark(code); }
     };
     if (area) area.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', (e) => {
       const code = mouseCode(e.button);
-      if (code) this.keys.delete(code);
+      if (code) { this._physical.delete(code); if (!this._touchCodes.has(code)) this.keys.delete(code); }
     });
-    if (app) app.addEventListener('contextmenu', (e) => e.preventDefault());
+    if (app) app.addEventListener('contextmenu', (e) => { if (!/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.preventDefault(); });
     document.querySelectorAll('#touch-controls [data-k]').forEach((btn) => {
       const code = btn.dataset.k;
       const on = (e) => {
         e.preventDefault();
+        if (this._touchPointers.has(e.pointerId)) return;
+        this._touchPointers.set(e.pointerId, { code, btn });
+        this._touchCodes.set(code, (this._touchCodes.get(code) || 0) + 1);
+        try { btn.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
         mark(code);
         btn.classList.add('on');
       };
-      const off = (e) => { e.preventDefault(); this.keys.delete(code); btn.classList.remove('on'); };
+      const off = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const held = this._touchPointers.get(e.pointerId);
+        if (!held) return;
+        this._touchPointers.delete(e.pointerId);
+        const count = (this._touchCodes.get(held.code) || 1) - 1;
+        if (count > 0) this._touchCodes.set(held.code, count);
+        else { this._touchCodes.delete(held.code); if (!this._physical.has(held.code)) this.keys.delete(held.code); }
+        held.btn.classList.toggle('on', count > 0);
+      };
       btn.addEventListener('pointerdown', on);
       btn.addEventListener('pointerup', off);
       btn.addEventListener('pointercancel', off);
-      btn.addEventListener('pointerleave', off);
+      btn.addEventListener('lostpointercapture', off);
     });
+  },
+  releaseAll() {
+    this._touchPointers.forEach(({ btn }) => btn.classList.remove('on'));
+    this._touchPointers.clear(); this._touchCodes.clear(); this._physical.clear();
+    this.keys.clear(); this.pressed.clear();
   },
   down(codes) { return codes.some((c) => this.keys.has(c)); },
   hit(codes) { return codes.some((c) => this.pressed.has(c)); },

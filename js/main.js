@@ -45,14 +45,8 @@ function preloadAll() {
   window.addEventListener('pointerdown', unlock, { once: false, passive: true });
   window.addEventListener('keydown', unlock, { once: false });
 
-  // escala da arena: ocupa a janela mantendo 16:9 e pixels nítidos
-  const fit = () => {
-    const app = document.getElementById('app');
-    const s = Math.min(window.innerWidth / 960, window.innerHeight / 540);
-    app.style.setProperty('--scale', s.toFixed(4));
-  };
-  window.addEventListener('resize', fit);
-  fit();
+  // Desktop permanece escalado; mobile usa menus e controles em pixels de tela.
+  AppViewport.init();
 
   /* Simulação fixa a 60 passos/s (determinística, igual ao online) e
      renderização na taxa do monitor (120/144/240 Hz) com interpolação. */

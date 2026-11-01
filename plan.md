@@ -49,3 +49,9 @@ Arte: quatro blocos transparentes (4 × 8 e 4 × 7 por lutador), normalizados em
 Divisão: código de personagens/balanceamento em `js/data/powers-v5.js` + `fighter.js`; áudio em `audio.js` e defaults de perfil; integração de arte, tempo, UI, protocolo, mapa e testes de ponta a ponta pela tarefa principal. Não delegar alterações de Git nem imagens pagas; somente o agente principal gera a arte.
 
 **Atualização de anexos:** às 10:38–10:39 o proprietário enviou os vídeos das músicas e fotos adicionais do rosto. Usar a foto grande já fornecida para a identidade do THL; as novas imagens pequenas são complementares, sem refazer arte consistente. Extrair somente o áudio de todos os MP4 recebidos, normalizar loudness/true peak e codificar MP3 compacto com títulos de faixa, preservando vídeos originais. Registrar o lote em `assets/music/playlist.json` e relatório de duração/tamanho; a ausência inicial de música foi resolvida. Conversão em script único com concorrência limitada, não pesquisas por música.
+
+## Correção mobile e verificação de serviços — 01/11/2026
+
+Preservar Canvas 960×540 e desktop; separar menus responsivos, palco proporcional e controles de toque em tamanho físico útil. Adaptar retrato/paisagem, viewport visual/teclado e safe areas, sem cortar formulários. Viewport em js/main.js; estilos mobile dedicados; markup/input/UI existentes para navegação por toque e todas as habilidades.
+
+Online: verificar criação/entrada, protocolo, P2P público e WSS local; distinguir diretório que ainda exige WSS permanente. Conta: Google segue adiado; verificar Supabase e permitir email se o provedor já está habilitado, sem mexer em settings compartilhados ou criar usuários fictícios. Preservar RLS e isolamento de progresso. Divisão: pai cuida do mobile, um agente de conta, outro de online; testes e commits pelo pai.

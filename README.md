@@ -292,3 +292,7 @@ Qwen agora é a **terceira no poder permanente**: IALES 1,50, Felipinho 1,40, Qw
 O projeto `supabase-aero-ball` foi reativado com autorização. `ds_fighters_profiles` tem RLS própria e não altera tabelas antigas. Cliente Supabase com chave publicável, SDK local fixo e perfis/sessões separados. Testes de merge, autosave, offline, troca de conta e fallback passaram; a API real bloqueou leitura anônima. **Google ainda aguarda Client ID/Secret e redirect autorizado**. Detalhes em [SUPABASE.md](SUPABASE.md).
 
 **Segurança do projeto compartilhado:** 20 tabelas anteriores estão sem RLS. Não foram alteradas para evitar bloquear outro aplicativo; devem ser revisadas separadamente antes de armazenar dados privados.
+
+## Mobile e contas por email
+
+Menus e formulários agora se adaptam a retrato/paisagem; só a arena recebe escala 16:9. Toque multitouch de 44px, pausa, tela cheia e até dez habilidades. Email/senha permitem cadastro e login sem Google; confirmação de email real continua necessária. Online P2P testado com 2/4 navegadores e reconexão; diretório global ainda precisa de WSS permanente. Resultados e limites em [MOBILE-ONLINE-CONTAS.md](MOBILE-ONLINE-CONTAS.md).

@@ -12,7 +12,8 @@ OUT = '/home/ubuntu/work/shots'
 TRANSPORT = sys.argv[1] if len(sys.argv) > 1 else 'ws'
 NP = int(sys.argv[2]) if len(sys.argv) > 2 else 2
 os.makedirs(OUT, exist_ok=True)
-web = subprocess.Popen([sys.executable, '-m', 'http.server', '8097'], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+WEB_PORT = int(os.environ.get('DS_WEB_PORT', '8097'))
+web = subprocess.Popen([sys.executable, '-m', 'http.server', str(WEB_PORT)], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 srv = None
 if TRANSPORT == 'ws':
     srv = subprocess.Popen(['node', 'server.js'], cwd=os.path.join(ROOT, 'online-server'), env=dict(os.environ, PORT='8787'), stdout=subprocess.DEVNULL)
@@ -28,7 +29,7 @@ try:
         for name in names:
             pg = b.new_context(viewport={'width': 960, 'height': 540}).new_page()
             pg.on('pageerror', lambda e, n=name: errs.append(n + ': ' + str(e)))
-            pg.goto('http://localhost:8097/index.html')
+            pg.goto(f'http://localhost:{WEB_PORT}/index.html')
             pg.wait_for_function("typeof UI === 'object' && UI.screen", timeout=30000)
             pg.wait_for_timeout(800)
             pg.keyboard.press('Enter')
@@ -108,6 +109,13 @@ try:
         print(tag, 'hp anfitrião', hp_h, 'hp visão convidado', hp_g, 'ping', pages[1].evaluate("Net.ping"), flush=True)
         pages[1].screenshot(path=f'{OUT}/21-online-guest-{tag}.png')
         h.screenshot(path=f'{OUT}/22-online-host-{tag}.png')
+        if TRANSPORT == 'p2p':
+            guest = pages[1]
+            guest.evaluate("window.__oldP2PLink=Net.link;Net.lastPongAt=performance.now()-15000;Net.link.close()")
+            guest.wait_for_function("Net.link && Net.link!==__oldP2PLink && Net.status==='open' && DSGame.running && !DSGame.paused", timeout=30000)
+            guest.wait_for_timeout(1200)
+            assert guest.evaluate("Net.status==='open' && performance.now()-Net.lastPongAt<7500"), 'heartbeat antigo derrubou a reconexão P2P'
+            print(tag, 'reconexão P2P real e heartbeat renovado', flush=True)
         if TRANSPORT == 'ws':
             h.evaluate("""() => {
               DSGame.round=2; DSGame.teamWins=[1,0]; DSGame.activeOf(0).hp=77;

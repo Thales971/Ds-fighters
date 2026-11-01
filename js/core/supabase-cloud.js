@@ -31,6 +31,7 @@
 
   const Cloud = global.Cloud;
   const inheritedUid = typeof Cloud._uid === 'function' ? Cloud._uid : null;
+  const inheritedHandleUser = typeof Cloud._handleUser === 'function' ? Cloud._handleUser : null;
 
   function projectRef() {
     const match = config.url.match(/^https?:\/\/([^./]+)\.supabase\.co(?:\/|$)/i);
@@ -95,10 +96,16 @@
 
   Cloud.provider = 'supabase';
   Cloud.googleEnabled = null;
+  Cloud.emailEnabled = null;
+  Cloud.emailSignupEnabled = null;
+  Cloud.emailConfirmationRequired = null;
+  Cloud.authSettings = null;
   Cloud._supabaseClient = null;
   Cloud._supabaseSubscription = null;
   Cloud._supabaseSettingsPromise = null;
   Cloud._saveRevision = 0;
+  Cloud.passwordRecoveryPending = false;
+  Cloud._passwordRecoveryUid = '';
 
   Cloud.isConfigured = function () {
     return !!readConfig();
@@ -120,8 +127,26 @@
     if (code === 'providerdisabled' || code === 'provider_disabled' || message.includes('provider') && message.includes('not enabled')) {
       return 'O login com Google está desativado neste projeto Supabase. Ative o provedor Google no painel do projeto.';
     }
-    if (code === 'invalid_credentials' || code === 'invalid_grant' || code === 'bad_jwt' || status === 401) {
+    if (code === 'invalid_grant' || code === 'bad_jwt' || status === 401) {
       return 'A sessão do Supabase expirou ou é inválida. Tente entrar novamente.';
+    }
+    if (code === 'email_not_confirmed' || message.includes('email not confirmed') || message.includes('email is not confirmed')) {
+      return 'Confirme seu email antes de entrar. Confira a caixa de entrada e o spam.';
+    }
+    if (code === 'invalid_credentials' || code === 'invalid_login_credentials' || message.includes('invalid login credentials')) {
+      return 'Email ou senha inválidos.';
+    }
+    if (code === 'weak_password' || code === 'password_too_short' || message.includes('password should be at least')) {
+      return 'A senha não atende aos requisitos mínimos do projeto.';
+    }
+    if (code === 'email_provider_disabled' || code === 'email_disabled' || message.includes('email provider') && message.includes('disabled')) {
+      return 'O login por email está desativado neste projeto Supabase.';
+    }
+    if (code === 'signup_disabled' || message.includes('signups not allowed') || message.includes('signup is disabled')) {
+      return 'O cadastro está desativado neste projeto Supabase.';
+    }
+    if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit' || status === 429 || message.includes('rate limit')) {
+      return 'Muitas tentativas. Aguarde um pouco e tente novamente.';
     }
     if (code === '42501' || code === 'pgrst301' || code === 'permission-denied' || status === 403 || message.includes('row-level security') || message.includes('rls')) {
       return 'O Supabase recusou o acesso ao perfil. Confira as políticas RLS da tabela ds_fighters_profiles.';
@@ -152,13 +177,33 @@
     return null;
   };
 
-  Cloud._checkGoogleSettings = async function () {
-    if (typeof this.googleEnabled === 'boolean') return this.googleEnabled;
+  Cloud._readEmailEnabled = function (settings) {
+    const root = settings && typeof settings === 'object' ? settings : {};
+    const external = root.external && typeof root.external === 'object' ? root.external : {};
+    const providers = external.providers && typeof external.providers === 'object' ? external.providers :
+      (root.providers && typeof root.providers === 'object' ? root.providers : {});
+    const candidates = [providers.email, external.email, root.email];
+    for (const value of candidates) if (typeof value === 'boolean') return value;
+    return null;
+  };
+
+  Cloud._readSignupEnabled = function (settings) {
+    const root = settings && typeof settings === 'object' ? settings : {};
+    return typeof root.disable_signup === 'boolean' ? !root.disable_signup : null;
+  };
+
+  Cloud._readEmailConfirmationRequired = function (settings) {
+    const root = settings && typeof settings === 'object' ? settings : {};
+    return typeof root.mailer_autoconfirm === 'boolean' ? !root.mailer_autoconfirm : null;
+  };
+
+  Cloud._checkAuthSettings = async function () {
+    if (this.authSettings && typeof this.authSettings === 'object') return this.authSettings;
     if (this._supabaseSettingsPromise) return this._supabaseSettingsPromise;
     const fetchFn = typeof global.fetch === 'function' ? global.fetch.bind(global) :
       (typeof fetch === 'function' ? fetch : null);
     if (!fetchFn) {
-      this.googleEnabled = null;
+      this.authSettings = null;
       return null;
     }
     const task = (async () => {
@@ -169,13 +214,26 @@
         });
         if (!response || response.ok === false) throw errorWithStatus('settings request failed', response && response.status);
         const body = await response.json();
-        this.googleEnabled = this._readGoogleEnabled(body);
+        this.authSettings = {
+          googleEnabled: this._readGoogleEnabled(body),
+          emailEnabled: this._readEmailEnabled(body),
+          emailSignupEnabled: this._readSignupEnabled(body),
+          emailConfirmationRequired: this._readEmailConfirmationRequired(body),
+        };
+        this.googleEnabled = this.authSettings.googleEnabled;
+        this.emailEnabled = this.authSettings.emailEnabled;
+        this.emailSignupEnabled = this.authSettings.emailSignupEnabled;
+        this.emailConfirmationRequired = this.authSettings.emailConfirmationRequired;
         this._emit();
-        return this.googleEnabled;
+        return this.authSettings;
       } catch (error) {
         // A settings probe is advisory: it must not disable offline play or
         // make init permanently fail. Keeping null allows a later retry.
+        this.authSettings = null;
         this.googleEnabled = null;
+        this.emailEnabled = null;
+        this.emailSignupEnabled = null;
+        this.emailConfirmationRequired = null;
         return null;
       } finally {
         this._supabaseSettingsPromise = null;
@@ -183,6 +241,12 @@
     })();
     this._supabaseSettingsPromise = task;
     return task;
+  };
+
+  Cloud._checkGoogleSettings = async function () {
+    if (typeof this.googleEnabled === 'boolean') return this.googleEnabled;
+    const settings = await this._checkAuthSettings();
+    return settings ? settings.googleEnabled : null;
   };
 
   Cloud._stripOAuthParams = function () {
@@ -259,6 +323,8 @@
 
         if (typeof this._auth.onAuthStateChange === 'function') {
           const subscriptionResult = this._auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') this._markPasswordRecovery(session);
+            if (event === 'SIGNED_OUT') this._clearPasswordRecovery();
             // Supabase warns against awaiting another Auth request from this
             // callback. Defer the lifecycle work until the callback returns.
             schedule(() => { void this._handleUser(sessionUser(session)); }, 0);
@@ -274,7 +340,7 @@
           const seededUser = sessionUser(session);
           if (seededUser) await this._handleUser(seededUser);
         }
-        await this._checkGoogleSettings();
+        await this._checkAuthSettings();
         this._stripOAuthParams();
         if (!this.user && this.status === 'loading') this._setStatus('ready');
         return true;
@@ -306,12 +372,10 @@
     this.error = '';
     this._setStatus('signing');
     try {
-      const location = global.location || {};
-      const redirectTo = String(location.origin || '') + String(location.pathname || '/');
       const result = await this._auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
+          redirectTo: this._redirectUrl(),
           queryParams: { prompt: 'select_account' },
         },
       });
@@ -319,6 +383,201 @@
       return true;
     } catch (error) {
       this._setStatus('error', this._friendlyError(error, 'entrar com Google'));
+      return false;
+    }
+  };
+
+  Cloud._redirectUrl = function () {
+    const location = global.location || {};
+    return String(location.origin || '') + String(location.pathname || '/');
+  };
+
+  Cloud._emailAuthReady = async function (action) {
+    const initialized = await this.init();
+    if (!initialized || !this._auth || !this._supabaseClient) {
+      if (this.status !== 'error') this._setStatus('error', this._friendlyError(null, 'carregar o Supabase'));
+      return false;
+    }
+    await this._checkAuthSettings();
+    if (this.emailEnabled === false) {
+      this._setStatus('error', 'O login por email está desativado neste projeto Supabase.');
+      return false;
+    }
+    if (action === 'signup' && this.emailSignupEnabled === false) {
+      this._setStatus('error', 'O cadastro está desativado neste projeto Supabase.');
+      return false;
+    }
+    return true;
+  };
+
+  Cloud._adoptAuthSession = function (session) {
+    const nextUser = sessionUser(session);
+    if (nextUser && !this.user) schedule(() => { void this._handleUser(nextUser); }, 0);
+    return nextUser;
+  };
+
+  Cloud._markPasswordRecovery = function (session) {
+    const uid = actualUid(session && session.user);
+    if (!uid) return false;
+    const changed = !this.passwordRecoveryPending || this._passwordRecoveryUid !== uid;
+    this.passwordRecoveryPending = true;
+    this._passwordRecoveryUid = uid;
+    if (changed) this._emit();
+    return true;
+  };
+
+  Cloud._clearPasswordRecovery = function () {
+    const changed = this.passwordRecoveryPending || !!this._passwordRecoveryUid;
+    this.passwordRecoveryPending = false;
+    this._passwordRecoveryUid = '';
+    if (changed) this._emit();
+  };
+
+  if (inheritedHandleUser) {
+    Cloud._handleUser = async function (nextUser) {
+      if (!nextUser) this._clearPasswordRecovery();
+      return inheritedHandleUser.call(this, nextUser);
+    };
+  }
+
+  Cloud.signInWithEmail = async function (email, password) {
+    const normalizedEmail = text(email).toLowerCase();
+    if (!normalizedEmail || !text(password)) {
+      this._setStatus('error', 'Digite seu email e sua senha.');
+      return false;
+    }
+    if (!await this._emailAuthReady('signin')) return false;
+    this.error = '';
+    this._setStatus('signing');
+    try {
+      if (typeof this._auth.signInWithPassword !== 'function') throw new Error('Supabase Auth sem login por senha');
+      const result = await this._auth.signInWithPassword({ email: normalizedEmail, password });
+      if (result && result.error) throw result.error;
+      this._adoptAuthSession(result && result.data ? result.data.session : null);
+      return true;
+    } catch (error) {
+      this._setStatus('error', this._friendlyError(error, 'entrar com email'));
+      return false;
+    }
+  };
+
+  Cloud.signUpWithEmail = async function (email, password) {
+    const normalizedEmail = text(email).toLowerCase();
+    if (!normalizedEmail || !text(password)) {
+      this._setStatus('error', 'Digite um email e crie uma senha.');
+      return false;
+    }
+    if (!await this._emailAuthReady('signup')) return false;
+    this.error = '';
+    this._setStatus('signing');
+    try {
+      if (typeof this._auth.signUp !== 'function') throw new Error('Supabase Auth sem cadastro por senha');
+      const result = await this._auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: { emailRedirectTo: this._redirectUrl() },
+      });
+      if (result && result.error) throw result.error;
+      const data = result && result.data ? result.data : {};
+      if (data.session) {
+        this._adoptAuthSession(data.session);
+        return true;
+      }
+      if (data.user) {
+        this._setStatus('confirm-email', 'Conta criada. Confira seu email para confirmar a conta antes de entrar.');
+        return true;
+      }
+      this._setStatus('error', 'Não foi possível criar a conta. Tente novamente.');
+      return false;
+    } catch (error) {
+      this._setStatus('error', this._friendlyError(error, 'criar a conta'));
+      return false;
+    }
+  };
+
+  Cloud.resetPasswordForEmail = async function (email) {
+    const normalizedEmail = text(email).toLowerCase();
+    if (!normalizedEmail) {
+      this._setStatus('error', 'Digite seu email para receber a recuperação.');
+      return false;
+    }
+    if (!await this._emailAuthReady('recovery')) return false;
+    this.error = '';
+    this._setStatus('signing');
+    try {
+      if (typeof this._auth.resetPasswordForEmail !== 'function') throw new Error('Supabase Auth sem recuperação de senha');
+      const result = await this._auth.resetPasswordForEmail(normalizedEmail, { redirectTo: this._redirectUrl() });
+      if (result && result.error) throw result.error;
+      // Supabase intentionally does not reveal whether an address exists.
+      this._setStatus('recovery-sent', 'Se existir uma conta com esse email, enviaremos um link de recuperação.');
+      return true;
+    } catch (error) {
+      this._setStatus('error', this._friendlyError(error, 'enviar a recuperação de senha'));
+      return false;
+    }
+  };
+
+  Cloud.updatePassword = async function (password) {
+    const nextPassword = typeof password === 'string' ? password : '';
+    if (!nextPassword) {
+      this._setStatus('error', 'Digite sua nova senha.');
+      return false;
+    }
+    if (!this.passwordRecoveryPending) {
+      this._setStatus('error', 'Abra o link de recuperação enviado por email para criar uma nova senha.');
+      return false;
+    }
+    const initialized = await this.init();
+    if (!initialized || !this._auth || !this._supabaseClient) {
+      if (this.status !== 'error') this._setStatus('error', this._friendlyError(null, 'carregar o Supabase'));
+      return false;
+    }
+
+    let expectedUser = this.user;
+    let expectedUid = actualUid(expectedUser);
+    let expectedSessionId = this._sessionId;
+    const startedUser = expectedUser;
+    const startedSessionId = expectedSessionId;
+    try {
+      if (typeof this._auth.getSession !== 'function') throw new Error('Supabase Auth sem sessão');
+      const sessionResult = await this._auth.getSession();
+      if (sessionResult && sessionResult.error) throw sessionResult.error;
+      const session = sessionResult && sessionResult.data ? sessionResult.data.session :
+        (sessionResult && sessionResult.session ? sessionResult.session : null);
+      const currentSessionUser = sessionUser(session);
+      const sessionUid = actualUid(currentSessionUser);
+      if (!currentSessionUser || !sessionUid) {
+        this._setStatus('error', 'O link de recuperação expirou ou é inválido. Solicite um novo link.');
+        return false;
+      }
+      if (startedUser && !this._isCurrent(startedSessionId, startedUser, this._uid(startedUser))) return false;
+      if (expectedUser && actualUid(expectedUser) !== sessionUid) {
+        this._setStatus('error', 'A sessão mudou. Solicite um novo link de recuperação.');
+        return false;
+      }
+      if (!expectedUser) {
+        await this._handleUser(currentSessionUser);
+        expectedUser = this.user;
+        expectedUid = actualUid(expectedUser);
+        expectedSessionId = this._sessionId;
+      }
+      if (!expectedUser || !expectedUid || expectedUid !== sessionUid ||
+          !this._isCurrent(expectedSessionId, expectedUser, this._uid(expectedUser)) ||
+          !this.passwordRecoveryPending || this._passwordRecoveryUid !== expectedUid) return false;
+
+      this.error = '';
+      this._setStatus('signing');
+      if (typeof this._auth.updateUser !== 'function') throw new Error('Supabase Auth sem atualização de senha');
+      const result = await this._auth.updateUser({ password: nextPassword });
+      if (result && result.error) throw result.error;
+      if (!this._isCurrent(expectedSessionId, expectedUser, this._uid(expectedUser)) ||
+          !this.passwordRecoveryPending || this._passwordRecoveryUid !== expectedUid) return false;
+      this._clearPasswordRecovery();
+      this._setStatus('saved');
+      return true;
+    } catch (error) {
+      if (expectedUser && !this._isCurrent(expectedSessionId, expectedUser, this._uid(expectedUser))) return false;
+      this._setStatus('error', this._friendlyError(error, 'atualizar a senha'));
       return false;
     }
   };
@@ -468,6 +727,7 @@
     if (!this._auth) {
       if (currentUid) await this._handleUser(null);
       else {
+        this._clearPasswordRecovery();
         this.user = null;
         this._sessionId += 1;
         this._dirty = false;
@@ -480,6 +740,7 @@
       const result = await this._auth.signOut({ scope: 'local' });
       if (result && result.error) throw result.error;
       // Auth callbacks are deferred, so clear this game's local account now.
+      this._clearPasswordRecovery();
       if (this._uid(this.user) === currentUid) await this._handleUser(null);
       return true;
     } catch (error) {
