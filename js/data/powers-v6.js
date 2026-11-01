@@ -36,9 +36,10 @@ Object.assign(POWERS, {
       },
       {
         id: 'wildmode', name: 'MODO SELVAGEM', slot: 'ultimate', row: 4,
-        kind: 'aura', time: 480, dmgMult: 2.0, speedMult: 1.8, armor: true, dodge: 0.18,
+        kind: 'aura', time: 720, dmgMult: 2.0, speedMult: 1.8, armor: true, dodge: 0.18,
+        hitDmg: 30, hitStun: 46, hitLaunch: -11, hitRadius: 300,
         burstDmg: 10, sfx: 'ultimate',
-        desc: 'Escudo verde e branco: dobra o dano, +80% de velocidade, armadura e esquiva selvagem por 8 s.',
+        desc: 'Escudo verde e branco: golpe de 30 no rival na hora; depois 12 s de dano x2, +80% velocidade, armadura e esquiva selvagem.',
       },
     ],
   },

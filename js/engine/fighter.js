@@ -594,6 +594,16 @@ class Fighter {
         this.aura = p;
         this.auraFid = fid;
         this.addStatus('aura', t);
+        // Golpe de ativaÃ§Ã£o: dano no oponente agora; depois vira sÃ³ buff no dono.
+        if (p.hitDmg && tgt && tgt.alive) {
+          game.strikes.push(new Strike(this, {
+            x: tgt.x, delay: 2, w: (p.hitRadius || 260) * 2, h: 320, dmg: p.hitDmg,
+            stun: p.hitStun || 40, launch: p.hitLaunch == null ? -10 : p.hitLaunch,
+            sheet: { key, row: p.row, frames: 4 }, scale: 3, follow: tgt, element: el, power: p,
+            sound: 'ultimate', shake: 14,
+          }));
+          game.shake(14);
+        }
         if (p.armor) this.addStatus('armor', t);
         if (p.reflect) this.addStatus('reflect', t);
         if (p.dmgMult && p.id === 'rage') { this.addStatus('rage', t); this.status.rageMult = p.dmgMult; }
