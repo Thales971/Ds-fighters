@@ -19,3 +19,11 @@ Manter arcade pixel art, silhuetas legíveis, cores e cenários da base. Urbano 
 ## Entregas
 
 Aplicar correções verificadas, executar testes existentes e regressões, testar as poses novas na arena, documentar resultados e bloqueios, enviar commit ao repositório autorizado sem force-push. Servidor local/teste não equivale a online publicado. Não alterar hospedagem externa sem acesso e configuração existentes.
+
+## Continuação — SENAI Valinhos, Qwen e Supabase
+
+Manter as duas arenas SESI existentes sem modificar suas artes. Adicionar uma arena separada `senai-valinhos`, inspirada nas três fotografias enviadas: oficina industrial ampla, teto metálico, fileiras de tornos e bancadas azuis/creme, painéis elétricos e motores. Uma única arte nova, folha animada de 24 quadros com luz moderada e piso firme; integrar ao catálogo/seleção e aproveitar a mecânica elétrica existente.
+
+Qwen deve ocupar a terceira posição no ranking permanente de poder do elenco, sem empates nem alteração arbitrária das duas posições superiores. Manter cinco habilidades, transformação Astra e desbloqueio por Batata. Registrar o critério e testá-lo; ranking projetado não significa vitória garantida em toda partida.
+
+O conector Supabase foi consultado: único projeto visível `supabase-aero-ball`, inativo. Não reativar ou gravar nesse projeto antes de esclarecer sua autorização, pois pode ter dados de outro jogo. Uma integração de progresso deve reutilizar o isolamento por UID, oferecer Google pelo Supabase Auth, manter fallback offline e aplicar RLS em tabelas exclusivas; depende da escolha/ativação do projeto e da configuração OAuth Google. Nenhuma chave de serviço pode entrar no frontend.

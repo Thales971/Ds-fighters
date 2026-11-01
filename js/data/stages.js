@@ -50,6 +50,7 @@ const STAGE_LIST = [
   { id: 'chrome', name: 'Cidade Cromada', image: 'assets/maps/chrome.jpg', group: 'Expansão Turbo', weather: ['rain', 'storm', 'clear'], fauna: ['bird'], mech: 'drones', tint: '#ff4fd8' },
   { id: 'sesi', name: 'Quadra SESI Valinhos', image: 'assets/maps/sesi.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'sesi', tint: '#e30613' },
   { id: 'sesi-patio', name: 'Pátio SESI Valinhos', image: 'assets/maps/sesi-patio.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'sesi', tint: '#ffcf95' },
+  { id: 'senai-valinhos', name: 'Oficina SENAI Valinhos', image: 'assets/maps/senai-valinhos.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'pulse', tint: '#c6dbeb' },
 ];
 
 /* Compatibilidade com código antigo. */

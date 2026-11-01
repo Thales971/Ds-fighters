@@ -109,7 +109,8 @@ for (const fdef of api.FIGHTERS) {
   assert.equal(f.maxHp, Math.round((fdef.stats.hp || 100) * 1.12), `${fdef.id} hp multiplier`);
 }
 
-// 2) Slots V4 e resgate: Qwen permanece forte/desbloqueável por Batata.
+// 2) Slots V4, resgate e ranking: a força permanente é apenas stats.power,
+//    sem contar o status temporário Astra ou qualquer aura.
 for (const id of ['urbano', 'xeon', 'qwen']) {
   const kit = api.POWERS[id].powers;
   assert.equal(kit.length, 5, `${id} has five powers`);
@@ -117,7 +118,23 @@ for (const id of ['urbano', 'xeon', 'qwen']) {
 }
 assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'afo2', 'IALES AFO2 is the sixth hotkey contract');
 assert.ok(api.Profile.SECRET_IDS.includes('qwen'), 'Batata unlock includes Qwen');
-assert.ok(def('iales').stats.power > def('qwen').stats.power && def('qwen').stats.power >= def('du').stats.power, 'IALES remains above Qwen and DU stays close');
+const permanentPowerRanking = [...api.FIGHTERS].sort((a, b) => b.stats.power - a.stats.power);
+const permanentTop5 = permanentPowerRanking.slice(0, 5);
+assert.deepEqual([...permanentTop5].map((f) => f.id), ['iales', 'felipinho', 'qwen', 'bhm', 'du'], 'permanent top five power ranking');
+assert.deepEqual([...permanentTop5].map((f) => f.stats.power), [1.5, 1.4, 1.39, 1.34, 1.3], 'permanent top five power values');
+assert.deepEqual([...permanentPowerRanking.slice(0, 2)].map((f) => [f.id, f.stats.power]), [['iales', 1.5], ['felipinho', 1.4]], 'existing top two remain unchanged');
+assert.equal(new Set(permanentPowerRanking.slice(0, 3).map((f) => f.stats.power)).size, 3, 'permanent top three have no power ties');
+assert.equal(def('qwen').stats.hp, 134, 'Qwen has a strong but bounded permanent HP value');
+assert.equal(def('qwen').stats.meterRate, 1.44, 'Qwen has a strong but bounded meter rate');
+const qwenAstra = api.POWERS.qwen.powers[4];
+assert.equal(qwenAstra.id, 'thinking', 'Qwen ability five remains Astra');
+assert.equal(qwenAstra.slot, 'ultimate', 'Astra remains Qwen\'s ultimate slot');
+assert.equal(qwenAstra.transform, 'astra', 'Astra transform contract is preserved');
+assert.equal(qwenAstra.time, 720, 'Astra remains temporary');
+assert.equal(qwenAstra.dmg, 44, 'Astra ability damage is preserved');
+assert.equal(qwenAstra.heal, 20, 'Astra ability heal is preserved');
+assert.equal(qwenAstra.fx.lock, 240, 'Astra lock effect is preserved');
+assert.equal(qwenAstra.fx.vuln, 240, 'Astra vulnerability effect is preserved');
 assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'chip').dmg, 15, '1155 chip buff');
 assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '1155 driver cooldown buff');
 
@@ -207,7 +224,12 @@ assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '115
 // 8) O frame-count por lutador é passado ao gerador (inclui forma Astra).
 {
   const { a: qwen } = pair('qwen', 'stack');
+  const baseDamage = qwen.dmgMult();
+  const baseSpeed = qwen.speedMult();
   qwen.addStatus('astra', 100);
+  assert.equal(qwen.def.stats.power, 1.39, 'Astra does not mutate permanent Qwen power');
+  assert.ok(Math.abs(qwen.dmgMult() - baseDamage * 1.3) < 1e-9, 'Astra keeps the documented temporary damage multiplier');
+  assert.ok(Math.abs(qwen.speedMult() - baseSpeed * 1.15) < 1e-9, 'Astra keeps the documented temporary speed multiplier');
   qwen.animFrame('special');
   const last = ctx.SpriteGen.calls.at(-1);
   assert.deepEqual(last, ['special', 'qwen-astra'], 'animFrame uses spriteKey-aware frame count');
@@ -241,4 +263,4 @@ assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '115
   assert.equal(a.stats.dmg, attributed, 'environment/self status is not enemy score');
 }
 
-console.log('combat_regressions: PASS (10 grupos)');
+console.log('combat_regressions: PASS (10 grupos + ranking/Astra contracts)');

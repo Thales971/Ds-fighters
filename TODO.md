@@ -13,3 +13,9 @@
 - [ ] Publicar/configurar um servidor dedicado permanente WSS para a lista global de salas. Os testes usaram servidor temporário local. P2P por convite permanece alternativa.
 
 Veja `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPEDAGEM.md`. As tabelas antigas de torneio são históricas; não foi feito um torneio completo nesta etapa.
+
+## Continuação — pedido SENAI / Qwen / Supabase
+
+- [x] Manter os mapas SESI como estão e adicionar o SENAI Valinhos com base nas fotos da oficina e dos painéis elétricos, como arena própria selecionável e animada. `senai_check.py` confirmou o catálogo e quatro hashes SESI preservados.
+- [x] Qwen como terceira mais forte no ranking permanente de poder do elenco, mantendo Batata, cinco habilidades e Astra; testar ordem e evitar empate. Poder 1,39 entre Felipinho 1,40 e BHM 1,34; contratos de ranking/Astra passaram.
+- [ ] Usar o conector Supabase no projeto autorizado. Descoberta concluída: único projeto `supabase-aero-ball`, inativo; escolha/reutilização aguarda confirmação. Não alterar dados de outro jogo sem autorização.

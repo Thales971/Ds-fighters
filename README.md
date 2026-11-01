@@ -4,7 +4,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**23 lutadores · 36 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado**
+**23 lutadores · 37 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado**
 
 ## Novidades da Edição Turbo
 
@@ -276,3 +276,11 @@ Novas folhas transparentes de **Urbano**, **1155** e **Qwen**, efeitos distintos
 O menu **PERSONALIZADO** oferece vida/medidores infinitos, escolha CPU/P2 e até **9 vitórias / 17 rounds**. Vida infinita não causa KO; o tempo desempata pelo dano do round. No online, as regras são sincronizadas pelo anfitrião e a lista de salas ao vivo contém somente salas reais do servidor dedicado.
 
 **Atenção:** não há configuração Firebase real neste checkout nem um servidor permanente publicado por esta atualização. Login Google real depende de [FIREBASE.md](FIREBASE.md); a lista global de salas depende de [HOSPEDAGEM.md](HOSPEDAGEM.md). Os testes da conta usam Firebase simulado e os testes online usam servidor temporário local. Veja [REFINAMENTO-V4.md](REFINAMENTO-V4.md) para mudanças, testes e pendências completas.
+
+## SENAI Valinhos e Qwen
+
+**Oficina SENAI Valinhos** adicionada com base nas fotos da oficina de usinagem e dos painéis elétricos fornecidas pelo proprietário. Fundo animado com 24 quadros e pulso elétrico com aviso. **As artes da quadra e do pátio SESI foram preservadas byte a byte.**
+
+Qwen agora é a **terceira no poder permanente**: IALES 1,50, Felipinho 1,40, Qwen 1,39. Batata, cinco habilidades e Astra foram mantidos; HP e ganho de medidor receberam reforço moderado. O resultado de uma luta continua dependente de transformação, matchup e jogador.
+
+O conector Supabase foi consultado, mas só retornou o projeto inativo `supabase-aero-ball`. Sua reutilização aguarda confirmação para não alterar outro jogo. Detalhes e testes em [SENAI-QWEN.md](SENAI-QWEN.md).

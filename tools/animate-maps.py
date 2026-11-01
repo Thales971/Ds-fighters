@@ -33,6 +33,7 @@ CFG = {
     'chrome': dict(glow=0.5, water=(0.70, 0.80, 0.7)),
     'sesi': dict(glow=0.2, rays=True, sway=(0.0, 0.0, 0)),
     'sesi-patio': dict(glow=0.12, rays=True),
+    'senai-valinhos': dict(glow=0.15, rays=True),
     '01-neon-rooftop': dict(glow=0.5),
     '02-volcanic-forge': dict(glow=0.55),
     '03-underwater-lab': dict(glow=0.35, water=(0.0, 0.70, 1.2)),
@@ -116,7 +117,7 @@ def build(mid):
             ray = np.clip(np.sin((xs + ys[:, None] * 0.6) * 0.035 + t) * 0.5 + 0.5, 0, 1) ** 6
             fade = np.clip(1 - ys / (FH * 0.75), 0, 1)[:, None]
             f = f + (ray * fade * 10)[..., None]
-        for (x, y, ph) in ([] if mid in ('sesi', 'sesi-patio', 'java', 'kali') else stars):
+        for (x, y, ph) in ([] if mid in ('sesi', 'sesi-patio', 'senai-valinhos', 'java', 'kali') else stars):
             a = max(0.0, math.sin(t + ph))
             if a > 0.85 and hsv[y, x, 2] < 0.35:
                 f[y, x] = 255

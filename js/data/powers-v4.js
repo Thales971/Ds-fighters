@@ -123,7 +123,12 @@ FIGHTERS.push(
     bio: 'Heroína de anime de cabelos violeta e olhos de holograma. Lê um milhão de tokens de contexto e nunca erra o alvo.',
     colors: { skin: '#f5d6c6', hair: '#6b4bff', shirt: '#2a1f5c', pants: '#1b1640', shoes: '#fff', accent: '#8f7bff' },
     traits: { hairStyle: 'long' },
-    stats: { power: 1.34, speed: 1.2, weight: 0.98, hp: 132, meterRate: 1.42 },
+    // Ranking permanente = stats.power puro, ordenado em ordem decrescente;
+    // status temporários (incluindo Astra) não mudam esta classificação.
+    // Os três primeiros são intencionais e sem empate: IALES 1.50,
+    // Felipinho 1.40 e Qwen 1.39. Isto descreve uma hierarquia de atributo,
+    // não uma promessa de vitória universal em toda matchup/arena.
+    stats: { power: 1.39, speed: 1.2, weight: 0.98, hp: 134, meterRate: 1.44 },
     secret: true,
     quotes: {
       intro: ['Já processei todos os seus movimentos.', 'Contexto carregado. Você perdeu.'],

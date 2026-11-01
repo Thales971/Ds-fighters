@@ -233,5 +233,14 @@ const MAP_ANIM = {
   "fps": 10,
   "frameW": 640,
   "frameH": 360
+ },
+ "senai-valinhos": {
+  "sheet": "assets/maps/anim/senai-valinhos.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
  }
 };
