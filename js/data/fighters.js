@@ -39,7 +39,7 @@ const FIGHTERS = [
     bio: 'Comanda um enxame de IAs. Rouba as cinco habilidades do rival, acumula tudo e nunca erra o alvo.',
     colors: { skin: '#e8c39e', hair: '#111111', shirt: '#1a1a22', pants: '#101018', shoes: '#000', accent: '#b26bff' },
     traits: { hairStyle: 'slick', suit: true, tubes: true, multipleEyes: true },
-    stats: { power: 1.42, speed: 1.15, weight: 1.05, hp: 140, meterRate: 1.55 },
+    stats: { power: 1.55, speed: 1.15, weight: 1.05, hp: 150, meterRate: 1.65 },
     secret: true,
     quotes: {
       intro: ['Todos os seus poderes... são meus agora.', 'Eu coleciono habilidades como coleciono bugs.'],

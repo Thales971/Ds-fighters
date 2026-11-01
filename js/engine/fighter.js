@@ -713,25 +713,31 @@ class Fighter {
         break;
       }
       case 'afo2': {
-        /* All For One: Ação Final — cresce com cada poder acumulado. */
+        /* All For One: Ação Final — meteoro de braço colossal de IAs.
+           Diferente da 1a ult (barrage): golpe único massivo em área, drena
+           medidor, cura por acúmulo e aplica vários status conforme o acúmulo. */
         const stacks = this.castAfo || 0;
-        const dmg = p.dmg + stacks * (p.perAfo || 4);
+        const dmg = p.dmg + stacks * (p.perAfo || 6);
         if (tgt && tgt.alive) {
           this.dir = tgt.x >= this.x ? 1 : -1;
-          for (let k = 0; k < 3; k++) game.spawnBurst(key, p.row, tgt.x + (k - 1) * 46, -120 - k * 30, this.dir, 1.6 + k * 0.5);
-          game.spawnBurst('chaos', 3, tgt.x, -110, this.dir, 3.2);
-          game.addCrack(tgt.x, -130, 2.2, this.dir);
-          const landed = tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 20, dirSign: this.dir, launch: -13, stun: 52, ability: true, power: p, element: el, heavy: true });
+          // visual novo: meteoro de braço colossal (linha nova da folha) + caos + raio
+          for (let k = 0; k < 4; k++) game.spawnBurst(key, 6, tgt.x + (k - 1.5) * 60, -200 - k * 60, this.dir, 2.2 + k * 0.6);
+          game.spawnBurst('chaos', 2, tgt.x, -160, this.dir, 3.6);
+          game.spawnBurst('lightning', 3, tgt.x, -180, this.dir, 3);
+          game.spawnImgFx('grabfx', 'grab', tgt.x, tgt.y - 140, { scale: 4, life: 30, dir: this.dir });
+          game.addCrack(tgt.x, -130, 3.2, this.dir);
+          game.flashScreen && game.flashScreen('#c77dff', 12);
+          const landed = tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 26, dirSign: this.dir, launch: -15, stun: 60 + stacks * 4, ability: true, power: p, element: el, heavy: true, fx: { vuln: 200, lock: 120, blind: 140, shock: 160, slow: 120 } });
           if (landed) {
-            tgt.ultimate = Math.max(0, tgt.ultimate - 50);
-            tgt.charge[0] = Math.max(0, tgt.charge[0] - 50);
-            tgt.charge[1] = Math.max(0, tgt.charge[1] - 50);
-            this.heal(6 + stacks * 3);
+            tgt.ultimate = Math.max(0, tgt.ultimate - 70);
+            tgt.charge[0] = Math.max(0, tgt.charge[0] - 70);
+            tgt.charge[1] = Math.max(0, tgt.charge[1] - 70);
+            this.heal(8 + stacks * 4);
             this.afo = 0;
           }
         }
-        this.flashText(`ALL FOR ONE x${stacks}`, '#ff3b6b');
-        game.shake(22);
+        this.flashText(`ALL FOR ONE: AÇÃO FINAL x${stacks}`, '#ff3b6b');
+        game.shake(30);
         break;
       }
       case 'shadowport': {
