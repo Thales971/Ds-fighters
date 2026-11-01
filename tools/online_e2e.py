@@ -1,71 +1,115 @@
-"""Teste ponta a ponta do online: servidor real + 2 navegadores.
-Uso: python3 tools/online_e2e.py
+"""Teste ponta a ponta do online com navegadores reais.
+Uso: python3 tools/online_e2e.py [ws|p2p] [2|4]
+  ws  = servidor dedicado (sobe online-server/ local na porta 8787)
+  p2p = WebRTC direto entre navegadores (precisa de internet p/ o broker PeerJS)
+  4   = sala 2x2 com 4 jogadores (troca + assist)
 """
 import os, subprocess, sys, time
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = '/home/ubuntu/work/shots'
+TRANSPORT = sys.argv[1] if len(sys.argv) > 1 else 'ws'
+NP = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+os.makedirs(OUT, exist_ok=True)
 web = subprocess.Popen([sys.executable, '-m', 'http.server', '8097'], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-srv = subprocess.Popen(['node', 'server.js'], cwd=os.path.join(ROOT, 'online-server'), env=dict(os.environ, PORT='8787'), stdout=subprocess.DEVNULL)
+srv = None
+if TRANSPORT == 'ws':
+    srv = subprocess.Popen(['node', 'server.js'], cwd=os.path.join(ROOT, 'online-server'), env=dict(os.environ, PORT='8787'), stdout=subprocess.DEVNULL)
 time.sleep(1.0)
 errs = []
+tag = f'{TRANSPORT}-{NP}p'
 try:
     with sync_playwright() as p:
         b = p.chromium.launch()
         pages = []
-        for name in ['Host', 'Guest']:
+        names = ['Host', 'Guest', 'Ana', 'Beto'][:NP]
+        for name in names:
             pg = b.new_context(viewport={'width': 960, 'height': 540}).new_page()
             pg.on('pageerror', lambda e, n=name: errs.append(n + ': ' + str(e)))
             pg.goto('http://localhost:8097/index.html')
-            pg.wait_for_timeout(1200)
+            pg.wait_for_function("typeof UI === 'object' && UI.screen", timeout=30000)
+            pg.wait_for_timeout(800)
             pg.keyboard.press('Enter')
-            pg.wait_for_timeout(400)
+            pg.wait_for_timeout(300)
             pg.evaluate("UI.show('online')")
+            pg.select_option('#net-transport', TRANSPORT)
+            if TRANSPORT == 'ws':
+                pg.fill('#net-url', 'ws://localhost:8787')
             pg.fill('#net-name', name)
             pages.append(pg)
-        h, g = pages
+        h = pages[0]
+        h.select_option('#net-mode', '2x2-4' if NP == 4 else '1v1')
         h.click('#net-create')
-        h.wait_for_function("Net.room && Net.room.code")
+        h.wait_for_function("Net.room && Net.room.code", timeout=20000)
         code = h.evaluate("Net.room.code")
-        print('sala', code)
-        g.fill('#net-code', code)
-        g.click('#net-join')
-        g.wait_for_function("Net.room && Net.room.players.length === 2")
-        h.wait_for_function("Net.room && Net.room.players.length === 2")
-        h.screenshot(path=f'{OUT}/20-lobby.png')
-        h.evaluate("Net.pickFighters(['stack'])")
-        g.evaluate("Net.pickFighters(['qa'])")
-        h.wait_for_function("Net.room.players.every(p => p.picks.length)")
-        g.wait_for_function("Net.room.players.every(p => p.picks.length)")
-        h.click('#lobby-ready'); g.click('#lobby-ready')
-        h.wait_for_function("DSGame.running && DSGame.mode === 'online' && DSGame.roundState === 'fight'", timeout=15000)
-        g.wait_for_function("DSGame.running && DSGame.netRole === 'guest'", timeout=15000)
-        print('roles', h.evaluate("DSGame.netRole"), g.evaluate("DSGame.netRole"))
-        # guest anda para a esquerda: posição no anfitrião deve mudar
+        print(tag, 'sala', code, flush=True)
+        for g in pages[1:]:
+            g.fill('#net-code', code)
+            g.click('#net-join')
+            g.wait_for_function("Net.room && Net.room.code", timeout=20000)
+        for pg in pages:
+            pg.wait_for_function(f"Net.room && Net.room.players.length === {NP}", timeout=20000)
+        slots = [pg.evaluate("Net.myPlayer().slot") for pg in pages]
+        print(tag, 'slots', slots, flush=True)
+        h.screenshot(path=f'{OUT}/20-lobby-{tag}.png')
+        picks = ['stack', 'qa', 'kotlin', 'hacker']
+        for pg, f in zip(pages, picks):
+            pg.evaluate(f"Net.pickFighters(['{f}'])")
+        for pg in pages:
+            pg.wait_for_function("Net.room.players.every(p => p.picks.length)", timeout=10000)
+        pages[1].fill('#chat-text', 'boa sorte!')
+        pages[1].click('#chat-send')
+        h.wait_for_function("document.getElementById('chat-log').textContent.includes('boa sorte')", timeout=5000)
+        print(tag, 'chat ok', flush=True)
+        for pg in pages:
+            pg.click('#lobby-ready')
+        h.wait_for_function("DSGame.running && DSGame.mode === 'online' && DSGame.roundState === 'fight'", timeout=20000)
+        for g in pages[1:]:
+            g.wait_for_function("DSGame.running && DSGame.netRole === 'guest'", timeout=20000)
+        print(tag, 'roles', [pg.evaluate("DSGame.netRole") for pg in pages], flush=True)
+        ctrl = pages[slots.index(2)]
         x0 = h.evaluate("DSGame.activeOf(1).x")
-        g.keyboard.down('ArrowLeft'); g.wait_for_timeout(700); g.keyboard.up('ArrowLeft')
+        ctrl.keyboard.down('ArrowLeft'); ctrl.wait_for_timeout(700); ctrl.keyboard.up('ArrowLeft')
         x1 = h.evaluate("DSGame.activeOf(1).x")
-        gx = g.evaluate("DSGame.activeOf(1).x")
-        print('guest walk on host:', round(x0), '->', round(x1), '| guest view x', round(gx))
+        print(tag, 'convidado anda no anfitrião:', round(x0), '->', round(x1), flush=True)
         assert x1 < x0 - 20, 'entrada do convidado não moveu o lutador no anfitrião'
-        # guest dá golpes
-        for _ in range(6):
-            g.keyboard.press('KeyA'); g.wait_for_timeout(120)
-        h.keyboard.down('ArrowRight'); h.wait_for_timeout(500); h.keyboard.up('ArrowRight')
-        g.wait_for_timeout(500)
-        hp_h = h.evaluate("[DSGame.activeOf(0).hp, DSGame.activeOf(1).hp]")
-        hp_g = g.evaluate("[DSGame.activeOf(0).hp, DSGame.activeOf(1).hp]")
-        print('hp host', hp_h, 'hp guest view', hp_g)
-        g.screenshot(path=f'{OUT}/21-online-guest.png')
-        h.screenshot(path=f'{OUT}/22-online-host.png')
-        # anfitrião força KO para encerrar
-        h.evaluate("(() => { const g = DSGame; for (let r = 0; r < 2; r++) { g.activeOf(1).hp = 1; g.activeOf(1).takeHit(50, { attacker: g.activeOf(0) }); for (let k = 0; k < 600 && g.running && g.roundState !== 'fight'; k++) g.tick(); for (let k = 0; k < 400 && g.running && g.roundState !== 'intro'; k++) g.tick(); for (let k=0;k<200 && g.running && g.roundState!=='fight';k++) g.tick(); } })()")
-        g.wait_for_function("document.body.dataset.screen === 'results' || !DSGame.running", timeout=20000)
-        g.wait_for_timeout(1500)
-        print('placar guest', g.evaluate("Net.score"), 'tela', g.evaluate("document.body.dataset.screen"))
-        g.screenshot(path=f'{OUT}/23-online-result.png')
+        for _ in range(5):
+            ctrl.keyboard.press('KeyA'); ctrl.wait_for_timeout(110)
+        if NP == 4:
+            bench = pages[slots.index(3)]
+            before = h.evaluate("DSGame.activeOf(1).def.id")
+            ctrl.wait_for_timeout(700)
+            for _ in range(3):
+                bench.keyboard.press('KeyR'); bench.wait_for_timeout(200)
+            h.wait_for_timeout(1200)
+            after = h.evaluate("DSGame.activeOf(1).def.id")
+            print(tag, 'troca pela reserva:', before, '->', after, flush=True)
+            assert before != after, 'a reserva não conseguiu entrar'
+            h.wait_for_timeout(600)
+            x0 = h.evaluate("DSGame.activeOf(1).x")
+            bench.keyboard.down('ArrowRight'); bench.wait_for_timeout(600); bench.keyboard.up('ArrowRight')
+            x1 = h.evaluate("DSGame.activeOf(1).x")
+            print(tag, 'nova titular anda:', round(x0), '->', round(x1), flush=True)
+            assert abs(x1 - x0) > 15, 'o jogador que entrou não controla o lutador'
+        ctrl.wait_for_timeout(500)
+        hp_h = h.evaluate("[DSGame.activeOf(0).hp, DSGame.activeOf(1).hp].map(Math.round)")
+        hp_g = pages[1].evaluate("[DSGame.activeOf(0).hp, DSGame.activeOf(1).hp].map(Math.round)")
+        print(tag, 'hp anfitrião', hp_h, 'hp visão convidado', hp_g, 'ping', pages[1].evaluate("Net.ping"), flush=True)
+        pages[1].screenshot(path=f'{OUT}/21-online-guest-{tag}.png')
+        h.screenshot(path=f'{OUT}/22-online-host-{tag}.png')
+        h.evaluate("""(() => { const g = DSGame; for (let r = 0; r < 2; r++) {
+            for (let k = 0; k < 900 && g.running && g.roundState !== 'fight'; k++) g.tick();
+            for (let k = 0; k < 900 && g.running && g.roundState === 'fight'; k++) { g.teams[1].members.forEach((m) => { if (m.alive && !m.benched) { m.hp = 1; m.takeHit(50, { attacker: g.activeOf(0) }); } }); g.tick(); }
+          } })()""")
+        for g in pages[1:]:
+            g.wait_for_function("document.body.dataset.screen === 'results' || !DSGame.running", timeout=30000)
+        pages[1].wait_for_timeout(1200)
+        print(tag, 'placar convidado', pages[1].evaluate("Net.score"), 'tela', pages[1].evaluate("document.body.dataset.screen"), flush=True)
+        pages[1].screenshot(path=f'{OUT}/23-online-result-{tag}.png')
         b.close()
 finally:
-    srv.terminate(); web.terminate()
-print('ERROS', errs[:10])
+    if srv:
+        srv.terminate()
+    web.terminate()
+print(tag, 'ERROS', errs[:10])

@@ -18,7 +18,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 GEN = Path(os.environ.get('GEN_DIR', '/home/ubuntu/work/gen'))
-FIGHTERS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack']
+FIGHTERS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm']
 
 
 def quant_alpha(im):
@@ -99,7 +99,7 @@ def main():
         if src.exists():
             save_png(slice_grid(src, 4, 4, frame, pad=0.06), ROOT / f'assets/{name}/{name}.png')
             report[name] = 'ok'
-    for sid in ['spring', 'hive', 'docker', 'kernel', 'rust', 'python']:
+    for sid in ['spring', 'hive', 'docker', 'kernel', 'rust', 'python', 'kotlin', 'kali', 'java', 'chrome']:
         src = GEN / f'stage-{sid}.png'
         if src.exists():
             stage(src, ROOT / f'assets/maps/{sid}.jpg')

@@ -1,29 +1,38 @@
 /* ============================================================
-   DS FIGHTERS — Cliente online (WebSocket).
-   Autoridade: o navegador do ANFITRIÃO (quem criou a sala) simula
-   combate, pickups, clima, placar do round e vitória. O convidado
-   envia só as entradas e desenha os snapshots (30/s).
-   O servidor (online-server/) valida protocolo, membros, escolhas,
-   limites e guarda o placar da sala. Sem servidor configurado, o modo
-   online mostra "indisponível" — nunca simula uma sala falsa.
+   DS FIGHTERS — Cliente online.
+   Dois transportes, mesmo protocolo (js/net/room-core.js):
+   • P2P (padrão, grátis): WebRTC via PeerJS. O navegador de quem cria a
+     sala roda o núcleo de salas e é o ANFITRIÃO. Os outros se conectam
+     direto nele pelo código da sala. Só o "encontro" inicial usa o
+     broker público do PeerJS; a luta trafega direto entre navegadores.
+   • Servidor dedicado: WebSocket para a pasta online-server/.
+   Autoridade da luta: anfitrião simula combate, pickups, clima, placar e
+   vitória; os demais enviam só entradas e desenham snapshots (30/s).
+   Sem conexão real a interface diz "indisponível" — nunca finge uma sala.
    ============================================================ */
-const NET_PROTOCOL = 1;
+const NET_PROTOCOL = RoomCore.PROTOCOL;
 const INPUT_BITS = ['left', 'right', 'up', 'down', 'punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'tag'];
 const EDGE_ACTIONS = ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'tag'];
+const PEER_PREFIX = 'dsfighters-v2-';
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 const Net = {
-  ws: null,
+  link: null, // { send(obj), close() }
+  peer: null,
+  core: null,
   status: 'off',
+  transport: 'p2p',
   room: null,
   me: null,
   token: null,
   url: '',
   score: [0, 0],
-  remote: Object.assign({}, EMPTY_INPUT),
+  remotes: [0, 1, 2, 3].map(() => Object.assign({}, EMPTY_INPUT)),
   retries: 0,
   wantRoom: false,
   bound: false,
   lastSent: -1,
+  ping: 0,
   defaultUrl() {
     const h = location.hostname;
     if (h === 'localhost' || h === '127.0.0.1') return 'ws://localhost:8787';
@@ -35,6 +44,7 @@ const Net = {
     const el = this.$('net-status');
     if (el) { el.textContent = text; el.className = 'net-status ' + kind; }
   },
+  p2pAvailable() { return typeof Peer === 'function' && typeof RTCPeerConnection === 'function'; },
   bindUi() {
     if (!this.bound) {
       this.bound = true;
@@ -43,47 +53,95 @@ const Net = {
       this.$('lobby-ready').addEventListener('click', () => this.toggleReady());
       this.$('lobby-leave').addEventListener('click', () => this.leave());
       this.$('lobby-pick').addEventListener('click', () => this.openPicker());
-      this.$('lobby-copy').addEventListener('click', () => {
-        const code = this.room ? this.room.code : '';
-        if (navigator.clipboard) navigator.clipboard.writeText(code).then(() => UI.toast('Código ' + code + ' copiado!')).catch(() => UI.toast('Código: ' + code));
-        else UI.toast('Código: ' + code);
-      });
+      this.$('lobby-team').addEventListener('click', () => { const me = this.myPlayer(); if (me) this.send('team', { team: 1 - me.team }); });
+      this.$('lobby-copy').addEventListener('click', () => this.copy(this.room ? this.room.code : '', 'Código'));
+      this.$('lobby-link').addEventListener('click', () => this.copy(this.inviteLink(), 'Link'));
+      this.$('chat-send').addEventListener('click', () => this.sendChat());
+      this.$('chat-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.sendChat(); } e.stopPropagation(); });
       this.$('lobby-stage').addEventListener('change', (e) => this.send('stage', { id: e.target.value }));
       this.$('net-code').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+      const tr = this.$('net-transport');
+      tr.value = Profile.setting('netTransport') || (this.defaultUrl() ? 'ws' : 'p2p');
+      tr.addEventListener('change', () => { Profile.setting('netTransport', tr.value); this.refreshConnectUi(); });
+      this.$('net-url').addEventListener('input', () => this.refreshConnectUi());
       const sel = this.$('lobby-stage');
       sel.innerHTML = `<option value="random">Aleatória</option>` + STAGE_LIST.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+      setInterval(() => { if (this.room && this.status === 'open') this.send('ping', { at: performance.now() }); }, 2000);
     }
-    if (!this.room) {
-      const url = this.$('net-url').value.trim();
-      if (!url) this.setStatus('ONLINE INDISPONÍVEL: nenhum servidor configurado. Hospede a pasta online-server/ e cole o endereço wss:// aqui (veja HOSPEDAGEM.md).', 'warn');
-      else if (this.status !== 'open') this.setStatus('Pronto para conectar em ' + url, 'info');
-    }
+    if (!this.$('net-url').value) this.$('net-url').value = Profile.setting('serverUrl') || this.defaultUrl();
+    if (!this.$('net-name').value) this.$('net-name').value = Profile.data.name || 'Jogador';
+    this.refreshConnectUi();
   },
-  connect() {
-    const url = (this.$('net-url').value || '').trim();
+  refreshConnectUi() {
+    const ws = this.$('net-transport').value === 'ws';
+    this.$('net-url-row').classList.toggle('hidden', !ws);
+    this.$('net-hint').textContent = ws
+      ? 'Servidor dedicado: todos se conectam ao endereço wss:// do servidor online-server/ (veja HOSPEDAGEM.md).'
+      : 'P2P grátis: o navegador de quem cria a sala vira o anfitrião. Mande o código ou o link para os amigos — funciona pela internet, sem servidor próprio.';
+    if (this.room) return;
+    if (ws) {
+      const url = this.$('net-url').value.trim();
+      if (!url) this.setStatus('SERVIDOR DEDICADO INDISPONÍVEL: nenhum endereço configurado. Use P2P ou hospede online-server/ (HOSPEDAGEM.md).', 'warn');
+      else this.setStatus('Pronto para conectar em ' + url, 'info');
+    } else if (!this.p2pAvailable()) {
+      this.setStatus('P2P INDISPONÍVEL: este navegador não tem WebRTC ou a biblioteca não carregou. Use o servidor dedicado.', 'err');
+    } else this.setStatus('P2P pronto: crie uma sala ou digite o código de um amigo.', 'ok');
+  },
+  copy(text, what) {
+    if (!text) return;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => UI.toast(what + ' copiado!')).catch(() => UI.toast(what + ': ' + text, 5000));
+    else UI.toast(what + ': ' + text, 5000);
+  },
+  inviteLink() {
+    if (!this.room) return '';
+    let h = '#sala=' + this.room.code;
+    if (this.transport === 'ws') h += '&srv=' + encodeURIComponent(this.url);
+    return location.origin + location.pathname + h;
+  },
+  /** Abre a tela online já com o código se a página veio de um link de convite. */
+  checkInvite() {
+    const m = /sala=([A-Z0-9]{6})/i.exec(location.hash || '');
+    if (!m) return false;
+    const srv = /srv=([^&]+)/.exec(location.hash);
+    UI.show('online');
+    this.$('net-code').value = m[1].toUpperCase();
+    if (srv) { this.$('net-transport').value = 'ws'; this.$('net-url').value = decodeURIComponent(srv[1]); }
+    else this.$('net-transport').value = 'p2p';
+    this.refreshConnectUi();
+    this.setStatus('Convite para a sala ' + m[1].toUpperCase() + ' — digite seu nome e clique em ENTRAR NA SALA.', 'ok');
+    history.replaceState(null, '', location.pathname + location.search);
+    return true;
+  },
+  myName() {
     const name = (this.$('net-name').value || 'Jogador').trim().slice(0, 16) || 'Jogador';
     Profile.data.name = name;
+    Profile.save && Profile.save();
+    return name;
+  },
+  /* ---------------- transporte WebSocket ---------------- */
+  connectWs(resume) {
+    const url = (this.$('net-url').value || '').trim();
     Profile.setting('serverUrl', url);
     if (!/^wss?:\/\//.test(url)) {
-      this.setStatus('ONLINE INDISPONÍVEL: informe um endereço ws:// ou wss:// de um servidor DS Fighters.', 'warn');
+      this.setStatus('SERVIDOR INDISPONÍVEL: informe um endereço ws:// ou wss:// de um servidor DS Fighters.', 'warn');
       return Promise.reject(new Error('sem servidor'));
     }
-    if (this.ws && this.status === 'open' && this.url === url) return Promise.resolve();
+    if (this.link && this.status === 'open' && this.transport === 'ws' && this.url === url) return Promise.resolve();
+    this.transport = 'ws';
     this.url = url;
-    this.name = name;
+    const name = this.myName();
     return new Promise((resolve, reject) => {
       this.setStatus('Conectando a ' + url + '…', 'info');
       let ws;
       try { ws = new WebSocket(url); } catch (e) { this.setStatus('Endereço inválido.', 'err'); reject(e); return; }
-      this.ws = ws;
       this.status = 'connecting';
-      const to = setTimeout(() => { if (this.status === 'connecting') { ws.close(); this.setStatus('Servidor não respondeu. Confira o endereço e se ele está no ar.', 'err'); reject(new Error('timeout')); } }, 7000);
+      const to = setTimeout(() => { if (this.status === 'connecting') { ws.close(); this.setStatus('Servidor não respondeu. Confira o endereço e se ele está no ar.', 'err'); reject(new Error('timeout')); } }, 8000);
       ws.onopen = () => {
         clearTimeout(to);
         this.status = 'open';
         this.retries = 0;
-        const resume = this.room && this.token ? { code: this.room.code, token: this.token } : this.savedResume();
-        ws.send(JSON.stringify({ t: 'hello', v: NET_PROTOCOL, name, resume }));
+        this.link = { send: (o) => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, close: () => ws.close() };
+        this.link.send({ t: 'hello', v: NET_PROTOCOL, name, resume: resume || null });
         resolve();
       };
       ws.onmessage = (ev) => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } this.onMessage(m); };
@@ -92,14 +150,107 @@ const Net = {
         clearTimeout(to);
         const was = this.status;
         this.status = 'closed';
+        this.link = null;
         if (was === 'connecting') { this.setStatus('Não foi possível conectar. O servidor está offline ou o endereço está errado.', 'err'); reject(new Error('closed')); return; }
-        if (this.wantRoom && this.room) this.reconnect();
-        else this.setStatus('Desconectado.', 'warn');
+        this.onDrop();
       };
     });
   },
-  savedResume() {
-    try { const r = JSON.parse(sessionStorage.getItem('dsf.resume') || 'null'); return r && r.code && r.token ? r : null; } catch (e) { return null; }
+  /* ---------------- transporte P2P (WebRTC / PeerJS) ---------------- */
+  openPeer(id) {
+    return new Promise((resolve, reject) => {
+      if (!this.p2pAvailable()) { reject(Object.assign(new Error('sem webrtc'), { type: 'no-webrtc' })); return; }
+      const peer = id ? new Peer(id, { debug: 0 }) : new Peer({ debug: 0 });
+      const to = setTimeout(() => { reject(Object.assign(new Error('timeout'), { type: 'timeout' })); try { peer.destroy(); } catch (e) { /* */ } }, 12000);
+      peer.on('open', () => { clearTimeout(to); resolve(peer); });
+      peer.on('error', (err) => {
+        if (peer.open) { this.onPeerError(err); return; }
+        clearTimeout(to);
+        try { peer.destroy(); } catch (e) { /* */ }
+        reject(err);
+      });
+      peer.on('disconnected', () => { if (!peer.destroyed) setTimeout(() => { try { peer.reconnect(); } catch (e) { /* */ } }, 1500); });
+    });
+  },
+  onPeerError(err) {
+    if (err && err.type === 'peer-unavailable' && this.pendingJoin) {
+      this.pendingJoin.reject(err);
+      return;
+    }
+    if (err && (err.type === 'network' || err.type === 'server-error')) this.setStatus('Problema na rede P2P — tentando continuar…', 'warn');
+  },
+  destroyPeer() {
+    if (this.peer) { try { this.peer.destroy(); } catch (e) { /* */ } }
+    this.peer = null;
+    this.core = null;
+  },
+  async hostP2P(mode) {
+    const name = this.myName();
+    this.destroyPeer();
+    this.setStatus('Criando sala P2P…', 'info');
+    let code = null;
+    for (let k = 0; k < 4 && !this.peer; k++) {
+      code = Array.from({ length: 6 }, () => CODE_CHARS[(Math.random() * CODE_CHARS.length) | 0]).join('');
+      try { this.peer = await this.openPeer(PEER_PREFIX + code); } catch (e) {
+        if (e.type !== 'unavailable-id') { this.setStatus(this.p2pErrorText(e), 'err'); return false; }
+      }
+    }
+    if (!this.peer) { this.setStatus('Não foi possível reservar um código de sala. Tente de novo.', 'err'); return false; }
+    this.transport = 'p2p';
+    this.core = RoomCore.createRooms({ single: true, code, maxRooms: 1 });
+    const local = { id: 'host-' + code, send: (m) => queueMicrotask(() => this.onMessage(m)) };
+    this.link = { send: (o) => this.core && this.core.onMessage(local, o), close: () => {} };
+    this.status = 'open';
+    let n = 0;
+    this.peer.on('connection', (dc) => {
+      const c = { id: 'p' + (++n) + Math.random().toString(36).slice(2, 6), send: (m) => { if (dc.open) dc.send(m); }, kill: () => { try { dc.close(); } catch (e) { /* */ } } };
+      dc.on('data', (d) => { if (this.core) this.core.onMessage(c, d); });
+      dc.on('close', () => { if (this.core) this.core.onClose(c); });
+      dc.on('error', () => {});
+    });
+    this.link.send({ t: 'hello', v: NET_PROTOCOL, name });
+    this.link.send({ t: 'create', mode, stagePool: STAGE_LIST.map((s) => s.id) });
+    return true;
+  },
+  async joinP2P(code, resume) {
+    const name = this.myName();
+    if (!this.peer || this.peer.destroyed || this.core) {
+      this.destroyPeer();
+      try { this.peer = await this.openPeer(); } catch (e) { this.setStatus(this.p2pErrorText(e), 'err'); throw e; }
+    }
+    this.transport = 'p2p';
+    this.status = 'connecting';
+    this.setStatus('Procurando a sala ' + code + '…', 'info');
+    const dc = this.peer.connect(PEER_PREFIX + code, { serialization: 'json', reliable: true });
+    await new Promise((resolve, reject) => {
+      const to = setTimeout(() => reject(Object.assign(new Error('timeout'), { type: 'timeout' })), 12000);
+      this.pendingJoin = { reject: (e) => { clearTimeout(to); reject(e); } };
+      dc.on('open', () => { clearTimeout(to); resolve(); });
+    }).catch((e) => {
+      this.pendingJoin = null;
+      this.status = 'closed';
+      this.setStatus(e.type === 'peer-unavailable' ? 'Sala ' + code + ' não encontrada (o anfitrião fechou a página ou o código está errado).' : this.p2pErrorText(e), 'err');
+      throw e;
+    });
+    this.pendingJoin = null;
+    this.status = 'open';
+    this.retries = 0;
+    this.link = { send: (o) => { if (dc.open) dc.send(o); }, close: () => { try { dc.close(); } catch (e) { /* */ } } };
+    dc.on('data', (m) => this.onMessage(m));
+    dc.on('close', () => { if (this.link && this.link.dc === dc) { this.link = null; this.status = 'closed'; this.onDrop(); } });
+    this.link.dc = dc;
+    this.link.send({ t: 'hello', v: NET_PROTOCOL, name, resume: resume || null });
+  },
+  p2pErrorText(e) {
+    const t = e && e.type;
+    if (t === 'no-webrtc' || t === 'browser-incompatible') return 'P2P INDISPONÍVEL: navegador sem WebRTC. Use Chrome, Edge, Firefox ou Safari atualizados.';
+    if (t === 'timeout' || t === 'network' || t === 'server-error' || t === 'socket-error') return 'P2P INDISPONÍVEL: não foi possível falar com o serviço de encontro (rede bloqueada ou offline). Tente outra rede ou o servidor dedicado.';
+    return 'Erro P2P: ' + (t || (e && e.message) || 'desconhecido');
+  },
+  /* ---------------- comum ---------------- */
+  onDrop() {
+    if (this.wantRoom && this.room) this.reconnect();
+    else if (this.room == null) this.setStatus('Desconectado.', 'warn');
   },
   reconnect() {
     if (this.retries > 14) {
@@ -110,26 +261,38 @@ const Net = {
     this.retries++;
     this.setStatus(`Conexão perdida — tentando voltar (${this.retries}/15)…`, 'warn');
     if (UI.game.mode === 'online' && UI.game.running) UI.banner('RECONECTANDO…', '#ffb03b', 'Aguarde');
-    setTimeout(() => this.connect().catch(() => this.reconnect()), 2000);
+    const resume = this.room && this.token ? { code: this.room.code, token: this.token } : null;
+    setTimeout(() => {
+      const p = this.transport === 'ws' ? this.connectWs(resume) : this.joinP2P(this.room ? this.room.code : '', resume);
+      p.catch(() => this.reconnect());
+    }, 2000);
   },
   send(t, data) {
-    if (!this.ws || this.status !== 'open') return false;
-    this.ws.send(JSON.stringify(Object.assign({ t }, data || {})));
+    if (!this.link || this.status !== 'open') return false;
+    this.link.send(Object.assign({ t }, data || {}));
     return true;
   },
   async create() {
     AudioSys.select();
-    try { await this.connect(); } catch (e) { return; }
-    this.wantRoom = true;
-    this.send('create', { mode: this.$('net-mode').value, stagePool: STAGE_LIST.map((s) => s.id) });
+    const mode = this.$('net-mode').value;
+    if (this.$('net-transport').value === 'ws') {
+      try { await this.connectWs(); } catch (e) { return; }
+      this.wantRoom = true;
+      this.send('create', { mode, stagePool: STAGE_LIST.map((s) => s.id) });
+    } else {
+      this.wantRoom = true;
+      if (!(await this.hostP2P(mode))) this.wantRoom = false;
+    }
   },
   async join() {
     AudioSys.select();
     const code = this.$('net-code').value.trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(code)) { this.setStatus('O código da sala tem 6 letras/números.', 'warn'); return; }
-    try { await this.connect(); } catch (e) { return; }
     this.wantRoom = true;
-    this.send('join', { code });
+    try {
+      if (this.$('net-transport').value === 'ws') { await this.connectWs(); this.send('join', { code }); }
+      else { await this.joinP2P(code); this.send('join', { code }); }
+    } catch (e) { this.wantRoom = false; }
   },
   myPlayer() { return this.room ? this.room.players.find((p) => p.id === this.me) : null; },
   isHost() { return this.room && this.room.hostId === this.me; },
@@ -146,10 +309,27 @@ const Net = {
     if (!p.picks || !p.picks.length) { UI.toast('Escolha seu lutador primeiro.'); this.openPicker(); return; }
     this.send('ready', { on: !p.ready });
   },
+  sendChat() {
+    const el = this.$('chat-text');
+    const text = el.value.trim();
+    if (!text) return;
+    this.send('chat', { text });
+    el.value = '';
+  },
+  addChat(from, text) {
+    const log = this.$('chat-log');
+    if (!log) return;
+    const d = document.createElement('div');
+    d.innerHTML = `<b>${escapeHtml(from)}:</b> ${escapeHtml(text)}`;
+    log.appendChild(d);
+    while (log.children.length > 40) log.firstChild.remove();
+    log.scrollTop = log.scrollHeight;
+  },
   requestRematch() { this.send('rematch', {}); },
   leave(silent) {
     if (this.room) this.send('leave', {});
     this.dropRoom();
+    if (this.transport === 'p2p') setTimeout(() => this.destroyPeer(), 300);
     if (!silent) this.setStatus('Você saiu da sala.', 'info');
   },
   dropRoom() {
@@ -172,22 +352,32 @@ const Net = {
     const sel = this.$('lobby-stage');
     sel.value = r.stage || 'random';
     sel.disabled = !this.isHost();
-    const slots = [0, 1].map((team) => r.players.find((p) => p.team === team));
-    this.$('lobby-players').innerHTML = slots.map((p, team) => {
-      if (!p) return `<div class="lp empty"><b>${team === 0 ? 'ANFITRIÃO' : 'CONVIDADO'}</b><span>Aguardando jogador… envie o código <b>${r.code}</b></span></div>`;
+    const four = r.mode === '2x2-4';
+    this.$('lobby-team').classList.toggle('hidden', !four);
+    const slots = four ? [0, 1, 2, 3] : [0, 2];
+    const label = (slot) => (four ? `EQUIPE ${slot < 2 ? 'A' : 'B'} · ${slot % 2 === 0 ? 'TITULAR' : 'RESERVA'}` : slot === 0 ? 'JOGADOR 1' : 'JOGADOR 2');
+    this.$('lobby-players').classList.toggle('four', four);
+    this.$('lobby-players').innerHTML = slots.map((slot) => {
+      const p = r.players.find((x) => x.slot === slot);
+      if (!p) return `<div class="lp empty team${slot >> 1}"><b>${label(slot)}</b><span>Vaga livre — envie o código <b>${r.code}</b></span></div>`;
       const faces = (p.picks || []).map((id) => `<i style="background-image:url(assets/ui/face-${id}.png)"></i>`).join('');
-      return `<div class="lp ${p.ready ? 'ready' : ''} ${p.connected ? '' : 'off'} ${p.id === this.me ? 'me' : ''}">
-        <b>${team === 0 ? 'ANFITRIÃO' : 'CONVIDADO'}${p.id === this.me ? ' (você)' : ''}</b>
+      const host = p.id === r.hostId ? ' ★ ANFITRIÃO' : '';
+      return `<div class="lp team${p.team} ${p.ready ? 'ready' : ''} ${p.connected ? '' : 'off'} ${p.id === this.me ? 'me' : ''}">
+        <b>${label(slot)}${host}${p.id === this.me ? ' (você)' : ''}</b>
         <span class="pn">${escapeHtml(p.name)}</span>
         <span class="faces">${faces || '<em>sem lutador</em>'}</span>
         <span class="st">${!p.connected ? 'DESCONECTADO' : p.ready ? 'PRONTO' : 'ESCOLHENDO'}</span></div>`;
     }).join('');
     const me = this.myPlayer();
     this.$('lobby-ready').textContent = me && me.ready ? 'CANCELAR PRONTO' : 'PRONTO';
-    const modeName = r.mode === '2x2' ? '2 × 2 duplas' : '1 × 1';
-    this.setStatus(`Sala ${r.code} · ${modeName} · placar ${r.score[0]} × ${r.score[1]}` + (slots[1] ? (slots.every((p) => p && p.ready) ? ' · iniciando…' : ' · os dois precisam ficar PRONTOS') : ' · aguardando convidado'), 'ok');
+    const modeName = r.mode === '2x2-4' ? '2 × 2 · 4 jogadores' : r.mode === '2x2' ? '2 × 2 duplas' : '1 × 1';
+    const cap = r.cap || (four ? 4 : 2);
+    const full = r.players.length >= cap;
+    const via = this.transport === 'p2p' ? 'P2P' : 'servidor';
+    this.setStatus(`Sala ${r.code} (${via}) · ${modeName} · placar ${r.score[0]} × ${r.score[1]} · ${r.players.length}/${cap} jogadores` + (full ? (r.players.every((p) => p.ready) ? ' · iniciando…' : ' · todos precisam ficar PRONTOS') : ' · aguardando jogadores'), 'ok');
   },
   onMessage(m) {
+    if (!m || typeof m !== 'object') return;
     switch (m.t) {
       case 'welcome':
         this.me = m.id;
@@ -207,10 +397,18 @@ const Net = {
         this.startMatch(m);
         break;
       case 'input':
-        this.mergeRemote(m.i);
+        this.mergeRemote(m.i, m.slot == null ? 2 : m.slot);
         break;
       case 'snap':
         if (UI.game.netRole === 'guest' && UI.game.running) UI.game.applySnapshot(m.s);
+        break;
+      case 'pong':
+        this.ping = Math.max(0, Math.round(performance.now() - m.at));
+        if (this.$('lobby-ping')) this.$('lobby-ping').textContent = this.isHost() ? 'você é o anfitrião' : `ping ${this.ping} ms`;
+        break;
+      case 'chat':
+        this.addChat(m.from, m.text);
+        if (UI.game && UI.game.running && UI.game.mode === 'online') UI.toast(m.from + ': ' + m.text, 2500);
         break;
       case 'end':
         this.score = m.score;
@@ -223,10 +421,10 @@ const Net = {
       case 'peer': {
         const g = UI.game;
         if (m.ev === 'left') {
-          UI.banner('ADVERSÁRIO CAIU', '#ffb03b', 'Aguardando reconexão (até 30 s)…');
+          UI.banner((m.name || 'JOGADOR') + ' CAIU', '#ffb03b', 'Aguardando reconexão (até 30 s)…');
           if (g.netRole === 'host' && g.running) g.paused = true;
         } else if (m.ev === 'back') {
-          UI.banner('ADVERSÁRIO VOLTOU', '#7dff5e', 'Continuando');
+          UI.banner((m.name || 'JOGADOR') + ' VOLTOU', '#7dff5e', 'Continuando');
           if (g.netRole === 'host' && g.running) g.paused = false;
         }
         break;
@@ -243,8 +441,8 @@ const Net = {
         this.setStatus(m.msg || 'A sala foi encerrada.', 'warn');
         break;
       case 'error':
-        this.setStatus('Servidor: ' + (m.msg || 'erro'), 'err');
-        UI.toast(m.msg || 'Erro do servidor');
+        this.setStatus((this.transport === 'p2p' ? 'Sala: ' : 'Servidor: ') + (m.msg || 'erro'), 'err');
+        UI.toast(m.msg || 'Erro');
         if (m.code === 'resume_failed') { this.room = null; this.token = null; try { sessionStorage.removeItem('dsf.resume'); } catch (e) { /* */ } this.renderLobby(); }
         break;
       default: break;
@@ -256,32 +454,38 @@ const Net = {
     const me = this.myPlayer();
     if (!me) return;
     const host = r.hostId === this.me;
-    const teams = [0, 1].map((t) => (r.players.find((p) => p.team === t) || { picks: ['stack'] }).picks);
-    const pets = [0, 1].map((t) => { const p = r.players.find((x) => x.team === t); return PETS.find((x) => x.id === (p && p.pet)) || PETS[0]; });
+    const four = r.mode === '2x2-4';
+    const teams = [0, 1].map((t) => {
+      if (four) return r.players.filter((p) => p.team === t).sort((a, b) => a.slot - b.slot).map((p) => p.picks[0]);
+      return (r.players.find((p) => p.team === t) || { picks: ['stack'] }).picks;
+    });
+    const pets = [0, 1].map((t) => { const p = r.players.find((x) => x.slot === t * 2) || r.players.find((x) => x.team === t); return PETS.find((x) => x.id === (p && p.pet)) || PETS[0]; });
     const cfg = {
-      mode: 'online', netRole: host ? 'host' : 'guest', localTeam: me.team, tag: r.mode === '2x2',
+      mode: 'online', netRole: host ? 'host' : 'guest', localTeam: me.team, mySlot: me.slot, fourP: four, tag: r.mode !== '1v1',
       teams, pets, stage: m.stage, weather: 'random', roundsToWin: 2, timer: 99, cpu: [false, false],
     };
-    this.remote = Object.assign({}, EMPTY_INPUT);
+    this.remotes = [0, 1, 2, 3].map(() => Object.assign({}, EMPTY_INPUT));
     UI.game.onNetEnd = (result) => this.send('end', { result: { winner: result.winner, wins: result.wins, teams: result.teams } });
     UI.flow = { mode: 'online', picks: [[], []], need: 1 };
     UI.launch(cfg);
+    if (four) UI.toast(me.slot % 2 === 0 ? 'Você começa lutando! Troca: tecla TROCA · Assist: BAIXO+TROCA' : 'Você começa na reserva: TROCA entra na luta · SOCO chama ASSIST', 4500);
   },
   /* --- entradas --- */
   encode(inp) { let b = 0; INPUT_BITS.forEach((k, i) => { if (inp[k]) b |= 1 << i; }); return b; },
   decode(b) { const o = {}; INPUT_BITS.forEach((k, i) => { o[k] = !!(b & (1 << i)); }); return o; },
-  mergeRemote(bits) {
+  mergeRemote(bits, slot) {
     const d = this.decode(bits | 0);
-    const r = this.remote;
+    const r = this.remotes[slot & 3];
     ['left', 'right', 'up', 'down'].forEach((k) => { r[k] = d[k]; });
     EDGE_ACTIONS.forEach((k) => { r[k] = r[k] || d[k]; });
   },
-  takeRemote() {
-    const out = Object.assign({}, this.remote);
-    EDGE_ACTIONS.forEach((k) => { this.remote[k] = false; });
+  takeRemote(slot = 2) {
+    const r = this.remotes[slot & 3];
+    const out = Object.assign({}, r);
+    EDGE_ACTIONS.forEach((k) => { r[k] = false; });
     return out;
   },
-  /* chamado a cada quadro pelo loop principal */
+  /* chamado a cada passo pelo loop principal */
   frame(game) {
     if (game.mode !== 'online' || !game.running || game.paused || this.status !== 'open') return;
     if (game.netRole === 'guest') {

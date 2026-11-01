@@ -220,6 +220,84 @@ const MECHS = {
       g.hazard({ x: left ? 90 : g.W - 90, label: 'SERPENTE!', sheet: ['fx2:chaos', 2], dmg: 11, poison: 200, warnColor: '#5cff8d', sound: 'hazard', scale: 2.4, w: 170 });
     },
   },
+  tide: {
+    init() { this.wave = 0; this.dir = 1; },
+    every: 480,
+    fire(g) {
+      this.dir = Math.random() < 0.5 ? -1 : 1;
+      this.wave = 130;
+      g.announce('MARÉ ALTA!', '#7f52ff', this.dir > 0 ? 'A água empurra para a direita →' : '← A água empurra para a esquerda');
+      g.audio.play('water');
+    },
+    tick(g) { if (this.wave > 0) { this.wave--; g.pushX = this.dir * 1.25; } },
+    draw(ctx, g, t) {
+      if (this.wave <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.min(0.5, this.wave / 60);
+      ctx.fillStyle = '#5fb8ff';
+      for (let x = -60; x < g.W + 60; x += 48) {
+        const ox = (t * this.dir * 3) % 48;
+        const h = 10 + Math.sin((x + t * 4) * 0.05) * 6;
+        ctx.fillRect(x + ox, -h, 40, h + 8);
+        ctx.fillStyle = '#e6f6ff';
+        ctx.fillRect(x + ox, -h - 3, 40, 3);
+        ctx.fillStyle = '#5fb8ff';
+      }
+      ctx.restore();
+    },
+  },
+  hack: {
+    every: 560,
+    fire(g) {
+      const fs = g.fighters().filter((f) => f.alive);
+      if (!fs.length) return;
+      const v = fs[(Math.random() * fs.length) | 0];
+      v.addStatus('shock', 150);
+      g.glitch = 22;
+      g.announce('INVASÃO!', '#00ff66', v.def.name + ' foi hackeado: controles eletrizados');
+      g.audio.play('magic');
+    },
+    draw(ctx, g, t) {
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = '#00ff66';
+      ctx.font = '10px monospace';
+      for (let k = 0; k < 6; k++) ctx.fillText((k % 2 ? '0x' : 'sudo ') + ((Math.floor(t / 6) * 13 + k * 31) % 9999).toString(16), (k * 173 + t) % g.W, -420 + ((t * 2 + k * 70) % 380));
+      ctx.restore();
+    },
+  },
+  gc: {
+    every: 600,
+    fire(g) {
+      const n = g.projectiles.length + g.zones.length;
+      g.projectiles.length = 0;
+      g.zones.length = 0;
+      for (const f of g.fighters()) { if (f.alive && f.onGround) f.vx += 480 - f.x > 0 ? 7 : -7; }
+      g.announce('GARBAGE COLLECTOR!', '#f89820', n ? n + ' objetos coletados — arena limpa' : 'Todos puxados para o centro');
+      g.audio.play('whoosh');
+      if (Math.random() < 0.6) g.spawnPickup('spd');
+    },
+  },
+  drones: {
+    every: 300,
+    fire(g) {
+      const fs = g.fighters().filter((f) => f.alive);
+      const tgt = fs[(Math.random() * fs.length) | 0];
+      const x = tgt ? tgt.x : g.randX();
+      g.hazard({ x, label: 'DRONE!', delay: 55, sheet: ['fx2:lightning', 3], dmg: 9, warnColor: '#ff4fd8', fromSky: true, sound: 'thunder_cast', scale: 1.4, w: 90 });
+    },
+    drawFront(ctx, g, t) {
+      for (let k = 0; k < 2; k++) {
+        const x = ((t * (1.1 + k * 0.5) + k * 420) % (g.W + 300)) - 150;
+        const y = -400 + Math.sin(t * 0.03 + k) * 18 + k * 40;
+        ctx.save();
+        ctx.fillStyle = '#1b1030'; ctx.fillRect(x - 22, y - 5, 44, 10);
+        ctx.fillStyle = k ? '#00f0ff' : '#ff4fd8'; ctx.fillRect(x - 26, y - 8, 10, 3); ctx.fillRect(x + 16, y - 8, 10, 3);
+        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t * 0.3); ctx.fillRect(x - 3, y + 5, 6, 4);
+        ctx.restore();
+      }
+    },
+  },
 };
 
 class StageMechanic {

@@ -54,24 +54,44 @@ function preloadAll() {
   window.addEventListener('resize', fit);
   fit();
 
+  /* Simulação fixa a 60 passos/s (determinística, igual ao online) e
+     renderização na taxa do monitor (120/144/240 Hz) com interpolação. */
   const STEP = 1000 / 60;
   let last = performance.now();
   let acc = 0;
+  let lastDraw = 0;
+  const fpsEl = document.getElementById('fps');
+  let fpsFrames = 0;
+  let fpsT = last;
   function frame(now) {
     acc += Math.min(100, now - last);
     last = now;
     let steps = 0;
-    while (acc >= STEP && steps < 4) {
+    while (acc >= STEP && steps < 5) {
       Input.pollPads();
       UI.tick();
+      game.capturePrev();
       game.tick();
       Net.frame(game);
       Input.endFrame();
       acc -= STEP;
       steps++;
     }
-    if (steps >= 4) acc = 0;
-    if (game.stage) game.render();
+    if (steps >= 5) acc = 0;
+    const cap = Number(Profile.data.settings.fpsCap) || 0;
+    if (!cap || now - lastDraw >= 1000 / cap - 1) {
+      lastDraw = now;
+      if (game.stage) game.render(Math.max(0, Math.min(1, acc / STEP)));
+      fpsFrames++;
+    }
+    if (now - fpsT >= 500) {
+      if (fpsEl) {
+        fpsEl.textContent = Math.round((fpsFrames * 1000) / (now - fpsT)) + ' FPS';
+        fpsEl.hidden = !Profile.data.settings.showFps;
+      }
+      fpsFrames = 0;
+      fpsT = now;
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

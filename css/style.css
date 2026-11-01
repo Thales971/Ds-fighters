@@ -403,3 +403,37 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 #loader .ld-bar { width: min(360px, 70vw); height: 14px; border: 3px solid #6b4fb3; background: #0c0a1e; }
 #loader .ld-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff9a2e, #ffd76a); transition: width .15s; }
 #loader #ld-text { font-size: 9px; color: #cfc6ff; }
+
+/* ===== Expansão Turbo: status de tela, traços, lobby 4 jogadores, chat, FPS ===== */
+#game { transition: filter .25s; }
+#game.blinded { filter: blur(6px) brightness(.72) saturate(.55) contrast(1.15); }
+body.reduced #game.blinded { filter: blur(4px) brightness(.8); transition: none; }
+#stage-wrap:has(#game.blinded)::after { content: 'CEGO!'; position: absolute; top: 46%; left: 0; right: 0; text-align: center; font-size: 22px; color: #e6e6e6; text-shadow: 3px 3px 0 #000; pointer-events: none; animation: blink-txt .5s steps(2) infinite; }
+@keyframes blink-txt { 50% { opacity: .35; } }
+body.shocked .skills .skill .key { animation: key-jitter .12s steps(2) infinite; color: #7df9ff; }
+body.shocked .skills { filter: drop-shadow(0 0 6px #7df9ff); }
+body.reduced.shocked .skills .skill .key { animation: none; }
+@keyframes key-jitter { 0% { transform: translate(-2px, 1px) rotate(-4deg); } 100% { transform: translate(2px, -1px) rotate(4deg); } }
+.trait { margin: 6px 0 4px; padding: 6px 8px; border: 2px solid var(--gold); background: linear-gradient(90deg, #2a1400, #120a24); display: flex; flex-direction: column; gap: 4px; }
+.trait b { font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+.trait small { font-size: 7px; line-height: 1.5; color: #e9ddff; }
+.lobby-players.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.lp.team0 { box-shadow: inset 0 4px 0 #ff3b5c; }
+.lp.team1 { box-shadow: inset 0 4px 0 #3b8bff; }
+.lobby-code .lobby-ping { font-size: 8px; color: var(--lime); margin-left: 10px; }
+.lobby-chat { margin-top: 10px; border: 2px solid #3a2766; background: #0b0617; padding: 6px; }
+.chat-log { height: 90px; overflow-y: auto; font-size: 8px; line-height: 1.6; color: #e9ddff; }
+.chat-log b { color: var(--cyan); }
+.lobby-chat input { flex: 1; font-family: inherit; font-size: 9px; background: #120a24; color: #fff; border: 2px solid #3a2766; padding: 6px; }
+.net-hint { font-size: 7px; line-height: 1.6; color: #b9a8e6; margin: 4px 0 8px; }
+.net-url-row.hidden { display: none; }
+.fps { position: fixed; top: 6px; right: 8px; z-index: 99; font-size: 9px; color: #7dff5e; background: rgba(0,0,0,.6); padding: 3px 6px; pointer-events: none; }
+.fps[hidden] { display: none; }
+@media (max-width: 900px) { .lobby-players.four { grid-template-columns: 1fr 1fr; } }
+/* cartão da seleção: traço no lugar da bio para caber as 5 habilidades */
+.sel-card .trait + .bio { display: none; }
+.sel-card .trait { margin: 4px 0 2px; padding: 4px 6px; }
+.sel-card .trait small { font-size: 6px; }
+.sel-card .kit li { padding-top: 2px; padding-bottom: 2px; }
+.lp b { line-height: 1.6; display: block; }
+.lp .faces i { width: 36px; height: 36px; }

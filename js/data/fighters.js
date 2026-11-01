@@ -1,5 +1,5 @@
 /* ============================================================
-   DS FIGHTERS — Os 12 lutadores (tema: desenvolvimento de sistemas)
+   DS FIGHTERS — Os 17 lutadores (tema: desenvolvimento de sistemas)
    Cada lutador define paleta, traços físicos (para o sprite
    procedural), atributos, golpes, special e super, além de falas.
    ============================================================ */
@@ -9,10 +9,10 @@ const FIGHTERS = [
     id: 'du',
     name: 'DU',
     title: 'O Guerreiro do Magma e do PHP',
-    bio: 'Careca, barba longa preta e branca e óculos. Machado de magma na mão e fúria que compila em runtime.',
+    bio: 'Careca, barba grisalha (preta e branca) e óculos. Machado de magma na mão e fúria que compila em runtime.',
     colors: { skin: '#d9a066', hair: '#3a2a1a', shirt: '#7a1f1f', pants: '#4a3524', shoes: '#2a1c10', accent: '#ffd27d' },
     traits: { bald: true, beard: 'full', glasses: 'square', muscular: true, scar: true },
-    stats: { power: 1.45, speed: 1.0, weight: 1.25, hp: 135, meterRate: 1.35 },
+    stats: { power: 1.3, speed: 1.0, weight: 1.25, hp: 128, meterRate: 1.3 },
     secret: true,
     quotes: {
       intro: ['Garoto... o build vai quebrar. Em você.', 'A barba cresce. A fúria compila.'],
@@ -39,7 +39,7 @@ const FIGHTERS = [
     bio: 'Comanda um enxame de IAs. Rouba as cinco habilidades do rival, acumula tudo e nunca erra o alvo.',
     colors: { skin: '#e8c39e', hair: '#111111', shirt: '#1a1a22', pants: '#101018', shoes: '#000', accent: '#b26bff' },
     traits: { hairStyle: 'slick', suit: true, tubes: true, multipleEyes: true },
-    stats: { power: 1.6, speed: 1.2, weight: 1.05, hp: 150, meterRate: 1.7 },
+    stats: { power: 1.42, speed: 1.15, weight: 1.05, hp: 140, meterRate: 1.55 },
     secret: true,
     quotes: {
       intro: ['Todos os seus poderes... são meus agora.', 'Eu coleciono habilidades como coleciono bugs.'],
@@ -68,10 +68,10 @@ const FIGHTERS = [
     id: 'felipinho',
     name: 'FELIPINHO MAPRIM',
     title: 'O Mestre das Águas e do React',
-    bio: 'Nerd de óculos e boné que domina a água como componentes React: cada onda é um re-render.',
+    bio: 'Jovem de boné para trás, meia barba e corrente dourada. Domina a água como componentes React: cada onda é um re-render.',
     colors: { skin: '#c98e5f', hair: '#2b1c10', shirt: '#3fae5a', pants: '#3a6ea8', shoes: '#f2f2f2', accent: '#ffe14d' },
     traits: { nerd: true, glasses: 'round', cap: 'backwards', chain: true },
-    stats: { power: 1.38, speed: 1.25, weight: 0.95, hp: 130, meterRate: 1.45 },
+    stats: { power: 1.25, speed: 1.2, weight: 0.95, hp: 124, meterRate: 1.4 },
     secret: true,
     quotes: {
       intro: ['Teu estado vai mudar agora, doido.', 'useEffect: afogar o adversário.'],
@@ -98,7 +98,7 @@ const FIGHTERS = [
     bio: 'Sua resposta aceita cura e seu downvote derruba.',
     colors: { skin: '#eab98a', hair: '#6b4a2f', shirt: '#e8862e', pants: '#3d3d3d', shoes: '#222', accent: '#58cc02' },
     traits: { beard: 'short', glasses: 'square', robe: true },
-    stats: { power: 1.0, speed: 0.95, weight: 1.0 },
+    stats: { power: 1.1, speed: 1.2, weight: 0.96, hp: 106 },
     quotes: {
       intro: ['Já procurou isso? A resposta está aceita.', 'Mark my words: essa luta vai ter accepted answer.'],
       win: ['Resposta aceita. Upvote pra você... não, pera.'],
@@ -124,7 +124,7 @@ const FIGHTERS = [
     bio: 'Some e reaparece num piscar de olhos. Nunca deixa rastro.',
     colors: { skin: '#d9a066', hair: '#222', shirt: '#23272e', pants: '#16181d', shoes: '#f85149', accent: '#f85149' },
     traits: { hood: true, mask: true },
-    stats: { power: 0.9, speed: 1.35, weight: 0.8 },
+    stats: { power: 1.02, speed: 1.3, weight: 0.86, hp: 98 },
     quotes: {
       intro: ['Você não me viu chegar.', 'git commit -m "luta" --force'],
       win: ['Commitado: vitória. Push na sua cara.'],
@@ -149,7 +149,7 @@ const FIGHTERS = [
     bio: 'Encontra o bug antes dele existir. Sua lupa queima.',
     colors: { skin: '#f0c8a0', hair: '#ff7b1c', shirt: '#2d6cdf', pants: '#1f3a5f', shoes: '#111', accent: '#ffd700' },
     traits: { ponytail: true, visor: true, armor: true },
-    stats: { power: 1.0, speed: 1.1, weight: 0.95 },
+    stats: { power: 0.93, speed: 1.08, weight: 0.95, hp: 98 },
     quotes: {
       intro: ['Achamos o bug. E o bug é você.', 'Não é bug, é feature... da minha vitória.'],
       win: ['Bug corrigido: você. Status: derrotado.'],
@@ -175,7 +175,7 @@ const FIGHTERS = [
     bio: 'Pinta a tela de gradientes e joga caixas de layout no inimigo.',
     colors: { skin: '#f2c9a0', hair: '#ff4fa3', shirt: '#7b61ff', pants: '#2b2b3a', shoes: '#fff', accent: '#00e0ff' },
     traits: { hairStyle: 'long', glasses: 'round', stylish: true },
-    stats: { power: 0.9, speed: 1.1, weight: 0.85 },
+    stats: { power: 1.18, speed: 1.16, weight: 0.92, hp: 108, meterRate: 1.2 },
     quotes: {
       intro: [' Essa luta vai ficar LINDA. Like e share!', 'centralizado com flexbox, pô!'],
       win: ['#vitória { display: block; }'],
@@ -201,7 +201,7 @@ const FIGHTERS = [
     bio: 'Musculoso, mora no servidor. Um erro 500 seu e acabou.',
     colors: { skin: '#b5793f', hair: '#151515', shirt: '#20242b', pants: '#101216', shoes: '#000', accent: '#ff3b30' },
     traits: { muscular: true, beard: 'full', tank: true },
-    stats: { power: 1.3, speed: 0.8, weight: 1.3 },
+    stats: { power: 1.06, speed: 0.86, weight: 1.24, hp: 102 },
     quotes: {
       intro: ['Bem-vindo ao servidor. Check-in: agora. Check-out: nunca.', 'Meu backend aguenta 1 milhão de requisições... e 1 milhão de socos.'],
       win: ['HTTP 200: você foi processado.'],
@@ -227,7 +227,7 @@ const FIGHTERS = [
     bio: 'Tudo automatizado: até a surra. CI/CD de socos.',
     colors: { skin: '#e0b090', hair: '#4a3a2a', shirt: '#0e7a5f', pants: '#23303a', shoes: '#f5c542', accent: '#f5c542' },
     traits: { helmet: true, vest: true },
-    stats: { power: 1.0, speed: 1.05, weight: 1.0 },
+    stats: { power: 1.05, speed: 1.0, weight: 1.08, hp: 106 },
     quotes: {
       intro: ['Pipeline iniciado: build, test, deploy... de soco.', 'Se quebrou o build, eu quebro você.'],
       win: ['Deploy em produção: vitória. Zero downtime.'],
@@ -253,7 +253,7 @@ const FIGHTERS = [
     bio: 'Testa tudo. Se falhar o teste, leva stun longo.',
     colors: { skin: '#f0c8a0', hair: '#5a3a1a', shirt: '#ffffff', pants: '#37474f', shoes: '#263238', accent: '#e53935' },
     traits: { clipboard: true, vest: true, hairStyle: 'bun' },
-    stats: { power: 0.95, speed: 1.0, weight: 1.0 },
+    stats: { power: 1.16, speed: 1.06, weight: 1.05, hp: 110 },
     quotes: {
       intro: ['Vou rodar o teste... em você.', 'Critério de aceite: você derrotado.'],
       win: ['Teste aprovado: minha vitória. Bug seu: derrota.'],
@@ -279,7 +279,7 @@ const FIGHTERS = [
     bio: 'Daily de 15 minutos... de porrada. E ainda cura um pouco.',
     colors: { skin: '#d9a066', hair: '#2f2f2f', shirt: '#4054b2', pants: '#2e3440', shoes: '#1c1f26', accent: '#a3be8c' },
     traits: { suit: true, glasses: 'square', beard: 'short' },
-    stats: { power: 0.9, speed: 1.1, weight: 0.9 },
+    stats: { power: 1.0, speed: 1.1, weight: 0.94, hp: 104, meterRate: 1.15 },
     quotes: {
       intro: ['Daily rápido: 3 rounds. Impedimentos? Nenhum.', 'Vamos fazer essa sprint até o KO.'],
       win: ['Sprint completa. Retrospectiva: você perdeu feio.'],
@@ -304,7 +304,7 @@ const FIGHTERS = [
     bio: 'Front, back, banco, deploy... e ainda sobra soco.',
     colors: { skin: '#e8b98f', hair: '#3b2a1a', shirt: '#6d28d9', pants: '#1f2937', shoes: '#e5e7eb', accent: '#22d3ee' },
     traits: { hoodie: true, glasses: 'square', beard: 'short' },
-    stats: { power: 1.0, speed: 1.0, weight: 1.0 },
+    stats: { power: 1.03, speed: 1.03, weight: 1.0, hp: 102 },
     quotes: {
       intro: ['Eu faço o front, o back... e o KO.', 'É fullstack: até a derrota é completa.'],
       win: ['Deploy completo: frontend, backend e vitória.'],
@@ -322,5 +322,110 @@ const FIGHTERS = [
     super: {
       name: 'Monolito Perfeito', type: 'multi-projectile', dmg: 7, count: 8,
     },
+  },
+  {
+    id: 'kotlin',
+    name: 'YUMI',
+    title: 'A Dev Kotlin',
+    bio: 'Baixinha, cabelo platinado e óculos redondos. A mais rápida do jogo: setas, lambdas e cristais Kotlin.',
+    colors: { skin: '#f3d3b5', hair: '#e8e2f0', shirt: '#7f52ff', pants: '#2b1d4f', shoes: '#f88909', accent: '#a97bff' },
+    traits: { glasses: 'round' },
+    stats: { power: 1.0, speed: 1.4, weight: 0.82, hp: 100 },
+    quotes: {
+      intro: ['Null pointer? Não comigo.', 'Compila rápido. Bate mais rápido.'],
+      win: ['Null-safe e invicta.', 'Isso foi uma corrotina de porrada.'],
+      special: ['CORTE LAMBDA!', 'CRISTAL NULL-SAFE!'],
+      super: ['CHUVA DE LAMBDAS!!'],
+    },
+    moves: {
+      punch: { dmg: 4, range: 46, startup: 3, active: 3, recovery: 8 },
+      kick: { dmg: 7, range: 58, startup: 6, active: 4, recovery: 10 },
+    },
+    special: { name: 'Seta Kotlin', type: 'projectile', cost: 25, proj: { speed: 12, dmg: 7, w: 22, h: 18, color: '#a97bff', shape: 'bolt' } },
+    super: { name: 'Chuva de Lambdas', type: 'multi-projectile', dmg: 6, count: 8 },
+  },
+  {
+    id: 'hacker',
+    name: 'ROOTKIT',
+    title: 'O Hacker do Kali',
+    bio: 'Pardo, barba curta e moletom preto. Nmap, phishing, DDoS e sudo: mestre dos efeitos de status.',
+    colors: { skin: '#a8714a', hair: '#1a1410', shirt: '#14161c', pants: '#2a2d36', shoes: '#111', accent: '#00ff66' },
+    traits: { hoodie: true, beard: 'short' },
+    stats: { power: 1.05, speed: 1.12, weight: 0.94, hp: 104, meterRate: 1.2 },
+    quotes: {
+      intro: ['Já tenho acesso root ao seu PC.', 'Porta 22 aberta. Entrando.'],
+      win: ['Pwned.', 'rm -rf /sua/dignidade'],
+      special: ['NMAP SCAN!', 'GLITCH DO KALI!'],
+      super: ['SUDO RM -RF!!'],
+    },
+    moves: {
+      punch: { dmg: 5, range: 48, startup: 4, active: 4, recovery: 9 },
+      kick: { dmg: 8, range: 60, startup: 7, active: 4, recovery: 12 },
+    },
+    special: { name: 'Glitch', type: 'projectile', cost: 25, proj: { speed: 9, dmg: 8, w: 24, h: 24, color: '#00ff66', shape: 'bolt' } },
+    super: { name: 'sudo rm -rf', type: 'aoe', dmg: 22, radius: 220 },
+  },
+  {
+    id: 'java',
+    name: 'MESTRE JAVA',
+    title: 'O Mestre do Back-end',
+    bio: 'Jaqueta de couro, punhos em chamas de café. 25 anos de JVM: aguenta tudo e explode tudo.',
+    colors: { skin: '#5a3a24', hair: '#111', shirt: '#7a3b1c', pants: '#1f2a44', shoes: '#3a2414', accent: '#f89820' },
+    traits: { jacket: true, beard: 'short', muscular: true },
+    stats: { power: 0.95, speed: 0.9, weight: 1.22, hp: 102 },
+    quotes: {
+      intro: ['Write once. Bate everywhere.', 'Já estava em produção quando você nasceu.'],
+      win: ['Garbage collected.', 'Exception in thread "você": KO.'],
+      special: ['GRÃO EXPRESSO!', 'STACK OVERFLOW!'],
+      super: ['METEORO DE BEANS!!'],
+    },
+    moves: {
+      punch: { dmg: 7, range: 52, startup: 5, active: 4, recovery: 11 },
+      kick: { dmg: 10, range: 64, startup: 9, active: 5, recovery: 14 },
+    },
+    special: { name: 'Grão Expresso', type: 'projectile', cost: 25, proj: { speed: 8, dmg: 10, w: 26, h: 22, color: '#f89820', shape: 'bolt' } },
+    super: { name: 'Meteoro de Beans', type: 'aoe', dmg: 26, radius: 220 },
+  },
+  {
+    id: 'merc',
+    name: 'CROMO',
+    title: 'O Mercenário Cibernético',
+    bio: 'Pardo, cabelo raspado, jaqueta amarela. Implante neural que desacelera o tempo e desvia de tudo.',
+    colors: { skin: '#8d5a3b', hair: '#111', shirt: '#f7e600', pants: '#15161c', shoes: '#111', accent: '#00f0ff' },
+    traits: { jacket: true },
+    stats: { power: 0.9, speed: 1.26, weight: 0.88, hp: 92 },
+    quotes: {
+      intro: ['Contrato aceito. Você é o alvo.', 'Tempo é dinheiro. O seu acabou.'],
+      win: ['Pagamento recebido.', 'Rápido demais pra você.'],
+      special: ['PASSO FANTASMA!', 'MONOFIO!'],
+      super: ['CIBERPSICOSE!!'],
+    },
+    moves: {
+      punch: { dmg: 5, range: 48, startup: 3, active: 4, recovery: 9 },
+      kick: { dmg: 8, range: 60, startup: 6, active: 4, recovery: 11 },
+    },
+    special: { name: 'Bala Inteligente', type: 'projectile', cost: 25, proj: { speed: 12, dmg: 7, w: 18, h: 12, color: '#00f0ff', shape: 'bolt' } },
+    super: { name: 'Ciberpsicose', type: 'melee-rush', dmg: 24, hits: 6 },
+  },
+  {
+    id: 'bhm',
+    name: 'BHM',
+    title: 'O Raio das Sombras',
+    bio: 'Cabelo preto raspado nas laterais, moletom verde, jeans baggy e tênis. Raios azuis e sombras do submundo.',
+    colors: { skin: '#e9c3a5', hair: '#1a1410', shirt: '#6b7d4a', pants: '#8fb3d9', shoes: '#eee', accent: '#4da3ff' },
+    traits: { hoodie: true },
+    stats: { power: 1.16, speed: 1.12, weight: 0.98, hp: 106, meterRate: 1.15 },
+    quotes: {
+      intro: ['Vai chover raio.', 'Minha sombra já tá atrás de você.'],
+      win: ['Relampejou e acabou.', 'Volta pras sombras.'],
+      special: ['TORPEDO TROVÃO!', 'CLONE DAS SOMBRAS!'],
+      super: ['TEMPESTADE DO SUBMUNDO!!'],
+    },
+    moves: {
+      punch: { dmg: 5, range: 48, startup: 4, active: 4, recovery: 9 },
+      kick: { dmg: 8, range: 62, startup: 7, active: 4, recovery: 11 },
+    },
+    special: { name: 'Bola de Plasma', type: 'projectile', cost: 25, proj: { speed: 10, dmg: 8, w: 24, h: 24, color: '#4da3ff', shape: 'bolt' } },
+    super: { name: 'Tempestade', type: 'aoe', dmg: 24, radius: 220 },
   },
 ];

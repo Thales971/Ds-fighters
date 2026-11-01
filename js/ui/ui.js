@@ -36,6 +36,7 @@ const UI = {
     document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('nav')) AudioSys.cursor(); });
     this.buildMenuSide();
     this.show('title');
+    if (/sala=/i.test(location.hash)) setTimeout(() => { Net.bindUi(); Net.checkInvite(); }, 50);
     this.updateTouch();
   },
 
@@ -243,8 +244,9 @@ const UI = {
       <div class="big-sprite" style="background-image:url(assets/sprites/${d.id}.png)"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
       <div class="ttl">${d.title}</div>
+      ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
       <p class="bio">${d.bio}</p>
-      <div class="statbars">${bar('PODER', st.power, 1.6)}${bar('VELOC.', st.speed, 1.3)}${bar('PESO', st.weight, 1.3)}${bar('VIDA', st.hp || 100, 150)}</div>
+      <div class="statbars">${bar('PODER', st.power, 1.6)}${bar('VELOC.', st.speed, 1.45)}${bar('PESO', st.weight, 1.3)}${bar('VIDA', st.hp || 100, 150)}</div>
       <div class="theme">${kit ? kit.theme : ''}${kit && kit.autoAim ? ' · <b>AUTO AIM</b>' : ''}</div>
       <ul class="kit">${(kit ? kit.powers : []).map((p, i) => `
         <li class="${p.slot}"><span class="ico" style="${Art.css('abil:' + d.id, p.row, 1, 34)}"></span>
@@ -350,6 +352,7 @@ const UI = {
       b.addEventListener('mouseenter', pick);
       b.addEventListener('click', () => { pick(); this.$('btn-fight').focus(); });
     });
+    { const dv = Profile.setting('difficulty'); this.$('opt-diff').value = String(dv == null ? 1 : AI.level(dv)); }
     this.$('lbl-diff').classList.toggle('hidden', !(f.mode !== 'training' && !f.p2Human) && f.mode !== 'training');
     this.$('lbl-dummy').classList.toggle('hidden', f.mode !== 'training');
     this.$('lbl-inf').classList.toggle('hidden', f.mode !== 'training');
@@ -376,7 +379,8 @@ const UI = {
     const f = this.flow;
     AudioSys.select();
     f.weather = this.$('opt-weather').value;
-    f.difficulty = parseFloat(this.$('opt-diff').value);
+    f.difficulty = parseInt(this.$('opt-diff').value, 10);
+    Profile.setting('difficulty', f.difficulty);
     f.dummy = this.$('opt-dummy').value;
     f.infinite = this.$('opt-inf').checked;
     this.launch();
@@ -439,7 +443,7 @@ const UI = {
     const opp = f.ladder[f.arcadeStep];
     const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
     this.launch({
-      mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random', difficulty: 0.75 + f.arcadeStep * 0.17 + (f.arcadeStep === 6 ? 0.25 : 0),
+      mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random', difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 99,
     });
   },
@@ -556,7 +560,7 @@ const UI = {
     document.querySelectorAll('[data-set]').forEach((el) => {
       const k = el.dataset.set;
       const v = Profile.setting(k);
-      if (el.type === 'checkbox') el.checked = k === 'shake' ? v !== false : !!v;
+      if (el.type === 'checkbox') el.checked = k === 'shake' || k === 'smooth' ? v !== false : !!v;
       else if (k === 'reducedMotion') el.value = v === true ? 'on' : v === false ? 'off' : 'auto';
       else el.value = v == null ? '' : v;
       el.addEventListener('input', () => {

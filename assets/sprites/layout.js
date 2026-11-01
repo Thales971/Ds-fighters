@@ -50,6 +50,11 @@ const SPRITE_LAYOUT = {
     "backend": "assets/sprites/backend.png",
     "devops": "assets/sprites/devops.png",
     "qa": "assets/sprites/qa.png",
+    "kotlin": "assets/sprites/kotlin.png",
+    "hacker": "assets/sprites/hacker.png",
+    "java": "assets/sprites/java.png",
+    "merc": "assets/sprites/merc.png",
+    "bhm": "assets/sprites/bhm.png",
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png"
   }

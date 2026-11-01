@@ -65,9 +65,12 @@ try:
         # tela de luta específica com IALES roubando
         pg.evaluate("""() => { const g = DSGame; UI.show('fight'); document.getElementById('stage-wrap').classList.add('on');
           g.start({ mode: 'versus', teams: [['iales'], ['du']], stage: 'spring', cpu: [true, true], roundsToWin: 2, timer: 99, pets: [PETS[1], PETS[0]] });
-          for (let k = 0; k < 140; k++) g.tick();
-          const [a, b] = g.activePair(); a.charge = [100, 100]; a.ultimate = 100; a.tryCast(2);
+          for (let k = 0; k < 600 && g.roundState !== 'fight'; k++) g.tick();
+          g.cfg.cpu = [false, false];
+          for (let k = 0; k < 30; k++) g.tick();
+          const [a, b] = g.activePair(); a.charge = [100, 100]; a.ultimate = 100; window.__cast = a.tryCast(2);
           for (let k = 0; k < 40; k++) g.tick(); }""")
+        print('steal cast', pg.evaluate("window.__cast"))
         pg.wait_for_timeout(300)
         pg.screenshot(path=f'{OUT}/05-steal.png')
         info = pg.evaluate("(() => { const [a,b] = DSGame.activePair(); return { stolen: !!a.stolen, from: a.stolen && a.stolen.from, locked: b.has('locked') }; })()")
@@ -80,7 +83,7 @@ try:
         pg.screenshot(path=f'{OUT}/07-fight.png')
         # 2x2 + troca
         pg.evaluate("""() => { const g = DSGame; g.start({ mode: 'tag', teams: [['felipinho','stack'], ['du','qa']], stage: 'kernel', cpu: [true, true], roundsToWin: 2, timer: 99, weather: 'snow' });
-          for (let k = 0; k < 160; k++) g.tick(); g.tryTag(0); for (let k = 0; k < 60; k++) g.tick(); }""")
+          for (let k = 0; k < 700 && g.roundState !== 'fight'; k++) g.tick(); g.cfg.cpu = [false, false]; for (let k = 0; k < 40; k++) g.tick(); g.tryTag(0); for (let k = 0; k < 60; k++) g.tick(); }""")
         pg.wait_for_timeout(300)
         pg.screenshot(path=f'{OUT}/08-tag.png')
         print('tag active', pg.evaluate("DSGame.activeOf(0).def.id"))

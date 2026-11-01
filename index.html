@@ -48,7 +48,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EXPANSÃO ARCADE · 12 LUTADORES · 26 ARENAS</p>
+      <p class="tagline">EDIÇÃO TURBO · 17 LUTADORES · 30 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
       <p class="credit">Arte, código e trilha originais · Jogo gratuito</p>
@@ -99,7 +99,7 @@
       </div>
       <div class="stage-opts">
         <label>Clima <select id="opt-weather"><option value="random">Aleatório</option><option value="clear">Céu limpo</option><option value="rain">Chuva</option><option value="wind">Ventania</option><option value="storm">Tempestade</option><option value="snow">Nevasca</option></select></label>
-        <label id="lbl-diff">Dificuldade <select id="opt-diff"><option value="0.6">Fácil</option><option value="1" selected>Normal</option><option value="1.5">Difícil</option><option value="2.2">Insano</option></select></label>
+        <label id="lbl-diff">Dificuldade <select id="opt-diff"><option value="0">Fácil — reage devagar, quase não defende</option><option value="1" selected>Normal — defende e faz combos curtos</option><option value="2">Difícil — pune erros, antiaéreo, combos longos</option><option value="3">Pesadelo — leitura quase perfeita</option></select></label>
         <label id="lbl-dummy" class="hidden">Boneco <select id="opt-dummy"><option value="stand">Parado</option><option value="block">Defende</option><option value="jump">Pula</option><option value="cpu">CPU</option></select></label>
         <label id="lbl-inf" class="hidden"><input type="checkbox" id="opt-inf" checked /> Medidores infinitos</label>
         <button class="nav btn primary" id="btn-fight">LUTAR!</button>
@@ -176,6 +176,9 @@
           <label class="chk"><input type="checkbox" data-set="mute" /> Silenciar tudo</label>
           <label>Movimento reduzido <select data-set="reducedMotion"><option value="auto">Automático (sistema)</option><option value="on">Ligado</option><option value="off">Desligado</option></select></label>
           <label class="chk"><input type="checkbox" data-set="shake" /> Tremor de tela</label>
+          <label>Limite de FPS <select data-set="fpsCap"><option value="0">Sem limite (taxa do monitor: 120/144/240)</option><option value="60">60</option><option value="120">120</option><option value="144">144</option></select></label>
+          <label class="chk"><input type="checkbox" data-set="smooth" /> Movimento suavizado (interpolação acima de 60 FPS)</label>
+          <label class="chk"><input type="checkbox" data-set="showFps" /> Mostrar FPS</label>
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
@@ -199,10 +202,21 @@
         <h2>ONLINE</h2>
         <div class="net-status" id="net-status" role="status"></div>
         <div class="net-connect" id="net-connect">
-          <label>Servidor <input type="text" id="net-url" placeholder="wss://seu-servidor.exemplo.com" /></label>
-          <label>Seu nome <input type="text" id="net-name" maxlength="16" /></label>
           <div class="row">
-            <label>Modo <select id="net-mode"><option value="1v1">1 × 1</option><option value="2x2">2 × 2 (duplas com troca)</option></select></label>
+            <label>Conexão <select id="net-transport">
+              <option value="p2p">Direta P2P (grátis, sem servidor)</option>
+              <option value="ws">Servidor dedicado (wss://)</option>
+            </select></label>
+            <label>Seu nome <input type="text" id="net-name" maxlength="16" /></label>
+          </div>
+          <label class="net-url-row" id="net-url-row">Servidor <input type="text" id="net-url" placeholder="wss://seu-servidor.exemplo.com" /></label>
+          <p class="net-hint" id="net-hint">P2P: o navegador de quem cria a sala vira o anfitrião (autoridade da luta). Mande o código ou o link para os amigos.</p>
+          <div class="row">
+            <label>Modo <select id="net-mode">
+              <option value="1v1">1 × 1</option>
+              <option value="2x2">2 × 2 — duplas, 2 jogadores (cada um escolhe 2)</option>
+              <option value="2x2-4">2 × 2 — 4 jogadores (1 lutador cada, troca e assist)</option>
+            </select></label>
             <button class="nav btn primary" id="net-create">CRIAR SALA</button>
           </div>
           <div class="row">
@@ -211,19 +225,29 @@
           </div>
         </div>
         <div class="net-lobby hidden" id="net-lobby">
-          <div class="lobby-code">SALA <b id="lobby-code">------</b> <button class="nav btn tiny" id="lobby-copy">COPIAR</button></div>
+          <div class="lobby-code">SALA <b id="lobby-code">------</b>
+            <button class="nav btn tiny" id="lobby-copy">COPIAR CÓDIGO</button>
+            <button class="nav btn tiny" id="lobby-link">COPIAR LINK</button>
+            <span class="lobby-ping" id="lobby-ping"></span>
+          </div>
           <div class="lobby-players" id="lobby-players"></div>
           <div class="row">
             <button class="nav btn" id="lobby-pick">ESCOLHER LUTADOR</button>
+            <button class="nav btn hidden" id="lobby-team">TROCAR DE EQUIPE</button>
             <label>Arena <select id="lobby-stage"></select></label>
             <button class="nav btn primary" id="lobby-ready">PRONTO</button>
             <button class="nav btn danger" id="lobby-leave">SAIR</button>
+          </div>
+          <div class="lobby-chat">
+            <div class="chat-log" id="chat-log" aria-live="polite"></div>
+            <div class="row"><input type="text" id="chat-text" maxlength="80" placeholder="Mensagem para a sala…" aria-label="Mensagem" /><button class="nav btn tiny" id="chat-send">ENVIAR</button></div>
           </div>
         </div>
         <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
 
+    <div id="fps" class="fps" hidden>-- FPS</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
         <button data-k="ArrowUp" class="t-up">▲</button>
@@ -250,6 +274,7 @@
   <script src="js/core/profile.js"></script>
   <script src="js/data/fighters.js"></script>
   <script src="js/data/powers.js"></script>
+  <script src="js/data/powers-turbo.js"></script>
   <script src="js/data/pets.js"></script>
   <script src="js/data/stages.js"></script>
   <script src="js/engine/sprites.js"></script>
@@ -263,6 +288,8 @@
   <script src="js/engine/stage.js"></script>
   <script src="js/engine/ai.js"></script>
   <script src="js/engine/game.js"></script>
+  <script src="js/vendor/peerjs.min.js"></script>
+  <script src="js/net/room-core.js"></script>
   <script src="js/net/online.js"></script>
   <script src="js/ui/hud.js"></script>
   <script src="js/ui/ui.js"></script>

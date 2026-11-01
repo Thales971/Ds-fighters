@@ -288,12 +288,45 @@ class Game {
     this.tagIn(ti, idx, false);
   }
 
+  /** 2x2 com 4 jogadores: entrada de quem está na reserva (pede TROCA ou ASSIST). */
+  benchInput(ti) {
+    if (this.mode !== 'online' || !this.cfg.fourP) return null;
+    const slot = ti * 2 + (1 - this.teams[ti].active);
+    return slot === this.cfg.mySlot ? Input.read(0) : Net.takeRemote(slot);
+  }
+  /** ASSIST: o parceiro entra, solta a habilidade H1 e volta para a reserva. */
+  tryAssist(ti) {
+    if (this.mode !== 'tag' && !(this.mode === 'online' && this.cfg.tag)) return;
+    const t = this.teams[ti];
+    if ((t.assistCd || 0) > 0) return;
+    const cur = t.members[t.active];
+    const idx = t.members.findIndex((m, k) => k !== t.active && m.alive);
+    if (idx < 0 || !cur.alive) return;
+    const m = t.members[idx];
+    const st = m.powerState(0);
+    if (!st.p) return;
+    t.assistCd = 540;
+    m.benched = false;
+    m.assistT = 80;
+    m.x = Math.max(60, Math.min(this.W - 60, cur.x - cur.dir * 90));
+    m.y = 0; m.vx = 0; m.vy = 0;
+    m.dir = cur.dir;
+    m.state = 'idle';
+    m.stateTime = 0;
+    m.startCast(0, st.p);
+    m.cd[0] = 0;
+    this.spawnBurst('arcane', 3, m.x, -90, 1, 2.2);
+    if (this.mode !== 'demo') UI.toast(m.def.name + ': ASSIST!', 1100);
+  }
   /* ---------- entradas ---------- */
   inputFor(ti) {
     if (this.bsod > 0) return EMPTY_INPUT;
     const f = this.activeOf(ti);
     const opp = this.activeOf(1 - ti);
-    if (this.mode === 'online') return ti === this.cfg.localTeam ? Input.read(0) : Net.takeRemote();
+    if (this.mode === 'online') {
+      const slot = this.cfg.fourP ? ti * 2 + this.teams[ti].active : ti * 2;
+      return slot === this.cfg.mySlot ? Input.read(0) : Net.takeRemote(slot);
+    }
     if (this.mode === 'demo') return AI.think(f, opp, 1.2);
     if (this.mode === 'training' && ti === 1) {
       const dm = this.cfg.dummy || 'stand';
@@ -314,12 +347,34 @@ class Game {
     if (this.freeze > 0) {
       this.freeze--;
       if (this.freeze === 0) this.freezeOwner = null;
+      this.bufferDuringPause();
       this.tickFxOnly();
       return;
     }
-    if (this.hitstop > 0) { this.hitstop--; this.tickFxOnly(); return; }
+    if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
     if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
     this.step();
+  }
+  /** Durante hitstop/super-freeze as entradas continuam indo para o buffer (combos fluidos). */
+  bufferDuringPause() {
+    if (this.roundState !== 'fight') return;
+    for (const ti of [0, 1]) {
+      const f = this.activeOf(ti);
+      if (f && f.alive) f.press(this.inputFor(ti));
+    }
+  }
+  /** Times controlados por humanos nesta tela (para efeitos de tela como cegueira). */
+  localTeams() {
+    if (!this.cfg || this.mode === 'demo') return [];
+    if (this.mode === 'online') return [this.cfg.localTeam];
+    if (this.mode === 'training') return [0];
+    return [0, 1].filter((ti) => !this.cfg.cpu[ti]);
+  }
+  /** Guarda posições antes de cada passo para interpolar em telas de 120/144/240 Hz. */
+  capturePrev() {
+    if (!this.teams) return;
+    for (const f of this.allFighters()) { f._px = f.x; f._py = f.y; }
+    for (const p of this.projectiles) { p._px = p.x; p._py = p.y; }
   }
   step() {
     this.roundStateTime++;
@@ -348,11 +403,25 @@ class Game {
       for (const ti of [0, 1]) {
         const t = this.teams[ti];
         if (t.tagCd > 0) t.tagCd--;
+        if (t.assistCd > 0) t.assistCd--;
         const inp = this.inputFor(ti);
-        if (inp.tag) this.tryTag(ti);
+        // TROCA = tecla de troca; ASSIST = baixo + tecla de troca
+        if (inp.tag) { if (inp.down) this.tryAssist(ti); else this.tryTag(ti); }
+        const bin = this.benchInput(ti);
+        if (bin) { if (bin.tag) this.tryTag(ti); else if (bin.punch || bin.a0) this.tryAssist(ti); }
         const f = this.activeOf(ti);
         f.update(inp);
-        t.members.forEach((m) => { if (m !== f) m.update(EMPTY_INPUT); });
+        t.members.forEach((m) => {
+          if (m === f) return;
+          if (m.assistT > 0) {
+            m.assistT--;
+            m.update(EMPTY_INPUT);
+            if (m.assistT === 0 || (m.state !== 'cast' && m.assistT < 50)) {
+              m.assistT = 0; m.benched = true; m.state = 'idle';
+              this.spawnBurst('arcane', 3, m.x, -90, 1, 2);
+            }
+          } else m.update(EMPTY_INPUT);
+        });
       }
       this.separate();
       this.tickEntities();
@@ -481,6 +550,9 @@ class Game {
   }
   stop() {
     this.running = false;
+    this.canvas.classList.remove('blinded');
+    document.body.classList.remove('shocked');
+    this._blurOn = false; this._shockOn = false;
     if (this.weather) this.weather.stop();
     if (this.mech) this.mech.stop();
     AudioSys.stopLoops();
@@ -502,7 +574,7 @@ class Game {
       rs: this.roundState, rst: this.roundStateTime, rnd: this.round, tw: this.teamWins, tm: this.roundTimer === Infinity ? 99 : Math.max(0, Math.ceil(this.roundTimer / 60)),
       wk: this.weather.kind, wind: Math.round(this.weather.wind * 100) / 100, wf: this.weather.flash,
       fr: this.freeze, bs: this.bsod, gl: this.glitch, sh: Math.round(this.shakeMag),
-      teams: this.teams.map((t) => ({ a: t.active, cd: t.tagCd, m: t.members.map((m) => m.snap()) })),
+      teams: this.teams.map((t) => ({ a: t.active, cd: t.tagCd, ac: t.assistCd || 0, m: t.members.map((m) => m.snap()) })),
       e: [...this.projectiles, ...this.strikes, ...this.zones, ...this.walls].map((e) => this.ent(e)).filter(Boolean),
       pk: this.pickups.map((p) => [p.id, Math.round(p.x), Math.round(p.y), p.def.id, p.age]),
       bm: this.beams.map((b) => [b.fid, b.row, Math.round(b.x), b.dir, b.len, b.age, b.life, Math.round(b.y), b.single ? 1 : 0, b.scale || 0]),
@@ -528,6 +600,7 @@ class Game {
       if (!t) return;
       if (t.active !== ts.a) { t.active = ts.a; UI.hud.reset(this); }
       t.tagCd = ts.cd;
+      t.assistCd = ts.ac || 0;
       ts.m.forEach((ms, k) => { if (t.members[k]) t.members[k].applySnap(ms); });
     });
     this.hostTime = s.t;
@@ -559,9 +632,32 @@ class Game {
   }
 
   /* ---------- desenho ---------- */
-  render() {
+  render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    // interpolação entre o passo anterior e o atual (renderização acima de 60 fps)
+    const lerped = [];
+    if (alpha < 0.999 && this.netRole !== 'guest' && this.teams && Profile.data.settings.smooth !== false) {
+      for (const e of [...this.allFighters(), ...this.projectiles]) {
+        if (e._px === undefined) continue;
+        const dx = e.x - e._px;
+        const dy = e.y - e._py;
+        if (Math.abs(dx) > 120 || Math.abs(dy) > 120) continue;
+        lerped.push([e, e.x, e.y]);
+        e.x = e._px + dx * alpha;
+        e.y = e._py + dy * alpha;
+      }
+    }
+    try { this.renderScene(ctx); } finally { for (const [e, x, y] of lerped) { e.x = x; e.y = y; } }
+    // cegueira: embaça a tela de quem está cego
+    const lt = this.localTeams();
+    // com 2 humanos na mesma tela não dá para embaçar só um: o efeito fica no lutador (status CEGO)
+    const blind = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('blind'); });
+    if (blind !== this._blurOn) { this._blurOn = blind; this.canvas.classList.toggle('blinded', blind); }
+    const shocked = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('shock'); });
+    if (shocked !== this._shockOn) { this._shockOn = shocked; document.body.classList.toggle('shocked', shocked); }
+  }
+  renderScene(ctx) {
     const [a, b] = this.activePair();
     const mid = a && b ? (a.x + b.x) / 2 : W / 2;
     const camX = (mid - W / 2) / (W / 2);
@@ -592,7 +688,7 @@ class Game {
     else { this.zones.forEach((z) => z.draw(ctx, this)); this.walls.forEach((w) => w.draw(ctx, this)); }
     if (guest) this.drawNetPickups(ctx); else this.pickups.forEach((p) => p.draw(ctx));
     const busy = (f) => (f.state === 'attack' || f.state === 'cast' || f.state === 'rush' ? 1 : 0);
-    const fs = this.fighters().slice().sort((p, q) => busy(p) - busy(q));
+    const fs = this.fighters().concat(this.allFighters().filter((m) => m.assistT > 0)).sort((p, q) => busy(p) - busy(q));
     fs.forEach((f) => f.drawBack(ctx));
     fs.forEach((f) => f.draw(ctx));
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);

@@ -113,11 +113,11 @@ const POWERS = {
     element: 'acido',
     theme: 'Ácido, testes e cobertura',
     powers: [
-      { id: 'tube', name: 'Tubo de Ensaio', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 7, arc: true, poison: 240, cd: 48, sfx: 'water', desc: 'Lança ácido em parábola.' },
-      { id: 'fail', name: 'Teste Falhou', slot: 'simple', row: 1, kind: 'pillar', at: 'target', delay: 20, dmg: 9, stun: 42, cd: 70, sfx: 'block', desc: 'Um X vermelho carimba e atordoa.' },
-      { id: 'puddle', name: 'Poça de Ácido', slot: 'charge', meter: 0, row: 2, kind: 'zone', at: 'target', time: 300, dmg: 0.14, slow: 30, sfx: 'water', desc: 'Poça que corrói e deixa lento.' },
+      { id: 'tube', name: 'Tubo de Ensaio', slot: 'simple', row: 0, kind: 'shot', dmg: 10, speed: 8, arc: true, poison: 260, cd: 40, sfx: 'water', desc: 'Lança ácido em parábola.' },
+      { id: 'fail', name: 'Teste Falhou', slot: 'simple', row: 1, kind: 'pillar', at: 'target', delay: 16, dmg: 11, stun: 44, cd: 56, sfx: 'block', desc: 'Um X vermelho carimba e atordoa.' },
+      { id: 'puddle', name: 'Poça de Ácido', slot: 'charge', meter: 0, row: 2, kind: 'zone', at: 'target', time: 320, dmg: 0.2, slow: 34, sfx: 'water', desc: 'Poça que corrói e deixa lento.' },
       { id: 'coverage', name: 'Cobertura 100%', slot: 'charge', meter: 1, row: 3, kind: 'aura', time: 420, defMult: 0.5, heal: 8, sfx: 'shield', desc: 'Escudo de testes: metade do dano.' },
-      { id: 'regress', name: 'Suíte de Regressão', slot: 'ultimate', row: 4, kind: 'rain', count: 7, dmg: 34, poison: 300, sfx: 'explosion', desc: 'Chuva ácida sobre o rival.' },
+      { id: 'regress', name: 'Suíte de Regressão', slot: 'ultimate', row: 4, kind: 'rain', count: 8, dmg: 38, poison: 300, sfx: 'explosion', desc: 'Chuva ácida sobre o rival.' },
     ],
   },
   scrum: {

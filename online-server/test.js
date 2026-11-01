@@ -27,7 +27,7 @@ function client(name) {
       c.waiters.push({ pred, res: (m) => { clearTimeout(t); c.msgs.splice(c.msgs.indexOf(m), 1); res(m); } });
     });
     c.none = async (pred, ms = 300) => { await new Promise((r) => setTimeout(r, ms)); assert(!c.msgs.find(pred), 'mensagem inesperada em ' + name); };
-    ws.on('open', () => { c.send({ t: 'hello', v: 1, name }); resolve(c); });
+    ws.on('open', () => { c.send({ t: 'hello', v: 2, name }); resolve(c); });
   });
 }
 const T = (t) => (m) => m.t === t;
@@ -120,7 +120,7 @@ const T = (t) => (m) => m.t === t;
       const ws = new WebSocket(URL);
       const c = { ws, msgs: [] };
       ws.on('message', (d) => c.msgs.push(JSON.parse(d.toString())));
-      ws.on('open', () => { ws.send(JSON.stringify({ t: 'hello', v: 1, name: 'Beto', resume: { code: ja.code, token: jb.token } })); resolve(c); });
+      ws.on('open', () => { ws.send(JSON.stringify({ t: 'hello', v: 2, name: 'Beto', resume: { code: ja.code, token: jb.token } })); resolve(c); });
     });
     await A.wait((m) => m.t === 'peer' && m.ev === 'back');
     await new Promise((r) => setTimeout(r, 200));
@@ -128,7 +128,7 @@ const T = (t) => (m) => m.t === t;
     B2.ws.send(JSON.stringify({ t: 'resume-bad' }));
 
     // token errado
-    const X = await new Promise((resolve) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 1, resume: { code: ja.code, token: 'x' } }))); ws.on('message', (d) => { const m = JSON.parse(d.toString()); if (m.t === 'error') resolve(m); }); });
+    const X = await new Promise((resolve) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 2, resume: { code: ja.code, token: 'x' } }))); ws.on('message', (d) => { const m = JSON.parse(d.toString()); if (m.t === 'error') resolve(m); }); });
     assert.equal(X.code, 'resume_failed'); pass('token falso não assume a vaga de ninguém');
 
     // abandono definitivo
@@ -145,6 +145,31 @@ const T = (t) => (m) => m.t === t;
     for (let k = 0; k < 60; k++) C.send({ t: 'stage', id: 'hive' });
     await new Promise((r) => setTimeout(r, 300));
     pass('rajada de mensagens não derruba o servidor');
+    // 2x2 com 4 jogadores: slots, equipes, parceiro não repete lutador, entradas com slot
+    const P = await Promise.all(['E1', 'E2', 'E3', 'E4'].map((n) => client(n)));
+    await Promise.all(P.map((c) => c.wait(T('welcome'))));
+    P[0].send({ t: 'create', mode: '2x2-4', stagePool: STAGES });
+    const j4 = await P[0].wait(T('joined'));
+    for (const c of P.slice(1)) { c.send({ t: 'join', code: j4.code }); await c.wait(T('joined')); }
+    const r4 = await P[0].wait((m) => m.t === 'room' && m.room.players.length === 4);
+    assert.deepEqual(r4.room.players.map((p) => p.slot).sort(), [0, 1, 2, 3]);
+    assert.equal(r4.room.players.filter((p) => p.team === 0).length, 2); pass('sala 2x2 com 4 jogadores distribui 2 por equipe');
+    const X5 = await client('E5'); await X5.wait(T('welcome'));
+    X5.send({ t: 'join', code: j4.code }); const full = await X5.wait(T('error'));
+    assert(/cheia/.test(full.msg)); pass('quinto jogador recebe "Sala cheia"');
+    const bySlot = {}; r4.room.players.forEach((p, k) => { bySlot[p.slot] = p; });
+    const conn = (slot) => P[r4.room.players.findIndex((p) => p.slot === slot)];
+    conn(0).send({ t: 'pick', fighters: ['kotlin'], pet: 'tux' });
+    await new Promise((r) => setTimeout(r, 80));
+    conn(1).send({ t: 'pick', fighters: ['kotlin'] });
+    const dup = await conn(1).wait(T('error')); assert(/parceiro/.test(dup.msg)); pass('parceiro de equipe não pode repetir o lutador');
+    conn(1).send({ t: 'pick', fighters: ['java'] }); conn(2).send({ t: 'pick', fighters: ['merc'] }); conn(3).send({ t: 'pick', fighters: ['bhm'] });
+    await new Promise((r) => setTimeout(r, 120));
+    P.forEach((c) => c.send({ t: 'ready', on: true }));
+    const st4 = await P[3].wait(T('start')); assert(STAGES.includes(st4.stage)); pass('com os 4 prontos a partida começa');
+    conn(3).send({ t: 'input', i: 0x31 });
+    const in4 = await P[0].wait(T('input')); assert.equal(in4.slot, 3); pass('entrada de cada jogador chega ao anfitrião com o slot certo');
+    P.concat([X5]).forEach((c) => c.ws.close());
     const health = await (await fetch(`http://localhost:${PORT}/health`)).json();
     assert.equal(health.ok, true); pass('/health responde: ' + JSON.stringify(health));
 

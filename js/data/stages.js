@@ -40,6 +40,10 @@ const STAGE_LIST = [
   { id: 'kernel', name: 'Ártico do Kernel', image: 'assets/maps/kernel.jpg', group: 'Tecnologia', weather: ['snow', 'wind', 'storm'], fauna: [], mech: 'ice', tint: '#9dffcf', friction: 0.93 },
   { id: 'rust', name: 'Fundição Rust', image: 'assets/maps/rust.jpg', group: 'Tecnologia', weather: ['clear', 'wind'], fauna: [], mech: 'molten', tint: '#ff7a2a', embers: true },
   { id: 'python', name: 'Pântano Python', image: 'assets/maps/python.jpg', group: 'Tecnologia', weather: ['rain', 'storm', 'clear'], fauna: ['butterfly', 'bee', 'bat'], mech: 'serpent', tint: '#5cff8d', fireflies: true },
+  { id: 'kotlin', name: 'Ilha Kotlin', image: 'assets/maps/kotlin.jpg', group: 'Expansão Turbo', weather: ['clear', 'wind', 'rain', 'storm'], fauna: ['bird', 'bird', 'butterfly'], mech: 'tide', tint: '#ff9a5c' },
+  { id: 'kali', name: 'Covil do Kali', image: 'assets/maps/kali.jpg', group: 'Expansão Turbo', weather: ['clear', 'rain', 'storm'], fauna: ['bat'], mech: 'hack', tint: '#00ff66' },
+  { id: 'java', name: 'Torrefação JVM', image: 'assets/maps/java.jpg', group: 'Expansão Turbo', weather: ['clear'], fauna: [], mech: 'gc', tint: '#f89820', embers: true },
+  { id: 'chrome', name: 'Cidade Cromada', image: 'assets/maps/chrome.jpg', group: 'Expansão Turbo', weather: ['rain', 'storm', 'clear'], fauna: ['bird'], mech: 'drones', tint: '#ff4fd8' },
 ];
 
 /* Compatibilidade com código antigo. */
@@ -54,6 +58,10 @@ const WEATHER_INFO = {
 };
 
 const MECH_INFO = {
+  tide: 'MARÉ ALTA: ondas empurram os lutadores para um lado.',
+  hack: 'INVASÃO: um lutador é hackeado e fica com os controles eletrizados.',
+  gc: 'GARBAGE COLLECTOR: limpa projéteis e zonas e puxa todos ao centro.',
+  drones: 'DRONES: disparos do céu miram um lutador.',
   overheat: 'SUPERAQUECIMENTO: zonas do piso esquentam e queimam.',
   glyphs: 'CHUVA DE CÓDIGO: colunas de glifos caem e deixam lento.',
   bsod: 'TELA AZUL: o sistema trava os dois e solta energia.',

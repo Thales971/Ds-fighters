@@ -17,7 +17,8 @@ const STATUS_LABEL = {
   rage: { t: 'FÚRIA', c: '#ff6a1c' }, armor: { t: 'ARMADURA', c: '#ffd27d' }, reflect: { t: 'REFLEXO', c: '#7de0ff' },
   invuln: { t: 'INVULN.', c: '#ffffff' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
   burn: { t: 'QUEIMANDO', c: '#ff7b1c' }, poison: { t: 'VENENO', c: '#9dff4a' }, slow: { t: 'LENTO', c: '#7db8ff' },
-  locked: { t: 'SEM PODERES', c: '#ff3b5c' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
+  locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' },
+  chill: { t: 'CONGELANDO', c: '#a8e6ff' }, bleed: { t: 'SANGRANDO', c: '#ff2d55' }, vuln: { t: 'VULNERÁVEL', c: '#ff9f1c' }, overclock: { t: 'OVERCLOCK', c: '#00f0ff' }, dizzy: { t: 'TONTO', c: '#ffe14d' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
 };
 
 class Fighter {
@@ -59,6 +60,9 @@ class Fighter {
     this.blockstun = 0;
     this.walkPhase = 0;
     this.buf = { punch: 0, kick: 0, a0: 0, a1: 0, a2: 0, a3: 0, a4: 0 };
+    this.chain = 0;
+    this.airChain = 0;
+    this.sig = (typeof SIGNATURES !== 'undefined' && SIGNATURES[def.id]) || {};
     this.prev = { left: false, right: false, down: false, up: false };
     this.lastLeft = -999;
     this.lastRight = -999;
@@ -126,6 +130,7 @@ class Fighter {
     if (this.has('spot')) m *= 1.25;
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
+    if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
     const w = this.game.weather ? this.game.weather.kind : 'clear';
     const el = p ? this.elementOf(p) : null;
     if (el) {
@@ -138,6 +143,7 @@ class Fighter {
   defMult() {
     let m = 1 / Math.sqrt(this.weight());
     if (this.has('def')) m *= 0.65;
+    if (this.has('vuln')) m *= 1.2;
     if (this.has('aura') && this.aura && this.aura.defMult) m *= this.aura.defMult;
     m *= 1 - (this.pfx.def || 0);
     return m;
@@ -147,6 +153,8 @@ class Fighter {
     if (this.has('spd')) m *= 1.4;
     if (this.has('aura') && this.aura && this.aura.speedMult) m *= this.aura.speedMult;
     if (this.has('slow')) m *= 0.55;
+    if (this.has('chill')) m *= 0.68;
+    if (this.has('overclock')) m *= 1.3;
     m *= 1 + (this.pfx.speed || 0);
     if (this.game.weather && this.game.weather.kind === 'snow') m *= 0.92;
     return m;
@@ -170,7 +178,7 @@ class Fighter {
       kind,
       dmg: base.dmg * mod.dmg,
       range: base.range * mod.range * (this.autoAim() ? 1.25 : 1),
-      startup: Math.max(2, base.startup + mod.startup + ((this.def.stats.speed || 1) > 1.2 ? -1 : 0)),
+      startup: Math.max(2, base.startup + mod.startup + ((this.def.stats.speed || 1) > 1.2 ? -1 : 0) + (this.has('chill') ? 2 : 0)),
       active: base.active + mod.active,
       recovery: Math.max(6, base.recovery + mod.recovery),
       height: mod.height,
@@ -207,10 +215,24 @@ class Fighter {
     if (this.has('invuln') && !unblockable) return false;
     if (this.state === 'down' && !o.hazard) return false;
     const game = this.game;
+    // esquiva sináptica (passiva do Cromo e de quem estiver em overclock): desvia de projéteis/golpes leves
+    if (atk && !unblockable && !o.hazard && (this.sig.dodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
+      const chance = (this.sig.dodge || 0) + (this.has('overclock') ? 0.25 : 0);
+      if (Math.random() < chance) {
+        const sgn = Math.sign(this.x - atk.x) || 1;
+        this.x = Math.max(50, Math.min(game.W - 50, this.x + sgn * 70));
+        this.addStatus('invuln', 12);
+        this.afterimage = 18;
+        game.floatText(this.x, this.y - 230, 'ESQUIVA!', '#00f0ff');
+        game.audio.play('whoosh');
+        return false;
+      }
+    }
     let d = dmg * (atk ? atk.dmgMult(o.power) : 1) * this.defMult();
     let comboIndex = 0;
     if (atk && game.combo.owner === atk && game.combo.until > game.time) comboIndex = game.combo.count;
-    if (!o.noScale) d *= Math.max(0.4, 1 - comboIndex * 0.09);
+    if (!o.noScale) d *= Math.max(0.35, 1 - comboIndex * 0.075);
+    const juggled = !this.onGround && comboIndex >= 9;
     const counter = atk && !o.hazard && this.state === 'attack' && this.attack && this.stateTime < this.attack.startup + this.attack.active;
     if (counter) d *= 1.2;
     const sign = o.dirSign || Math.sign(this.x - (atk ? atk.x : this.x - this.dir)) || -this.dir;
@@ -249,13 +271,15 @@ class Fighter {
     if (o.burn && !this.pfx.immune) this.addStatus('burn', o.burn);
     if (o.poison && !this.pfx.immune) this.addStatus('poison', o.poison);
     if (o.slow) this.addStatus('slow', o.slow);
+    this.applyEffects(o, atk, d);
+    if (atk && atk.cast && o.ability) atk.cast.hit = true;
     game.audio.hit(d >= 13);
     game.shake(Math.min(12, d >= 14 ? 8 : 4));
     game.registerHit(atk, this, d, false, o.hitstop || (d >= 14 ? 8 : 5), counter);
     if (atk) atk.gain(true);
     this.gain(false);
     // tontura
-    this.stunGauge += d * 2.3;
+    this.stunGauge += d * 2.3 * (atk && atk.sig.stunMult ? atk.sig.stunMult : 1);
     if (this.hp <= 0) { this.defeat(sign); return true; }
     if (!this.revived && this.pfx.revive && this.hp < this.maxHp * 0.25) {
       this.revived = true;
@@ -267,7 +291,11 @@ class Fighter {
       return true;
     }
     this.vx = sign * (o.kx || 4.2) / this.weight();
-    if (o.launch && o.launch < 0) {
+    if (juggled) {
+      // limite de juggle: o alvo cai em vez de ser relançado (evita loops infinitos)
+      this.vy = Math.max(this.vy, 3);
+      this.launched = true;
+    } else if (o.launch && o.launch < 0) {
       this.vy = o.launch;
       this.y = Math.min(this.y, -1);
       this.launched = true;
@@ -276,7 +304,8 @@ class Fighter {
       this.launched = true;
     }
     if (o.sweep) { this.vy = -4; this.y = -1; this.launched = true; }
-    this.hitstun = o.stun || 14;
+    this.hitstun = juggled ? Math.min(o.stun || 14, 12) : (o.stun || 14);
+    if (this.has('chill')) this.hitstun += 3;
     if (o.trap) { this.addStatus('trap', o.trap); this.hitstun = Math.max(this.hitstun, o.trap); }
     if (o.freeze) { this.addStatus('freeze', o.stun || 60); }
     this.blocking = false;
@@ -296,6 +325,34 @@ class Fighter {
       game.audio.voice('combo');
     }
     return true;
+  }
+  /** Efeitos de status: assinatura do lutador + campo fx do poder. */
+  applyEffects(o, atk, d) {
+    if (!atk || this.pfx.immune || !this.alive) return;
+    const p = o.power || null;
+    const owner = p ? atk.kitOwnerId(p) : atk.def.id;
+    const sig = (typeof SIGNATURES !== 'undefined' && SIGNATURES[owner]) || {};
+    const fx = Object.assign({}, o.ability ? sig.ability : sig.basic, p && p.fx);
+    if (!fx) return;
+    const game = this.game;
+    if (fx.blind) this.addStatus('blind', fx.blind);
+    if (fx.shock) this.addStatus('shock', fx.shock);
+    if (fx.chill) this.addStatus('chill', fx.chill);
+    if (fx.bleed) this.addStatus('bleed', fx.bleed);
+    if (fx.burn) this.addStatus('burn', fx.burn);
+    if (fx.poison) this.addStatus('poison', fx.poison);
+    if (fx.vuln) this.addStatus('vuln', fx.vuln);
+    if (fx.slow) this.addStatus('slow', fx.slow);
+    if (fx.lock) this.addStatus('locked', fx.lock);
+    if (fx.stun) this.stunGauge += fx.stun;
+    if (fx.drain) atk.heal(d * fx.drain);
+    if (fx.meterBurn) { this.charge[0] = Math.max(0, this.charge[0] - fx.meterBurn); this.charge[1] = Math.max(0, this.charge[1] - fx.meterBurn); }
+    if (fx.explode && this.hp > 0) {
+      this.chip(fx.explode, atk);
+      game.spawnBurst('fire', 3, this.x, this.y - 90, 1, 2.6);
+      game.shake(6);
+      game.audio.play('explosion', { vol: 0.5 });
+    }
   }
   defeat(sign) {
     this.state = 'ko';
@@ -336,7 +393,7 @@ class Fighter {
       if (st.p.slot !== 'simple') this.flashText(st.p.slot === 'ultimate' ? 'ULTIMATE CARREGANDO' : 'CARREGANDO ' + Math.round(st.pct * 100) + '%');
       return false;
     }
-    const cancelable = this.state === 'attack' && this.hasHit;
+    const cancelable = (this.state === 'attack' && this.hasHit) || (this.state === 'cast' && this.cast && this.cast.fired && (this.cast.hit || this.hasHit));
     if (!this.canAct() && !cancelable) return false;
     if (!this.onGround && st.p.kind !== 'shot' && st.p.kind !== 'aura') return false;
     this.startCast(i, st.p);
@@ -411,10 +468,11 @@ class Fighter {
         if (p.reflect) this.addStatus('reflect', t);
         if (p.dmgMult && p.id === 'rage') { this.addStatus('rage', t); this.status.rageMult = p.dmgMult; }
         if (p.invuln) this.addStatus('invuln', p.invuln);
+        if (p.grant) this.addStatus(p.grant, t);
         if (p.regen) this.addStatus('regen', t);
         if (p.heal) this.heal(p.heal);
         if (p.meterGain) { this.charge[0] = Math.min(100, this.charge[0] + p.meterGain); this.charge[1] = Math.min(100, this.charge[1] + p.meterGain); }
-        if (p.cleanse) { ['burn', 'poison', 'slow', 'trap', 'freeze', 'locked'].forEach((s) => { this.status[s] = 0; }); }
+        if (p.cleanse) { ['burn', 'poison', 'slow', 'trap', 'freeze', 'locked', 'blind', 'shock', 'chill', 'bleed', 'vuln'].forEach((s) => { this.status[s] = 0; }); }
         if (p.teleportBehind && tgt) {
           game.spawnBurst('arcane', 3, this.x, this.y - 90, 1, 2.2);
           this.x = Math.max(60, Math.min(game.W - 60, tgt.x - tgt.dir * 80));
@@ -568,20 +626,23 @@ class Fighter {
   }
 
   /* ---------- entrada ---------- */
+  /** Buffer de 12 quadros: apertos durante hitstop/recuperação saem no 1º quadro livre. */
   press(input) {
-    ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4'].forEach((k) => { if (input[k]) this.buf[k] = 8; });
+    ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4'].forEach((k) => { if (input[k]) this.buf[k] = 12; });
+    this.held = input;
   }
-  tryAbilities() {
+  tryAbilities(except = -1) {
     for (let i = 4; i >= 0; i--) {
+      if (i === except) continue;
       if (this.buf['a' + i] > 0) {
-        const fresh = this.buf['a' + i] === 8;
         if (this.tryCast(i)) { this.buf['a' + i] = 0; return true; }
-        if (fresh && this.state !== 'cast') { /* aviso já mostrado */ }
       }
     }
     return false;
   }
   startAttack(kind) {
+    const tgt0 = this.enemy();
+    if (tgt0 && this.onGround) this.dir = tgt0.x >= this.x ? 1 : -1;
     this.state = 'attack';
     this.stateTime = 0;
     this.attack = this.attackSpec(kind);
@@ -688,6 +749,10 @@ class Fighter {
     if (this.alive && !this.benched) {
       if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9);
       if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8);
+      if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
+      if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 60 - Math.random() * 100, '#7df9ff');
+      if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 40 - Math.random() * 120, '#d8f6ff');
+      if (this.afterimage > 0) this.afterimage--;
       if (this.has('regen') && this.aura && this.aura.regen) this.hp = Math.min(this.maxHp, this.hp + this.aura.regen);
       if (this.pfx.regen && this.frame % 2 === 0) this.hp = Math.min(this.maxHp, this.hp + this.pfx.regen * 2);
     }
@@ -695,6 +760,7 @@ class Fighter {
       this.hp = Math.min(this.redHp, this.hp + 0.05);
       return;
     }
+    if (this.has('shock')) input = this.shockInput(input);
     this.press(input);
     this.queue = this.queue.filter((q) => {
       q.at--;
@@ -778,32 +844,84 @@ class Fighter {
     if (!mv) { this.state = 'idle'; return; }
     const total = mv.startup + mv.active + mv.recovery;
     if (this.stateTime >= mv.startup && this.stateTime < mv.startup + mv.active) this.checkMelee(mv);
-    const cancel = this.hasHit && this.stateTime >= mv.startup && this.stateTime <= mv.startup + mv.active + Math.ceil(mv.recovery * 0.7);
-    if (cancel) {
-      if (this.tryAbilities()) return;
-      if ((mv.kind === 'punch' || mv.kind === 'cpunch') && this.buf.kick) {
-        this.buf.kick = 0;
-        this.startAttack(this.onGround ? (mv.kind === 'cpunch' ? 'ckick' : 'kick') : 'jkick');
+    // janela de cancelamento: do 1º quadro ativo até o fim da recuperação, se conectou (hit ou defesa)
+    if (this.hasHit && this.stateTime >= mv.startup) {
+      if (this.tryAbilities()) { this.chain = 0; return; }
+      // cancelamento em pulo (air combo) a partir de chute em pé ou soco agachado
+      if (input.up && this.onGround && (mv.kind === 'kick' || mv.kind === 'cpunch') && this.chain < 4) {
+        this.attack = null;
+        this.state = 'idle';
+        this.chain++;
+        this.doJump(input, 1.05);
+        this.game.floatText(this.x, this.y - 230, 'JUMP CANCEL', '#9adcff');
         return;
       }
-      if (mv.kind === 'punch' && this.buf.punch && this.stateTime > mv.startup + mv.active) {
-        this.buf.punch = 0;
-        this.startAttack('cpunch');
-        return;
-      }
+      const next = this.nextChain(mv.kind, input);
+      if (next) { this.chain++; this.startAttack(next); return; }
     }
+    // kara-cancel: nos 2 primeiros quadros um golpe pode virar habilidade
+    if (!this.hasHit && this.stateTime <= 2 && this.tryAbilities()) return;
     if (this.stateTime >= total) {
       this.state = this.onGround ? 'idle' : 'jump';
       this.stateTime = 0;
       this.attack = null;
+      this.chain = 0;
     }
+  }
+  /** Cadeias (target combos): leve → leve → médio → pesado, também no ar. */
+  nextChain(kind, input) {
+    const P = this.buf.punch > 0;
+    const K = this.buf.kick > 0;
+    if (!P && !K) return null;
+    const cap = 5 + (this.sig.chainBonus || 0);
+    if (this.chain >= cap) return null;
+    let n = null;
+    if (!this.onGround) {
+      if (this.airChain >= 3) return null;
+      if (kind === 'jpunch' && K) n = 'jkick';
+      else if (kind === 'jpunch' && P) n = 'jpunch';
+      else if (kind === 'jkick' && P) n = 'jpunch';
+      if (n) this.airChain++;
+    } else {
+      const order = { punch: 0, cpunch: 0, kick: 1, ckick: 2 };
+      const low = !!input.down;
+      const cand = P ? (low ? 'cpunch' : 'punch') : (low ? 'ckick' : 'kick');
+      if (order[cand] > order[kind]) n = cand;
+      else if (cand === kind && kind.includes('punch') && this.chain < 2) n = cand;
+      else if (kind === 'kick' && P && this.chain < 3) n = low ? 'cpunch' : 'punch';
+      else if (kind === 'ckick' && K && !low && this.chain < 4) n = 'kick';
+    }
+    if (n) { if (n.includes('punch')) this.buf.punch = 0; else this.buf.kick = 0; }
+    return n;
+  }
+  doJump(input, mul = 1) {
+    const spd = WALK_SPEED * this.speedMult();
+    const jump = (12.4 + (1.1 - this.weight()) * 3) * (this.game.jumpMul || 1) * mul;
+    this.vy = -jump;
+    this.y = -0.1;
+    let dx = 0;
+    if (input.left) dx -= 1;
+    if (input.right) dx += 1;
+    this.vx = dx * spd * 1.15;
+    this.state = 'jump';
+    this.stateTime = 0;
+    this.blocking = false;
+    this.crouching = false;
+    this.airAction = false;
+    this.airChain = 0;
+    this.game.audio.jump();
   }
   stepCast() {
     const c = this.cast;
     if (!c) { this.state = 'idle'; return; }
     c.t++;
-    const fireAt = c.p.slot === 'ultimate' ? 4 : 7;
+    const fireAt = c.p.slot === 'ultimate' ? 4 : 6;
     if (!c.fired && c.t >= fireAt) { c.fired = true; this.fire(c.p); }
+    // cancelamento de habilidade em habilidade: depois que a habilidade conectou
+    if (c.fired && (c.hit || this.hasHit) && !c.chained && c.t > fireAt + 2 && c.p.slot !== 'ultimate') {
+      const before = this.cast;
+      if (this.tryAbilities(c.i)) { if (this.cast && this.cast !== before) this.cast.chained = true; this.game.floatText(this.x, this.y - 240, 'CANCEL!', '#7dff5e'); return; }
+    }
     if (this.dashHit) {
       this.dashHit.t--;
       const p = this.dashHit.p;
@@ -819,7 +937,7 @@ class Fighter {
       }
       if (this.dashHit.t <= 0) this.dashHit = null;
     }
-    const len = this.dashHit ? 20 : (c.p.slot === 'ultimate' ? 30 : 22);
+    const len = this.dashHit ? 18 : (c.p.slot === 'ultimate' ? 28 : 18);
     if (c.t > len && !this.queue.length) {
       this.cast = null;
       this.state = this.onGround ? 'idle' : 'jump';
@@ -885,22 +1003,7 @@ class Fighter {
     if (leftEdge && this.now - this.lastLeft < 15) { this.lastLeft = -999; this.startDash(-1); return; }
     if (rightEdge) this.lastRight = this.now;
     if (leftEdge) this.lastLeft = this.now;
-    if (input.up) {
-      const jump = (12.4 + (1.1 - this.weight()) * 3) * (game.jumpMul || 1);
-      this.vy = -jump;
-      this.y = -0.1;
-      let dx = 0;
-      if (input.left) dx -= 1;
-      if (input.right) dx += 1;
-      this.vx = dx * spd * 1.15;
-      this.state = 'jump';
-      this.stateTime = 0;
-      this.blocking = false;
-      this.crouching = false;
-      this.airAction = false;
-      game.audio.jump();
-      return;
-    }
+    if (input.up) { this.doJump(input); return; }
     const back = (this.dir === 1 && input.left) || (this.dir === -1 && input.right);
     if (input.down) {
       this.crouching = true;
@@ -930,6 +1033,17 @@ class Fighter {
     }
   }
   autoBlock() { return false; }
+  /** Eletrizado: os controles "mexem sozinhos" (direções invertidas em pulsos e apertos fantasmas). */
+  shockInput(input) {
+    const i = Object.assign({}, input);
+    const ph = Math.floor(this.now / 7) % 4;
+    if (ph === 1) { const l = i.left; i.left = i.right; i.right = l; }
+    if (ph === 3 && !i.left && !i.right) { if ((this.now >> 3) & 1) i.left = true; else i.right = true; }
+    if (this.now % 29 === 0) i.punch = true;
+    if (this.now % 47 === 0) i.up = true;
+    if (this.now % 37 === 0) i.down = true;
+    return i;
+  }
   startDash(sign) {
     this.state = sign === this.dir ? 'dash' : 'backdash';
     this.stateTime = 0;
@@ -1024,7 +1138,7 @@ class Fighter {
       const py = this.y - 168 + Math.sin(this.frame * 0.07) * 6;
       Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
     }
-    const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush';
+    const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
     if (ghost && !game.reduced) {
       ctx.save();
       ctx.globalAlpha = 0.25;
@@ -1040,8 +1154,14 @@ class Fighter {
       ctx.shadowColor = this.has('rage') ? '#ff4b1c' : '#ffd27d';
       ctx.shadowBlur = 18;
     }
+    if (this.has('chill')) ctx.filter = 'saturate(0.6) hue-rotate(160deg) brightness(1.15)';
+    else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';
+    else if (this.has('overclock')) { ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; }
     SpriteGen.blit(ctx, this.def.id, pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0);
+    ctx.filter = 'none';
     ctx.restore();
+    if (this.has('shock') && this.frame % 5 === 0) Art.fx2(ctx, 'lightning', 2, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.1, alpha: 0.7 });
+    if (this.has('blind')) Art.fx2(ctx, 'chaos', 1, Math.floor(this.frame / 6), this.x, this.y - 170, { scale: 0.7, alpha: 0.6 });
     // status visuais
     if (this.has('trap')) Art.ability(ctx, 'felipinho', 0, 3, this.x, this.y - 96, { scale: 1.9, alpha: 0.75 });
     if (this.has('freeze')) Art.fx2(ctx, 'arcane', 0, Math.floor(this.frame / 6), this.x, this.y - 96, { scale: 3, alpha: 0.75 });
