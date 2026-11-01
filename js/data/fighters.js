@@ -372,7 +372,7 @@ const FIGHTERS = [
     bio: 'Jaqueta de couro, punhos em chamas de café. 25 anos de JVM: aguenta tudo e explode tudo.',
     colors: { skin: '#5a3a24', hair: '#111', shirt: '#7a3b1c', pants: '#1f2a44', shoes: '#3a2414', accent: '#f89820' },
     traits: { jacket: true, beard: 'short', muscular: true },
-    stats: { power: 0.86, speed: 0.86, weight: 1.16, hp: 106 },
+    stats: { power: 1.05, speed: 0.98, weight: 1.16, hp: 118, meterRate: 1.15 },
     quotes: {
       intro: ['Write once. Bate everywhere.', 'Já estava em produção quando você nasceu.'],
       win: ['Garbage collected.', 'Exception in thread "você": KO.'],
