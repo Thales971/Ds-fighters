@@ -211,7 +211,7 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .pet em { position: absolute; top: 4px; right: 4px; font-size: 6px; background: var(--lime); color: #000; padding: 2px 3px; font-style: normal; }
 .pet.on { border-color: var(--lime); }
 .pet:focus, .pet:hover { border-color: var(--gold); transform: translateY(-2px); }
-.pet-spr { width: 96px; height: 96px; background-size: 384px 768px; background-position: 0 calc(var(--row) * -96px); image-rendering: pixelated; animation: pet4 .8s steps(4) infinite; transform: scale(.7); margin: -14px; }
+.pet-spr { width: 96px; height: 96px; background-size: 384px 1248px; background-position: 0 calc(var(--row) * -96px); image-rendering: pixelated; animation: pet4 .8s steps(4) infinite; transform: scale(.7); margin: -14px; }
 .pet-spr.none { background: none; animation: none; display: grid; place-items: center; }
 .pet-spr.none::before { content: '∅'; font-size: 30px; color: #6b4fb3; }
 @keyframes pet4 { from { background-position-x: 0; } to { background-position-x: -384px; } }

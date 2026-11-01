@@ -393,6 +393,7 @@ class Game {
   }
   /* ---------- entradas ---------- */
   inputFor(ti) {
+    if (this._tickInputs) return this._tickInputs[ti];
     if (this.replayFrames) {
       const fr = this.replayFrames[this.time] || [];
       const b = fr[ti] || fr[0] || [];
@@ -420,9 +421,11 @@ class Game {
 
   /* ---------- loop ---------- */
   tick() {
-    if (this.rec && this.roundState === 'fight') {
-      const ins = this.teams.map((t, ti) => this.inputFor(t.members[t.active], ti));
-      this.rec.frames.push(ins.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
+    // cacheia os inputs deste tick para nao chamar inputFor duas vezes
+    // (Input.read consome o estado de borda; chamar 2x zera os golpes)
+    this._tickInputs = this.replayFrames ? null : this.teams.map((t, ti) => this.inputFor(ti));
+    if (this.rec && this.roundState === 'fight' && this._tickInputs) {
+      this.rec.frames.push(this._tickInputs.map((i) => [i.left?1:0, i.right?1:0, i.down?1:0, i.up?1:0, i.punch?1:0, i.kick?1:0,
         i.a0?1:0, i.a1?1:0, i.a2?1:0, i.a3?1:0, i.a4?1:0, i.a5?1:0, i.a6?1:0, i.a7?1:0, i.a8?1:0, i.a9?1:0, i.tag?1:0]));
     }
     if (!this.running || this.paused) return;

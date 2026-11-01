@@ -70,7 +70,7 @@ const UI = {
   back() {
     AudioSys.back();
     if (this.stack.length) { const prev = this.stack.pop(); this.show(prev, false); this.stack = this.stack; return; }
-    if (['select', 'custom', 'rules', 'redeem', 'options', 'moves', 'online'].includes(this.screen)) return this.toMenu();
+    if (['select', 'custom', 'skins', 'replays', 'rules', 'redeem', 'options', 'moves', 'online'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   toMenu() {
@@ -622,13 +622,9 @@ const UI = {
     hs.innerHTML = this.SKIN_HUES.map(([n, h]) => `<option value="${h}">${n}</option>`).join('');
     const upd = () => {
       const fid = sel.value;
-      const hue = +hs.value;
-      hs.querySelectorAll('option').forEach((o) => { if (+o.value === 0 && hue === 0) o.textContent = n0(o); });
-      const cur = Profile.skinFor(fid);
-      hs.value = String(cur || 0);
+      if (document.activeElement !== hs) hs.value = String(Profile.skinFor(fid) || 0);
       this.renderSkinPreview(fid, +hs.value);
     };
-    function n0(o) { return 'Original'; }
     sel.onchange = upd; hs.onchange = upd;
     upd();
     this.$('btn-skin-save').onclick = () => {
@@ -641,7 +637,8 @@ const UI = {
     const el = this.$('skin-preview');
     if (!el) return;
     const d = FIGHTERS.find((f) => f.id === fid);
-    el.innerHTML = `<div class="skin-sprite" style="background-image:url(assets/sprites/${fid}.png);${hue ? `filter:hue-rotate(${hue}deg)` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${hue ? 'hue ' + hue + '°' : 'paleta original'}</small>`;
+    const filt = hue === -1 ? 'grayscale(1)' : (hue ? `hue-rotate(${hue}deg)` : '');
+    el.innerHTML = `<div class="skin-sprite" style="background-image:url(assets/sprites/${fid}.png);${filt ? `filter:${filt};` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${hue === -1 ? 'preto e branco' : hue ? 'hue ' + hue + '°' : 'paleta original'}</small>`;
   },
   enter_redeem() {
     this.$('redeem-msg').textContent = '';
