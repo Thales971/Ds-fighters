@@ -300,3 +300,5 @@ Menus e formulários agora se adaptam a retrato/paisagem; só a arena recebe esc
 ## Correção focada do Lobão
 
 Lobão agora usa rosto humano/cabelo das referências e visual de wrestling verde/branco, gola de pele e cadeira vermelha: 60 quadros e retratos novos. Aura de ativação com alcance local e sem perseguição; dano x1,5, esquiva 10% e sem armadura permanente. Chuva de cadeiras reduzida de 26 para 8 por cadeira. BHM preservado; catálogo do servidor sincronizado. Checagens: `python3 tools/lobao_render_check.py` e `node tools/lobao_combat_test.mjs`. O `tools/paint-lobao.py` é o gerador visual antigo; não o use para sobrescrever esta folha nova.
+
+**Ajuste posterior solicitado:** Modo Selvagem do Lobão mantém 10% de esquiva e recupera o escudo/armadura temporário durante seus 12 segundos. Permanecem o dano x1,5, a correção de alcance local e a chuva de cadeiras reduzida.

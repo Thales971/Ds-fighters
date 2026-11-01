@@ -81,7 +81,7 @@ const chairrain = api.POWERS.lobao.powers.find((power) => power.id === 'chairrai
 assert.equal(wildmode.time, 720, 'Modo Selvagem mantém os 12 s aumentados');
 assert.equal(wildmode.dmgMult, 1.5, 'Modo Selvagem não dobra dano junto com todas as defesas');
 assert.equal(wildmode.dodge, 0.1, 'Modo Selvagem deixa uma esquiva moderada');
-assert.equal(wildmode.armor, undefined, 'Modo Selvagem não empilha armadura e esquiva');
+assert.equal(wildmode.armor, true, 'Modo Selvagem mantém escudo junto da esquiva por pedido do proprietário');
 assert.equal(chairrain.count, 6, 'Chuva mantém seis cadeiras');
 assert.equal(chairrain.dmg, 8, 'Cada cadeira permanece fraca à distância');
 

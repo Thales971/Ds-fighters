@@ -36,10 +36,10 @@ Object.assign(POWERS, {
       },
       {
         id: 'wildmode', name: 'MODO SELVAGEM', slot: 'ultimate', row: 4,
-        kind: 'aura', time: 720, dmgMult: 1.5, speedMult: 1.8, dodge: 0.1,
+        kind: 'aura', time: 720, dmgMult: 1.5, speedMult: 1.8, armor: true, dodge: 0.1,
         hitDmg: 30, hitStun: 46, hitLaunch: -11, hitRadius: 300,
         burstDmg: 10, sfx: 'ultimate',
-        desc: 'Explosão verde e branca de alcance local: golpe de 30 se o rival estiver perto; 12 s de dano x1,5, +80% velocidade e 10% de esquiva, sem armadura permanente.',
+        desc: 'Explosão verde e branca de alcance local: golpe de 30 se o rival estiver perto; 12 s de dano x1,5, +80% velocidade, escudo/armadura temporário e 10% de esquiva.',
       },
     ],
   },
@@ -52,7 +52,7 @@ Object.assign(ELEMENT_FX, {
 Object.assign(SIGNATURES, {
   lobao: {
     trait: 'SELVAGEM DE PERTO',
-    desc: 'Agarrões causam corte. O Modo Selvagem aumenta o dano em 50%, acelera e dá esquiva, sem armadura permanente.',
+    desc: 'Agarrões causam corte. O Modo Selvagem aumenta o dano em 50%, acelera e dá escudo/armadura e esquiva durante a ultimate.',
     ability: { bleed: 60 },
   },
 });
