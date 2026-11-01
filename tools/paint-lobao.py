@@ -135,13 +135,51 @@ def fur_band(p, x0, y0, x1, y1, along='h', thick=3):
                 p.ellipse(x - 1 - k * 2.2, y + (k - 1) * 2.4, 4.0, 3.2, FUR if k % 2 == 0 else FUR_SH, False)
 
 
+def hood_down(p, chest, head):
+    """Capuz de lobo caido para tras (modo normal): massa verde escura atras do
+    pescoco/ombros + duas orelhas de lobo caidas para tras."""
+    p.ellipse(chest[0], chest[1] - 12, 26, 16, JAQUET)          # capuz caido atras do pescoco
+    p.ellipse(chest[0] - 14, chest[1] - 16, 12, 8, JAQUET)
+    p.ellipse(chest[0] + 14, chest[1] - 16, 12, 8, JAQUET)
+    # orelhas do capuz caidas para tras
+    tri(p, chest[0] - 20, chest[1] - 22, chest[0] - 34, chest[1] - 34, chest[0] - 16, chest[1] - 32, JAQUET)
+    tri(p, chest[0] + 20, chest[1] - 22, chest[0] + 34, chest[1] - 34, chest[0] + 16, chest[1] - 32, JAQUET)
+    tri(p, chest[0] - 22, chest[1] - 24, chest[0] - 30, chest[1] - 31, chest[0] - 19, chest[1] - 29, FUR_SH, shade=False)
+    tri(p, chest[0] + 22, chest[1] - 24, chest[0] + 30, chest[1] - 31, chest[0] + 19, chest[1] - 29, FUR_SH, shade=False)
+    # borda de pelo na nuca do capuz
+    fur_band(p, chest[0] - 24, chest[1] - 18, chest[0] + 24, chest[1] - 18, 'h', 3)
+
+
+def hood_up(p, head):
+    """Capuz de lobo levantado (special/ultimate): cobre a cabeca com orelhas
+    e franja de pelo, deixando so o rosto de lobo aparecendo."""
+    hx, hy = head
+    p.ellipse(hx, hy - 4, 38, 34, JAQUET)
+    # orelhas do capuz em cima
+    tri(p, hx - 26, hy - 22, hx - 36, hy - 52, hx - 10, hy - 34, JAQUET)
+    tri(p, hx + 26, hy - 22, hx + 36, hy - 52, hx + 10, hy - 34, JAQUET)
+    tri(p, hx - 25, hy - 26, hx - 31, hy - 45, hx - 15, hy - 33, FUR_SH, shade=False)
+    tri(p, hx + 25, hy - 26, hx + 31, hy - 45, hx + 15, hy - 33, FUR_SH, shade=False)
+    # abertura do capuz: rosto de lobo dentro
+    p.ellipse(hx, hy + 2, 24, 26, spec_skin_holder[0])
+    # franja de pelo na borda do capuz (testa)
+    fur_band(p, hx - 30, hy - 18, hx + 30, hy - 18, 'h', 3)
+
+
+spec_skin_holder = [None]
+
+
 def paint_wolf(spec, pose):
+    spec_skin_holder[0] = spec['skin']
     p = P(FW, FH)
     hip, chest, head, foot_y = pc.skel(pose)
     pants, shoe, shirt = spec['pants'], spec['shoe'], spec['shirt']
     fx, fy = pose['legB']
     pc.leg(p, (hip[0] - 10, hip[1]), (hip[0] - 10 + fx, foot_y + fy), pants, shoe, 9)
     pc.arm(p, (chest[0] - 16, chest[1] - 4), spec, pose['armB'], spec.get('sleeve', shirt), 7)
+    hooded = pose.get('hood_up', False)
+    if not hooded:
+        hood_down(p, chest, head)  # capuz caido para tras no modo normal
     # torso: camiseta verde embaixo, jaqueta verde escura aberta por cima
     p.ellipse(chest[0], chest[1] + 18, 28, 30, shirt)
     p.box(chest[0] - 24, chest[1] + 8, 48, 36, shirt)
@@ -180,6 +218,17 @@ def paint_wolf(spec, pose):
     pc.leg(p, (hip[0] + 8, hip[1]), (hip[0] + 8 + fx, foot_y + fy), pants, shoe, 9.5)
     expr = pose.get('face', 'idle')
     face_wolf(p, head, spec, expr)
+    if hooded:
+        hood_up(p, head)  # capuz levantado cobrindo a cabeca, rosto dentro
+        # aura densa verde ao redor do corpo (modo selvagem)
+        import math as _m
+        for k in range(40):
+            ang = k / 40 * 2 * _m.pi
+            r = 60 + 12 * _m.sin(ang * 5 + pose.get('bob', 0) + k * 0.7)
+            ax = head[0] + _m.cos(ang) * r
+            ay = head[1] + 44 + _m.sin(ang) * r * 1.2
+            p.ellipse(ax, ay, 6 + (k % 3), 8 + (k % 2), FUR if k % 3 == 0 else (46, 160, 80), False)
+            p.ellipse(ax, ay, 2.6, 3.6, (210, 255, 220), False)
     hand = pc.arm(p, (chest[0] + 16, chest[1] - 2), spec, pose['armF'], JAQUET, 7.4)
     # punho da jaqueta com faixa de pelo no cotovelo do braço da frente
     ex = chest[0] + 16 + pose['armF'][0]
@@ -215,6 +264,7 @@ def render(pose_name, frame):
     pose.pop('prop', None)
     if pose_name == 'special':
         pose['face'] = 'mad'
+        pose['hood_up'] = True   # capuz levantado no especial (modo selvagem)
     return paint_wolf(SPEC, pose)
 
 
@@ -291,20 +341,23 @@ def ability_sheet():
             p.box(x + 2, y, 4, 14, chair, False)
             p.box(x - 7, y + 14, 16, 8, chair_sh)
 
-    def selvagem(p, c):  # ULT: escudo verde/branco (modo selvagem) + presas
-        R = 26 + c * 5
-        p.ellipse(64, 64, R + 8, R + 10, white, False)                  # borda branca
-        p.ellipse(64, 64, R, R + 2, green, False)                        # escudo verde
-        p.ellipse(64, 64, R * 0.55, (R + 2) * 0.55, white, False)        # miolo branco
-        # cabeca de lobo estilizada no centro
-        lx, ly = 64, 66
-        p.ellipse(lx, ly, 9, 7, green, False)
-        tri(p, lx - 7, ly - 4, lx - 9, ly - 12, lx - 3, ly - 7, green, shade=False)
-        tri(p, lx + 7, ly - 4, lx + 9, ly - 12, lx + 3, ly - 7, green, shade=False)
-        p.box(lx - 4, ly - 2, 2, 2, (10, 20, 12), False)
-        p.box(lx + 2, ly - 2, 2, 2, (10, 20, 12), False)
-        tri(p, lx - 3, ly + 5, lx - 1, ly + 5, lx - 2, ly + 9, white, shade=False)
-        tri(p, lx + 3, ly + 5, lx + 1, ly + 5, lx + 2, ly + 9, white, shade=False)
+    def selvagem(p, c):  # ULT: escudo verde/branco estilo Palmeiras pulsando
+        R = 24 + c * 6
+        p.ellipse(64, 64, R + 10, R + 12, white, False)                 # borda branca externa
+        p.ellipse(64, 64, R + 4, R + 6, (200, 210, 200), False)         # anel claro
+        p.ellipse(64, 64, R, R + 2, green, False)                       # escudo verde
+        p.ellipse(64, 64, R - 6, R - 4, white, False)                   # miolo branco
+        # "P" estilizado verde no centro (logo do time no modo selvagem)
+        lx, ly = 64, 62 + c
+        p.box(lx - 4, ly - 16, 8, 20, green, False)                     # haste do P
+        p.box(lx - 4, ly - 16, 16, 7, green, False)                     # barra do P
+        p.box(lx + 8, ly - 9, 4, 7, green, False)                       # perna direita do P
+        # faíscas de aura ao redor do escudo
+        for i in range(5):
+            import math as _m
+            ang = i / 5 * 2 * _m.pi + c * 0.5
+            fx2, fy2 = 64 + _m.cos(ang) * (R + 16), 64 + _m.sin(ang) * (R + 18)
+            p.ellipse(fx2, fy2, 3.4, 5, (160, 255, 190), False)
 
     for c in range(4):
         draw(0, c, chairshot)
