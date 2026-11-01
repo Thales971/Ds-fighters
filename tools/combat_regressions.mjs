@@ -118,7 +118,9 @@ for (const id of ['urbano', 'xeon', 'qwen', 'dolynho', 'thl']) {
   assert.equal(kit.length, 5, `${id} has five powers`);
   assert.equal(new Set(kit.map((p) => p.id)).size, 5, `${id} powers are distinct`);
 }
-assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'afo2', 'IALES AFO2 is the sixth hotkey contract');
+assert.ok(api.POWERS.iales.powers[7] && api.POWERS.iales.powers[7].id === 'afo2', 'IALES AFO2 is the eighth hotkey contract');
+assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'remotesteal', 'IALES second steal (remote copy) is hotkey 6');
+assert.ok(api.POWERS.iales.powers[6] && api.POWERS.iales.powers[6].id === 'grabsteal' && api.POWERS.iales.powers[6].kind === 'grabsteal', 'IALES grab-steal is hotkey 7');
 assert.ok(api.Profile.SECRET_IDS.includes('qwen'), 'Batata unlock includes Qwen');
 assert.ok(!api.Profile.SECRET_IDS.includes('dolynho') && !api.Profile.SECRET_IDS.includes('thl'), 'Dolynho and THL are normal unlocked fighters');
 assert.equal(def('dolynho').stats.power, 1.08, 'Dolynho permanent power');
@@ -214,7 +216,7 @@ assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '115
 // 7) IALES AFO2: exige quatro stacks, cresce e só consome o estoque quando acerta.
 {
   const { game, a: iales, b: target } = pair('iales', 'qwen');
-  const afo2 = api.POWERS.iales.powers[5];
+  const afo2 = api.POWERS.iales.powers[7];
   iales.afo = 4;
   iales.castAfo = 4;
   const hpBefore = target.hp;

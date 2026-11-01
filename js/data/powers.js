@@ -30,6 +30,8 @@ const POWERS = {
       { id: 'steal', name: 'Ctrl+C dos Poderes', slot: 'charge', meter: 0, row: 2, kind: 'steal', time: 600, dmg: 10, fx: { blind: 140, lock: 90, meterSlow: 200 }, sfx: 'steal', desc: 'Rouba as 5 habilidades por 10 s: cega, bloqueia poderes e atrasa o medidor.' },
       { id: 'neural', name: 'Rede Neural', slot: 'charge', meter: 1, row: 3, kind: 'pillar', at: 'target', delay: 6, dmg: 19, stun: 70, seek: true, fx: { shock: 120, poison: 160, chill: 100, bleed: 120 }, sfx: 'thunder_cast', desc: 'Neurônios prendem o alvo: choque + veneno + gelo + sangramento + tontura.' },
       { id: 'afo', name: 'All For One: Merge Total', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 7, count: 12, seek: true, finisher: 30, fx: { vuln: 240, slow: 100, meterBurn: 8 }, sfx: 'ultimate', desc: 'Rajada de IAs acumuladas: vulnerável, lento e medidor queimado no finisher.' },
+      { id: 'remotesteal', name: 'Copy-Paste Remoto', slot: 'extra', row: 5, kind: 'steal', time: 480, dmg: 6, cd: 110, sfx: 'steal', desc: 'Segunda skill de roubo: a distância, copia o kit do rival por 8 s sem precisar chegar perto.' },
+      { id: 'grabsteal', name: 'Agarrão Ctrl+C', slot: 'extra', row: 6, kind: 'grabsteal', dmg: 12, speed: 20, time: 600, cd: 130, sfx: 'dash', desc: '7ª skill: dash que agarra o rival de perto, segura ele e rouba as 5 habilidades na hora.' },
     ],
   },
   felipinho: {
