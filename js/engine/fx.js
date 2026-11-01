@@ -5,7 +5,7 @@
    ============================================================ */
 const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
-  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm']
+  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
@@ -78,9 +78,10 @@ const FX_LAYOUT = {
     fogo: 'assets/fx/fogo.png', gelo: 'assets/fx/gelo.png', raio: 'assets/fx/raio.png', vento: 'assets/fx/vento.png',
     sombra: 'assets/fx/sombra.png', veneno: 'assets/fx/veneno.png', neon: 'assets/fx/neon.png', terra: 'assets/fx/terra.png',
     metal: 'assets/fx/metal.png', acido: 'assets/fx/acido.png', tempo: 'assets/fx/tempo.png', arcano: 'assets/fx/arcano.png',
+    portal: 'assets/fx/portal.png', rastro: 'assets/fx/rastro.png', lata: 'assets/fx/lata.png', kernel: 'assets/fx/kernel.png', hackfx: 'assets/fx/hackfx.png',
   },
 };
-const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano' };
+const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };
 
 const Fx = {
   images: {},

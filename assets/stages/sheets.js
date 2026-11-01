@@ -109,5 +109,49 @@ const STAGE_SHEETS = [
     "fps": 10,
     "frameW": 960,
     "frameH": 540
+  },
+  {
+    "id": "11-oficina-latas",
+    "name": "Oficina das Latas",
+    "sheet": "assets/stages/11-oficina-latas.png",
+    "cols": 6,
+    "rows": 4,
+    "frames": 24,
+    "fps": 10,
+    "frameW": 960,
+    "frameH": 540
+  },
+  {
+    "id": "12-terminal-fosforo",
+    "name": "Terminal Fósforo",
+    "sheet": "assets/stages/12-terminal-fosforo.png",
+    "cols": 6,
+    "rows": 4,
+    "frames": 24,
+    "fps": 10,
+    "frameW": 960,
+    "frameH": 540
+  },
+  {
+    "id": "13-metro-pacotes",
+    "name": "Metrô de Pacotes",
+    "sheet": "assets/stages/13-metro-pacotes.png",
+    "cols": 6,
+    "rows": 4,
+    "frames": 24,
+    "fps": 10,
+    "frameW": 960,
+    "frameH": 540
+  },
+  {
+    "id": "14-catedral-sql",
+    "name": "Catedral SQL",
+    "sheet": "assets/stages/14-catedral-sql.png",
+    "cols": 6,
+    "rows": 4,
+    "frames": 24,
+    "fps": 10,
+    "frameW": 960,
+    "frameH": 540
   }
 ];

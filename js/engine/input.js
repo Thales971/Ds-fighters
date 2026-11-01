@@ -1,8 +1,10 @@
 /* ============================================================
-   DS FIGHTERS — Teclado, toque e controle (API Gamepad, padrão Xbox/PS).
-   Cada habilidade tem tecla própria (mostrada embaixo do ícone na HUD).
+   DS FIGHTERS — Teclado, mouse e controle (API Gamepad, padrão PS4).
+   Jogador 1: WASD + mouse (soco = esquerdo, chute = direito) e poderes 1–0.
+   Jogador 2: setas + numpad, sem cruzar com as teclas do jogador 1.
    ============================================================ */
-const ACTIONS = ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'tag'];
+const POWER_SLOTS = 10;
+const ACTIONS = ['punch', 'kick', 'tag'].concat(Array.from({ length: POWER_SLOTS }, (_, i) => 'a' + i));
 
 const Input = {
   keys: new Set(),
@@ -11,38 +13,64 @@ const Input = {
   padCount: 0,
   _prevPad: [new Set(), new Set()],
   p1: {
-    left: ['ArrowLeft'], right: ['ArrowRight'], up: ['ArrowUp'], down: ['ArrowDown'],
-    punch: ['KeyA'], kick: ['KeyS'], a0: ['KeyD'], a1: ['KeyF'], a2: ['KeyQ'], a3: ['KeyW'], a4: ['KeyE'], tag: ['KeyR'],
+    left: ['KeyA'], right: ['KeyD'], up: ['KeyW'], down: ['KeyS'],
+    punch: ['MouseLeft'], kick: ['MouseRight'], tag: ['KeyR'],
+    a0: ['Digit1'], a1: ['Digit2'], a2: ['Digit3'], a3: ['Digit4'], a4: ['Digit5'],
+    a5: ['Digit6'], a6: ['Digit7'], a7: ['Digit8'], a8: ['Digit9'], a9: ['Digit0'],
   },
   p2: {
-    left: ['KeyJ'], right: ['KeyL'], up: ['KeyI'], down: ['KeyK'],
-    punch: ['Digit1', 'Numpad1'], kick: ['Digit2', 'Numpad2'], a0: ['Digit3', 'Numpad3'], a1: ['Digit4', 'Numpad4'],
-    a2: ['Digit5', 'Numpad5'], a3: ['Digit6', 'Numpad6'], a4: ['Digit7', 'Numpad7'], tag: ['Digit8', 'Numpad8'],
+    left: ['ArrowLeft'], right: ['ArrowRight'], up: ['ArrowUp'], down: ['ArrowDown'],
+    punch: ['KeyJ'], kick: ['KeyK'], tag: ['KeyL'],
+    a0: ['Numpad1'], a1: ['Numpad2'], a2: ['Numpad3'], a3: ['Numpad4'], a4: ['Numpad5'],
+    a5: ['Numpad6'], a6: ['Numpad7'], a7: ['Numpad8'], a8: ['Numpad9'], a9: ['Numpad0'],
   },
-  /* Rótulos curtos para a HUD. */
   label(slot, action) {
     const m = slot === 1 ? this.p2 : this.p1;
     const code = (m[action] || [])[0] || '';
+    if (code === 'MouseLeft') return 'M1';
+    if (code === 'MouseRight') return 'M2';
     return code.replace('Key', '').replace('Digit', '').replace('Numpad', 'N').replace('Arrow', '');
   },
   padLabel(action) {
-    return { punch: '□', kick: '✕', a0: '○', a1: '△', a2: 'L1', a3: 'R1', a4: 'R2', tag: 'L2' }[action] || '';
+    return {
+      punch: '□', kick: '✕', tag: 'L2',
+      a0: '○', a1: '△', a2: 'L1', a3: 'R1', a4: 'R2',
+      a5: 'L3', a6: 'R3', a7: 'Tpad', a8: '', a9: '',
+    }[action] || '';
   },
   init() {
+    const mark = (code) => {
+      if (!code) return;
+      if (!this.keys.has(code)) this.pressed.add(code);
+      this.keys.add(code);
+    };
     window.addEventListener('keydown', (e) => {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (!this.keys.has(e.code)) this.pressed.add(e.code);
-      this.keys.add(e.code);
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+      mark(e.code);
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => { this.keys.clear(); });
+    const app = document.getElementById('app');
+    const area = document.getElementById('stage-wrap');
+    const mouseCode = (btn) => (btn === 0 ? 'MouseLeft' : btn === 2 ? 'MouseRight' : '');
+    const onMouseDown = (e) => {
+      const code = mouseCode(e.button);
+      if (!code) return;
+      e.preventDefault();
+      if (typeof UI !== 'undefined' && UI.screen === 'fight') mark(code);
+    };
+    if (area) area.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', (e) => {
+      const code = mouseCode(e.button);
+      if (code) this.keys.delete(code);
+    });
+    if (app) app.addEventListener('contextmenu', (e) => e.preventDefault());
     document.querySelectorAll('#touch-controls [data-k]').forEach((btn) => {
       const code = btn.dataset.k;
       const on = (e) => {
         e.preventDefault();
-        if (!this.keys.has(code)) this.pressed.add(code);
-        this.keys.add(code);
+        mark(code);
         btn.classList.add('on');
       };
       const off = (e) => { e.preventDefault(); this.keys.delete(code); btn.classList.remove('on'); };
@@ -76,6 +104,7 @@ const Input = {
       st.right = b(15) || (ax[0] || 0) > dead;
       st.up = b(12) || (ax[1] || 0) < -dead;
       st.down = b(13) || (ax[1] || 0) > dead;
+      /* PS4 no mapeamento padrão: □ soco, ✕ chute, ○ △ L1 R1 R2 poderes 1–5, L3 R3 e touchpad 6–8, L2 troca. */
       st.punch = b(2);
       st.kick = b(0);
       st.a0 = b(1);
@@ -83,22 +112,25 @@ const Input = {
       st.a2 = b(4);
       st.a3 = b(5);
       st.a4 = b(7);
+      st.a5 = b(10);
+      st.a6 = b(11);
+      st.a7 = b(17);
       st.tag = b(6);
       st.start = b(9);
-      st.back = b(1) || b(8);
+      st.back = b(8);
       st.confirm = b(0) || b(9);
       const prev = this._prevPad[slot];
       [...ACTIONS, 'up', 'down', 'left', 'right', 'start', 'back', 'confirm'].forEach((name) => {
-        const on = st[name];
+        const on = !!st[name];
         st[name + 'Hit'] = on && !prev.has(name);
         if (on) prev.add(name); else prev.delete(name);
       });
     }
+    for (let s = count; s < 2; s++) this._prevPad[s].clear();
     this.padState = next;
     this.padCount = count;
   },
   pad(index = 0) { return this.padState[index] || this.emptyPad(); },
-  /* Entrada de luta para um jogador (slot 0 = P1, 1 = P2). */
   read(slot) {
     const map = slot === 1 ? this.p2 : this.p1;
     const pad = this.pad(slot);
@@ -108,24 +140,29 @@ const Input = {
       up: this.down(map.up) || pad.up,
       down: this.down(map.down) || pad.down,
     };
-    ACTIONS.forEach((a) => { out[a] = this.hit(map[a]) || pad[a + 'Hit']; });
+    ACTIONS.forEach((a) => { out[a] = this.hit(map[a]) || !!pad[a + 'Hit']; });
     return out;
   },
-  /* Navegação de menus (qualquer teclado/controle). */
   menu() {
     const p0 = this.pad(0);
-    const p1 = this.pad(1);
-    const any = (k) => p0[k] || p1[k];
+    const p1p = this.pad(1);
+    const any = (k) => p0[k] || p1p[k];
     return {
-      up: this.hit(['ArrowUp']) || any('upHit'),
-      down: this.hit(['ArrowDown']) || any('downHit'),
-      left: this.hit(['ArrowLeft']) || any('leftHit'),
-      right: this.hit(['ArrowRight']) || any('rightHit'),
+      up: this.hit(['ArrowUp', 'KeyW']) || any('upHit'),
+      down: this.hit(['ArrowDown', 'KeyS']) || any('downHit'),
+      left: this.hit(['ArrowLeft', 'KeyA']) || any('leftHit'),
+      right: this.hit(['ArrowRight', 'KeyD']) || any('rightHit'),
       confirm: any('confirmHit'),
-      back: any('backHit'),
+      back: any('backHit') || any('a0Hit'),
       start: this.hit(['Escape', 'KeyP']) || any('startHit'),
     };
   },
   endFrame() { this.pressed.clear(); },
 };
-const EMPTY_INPUT = Object.freeze({ left: false, right: false, up: false, down: false, punch: false, kick: false, a0: false, a1: false, a2: false, a3: false, a4: false, tag: false });
+
+function blankInput() {
+  const o = { left: false, right: false, up: false, down: false, punch: false, kick: false, tag: false };
+  for (let i = 0; i < POWER_SLOTS; i++) o['a' + i] = false;
+  return o;
+}
+const EMPTY_INPUT = Object.freeze(blankInput());

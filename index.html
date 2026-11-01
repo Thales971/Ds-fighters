@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>DS Fighters — Expansão Arcade</title>
-  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 12 lutadores devs, 5 habilidades cada, 26 cenários com clima e mecânicas, 2x2 e online." />
+  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 20 lutadores, 5 habilidades cada, arenas animadas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css" />
@@ -48,7 +48,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EDIÇÃO TURBO · 17 LUTADORES · 30 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
+      <p class="tagline">EDIÇÃO TURBO · 20 LUTADORES · 34 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
       <p class="credit">Arte, código e trilha originais · Jogo gratuito</p>
@@ -250,19 +250,19 @@
     <div id="fps" class="fps" hidden>-- FPS</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
-        <button data-k="ArrowUp" class="t-up">▲</button>
-        <button data-k="ArrowLeft" class="t-left">◀</button>
-        <button data-k="ArrowRight" class="t-right">▶</button>
-        <button data-k="ArrowDown" class="t-down">▼</button>
+        <button data-k="KeyW" class="t-up">▲</button>
+        <button data-k="KeyA" class="t-left">◀</button>
+        <button data-k="KeyD" class="t-right">▶</button>
+        <button data-k="KeyS" class="t-down">▼</button>
       </div>
       <div class="tbtns">
-        <button data-k="KeyA">SOCO</button>
-        <button data-k="KeyS">CHUTE</button>
-        <button data-k="KeyD">H1</button>
-        <button data-k="KeyF">H2</button>
-        <button data-k="KeyQ">H3</button>
-        <button data-k="KeyW">H4</button>
-        <button data-k="KeyE" class="ult">ULT</button>
+        <button data-k="MouseLeft">SOCO</button>
+        <button data-k="MouseRight">CHUTE</button>
+        <button data-k="Digit1">1</button>
+        <button data-k="Digit2">2</button>
+        <button data-k="Digit3">3</button>
+        <button data-k="Digit4">4</button>
+        <button data-k="Digit5" class="ult">5</button>
         <button data-k="KeyR">TROCA</button>
         <button data-k="Escape" class="pause">II</button>
       </div>

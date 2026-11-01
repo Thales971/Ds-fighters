@@ -55,6 +55,9 @@ const SPRITE_LAYOUT = {
     "java": "assets/sprites/java.png",
     "merc": "assets/sprites/merc.png",
     "bhm": "assets/sprites/bhm.png",
+    "zoya": "assets/sprites/zoya.png",
+    "rin": "assets/sprites/rin.png",
+    "noir": "assets/sprites/noir.png",
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png"
   }

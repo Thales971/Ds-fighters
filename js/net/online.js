@@ -11,8 +11,8 @@
    Sem conexão real a interface diz "indisponível" — nunca finge uma sala.
    ============================================================ */
 const NET_PROTOCOL = RoomCore.PROTOCOL;
-const INPUT_BITS = ['left', 'right', 'up', 'down', 'punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'tag'];
-const EDGE_ACTIONS = ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'tag'];
+const INPUT_BITS = ['left', 'right', 'up', 'down', 'punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'tag'];
+const EDGE_ACTIONS = ['punch', 'kick', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'tag'];
 const PEER_PREFIX = 'dsfighters-v2-';
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 

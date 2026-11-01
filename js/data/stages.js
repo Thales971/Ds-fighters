@@ -17,6 +17,10 @@ const STAGE_EXTRA = {
   '08-startup-3am': { weather: ['rain', 'clear'], fauna: ['bat'], mech: 'coffee', tint: '#ffc36b' },
   '09-deploy-nas-nuvens': { weather: ['wind', 'storm'], fauna: ['bird'], mech: 'gusts', tint: '#a8e4ff' },
   '10-arena-git': { weather: ['clear', 'wind', 'storm'], fauna: ['bird'], mech: 'revert', tint: '#ff8a3b' },
+  '11-oficina-latas': { weather: ['clear', 'wind'], fauna: [], mech: 'bench', tint: '#ffc36b', embers: true },
+  '12-terminal-fosforo': { weather: ['clear', 'rain'], fauna: [], mech: 'scroll', tint: '#3dff7a' },
+  '13-metro-pacotes': { weather: ['clear', 'wind', 'storm'], fauna: [], mech: 'train', tint: '#9ab0c8' },
+  '14-catedral-sql': { weather: ['clear', 'storm'], fauna: ['bird'], mech: 'query', tint: '#d2b4ff' },
 };
 
 const STAGE_LIST = [
@@ -87,4 +91,8 @@ const MECH_INFO = {
   ice: 'GELO: o chão escorrega muito.',
   molten: 'METAL DERRETIDO: cadinhos derramam metal quente.',
   serpent: 'SERPENTE: a cobra do pântano ataca as bordas.',
+  bench: 'BANCADA: peças caem da prateleira.',
+  scroll: 'SCROLL: colunas de texto empurram para o lado.',
+  train: 'TREM: o vagão empurra a plataforma.',
+  query: 'QUERY: um feixe marca quem está no centro.',
 };

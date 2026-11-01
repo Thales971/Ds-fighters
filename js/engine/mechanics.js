@@ -278,6 +278,33 @@ const MECHS = {
       if (Math.random() < 0.6) g.spawnPickup('spd');
     },
   },
+  bench: {
+    every: 340,
+    fire(g) { g.hazard({ x: g.randX(), label: 'PEÇA!', sheet: ['fx2:impact', 1], dmg: 8, warnColor: '#ffc36b', sound: 'heavy' }); },
+  },
+  scroll: {
+    every: 280,
+    fire(g) {
+      g.pushX = (Math.random() < 0.5 ? -1 : 1) * 1.4;
+      g.floatText(480, -300, 'SCROLL', '#3dff7a');
+    },
+  },
+  train: {
+    every: 460,
+    fire(g) {
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      g.fighters().forEach((f) => { if (f.alive && f.onGround) f.vx += dir * 7; });
+      g.announce('TREM!', '#c8d4e4', 'O vagão empurra todo mundo');
+      g.audio.play('whoosh');
+    },
+  },
+  query: {
+    every: 400,
+    fire(g) {
+      const x = g.W / 2;
+      g.hazard({ x, label: 'SELECT *', sheet: ['fx2:arcane', 2], dmg: 8, w: 140, warnColor: '#ffd27d', sound: 'magic' });
+    },
+  },
   drones: {
     every: 300,
     fire(g) {

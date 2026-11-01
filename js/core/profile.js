@@ -37,10 +37,10 @@ const Profile = {
     if (!c) return { ok: false, msg: 'Digite um código.' };
     if (c === 'batata') {
       const fresh = this.SECRET_IDS.filter((id) => !this.data.unlocked.includes(id));
-      if (!fresh.length) return { ok: true, already: true, msg: 'DU, IALES e FELIPINHO MAPRIM já estão liberados.', ids: [] };
+      if (!fresh.length) return { ok: true, already: true, msg: 'DU MAGMA, IALES OMEGA e FELIPINHO HYDRO já estão liberados.', ids: [] };
       this.data.unlocked.push(...fresh);
       this.save();
-      return { ok: true, msg: 'Desbloqueados: DU, IALES e FELIPINHO MAPRIM!', ids: fresh };
+      return { ok: true, msg: 'Desbloqueados: DU MAGMA, IALES OMEGA e FELIPINHO HYDRO!', ids: fresh };
     }
     return { ok: false, msg: 'Código inválido.' };
   },

@@ -39,6 +39,7 @@ class Game {
     this.resetWorld();
   }
   resetWorld() {
+    this.imgFx = [];
     this.projectiles = [];
     this.strikes = [];
     this.zones = [];
@@ -151,6 +152,11 @@ class Game {
   opponentsOf(f) { const e = this.enemyOf(f); return e ? [e] : []; }
 
   /* ---------- efeitos ---------- */
+  spawnImgFx(sheet, clip, x, y, opts = {}) {
+    if (!this.imgFx) this.imgFx = [];
+    if (this.imgFx.length > 48) this.imgFx.shift();
+    this.imgFx.push({ sheet, clip, frame: 0, x, y, scale: opts.scale || 2, alpha: opts.alpha == null ? 1 : opts.alpha, life: opts.life || 16, max: opts.life || 16, dir: opts.dir || 1 });
+  }
   spawnBurst(sheet, row, x, y, dir = 1, scale = 2) {
     if (this.bursts.length > 60) this.bursts.shift();
     const key = sheet.includes(':') ? sheet : 'fx2:' + sheet;
@@ -438,7 +444,8 @@ class Game {
     for (const f of [a, b]) if (f) f.x = Math.max(44, Math.min(W - 44, f.x));
     if (a && b && a.alive && b.alive) {
       const minDist = 54;
-      if (Math.abs(a.x - b.x) < minDist && Math.abs(a.y - b.y) < 80 && a.state !== 'thrown' && b.state !== 'thrown') {
+      const phase = (f) => f.hidden || f.phaseDash > 0 || (f.def.id === 'merc' && (f.state === 'dash' || f.state === 'backdash') && f.stateTime < 14);
+      if (!phase(a) && !phase(b) && Math.abs(a.x - b.x) < minDist && Math.abs(a.y - b.y) < 80 && a.state !== 'thrown' && b.state !== 'thrown') {
         const push = (minDist - Math.abs(a.x - b.x)) / 2;
         if (a.x === b.x) a.x -= 1;
         if (a.x < b.x) { a.x -= push; b.x += push; } else { a.x += push; b.x -= push; }
@@ -487,6 +494,10 @@ class Game {
     if (this.shakeMag > 0) this.shakeMag *= 0.85;
     if (this.shakeMag < 0.3) this.shakeMag = 0;
     for (const b of this.bursts) b.age++;
+    if (this.imgFx) {
+      for (const fx of this.imgFx) fx.frame++;
+      this.imgFx = this.imgFx.filter((fx) => --fx.life > 0);
+    }
     this.bursts = this.bursts.filter((b) => b.age < b.dur);
     for (const s of this.sparks) { s.x += s.vx; s.y += s.vy; s.vy += s.dust ? 0.04 : 0.28; s.life--; }
     this.sparks = this.sparks.filter((s) => s.life > 0);
@@ -694,6 +705,9 @@ class Game {
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
     this.drawBeams(ctx);
+    for (const fx of this.imgFx || []) {
+      Fx.blit(ctx, fx.sheet, fx.clip, fx.frame, fx.x, fx.y, { scale: fx.scale, dir: fx.dir, alpha: fx.alpha * Math.max(0.15, fx.life / fx.max) });
+    }
     for (const bu of this.bursts) {
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }

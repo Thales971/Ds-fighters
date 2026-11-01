@@ -31,7 +31,11 @@ const AI = {
     if (!m) { m = { cd: 0, plan: '', planT: 0, low: false, hist: [], combo: [], step: 0, wait: 0 }; this._mem.set(f, m); }
     return m;
   },
-  blank() { return { left: false, right: false, up: false, down: false, punch: false, kick: false, a0: false, a1: false, a2: false, a3: false, a4: false, tag: false }; },
+  blank() {
+    const o = { left: false, right: false, up: false, down: false, punch: false, kick: false, tag: false };
+    for (let i = 0; i < 10; i++) o['a' + i] = false;
+    return o;
+  },
 
   /** Rota de combo conforme o nível; pode terminar com habilidade (cancel). */
   routes(me, L) {
@@ -91,6 +95,18 @@ const AI = {
       return input;
     }
     const seenAtk = seen.st === 'attack' || seen.st === 'cast' || seen.st === 'rush';
+    if (me.def.id === 'merc' && m.plan === 'dodge' && m.planT > 0) {
+      m.planT--;
+      if (m.planT === 2) { if (m.dodgeSign < 0) input.left = true; else input.right = true; }
+      return input;
+    }
+    if (me.def.id === 'merc' && seenAtk && dist < 180 && me.onGround && me.canAct() && Math.random() < 0.2 + L.dodge) {
+      m.plan = 'dodge';
+      m.planT = 4;
+      m.dodgeSign = Math.random() < 0.55 ? (toRight ? -1 : 1) : (toRight ? 1 : -1);
+      if (m.dodgeSign < 0) input.left = true; else input.right = true;
+      return input;
+    }
     if (seenAtk && dist < 210 && me.onGround && me.canAct() && Math.random() < L.block) {
       m.plan = 'block';
       m.planT = 8 + L.react;
@@ -142,6 +158,7 @@ const AI = {
       if (k === 'steal') return cast(i);
       if ((k === 'pull' || k === 'beam') && dist < (st.p.range || 280)) return cast(i);
       if (k === 'dash' && dist > 90 && dist < 300) return cast(i);
+      if (k === 'shadowport' && dist < 380) return cast(i);
       if (['shot', 'pillar', 'zone', 'wall', 'blast', 'rain', 'barrage'].includes(k) && (dist > 150 || auto)) return cast(i);
       if (k === 'rush' && dist < 200) return cast(i);
     }
