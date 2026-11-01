@@ -202,7 +202,7 @@ class Fighter {
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
     if (this.has('spot')) m *= 1.25;
-    if (this.has('astra')) m *= 1.3;
+    if (this.has('astra')) m *= 1.35;
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
@@ -224,7 +224,7 @@ class Fighter {
     return m;
   }
   speedMult() {
-    if (this.has('astra')) return this._speedBase() * 1.15;
+    if (this.has('astra')) return this._speedBase() * 1.18;
     return this._speedBase();
   }
   _speedBase() {
