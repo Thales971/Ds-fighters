@@ -42,6 +42,7 @@ class Fighter {
     this.redHp = this.maxHp;
     this.charge = [0, 0];
     this.ultimate = 0;
+    this.skinHue = (opts && opts.skinHue) || 0;
     this.kit = (typeof POWERS !== 'undefined' && POWERS[def.id]) || null;
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -312,7 +313,7 @@ class Fighter {
     const auraDodge = this.has('aura') && this.aura && this.aura.dodge ? this.aura.dodge : 0;
     if (atk && !unblockable && !o.hazard && (this.sig.dodge || auraDodge || this.has('overclock')) && this.onGround && this.canAct() && this.state !== 'attack') {
       const chance = (this.sig.dodge || 0) + auraDodge + (this.has('overclock') ? 0.25 : 0);
-      if (Math.random() < chance) {
+      if ((this.game.rnd ? this.game.rnd() : Math.random()) < chance) {
         const sgn = Math.sign(this.x - atk.x) || 1;
         this.x = Math.max(50, Math.min(game.W - 50, this.x + sgn * 70));
         this.addStatus('invuln', 12);
@@ -370,9 +371,11 @@ class Fighter {
     this.applyEffects(o, atk, d, controlScale);
     if (atk && atk.cast && o.ability) atk.cast.hit = true;
     // Pet Gato Mistral: a cada 3 acertos de habilidade, choque no alvo
-    if (atk && o.ability && atk.pfx.shockOnHit) {
-      atk.petHitCounter = ((atk.petHitCounter || 0) + 1) % 3;
-      if (atk.petHitCounter === 0) this.addStatus('shock', atk.pfx.shockOnHit, atk);
+    if (atk && o.ability && (atk.pfx.shockOnHit || atk.pfx.burnOnHit || atk.pfx.explodeOnHit)) {
+      atk.petHitCounter = ((atk.petHitCounter || 0) + 1);
+      if (atk.pfx.shockOnHit && atk.petHitCounter % 3 === 0) this.addStatus('shock', atk.pfx.shockOnHit, atk);
+      if (atk.pfx.burnOnHit && atk.petHitCounter % 4 === 0) this.addStatus('burn', atk.pfx.burnOnHit, atk);
+      if (atk.pfx.explodeOnHit && atk.petHitCounter % 5 === 0) { this.chip(atk.pfx.explodeOnHit, atk); this.game.spawnBurst('fire', 3, this.x, this.y - 90, 1, 2.2); }
     }
     game.audio.hit(d >= 13);
     game.shake(Math.min(12, d >= 14 ? 8 : 4));
@@ -550,7 +553,7 @@ class Fighter {
     this.flashText(p.name.toUpperCase(), this.def.colors.accent);
     game.audio.sfx(p.sfx || 'magic');
     const q = ult ? this.def.quotes.super : this.def.quotes.special;
-    if (q && q.length && (ult || Math.random() < 0.4)) game.say(this, q[(Math.random() * q.length) | 0]);
+    if (q && q.length && (ult || (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4)) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
     if (ult) {
       game.superFreeze(this, p);
       game.audio.voice('ultimate');
@@ -741,7 +744,7 @@ class Fighter {
         break;
       }
       case 'shadowport': {
-        const above = Math.random() < 0.45;
+        const above = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.45;
         this.shadowPort = { phase: 'sink', t: 0, p, above, sinkX: this.x, follow: null };
         this.addStatus('invuln', 14);
         this.vx = 0;
@@ -764,7 +767,7 @@ class Fighter {
         const n = p.count || 6;
         for (let k = 0; k < n; k++) {
           game.strikes.push(new Strike(this, {
-            x: tx + (k - (n - 1) / 2) * 46 + (Math.random() - 0.5) * 20, delay: 18 + k * 7, w: 80, h: 400, dmg: p.dmg / n, stun: 14, launch: k === n - 1 ? -8 : -2,
+            x: tx + (k - (n - 1) / 2) * 46 + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 20, delay: 18 + k * 7, w: 80, h: 400, dmg: p.dmg / n, stun: 14, launch: k === n - 1 ? -8 : -2,
             poison: p.poison, element: el, power: p, fromSky: true, follow: k === 0 ? tgt : null,
             sheet: { key, row: p.row, frames: 4 }, scale: 1.2, sound: 'explosion', shake: 4, warnColor: (ELEMENT_FX[el] || {}).color,
           }));
@@ -826,11 +829,11 @@ class Fighter {
             fn: () => {
               const useExtra = extraSheets.length && k % 2 === 1;
               const pr = new Projectile(this, Object.assign({}, p, { row: useExtra ? 0 : rows[k % rows.length], kind: 'shot', speed: 10, multiHit: 1, big: false }), {
-                fid, seek: !!(p.seek || this.autoAim()), homing: p.homing, dmg: p.dmg, angle: -0.9 + Math.random() * 1.8, scale: useExtra ? 1.6 : 0.85,
+                fid, seek: !!(p.seek || this.autoAim()), homing: p.homing, dmg: p.dmg, angle: -0.9 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.8, scale: useExtra ? 1.6 : 0.85,
               });
               if (useExtra) { pr.key = extraSheets[k % extraSheets.length][0]; }
-              pr.y = -150 - Math.random() * 120;
-              pr.x = this.x - this.dir * (30 + Math.random() * 70);
+              pr.y = -150 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120;
+              pr.x = this.x - this.dir * (30 + (this.game.rnd ? this.game.rnd() : Math.random()) * 70);
               game.projectiles.push(pr);
             },
           });
@@ -1010,8 +1013,8 @@ class Fighter {
       if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9, this.statusSource.burn);
       if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8, this.statusSource.poison);
       if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
-      if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 60 - Math.random() * 100, '#7df9ff');
-      if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + (Math.random() - 0.5) * 50, this.y - 40 - Math.random() * 120, '#d8f6ff');
+      if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 60 - (this.game.rnd ? this.game.rnd() : Math.random()) * 100, '#7df9ff');
+      if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#d8f6ff');
       if (this.afterimage > 0) this.afterimage--;
       if (this.phaseDash > 0) this.phaseDash--;
       if (this.overclockHot && this.overclockUntil && this.now >= this.overclockUntil && !this.has('aura')) {
@@ -1591,7 +1594,8 @@ class Fighter {
     if (this.has('chill')) ctx.filter = 'saturate(0.6) hue-rotate(160deg) brightness(1.15)';
     else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';
     else if (this.has('overclock')) { ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; }
-    SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf);
+    const skinHue = (this.skinHue || 0);
+    SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
     ctx.restore();
     if (this.has('shock') && this.frame % 5 === 0) Art.fx2(ctx, 'lightning', 2, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.1, alpha: 0.7 });
@@ -1599,8 +1603,8 @@ class Fighter {
     // status visuais
     if (this.has('trap')) Art.ability(ctx, 'felipinho', 0, 3, this.x, this.y - 96, { scale: 1.9, alpha: 0.75 });
     if (this.has('freeze')) Art.fx2(ctx, 'arcane', 0, Math.floor(this.frame / 6), this.x, this.y - 96, { scale: 3, alpha: 0.75 });
-    if (this.has('burn') && this.frame % 3 === 0) game.spark(this.x + (Math.random() - 0.5) * 40, this.y - 40 - Math.random() * 120, '#ff7b1c');
-    if (this.has('poison') && this.frame % 4 === 0) game.spark(this.x + (Math.random() - 0.5) * 40, this.y - 40 - Math.random() * 120, '#9dff4a');
+    if (this.has('burn') && this.frame % 3 === 0) game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 40, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#ff7b1c');
+    if (this.has('poison') && this.frame % 4 === 0) game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 40, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#9dff4a');
     if (this.has('locked') && this.frame % 20 < 10) Art.fx2(ctx, 'chaos', 2, 1, this.x, this.y - 200, { scale: 0.8, alpha: 0.8 });
     if (this.has('dizzy')) {
       for (let k = 0; k < 3; k++) {

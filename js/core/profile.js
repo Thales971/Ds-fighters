@@ -14,9 +14,10 @@ const Profile = {
     return {
       unlocked: [],
       pets: ['tux', 'none'],
+      skins: {},
       name: 'Jogador',
       settings: { music: 0.35, sfx: 0.8, voice: 0.9, mute: false, reducedMotion: null, shake: true, touch: 'auto', serverUrl: '' },
-      stats: { fights: 0, wins: 0, bestArcade: 0, maxCombo: 0 },
+      stats: { fights: 0, wins: 0, bestArcade: 0, bestSurvival: 0, maxCombo: 0 },
     };
   },
 
@@ -209,6 +210,16 @@ const Profile = {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   },
 
+  skinFor(fid) {
+    const sk = (this.data && this.data.skins && this.data.skins[fid]) || 0;
+    return sk;
+  },
+  setSkin(fid, hue) {
+    this.data = this._normalize(this.data || this.load());
+    this.data.skins = this.data.skins || {};
+    this.data.skins[fid] = hue;
+    this.save();
+  },
   petFor(slot) {
     const id = this.data.pets[slot] || 'none';
     return PETS.find((p) => p.id === id) || PETS[0];
@@ -225,7 +236,7 @@ const Profile = {
     this.data = this._normalize(this.data || this.load());
     const s = this.data.stats;
     const amount = this._number(v, 1);
-    if (stat === 'maxCombo' || stat === 'bestArcade') s[stat] = Math.max(s[stat] || 0, amount);
+    if (stat === 'maxCombo' || stat === 'bestArcade' || stat === 'bestSurvival') s[stat] = Math.max(s[stat] || 0, amount);
     else if (Object.prototype.hasOwnProperty.call(s, stat)) s[stat] = this._number(s[stat], 0) + amount;
     this.save();
   },

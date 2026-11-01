@@ -10,8 +10,8 @@ Object.assign(POWERS, {
     element: 'tremor',
     theme: 'Fruta do tremor: racha o ar, sacode o chão, trava forte e arremessa longe',
     powers: [
-      { id: 'quakefist', name: 'Soco Sísmico', slot: 'simple', row: 0, kind: 'quake', range: 170, dmg: 17, lock: 38, kx: 26, launch: -11, fx: { stun: 14 }, cd: 64, sfx: 'heavy', desc: 'Racha o ar na frente do punho: TRAVA forte (tontura) e joga o rival longe.' },
-      { id: 'tremorwave', name: 'Onda de Tremor', slot: 'simple', row: 1, kind: 'blast', at: 'wave', dmg: 13, stun: 34, launch: -8, cd: 52, sfx: 'explosion', desc: 'Onda sísmica pelo chão: mais dano e atordoa quem cruzou.' },
+      { id: 'quakefist', name: 'Soco Sísmico', slot: 'simple', row: 0, kind: 'quake', range: 230, dmg: 19, lock: 42, kx: 28, launch: -11, fx: { stun: 18 }, cd: 60, sfx: 'heavy', desc: 'Racha o ar longe na frente do punho: TRAVA forte (tontura) e joga o rival longe.' },
+      { id: 'tremorwave', name: 'Onda de Tremor', slot: 'simple', row: 1, kind: 'blast', at: 'wave', dmg: 16, stun: 40, launch: -9, cd: 48, sfx: 'explosion', desc: 'Onda sísmica longa pelo chão: mais dano e atordoa quem cruzou.' },
       { id: 'airgrab', name: 'Agarrar o Céu', slot: 'charge', meter: 0, row: 2, kind: 'quake', range: 380, pullFirst: true, dmg: 21, lock: 46, kx: 30, launch: -13, fx: { stun: 18 }, cd: 64, sfx: 'heavy', desc: 'Puxa de longe, trava pesado e arremessa à queima-roupa.' },
       { id: 'quakearmor', name: 'Bolha do Tremor', slot: 'charge', meter: 1, row: 3, kind: 'aura', time: 340, armor: true, burstDmg: 18, fx: { stun: 10 }, sfx: 'shield', desc: 'Armadura de tremor: aguenta golpes, explode e atordoa quem encostar.' },
       { id: 'quakeult', name: 'Terremoto Total', slot: 'ultimate', row: 4, kind: 'quake', range: 900, both: true, dmg: 46, lock: 60, kx: 34, launch: -16, screen: true, fx: { stun: 22 }, sfx: 'ultimate', desc: 'Racha o ar dos dois lados: dano massivo, trava longa e lança todo mundo.' },
@@ -81,7 +81,7 @@ FIGHTERS.push(
     bio: 'Jovem de cabelo curto castanho, sem barba, jaqueta de couro preta fechada, camisa cinza e jeans escuros. Comeu a fruta do tremor: cada soco racha o ar, trava o rival e o manda longe.',
     colors: { skin: '#d9a77f', hair: '#e8e8e8', shirt: '#f3f3f3', pants: '#2a2f45', shoes: '#111', accent: '#bfe9ff' },
     traits: { coat: true },
-    stats: { power: 1.28, speed: 0.95, weight: 1.2, hp: 130, meterRate: 1.15 },
+    stats: { power: 1.32, speed: 1.0, weight: 1.2, hp: 134, meterRate: 1.2 },
     quotes: {
       intro: ['Esse mundo vai tremer.', 'Fica parado... ou não, tanto faz.'],
       win: ['Rachou, né?', 'O chão ainda tá tremendo.'],

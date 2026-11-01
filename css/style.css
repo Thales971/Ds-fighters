@@ -441,8 +441,9 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .fps { position: fixed; top: 6px; right: 8px; z-index: 99; font-size: 9px; color: #7dff5e; background: rgba(0,0,0,.6); padding: 3px 6px; pointer-events: none; }
 .fps[hidden] { display: none; }
 @media (max-width: 900px) { .lobby-players.four { grid-template-columns: 1fr 1fr; } }
-/* cartão da seleção: traço no lugar da bio para caber as 5 habilidades */
-.sel-card .trait + .bio { display: none; }
+/* cartão da seleção: bio curta + 5 habilidades + frases (tela de bio do lutador) */
+.sel-card .bio { max-height: 30px; }
+.sel-card .quotes { margin: 4px 0 0; font-size: 6px; line-height: 1.5; color: #8fd9a8; font-style: italic; max-height: 24px; overflow: hidden; }
 .sel-card .trait { margin: 4px 0 2px; padding: 4px 6px; }
 .sel-card .trait small { font-size: 6px; }
 .sel-card .kit li { padding-top: 2px; padding-bottom: 2px; }
@@ -456,3 +457,17 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .custom-rules select { font-size: 9px; }
 .custom-rules input { accent-color: #7dff5e; width: 20px; height: 20px; }
 .custom-rules .nav:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+
+/* Replays */
+.replay-list { display: flex; flex-direction: column; gap: 8px; max-width: 560px; margin: 12px auto; width: 100%; }
+.replay-row { display: flex; align-items: center; gap: 10px; background: rgba(20,16,32,.85); border: 2px solid #3a2a5a; padding: 8px 10px; }
+.replay-row b { color: #ffd27d; }
+.replay-row small { color: #9a90b8; }
+.replay-row .danger { margin-left: auto; }
+
+/* Skins */
+.skin-pick { display: flex; gap: 18px; justify-content: center; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+.skin-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 14px 0; min-height: 150px; }
+.skin-sprite { width: 128px; height: 104px; background-size: 400% 346.15%; background-position: 0 0; image-rendering: pixelated; filter: none; }
+.skin-preview b { color: var(--c, var(--gold)); font-size: 11px; }
+.skin-preview small { color: #9a90b8; font-size: 7px; }

@@ -33,10 +33,11 @@ const UI = {
     this.$('btn-pause-moves').addEventListener('click', () => this.show('moves', true));
     this.$('btn-pause-opts').addEventListener('click', () => this.show('options', true));
     this.$('btn-again').addEventListener('click', () => this.rematch());
-    this.$('btn-next').addEventListener('click', () => this.arcadeNext());
+    this.$('btn-next').addEventListener('click', () => (this.flow && this.flow.mode === 'survival' ? this.survivalNext() : this.arcadeNext()));
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
     this.$('btn-res-menu').addEventListener('click', () => this.toMenu());
     this.$('redeem-form').addEventListener('submit', (e) => { e.preventDefault(); this.redeem(); });
+    this.$('btn-replays-back').addEventListener('click', () => this.toMenu());
     document.querySelectorAll('.pet-tabs .tab').forEach((t) => t.addEventListener('click', () => { this.petSlot = +t.dataset.slot; this.renderPets(); }));
     this.bindOptions();
     document.addEventListener('mouseover', (e) => { const n = e.target.closest && e.target.closest('.nav'); if (n && this.screenEl && this.screenEl.contains(n) && document.activeElement !== n) n.focus({ preventScroll: true }); });
@@ -150,7 +151,7 @@ const UI = {
   },
   menuGo(go) {
     AudioSys.select();
-    if (['arcade', 'versus', 'tag', 'training'].includes(go)) return this.startFlow(go);
+    if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
 
@@ -176,7 +177,7 @@ const UI = {
   enter_select() {
     const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE' };
+    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
@@ -257,6 +258,7 @@ const UI = {
       <div class="ttl">${d.title}</div>
       ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
       <p class="bio">${d.bio}</p>
+      ${d.quotes && d.quotes.intro && d.quotes.intro.length ? `<div class="quotes">“${d.quotes.intro[0]}”</div>` : ''}
       <div class="statbars">${bar('PODER', st.power, 1.6)}${bar('VELOC.', st.speed, 1.45)}${bar('PESO', st.weight, 1.3)}${bar('VIDA', st.hp || 100, 150)}</div>
       <div class="theme">${kit ? kit.theme : ''}${kit && kit.autoAim ? ' · <b>AUTO AIM</b>' : ''}</div>
       <ul class="kit">${(kit ? kit.powers : []).map((p, i) => `
@@ -344,6 +346,7 @@ const UI = {
     const f = this.flow;
     if (f.mode === 'online') { Net.pickFighters(f.picks[0].map((k) => FIGHTERS[k].id)); this.show('online'); return; }
     if (f.mode === 'arcade') { this.buildArcade(); return this.launchArcade(); }
+    if (f.mode === 'survival') { return this.launchSurvival(); }
     setTimeout(() => this.show('stage'), 250);
   },
 
@@ -449,6 +452,29 @@ const UI = {
     f.ladder = [...pool, boss];
     f.arcadeStep = 0;
   },
+  launchSurvival() {
+    const f = this.flow;
+    const me = FIGHTERS[f.picks[0][0]].id;
+    f.survivalWins = 0;
+    const pool = FIGHTERS.filter((d) => d.id !== me && !d.secret).map((d) => d.id);
+    f.survivalLadder = pool.sort(() => Math.random() - 0.5);
+    f.survivalStep = 0;
+    this.launch({
+      mode: 'survival', teams: [[me], [f.survivalLadder[0]]], stage: 'random', weather: 'random',
+      difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty)),
+      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 1, timer: 99,
+    });
+  },
+  survivalNext() {
+    const f = this.flow;
+    f.survivalStep++;
+    if (f.survivalStep >= f.survivalLadder.length) { this.$('res-title').textContent = 'SURVIVAL COMPLETO!'; return; }
+    this.launch({
+      mode: 'survival', teams: [[FIGHTERS[f.picks[0][0]].id], [f.survivalLadder[f.survivalStep]]], stage: 'random', weather: 'random',
+      difficulty: Math.min(3, 1 + Math.floor(f.survivalStep / 7)),
+      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 1, timer: 99,
+    });
+  },
   launchArcade() {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
@@ -457,6 +483,36 @@ const UI = {
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random', difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 180,
+    });
+  },
+  listReplays() {
+    const box = this.$('replay-list');
+    if (!box) return;
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith('dsfighters.replay.')).sort().reverse();
+    if (!keys.length) { box.innerHTML = '<p class="sub">Nenhum replay ainda — termine uma luta local (versus/arcade/survival/treino) e ela fica salva aqui.</p>'; return; }
+    box.innerHTML = keys.map((k) => {
+      const r = JSON.parse(localStorage.getItem(k));
+      const names = (r.cfg.teams || []).map((t) => (FIGHTERS.find((f) => f.id === t[0]) || {}).name || '?').join(' vs ');
+      const secs = Math.floor((r.frames || []).length / 60);
+      const d = new Date(+k.split('.').pop());
+      return `<div class="replay-row"><button class="nav btn replay-play" data-k="${k}">▶ ASSISTIR</button><div><b>${names}</b><br><small>${r.cfg.mode} · ${secs}s · ${d.toLocaleString()}</small></div><button class="nav btn tiny danger replay-del" data-k="${k}">APAGAR</button></div>`;
+    }).join('');
+    box.querySelectorAll('.replay-play').forEach((b) => b.addEventListener('click', () => this.playReplay(b.dataset.k)));
+    box.querySelectorAll('.replay-del').forEach((b) => b.addEventListener('click', () => { localStorage.removeItem(b.dataset.k); this.listReplays(); }));
+  },
+  playReplay(key) {
+    const r = JSON.parse(localStorage.getItem(key));
+    if (!r || !r.frames) return;
+    this.game.stop();
+    this.game.replaySeed = r.seed >>> 0;
+    this.game.replayFrames = r.frames;
+    const cfg = Object.assign({}, r.cfg, { cpu: [true, true], mode: 'replay' });
+    this.lastCfg = null;
+    this.showVs(cfg, () => {
+      this.$('stage-wrap').classList.remove('demo');
+      this.$('stage-wrap').classList.add('on');
+      this.show('fight');
+      this.game.start(cfg);
     });
   },
   arcadeNext() {
@@ -502,6 +558,16 @@ const UI = {
         else { Profile.record('bestArcade', f.arcadeStep + 1); next.hidden = false; }
       }
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
+    } else if (game.mode === 'survival') {
+      if (res.winner === 0) {
+        f.survivalWins = (f.survivalWins || 0) + 1;
+        Profile.record('bestSurvival', f.survivalWins);
+        title = `SOBREVIVEU! ${f.survivalWins} vitória${f.survivalWins > 1 ? 's' : ''} seguidas`;
+        next.hidden = false;
+      } else {
+        title = `CAIU! Placar: ${f.survivalWins || 0} vitórias`;
+      }
+      this.$('btn-again').textContent = 'REVANCHE';
     } else this.$('btn-again').textContent = 'REVANCHE';
     this.$('res-title').textContent = title;
     const wt = res.winner < 0 ? 0 : res.winner;
@@ -544,6 +610,39 @@ const UI = {
   },
 
   /* ---------- resgate ---------- */
+  enter_replays() { this.listReplays(); },
+  SKIN_HUES: [
+    ['Original', 0], ['Vermelha', 330], ['Laranja', 25], ['Amarela', 55], ['Verde', 110],
+    ['Ciano', 175], ['Azul', 210], ['Roxa', 265], ['Rosa', 300], ['P&B', 0],
+  ],
+  enter_skins() {
+    const sel = this.$('skin-fighter');
+    sel.innerHTML = FIGHTERS.filter((f) => !f.secret || Profile.isUnlocked(f.id)).map((f) => `<option value="${f.id}">${f.name}</option>`).join('');
+    const hs = this.$('skin-hue');
+    hs.innerHTML = this.SKIN_HUES.map(([n, h]) => `<option value="${h}">${n}</option>`).join('');
+    const upd = () => {
+      const fid = sel.value;
+      const hue = +hs.value;
+      hs.querySelectorAll('option').forEach((o) => { if (+o.value === 0 && hue === 0) o.textContent = n0(o); });
+      const cur = Profile.skinFor(fid);
+      hs.value = String(cur || 0);
+      this.renderSkinPreview(fid, +hs.value);
+    };
+    function n0(o) { return 'Original'; }
+    sel.onchange = upd; hs.onchange = upd;
+    upd();
+    this.$('btn-skin-save').onclick = () => {
+      Profile.setSkin(sel.value, +hs.value);
+      AudioSys.select();
+      this.toast('Skin salva no perfil!');
+    };
+  },
+  renderSkinPreview(fid, hue) {
+    const el = this.$('skin-preview');
+    if (!el) return;
+    const d = FIGHTERS.find((f) => f.id === fid);
+    el.innerHTML = `<div class="skin-sprite" style="background-image:url(assets/sprites/${fid}.png);${hue ? `filter:hue-rotate(${hue}deg)` : ''}"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${hue ? 'hue ' + hue + '°' : 'paleta original'}</small>`;
+  },
   enter_redeem() {
     this.$('redeem-msg').textContent = '';
     this.$('redeem-faces').innerHTML = '';

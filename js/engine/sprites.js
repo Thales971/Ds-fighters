@@ -28,7 +28,8 @@ const SpriteGen = {
     return i < 0 ? 0 : i;
   },
 
-  blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null) {
+  blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
+    if (skinHue) { try { ctx.filter = `hue-rotate(${skinHue}deg)`; } catch (e) {} }
     const L = SPRITE_LAYOUT;
     const sc = scale || L.drawScale;
     const fw = L.frameW;

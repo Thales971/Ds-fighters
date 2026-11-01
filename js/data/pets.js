@@ -14,6 +14,10 @@ const PETS = [
   { id: 'leaf', name: 'Espírito da Primavera', row: 6, buff: 'Power-ups duram 50% mais.', fx: { pickup: 0.5 } },
   { id: 'octo', name: 'Polvo do Commit', row: 7, buff: 'Abaixo de 25% de HP, restaura 18 HP (1x por round).', fx: { revive: 18 } },
   { id: 'mistral', name: 'Gato Mistral (Le Chat)', row: 8, buff: '+10% de dano e +10% de velocidade; a cada 3º acerto de habilidade aplica CHOQUE no rival.', fx: { dmg: 0.10, speed: 0.10, shockOnHit: 90 } },
+  { id: 'slime', name: 'Slime Verde', row: 9, buff: 'Regenera 0,8 HP/s e +8% de defesa.', fx: { regen: 0.8 / 60, def: 0.08 } },
+  { id: 'dragao', name: 'Dragãozinho', row: 10, buff: 'A cada 4º acerto de habilidade aplica QUEIMADURA (60f) no rival.', fx: { burnOnHit: 60 } },
+  { id: 'fenix', name: 'Fênix de Fogo', row: 11, buff: 'A cada 5º acerto de habilidade causa EXPLOSÃO extra; +6% de dano.', fx: { explodeOnHit: 2, dmg: 0.06 } },
+  { id: 'robot', name: 'Robôzinho CI', row: 12, buff: 'Medidores de carga enchem 25% mais rápido e +6% de velocidade.', fx: { meter: 0.25, speed: 0.06 } },
 ];
 
 /* Power-ups do mapa. `row` em assets/pickups/pickups.png (64px). */

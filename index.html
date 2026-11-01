@@ -66,10 +66,13 @@
         <button class="nav mm" data-go="arcade"><span>ARCADE</span><small>Escada de 7 lutas contra a CPU</small></button>
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
         <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
+        <button class="nav mm" data-go="survival"><span>SURVIVAL</span><small>Lute contra todos até cair — placar de vitórias</small></button>
         <button class="nav mm" data-go="training"><span>TREINO</span><small>Boneco, medidores infinitos</small></button>
         <button class="nav mm" data-go="rules"><span>PERSONALIZADO</span><small>Vida infinita, rounds e salas ao vivo</small></button>
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
+        <button class="nav mm" data-go="skins"><span>SKINS</span><small>Paletas alternativas pros lutadores</small></button>
+        <button class="nav mm" data-go="replays"><span>REPLAYS</span><small>Assista suas últimas 5 lutas gravadas</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
         <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
@@ -81,6 +84,12 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-replays" data-screen="replays">
+      <h2>REPLAYS</h2>
+      <p class="sub">Suas últimas 5 lutas locais ficam gravadas e podem ser revistas aqui (o jogo é determinístico a 60 Hz).</p>
+      <div id="replay-list" class="replay-list"></div>
+      <div class="row"><button class="nav btn" id="btn-replays-back">VOLTAR</button></div>
+    </section>
     <section class="screen" id="scr-rules" data-screen="rules">
       <div class="select-bg"></div>
       <div class="panel wide">
@@ -174,6 +183,17 @@
         </div>
         <div class="pet-grid" id="pet-grid"></div>
         <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-skins" data-screen="skins">
+      <div class="panel wide">
+        <h2>SKINS</h2>
+        <p class="sub">Escolha um lutador e uma paleta alternativa (muda a cor do sprite na hora). Fica salvo no seu perfil.</p>
+        <div class="skin-pick"><label class="sub">Lutador <select class="nav" id="skin-fighter"></select></label>
+        <label class="sub">Paleta <select class="nav" id="skin-hue"></select></label></div>
+        <div class="skin-preview" id="skin-preview"></div>
+        <div class="row"><button class="nav btn primary" id="btn-skin-save">SALVAR SKIN</button><button class="nav btn" data-back>VOLTAR</button></div>
       </div>
     </section>
 

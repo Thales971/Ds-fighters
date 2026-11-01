@@ -53,6 +53,9 @@ const STAGE_LIST = [
   { id: 'senai-valinhos', name: 'Oficina SENAI Valinhos', image: 'assets/maps/senai-valinhos.jpg', group: 'Expansão V4', weather: ['clear'], fauna: [], mech: 'pulse', tint: '#c6dbeb' },
   { id: 'japan', name: 'Jardim do Sol Nascente', image: 'assets/maps/japan.jpg', group: 'Expansão V5', weather: ['clear', 'wind'], fauna: ['bird', 'butterfly'], mech: 'gong', tint: '#ffc28b', petals: true },
   { id: 'cyberpunk', name: 'Distrito Neon 2077', image: 'assets/maps/cyberpunk.jpg', group: 'Expansão V5', weather: ['rain', 'clear'], fauna: [], mech: 'neonsign', tint: '#b09aff' },
+  { id: 'dojo-noite', name: 'Dojo à Noite', image: 'assets/maps/dojo-noite.jpg', group: 'Novos V6', weather: ['clear', 'rain'], fauna: [], mech: 'gong', tint: '#ff9a5c' },
+  { id: 'circo', name: 'Circo Abandonado', image: 'assets/maps/circo.jpg', group: 'Novos V6', weather: ['clear', 'wind'], fauna: [], mech: 'spotlight', tint: '#ffb03b' },
+  { id: 'pizzaria', name: 'Pizzaria à Noite', image: 'assets/maps/pizzaria.jpg', group: 'Novos V6', weather: ['clear', 'rain'], fauna: [], mech: 'coffee', tint: '#ff6a2a' },
 ];
 
 /* Compatibilidade com código antigo. */

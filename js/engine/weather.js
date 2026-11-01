@@ -23,16 +23,16 @@ class Weather {
     this.t = 0;
   }
   roll(forceKind) {
-    const k = forceKind || this.pool[(Math.random() * this.pool.length) | 0];
+    const k = forceKind || this.pool[((this.game.rnd ? this.game.rnd() : Math.random()) * this.pool.length) | 0];
     this.set(k);
-    this.changeAt = 900 + ((Math.random() * 900) | 0);
+    this.changeAt = 900 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 900) | 0);
   }
   set(kind) {
     this.kind = kind;
-    this.intensity = kind === 'storm' ? 1 : kind === 'clear' ? 0 : 0.6 + Math.random() * 0.4;
-    this.windTarget = (kind === 'wind' || kind === 'storm') ? (Math.random() < 0.5 ? -1 : 1) * (1.2 + Math.random() * 1.4) : 0;
+    this.intensity = kind === 'storm' ? 1 : kind === 'clear' ? 0 : 0.6 + (this.game.rnd ? this.game.rnd() : Math.random()) * 0.4;
+    this.windTarget = (kind === 'wind' || kind === 'storm') ? ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1) * (1.2 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.4) : 0;
     if (kind !== 'wind' && kind !== 'storm') this.wind = 0;
-    this.nextBolt = 240 + ((Math.random() * 200) | 0);
+    this.nextBolt = 240 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 200) | 0);
     const a = this.game.audio;
     a.loop('rain_loop', kind === 'rain' || kind === 'storm', kind === 'storm' ? 0.5 : 0.32);
     a.loop('wind_loop', kind === 'wind' || kind === 'storm' || kind === 'snow', 0.3);
@@ -50,7 +50,7 @@ class Weather {
     this.t++;
     // rajadas
     if (this.kind === 'wind' || this.kind === 'storm') {
-      if (this.t % 300 === 0) this.windTarget = -Math.sign(this.windTarget || 1) * (1.1 + Math.random() * 1.6);
+      if (this.t % 300 === 0) this.windTarget = -Math.sign(this.windTarget || 1) * (1.1 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.6);
       const gust = Math.sin(this.t * 0.03) * 0.35;
       this.wind += (this.windTarget * (1 + gust) - this.wind) * 0.02;
     } else this.wind *= 0.95;
@@ -60,9 +60,9 @@ class Weather {
       this.changeAt--;
       if (this.changeAt <= 0) {
         const opts = this.pool.filter((k) => k !== this.kind);
-        const next = opts[(Math.random() * opts.length) | 0];
+        const next = opts[((this.game.rnd ? this.game.rnd() : Math.random()) * opts.length) | 0];
         this.set(next);
-        this.changeAt = 1100 + ((Math.random() * 900) | 0);
+        this.changeAt = 1100 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 900) | 0);
         const info = WEATHER_INFO[next];
         this.game.announce(info.icon + ' ' + info.name.toUpperCase(), '#9adcff', info.desc);
         if (next === 'storm') this.game.audio.voice('storm');
@@ -72,10 +72,10 @@ class Weather {
     if (this.kind === 'storm' && fighting) {
       this.nextBolt--;
       if (this.nextBolt <= 0) {
-        this.nextBolt = 300 + ((Math.random() * 260) | 0);
+        this.nextBolt = 300 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 260) | 0);
         const fs = this.game.fighters().filter((f) => f.alive);
-        const f = fs[(Math.random() * fs.length) | 0];
-        const x = f ? f.x + (Math.random() - 0.5) * 120 : 480;
+        const f = fs[((this.game.rnd ? this.game.rnd() : Math.random()) * fs.length) | 0];
+        const x = f ? f.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 120 : 480;
         this.game.strikes.push(new Strike(null, {
           x, delay: 50, w: 80, h: 600, dmg: 9, stun: 22, launch: -5, element: 'ia', label: 'RAIO!', warnColor: '#ffe14d',
           sheet: { key: 'fx2:lightning', row: 1, frames: 4 }, scale: 4.2, sound: 'thunder', shake: 10, fromSky: false,
@@ -85,7 +85,7 @@ class Weather {
       }
     }
     if (this.flash > 0) this.flash--;
-    else if (this.kind === 'storm' && Math.random() < 0.004) { this.flash = 5; this.game.audio.play('thunder', { vol: 0.35 }); }
+    else if (this.kind === 'storm' && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.004) { this.flash = 5; this.game.audio.play('thunder', { vol: 0.35 }); }
     this.updateParticles();
   }
   updateParticles() {
@@ -94,7 +94,7 @@ class Weather {
     const want = this.kind === 'rain' ? 140 : this.kind === 'storm' ? 220 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 40 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
-      this.drops.push({ x: Math.random() * (W + 200) - 100, y: -540 + Math.random() * 540, s: Math.random() });
+      this.drops.push({ x: (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100, y: -540 + (this.game.rnd ? this.game.rnd() : Math.random()) * 540, s: (this.game.rnd ? this.game.rnd() : Math.random()) });
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
@@ -109,9 +109,9 @@ class Weather {
         d.x += this.wind * 2.5;
       }
       if (d.y > 0) {
-        if ((this.kind === 'rain' || this.kind === 'storm') && Math.random() < 0.3 && !reduced) this.game.splash(d.x);
-        d.y = -540 - Math.random() * 40;
-        d.x = Math.random() * (W + 200) - 100;
+        if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.3 && !reduced) this.game.splash(d.x);
+        d.y = -540 - (this.game.rnd ? this.game.rnd() : Math.random()) * 40;
+        d.x = (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100;
       }
       if (d.x > W + 120) d.x = -100;
       if (d.x < -120) d.x = W + 100;
