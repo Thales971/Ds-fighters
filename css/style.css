@@ -133,6 +133,10 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .sel-grid { display: grid; grid-template-columns: repeat(7, 54px); gap: 5px; }
 .cell { position: relative; width: 54px; height: 70px; padding: 0; border: 3px solid #3a2766; background: linear-gradient(#2a1650, #120a24); cursor: pointer; color: #fff; overflow: visible; }
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
+.cell .face.roster-sprite { background-size: 492.3077% 1500%; background-position: 2.941176% 0; background-repeat: no-repeat; animation: rosterIdle .8s steps(4) infinite; }
+.cell .face.roster-sprite + .nm { padding-top: 4px; }
+@keyframes rosterIdle { from { background-position-x: 2.941176%; } to { background-position-x: 128.431373%; } }
+body.reduced .cell .face.roster-sprite { animation: none; }
 .cell .face.q { display: grid; place-items: center; font-size: 24px; color: var(--gold); }
 .cell .nm { display: block; font-size: 5px; padding-top: 4px; white-space: nowrap; overflow: hidden; }
 .cell.secret { border-color: #7a5a1a; background: linear-gradient(#4a2a0a, #1a0a04); }

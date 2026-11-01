@@ -5,6 +5,7 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao']);
 
 const UI = {
   hud: HUD,
@@ -69,7 +70,7 @@ const UI = {
   back() {
     AudioSys.back();
     if (this.stack.length) { const prev = this.stack.pop(); this.show(prev, false); this.stack = this.stack; return; }
-    if (['select', 'custom', 'rules', 'redeem', 'options', 'moves', 'online'].includes(this.screen)) return this.toMenu();
+    if (['select', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   toMenu() {
@@ -180,8 +181,10 @@ const UI = {
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
+      const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
+      const thumb = fullSprite ? SpriteGen.url(d.id) : `assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1`;
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face" style="background-image:url(assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1)"></span>
+        <span class="face ${fullSprite ? 'roster-sprite' : ''}" style="background-image:url(${thumb})" aria-hidden="true"></span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
@@ -292,6 +295,7 @@ const UI = {
     f.picks[who].push(i);
     AudioSys.select();
     AudioSys.play('whoosh', { vol: 0.5 });
+    AudioSys.sayCharacter(d.name);
     if (f.picks[who].length >= f.need) f.done[who] = true;
     if (f.mode === 'arcade' || f.mode === 'online') {
       if (f.done[0]) return this.afterSelect();

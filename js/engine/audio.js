@@ -26,6 +26,7 @@ const AudioSys = {
   _lastPlay: {},
   voiceActive: 0,
   _voicePlaying: Object.create(null),
+  _speechSequence: 0,
   musicMixFactor: 0.7,
   musicDuckFactor: 0.25,
   init() {
@@ -137,6 +138,29 @@ const AudioSys = {
       return false;
     }
     return true;
+  },
+  sayCharacter(name) {
+    const phrase = String(name || '').trim();
+    const synth = window.speechSynthesis;
+    const Utterance = window.SpeechSynthesisUtterance;
+    const volume = this.vol('voice');
+    if (!phrase || !synth || !Utterance || typeof synth.speak !== 'function' || volume <= 0) return false;
+    const utterance = new Utterance(phrase);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.92;
+    utterance.pitch = 1;
+    utterance.volume = volume;
+    const voices = typeof synth.getVoices === 'function' ? synth.getVoices() : [];
+    const voice = voices.find((item) => /^pt-BR$/i.test(item.lang)) || voices.find((item) => /^pt-/i.test(item.lang));
+    if (voice) utterance.voice = voice;
+    const key = 'fighter-name-' + (++this._speechSequence);
+    let started = false;
+    let ended = false;
+    utterance.onstart = () => { if (!ended) { started = true; this._beginVoice(key); } };
+    const finish = () => { if (ended) return; ended = true; if (started) this._endVoice(key); };
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    try { synth.speak(utterance); return true; } catch (e) { finish(); return false; }
   },
   voice(name) {
     const key = 'v_' + name;

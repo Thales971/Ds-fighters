@@ -66,3 +66,10 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Causa tardia adicional: contexto RNG ausente em Pickup e incorreto nos callbacks de MECHS. Reprodução forçada: 43 falhas antes → 43 casos aprovados depois, incluindo coleta e eventos de todos os mapas; combate/mixer continuaram aprovados.
 
 - [x] Validação pública final v2: hash/conteúdo do deploy confirmados; 43/43 eventos/power-ups passaram; partidas reais no mobile e iframe observadas por 35s cada chegaram ao fim normalmente, sem exceções JavaScript. Não apenas ticks manuais nem apenas push.
+
+
+## Seleção, retratos e narração — 01/11/2026
+- [x] Na seleção, os personagens adicionados recentemente (Urbano, 1155, Qwen/Qwen Astra, Xeon, THL, Dolynho e Lobão) usam os quadros idle completos, escalados proporcionalmente para desktop e mobile, sem usar bustos cortados como miniatura.
+- [x] O botão VOLTAR de SKINS — EM BREVE retorna ao menu.
+- [x] Ao confirmar um lutador, falar o nome oficial com a síntese de voz pt-BR disponível no navegador/dispositivo; respeitar o volume de voz salvo e reduzir a música durante a fala.
+- [x] Regressão: `python3 tools/selection_ui_check.py` (desktop/mobile/voltar/nomes); `python3 tools/mobile_check.py` (0 falhas); `node tools/audio_mix_test.js`; `node tools/combat_regressions.mjs`; `npm test --prefix online-server` (38 verificações); sintaxe JavaScript e `git diff --check`.
