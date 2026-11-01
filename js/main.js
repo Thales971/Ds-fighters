@@ -1,80 +1,49 @@
 /* ============================================================
-   DS FIGHTERS — Bootstrap + loop principal.
+   DS FIGHTERS — Inicialização e loop principal (60 Hz fixo).
    ============================================================ */
-
-(function () {
-  window.__dsErrors = [];
-  window.addEventListener('error', (e) => { window.__dsErrors.push(String(e.message || e.error || 'erro')); });
-  window.addEventListener('unhandledrejection', (e) => { window.__dsErrors.push(String(e.reason || 'promise')); });
-
+(function boot() {
   const canvas = document.getElementById('game');
+  SpriteGen.load();
+  Art.load();
+  if (typeof Fx !== 'undefined' && Fx.load) Fx.load();
+  Input.init();
   const game = new Game(canvas);
-  window.__ds = game;
+  window.DSGame = game;
+  UI.init(game);
 
-  // ajusta o canvas mantendo proporção 16:9
-  function fit() {
-    const scale = Math.min(window.innerWidth / game.W, window.innerHeight / game.H);
-    canvas.style.width = (game.W * scale) + 'px';
-    canvas.style.height = (game.H * scale) + 'px';
-  }
+  // áudio só começa depois de um gesto do jogador
+  const unlock = () => { AudioSys.ensure(); };
+  window.addEventListener('pointerdown', unlock, { once: false, passive: true });
+  window.addEventListener('keydown', unlock, { once: false });
+
+  // escala da arena: ocupa a janela mantendo 16:9 e pixels nítidos
+  const fit = () => {
+    const app = document.getElementById('app');
+    const s = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+    app.style.setProperty('--scale', s.toFixed(4));
+  };
   window.addEventListener('resize', fit);
   fit();
 
-  Input.init();
-  bootFromHash(game);
-
-  function bootFromHash(game) {
-    const raw = (location.hash || '').replace(/^#/, '');
-    if (!raw) return;
-    const [route, query] = raw.split('?');
-    const q = new URLSearchParams(query || '');
-    const num = (key, fallback, max) => {
-      const n = parseInt(q.get(key) ?? '', 10);
-      if (Number.isNaN(n)) return fallback;
-      return Math.max(0, Math.min(max, n));
-    };
-    if (route === 'select') {
-      game.screen = 'select';
-      game.mode = 'versus';
-      game.selIdx = [0, 1];
-      game.selConfirmed = [false, false];
-      return;
-    }
-    if (route === 'demo' || route === 'luta') {
-      game.mode = q.get('vs') === '1' ? 'versus' : 'demo';
-      game.selIdx = [num('p1', 0, FIGHTERS.length - 1), num('p2', 7, FIGHTERS.length - 1)];
-      if (game.selIdx[0] === game.selIdx[1]) game.selIdx[1] = (game.selIdx[0] + 1) % FIGHTERS.length;
-      game.stageIdx = num('stage', 5, STAGES.length - 1);
-      game.difficulty = Math.max(0.6, parseFloat(q.get('diff') || '1.2') || 1.2);
-      game.startFight();
-      if (q.get('vscreen') !== '1') {
-        game.screen = 'fight';
-        game.roundState = 'fight';
-        game.roundStateTime = 40;
-        game.message = null;
-      }
-    }
-  }
-
-  // desbloqueia áudio no primeiro gesto do usuário
-  const unlock = () => { game.audio.ensure(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
-  window.addEventListener('pointerdown', unlock);
-  window.addEventListener('keydown', unlock);
-
+  const STEP = 1000 / 60;
   let last = performance.now();
-  function loop(now) {
-    const dt = Math.min(50, now - last);
-    last = now;
-    // passo fixo de 60fps: acumula tempo e roda updates por frame lógico
-    acc += dt;
-    while (acc >= 1000 / 60) {
-      game.update();
-      Input.endFrame();
-      acc -= 1000 / 60;
-    }
-    game.draw();
-    requestAnimationFrame(loop);
-  }
   let acc = 0;
-  requestAnimationFrame(loop);
+  function frame(now) {
+    acc += Math.min(100, now - last);
+    last = now;
+    let steps = 0;
+    while (acc >= STEP && steps < 4) {
+      Input.pollPads();
+      UI.tick();
+      game.tick();
+      Net.frame(game);
+      Input.endFrame();
+      acc -= STEP;
+      steps++;
+    }
+    if (steps >= 4) acc = 0;
+    if (game.stage) game.render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();

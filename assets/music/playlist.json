@@ -1,0 +1,9 @@
+{
+  "_como_usar": "Envie seus rocks pesados (mp3/ogg) para assets/music/rock/ e liste cada um em 'tracks'. A cada batalha uma faixa é sorteada. Enquanto 'tracks' estiver vazio, o jogo usa as faixas originais de 'fallback'.",
+  "tracks": [],
+  "fallback": [
+    { "title": "DS Fighters — Overclock Riff (original)", "file": "assets/music/battle_rock_1.mp3" },
+    { "title": "DS Fighters — Kernel Panic Rock (original)", "file": "assets/music/battle_rock_2.mp3" }
+  ],
+  "menu": { "title": "DS Fighters — Tema do Menu", "file": "assets/music/menu_theme.mp3" }
+}

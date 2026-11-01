@@ -1,16 +1,15 @@
 /* ============================================================
-   DS FIGHTERS — Telas, rounds, HUD, câmera e efeitos.
+   DS FIGHTERS — Partida.
+   Modos: arcade | versus | training | tag (2x2) | online | demo
+   Fluxo do round: intro → fight → ko/timeup → próximo round/fim.
+   2x2: cada time tem dois lutadores; R (P1) / 8 (P2) troca.
+   O reserva recupera a vida vermelha. Perde quem tiver os dois K.O.
+   Online: o anfitrião simula tudo e envia snapshots; o convidado
+   só desenha (netRole 'guest') e manda suas entradas.
    ============================================================ */
-
 const W = 960;
 const H = 540;
 const GROUND_Y = 458;
-const ROUND_TIME = 99;
-
-const EMPTY_INPUT = {
-  left: false, right: false, up: false, down: false,
-  punch: false, kick: false, special: false, super: false,
-};
 
 class Game {
   constructor(canvas) {
@@ -19,939 +18,682 @@ class Game {
     this.ctx.imageSmoothingEnabled = false;
     this.W = W;
     this.H = H;
-    this.audio = AudioSys;
+    this.running = false;
+    this.paused = false;
     this.time = 0;
-    this.screen = 'title';
-    this.mode = 'arcade';
-    this.menuIdx = 0;
-    this.menuOptions = ['MODO ARCADE (vs CPU)', 'VERSUS (2 JOGADORES)', 'COMO JOGAR'];
-    this.selIdx = [0, 1];
-    this.selConfirmed = [false, false];
-    this.stageIdx = (Math.random() * STAGES.length) | 0;
-    this.p1 = null;
-    this.p2 = null;
-    this.stage = null;
+    this.netFx = [];
+    this.netRole = null;
+    const self = this;
+    // Proxy de áudio: no anfitrião online, registra os sons para o convidado.
+    this.audio = new Proxy(AudioSys, {
+      get(target, prop) {
+        const v = target[prop];
+        if (typeof v !== 'function') return v;
+        return (...args) => {
+          if (self.mode === 'demo' && !['stopLoops', 'stopMusic', 'ensure'].includes(prop)) return false;
+          if (self.netRole === 'host' && !['loop', 'stopLoops', 'playMusic', 'stopMusic', 'ensure'].includes(prop)) self.netFx.push(['a', prop, args]);
+          return v.apply(target, args);
+        };
+      },
+    });
+    this.resetWorld();
+  }
+  resetWorld() {
     this.projectiles = [];
-    this.particles = [];
+    this.strikes = [];
+    this.zones = [];
+    this.walls = [];
+    this.beams = [];
+    this.pickups = [];
     this.bursts = [];
-    this.cinema = null;
-    this.speech = null;
+    this.sparks = [];
+    this.texts = [];
+    this.events = [];
+    this.hitstop = 0;
+    this.freeze = 0;
+    this.freezeOwner = null;
+    this.shakeMag = 0;
+    this.slowmo = 0;
+    this.bsod = 0;
+    this.glitch = 0;
+    this.combo = { owner: null, count: 0, until: 0 };
+    this.lastVictim = null;
+    this.firstHit = false;
+  }
+
+  /* ---------- configuração ---------- */
+  start(cfg) {
+    this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 99 }, cfg);
+    this.mode = this.cfg.mode;
+    this.netRole = this.cfg.netRole || null;
+    this.reduced = Profile.reducedMotion();
+    this.stageDef = this.pickStage(this.cfg.stage);
+    this.cfg.stage = this.stageDef.id;
+    this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
+    this.stage.reducedFlag = this.reduced;
     this.round = 1;
-    this.roundTimer = ROUND_TIME * 60;
+    this.teamWins = [0, 0];
+    this.matchOver = false;
+    this.teams = [0, 1].map((ti) => {
+      const ids = this.cfg.teams[ti];
+      const pet = (this.cfg.pets && this.cfg.pets[ti]) || PETS[0];
+      return {
+        members: ids.map((id, k) => {
+          const def = FIGHTERS.find((f) => f.id === id) || FIGHTERS[3];
+          const f = new Fighter(def, ti === 0 ? 260 : 700, ti === 0 ? 1 : -1, this, { team: ti, slot: ti, pet: k === 0 ? pet : PETS[0] });
+          if (k > 0) f.benched = true;
+          return f;
+        }),
+        active: 0,
+        tagCd: 0,
+      };
+    });
+    this.running = true;
+    this.paused = false;
+    this.beginRound();
+    if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
+  }
+  pickStage(id) {
+    if (!id || id === 'random') return STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    return STAGE_LIST.find((s) => s.id === id) || STAGE_LIST[0];
+  }
+  beginRound() {
+    this.resetWorld();
+    this.gravityMul = this.stageDef.gravity || 1;
+    this.jumpMul = this.stageDef.mech === 'highjump' ? 1.14 : (this.stageDef.gravity ? 0.92 : 1);
+    if (this.weather) this.weather.stop();
+    if (this.mech) this.mech.stop();
+    this.weather = new Weather(this, this.stageDef);
+    if (this.netRole !== 'guest') this.weather.roll(this.cfg.weather && this.cfg.weather !== 'random' ? this.cfg.weather : null);
+    this.mech = new StageMechanic(this, this.stageDef);
+    this.teams.forEach((t, ti) => {
+      t.active = 0;
+      t.tagCd = 0;
+      t.members.forEach((f, k) => {
+        f.hp = f.maxHp;
+        f.redHp = f.maxHp;
+        f.x = ti === 0 ? 260 : 700;
+        f.y = 0;
+        f.vx = 0;
+        f.vy = 0;
+        f.dir = ti === 0 ? 1 : -1;
+        f.state = 'idle';
+        f.stateTime = 0;
+        f.hitstun = 0;
+        f.blockstun = 0;
+        f.status = {};
+        f.stolen = null;
+        f.cast = null;
+        f.rush = null;
+        f.queue = [];
+        f.cd = [0, 0, 0, 0, 0];
+        f.afo = 0;
+        f.stunGauge = 0;
+        f.benched = k !== 0;
+        f.applyPet();
+        if (this.round === 1) { f.charge = [0, 0]; f.ultimate = 0; }
+        if (this.mode === 'training') { f.charge = [100, 100]; f.ultimate = 100; }
+      });
+    });
+    this.roundTimer = this.mode === 'training' ? Infinity : this.cfg.timer * 60;
     this.roundState = 'intro';
     this.roundStateTime = 0;
-    this.shakeMag = 0;
-    this.flashColor = null;
-    this.flashUntil = 0;
-    this.message = null;
-    this.messageUntil = 0;
-    this.difficulty = 1;
-    this.hitstop = 0;
-    this.slowmo = 0;
-    this.dmgNumbers = [];
-    this.combo = { owner: null, count: 0, until: 0 };
-    this.camX = 0;
-    this.ghostHp = [100, 100];
+    UI.hud.reset(this);
+    UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[this.weather.kind]);
   }
+  onWeather(kind) { if (this.stageDef) UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[kind]); }
+  team(ti) { return this.teams[ti]; }
+  activeOf(ti) { const t = this.teams && this.teams[ti]; return t ? t.members[t.active] : null; }
+  activePair() { return [this.activeOf(0), this.activeOf(1)]; }
+  fighters() { return this.activePair().filter(Boolean); }
+  allFighters() { return this.teams.flatMap((t) => t.members); }
+  enemyOf(f) { return f ? this.activeOf(1 - f.team) : null; }
+  opponentsOf(f) { const e = this.enemyOf(f); return e ? [e] : []; }
 
-  registerHit(attacker, victim, dmg, blocked, hitstop) {
-    this.hitstop = Math.max(this.hitstop, hitstop || (blocked ? 3 : 5));
-    if (attacker && !blocked) {
-      if (this.combo.owner === attacker && this.time < this.combo.until) this.combo.count++;
-      else this.combo = { owner: attacker, count: 1, until: 0 };
-      this.combo.until = this.time + 42;
+  /* ---------- efeitos ---------- */
+  spawnBurst(sheet, row, x, y, dir = 1, scale = 2) {
+    if (this.bursts.length > 60) this.bursts.shift();
+    const key = sheet.includes(':') ? sheet : 'fx2:' + sheet;
+    this.bursts.push({ key, row, x, y, dir, scale, age: 0, dur: 16 });
+    if (this.netRole === 'host') this.netFx.push(['b', key, row, Math.round(x), Math.round(y), dir, scale]);
+  }
+  spawnAbilityImpact(owner, p, x, y) {
+    const fid = owner.kitOwnerId(p);
+    const el = owner.elementOf(p);
+    const fx = ELEMENT_FX[el] || { sheet: 'impact', color: '#fff' };
+    this.spawnBurst('abil:' + fid, p.row, x, y, owner.dir, p.big ? 1.3 : 0.9);
+    this.spawnBurst(fx.sheet, 3, x, y, owner.dir, 2.2);
+    for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, fx.color);
+  }
+  spark(x, y, color) {
+    if (this.sparks.length > 220) return;
+    this.sparks.push({ x, y, vx: (Math.random() - 0.5) * 7, vy: -Math.random() * 6 - 1, life: 22 + Math.random() * 14, color });
+  }
+  dust(x) {
+    for (let k = 0; k < (this.reduced ? 2 : 6); k++) this.sparks.push({ x: x + (Math.random() - 0.5) * 30, y: -4, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 1.6, life: 18, color: 'rgba(220,210,190,0.7)', dust: true });
+  }
+  splash(x) { if (this.sparks.length < 200) this.sparks.push({ x, y: -2, vx: (Math.random() - 0.5) * 2, vy: -1.5 - Math.random() * 1.5, life: 10, color: 'rgba(190,220,255,0.7)', dust: true }); }
+  floatText(x, y, text, color) {
+    this.texts.push({ x, y, text, color: color || '#fff', life: 54, vy: -1.1 });
+    if (this.texts.length > 18) this.texts.shift();
+    if (this.netRole === 'host') this.netFx.push(['t', Math.round(x), Math.round(y), text, color || '#fff']);
+  }
+  shake(n) { if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n); }
+  say(f, text) { UI.hud.say(f.team, text); if (this.netRole === 'host') this.netFx.push(['s', f.team, text]); }
+  announce(text, color, sub) { UI.banner(text, color, sub); if (this.netRole === 'host') this.netFx.push(['n', text, color, sub || '']); }
+  drawWarnLabel(ctx, x, label) {
+    ctx.save();
+    ctx.font = '10px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = (this.time % 16) < 8 ? '#ff3b30' : '#ffe14d';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.strokeText('⚠ ' + label, x, -36);
+    ctx.fillText('⚠ ' + label, x, -36);
+    ctx.restore();
+  }
+  randX() { return 90 + Math.random() * (W - 180); }
+  hazard(o) {
+    const sheet = { key: o.sheet[0], row: o.sheet[1], frames: 4 };
+    this.strikes.push(new Strike(null, Object.assign({ delay: 56, w: 110, h: 260, scale: 2, stun: 18, launch: -6, shake: 6 }, o, { sheet })));
+  }
+  spawnPickup(kind) { if (this.pickups.length < 3) this.pickups.push(new Pickup(this, kind)); }
+  superFreeze(f, p) {
+    this.freeze = this.reduced ? 26 : 46;
+    this.freezeOwner = f;
+    UI.cutIn(f, p);
+    if (this.netRole === 'host') this.netFx.push(['c', f.team, f.def.id, p.name]);
+  }
+  registerHit(atk, victim, d, blocked, hitstop, counter) {
+    this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
+    if (!blocked) {
+      victim.redHp = Math.max(victim.hp, Math.min(victim.redHp, victim.hp + d * 0.5));
+      this.lastVictim = victim;
+      if (atk) {
+        if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
+        else this.combo = { owner: atk, count: 1, until: 0 };
+        this.combo.until = this.time + 48;
+        if (this.combo.count > atk.stats.maxCombo) atk.stats.maxCombo = this.combo.count;
+        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count]); }
+        if (this.combo.count === 6) this.audio.voice('combo');
+        if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
+      }
     }
-    this.dmgNumbers.push({
-      x: victim.x + (Math.random() - 0.5) * 24,
-      y: victim.y - 118,
-      vy: -1.4,
-      life: 40,
-      text: (blocked ? 'BLOQ ' : '') + Math.max(1, Math.round(dmg)),
-      color: blocked ? '#9adcff' : (dmg >= 12 ? '#ff5a3c' : '#ffe14d'),
-    });
-    if (this.dmgNumbers.length > 24) this.dmgNumbers.shift();
+    this.texts.push({ x: victim.x + (Math.random() - 0.5) * 24, y: victim.y - 150, text: String(Math.max(1, Math.round(d))), color: blocked ? '#9adcff' : d >= 14 ? '#ff5a3c' : '#ffe14d', life: 36, vy: -1.4, small: true });
   }
 
-  spawnHitStar(x, y, color) {
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2;
-      this.particles.push({
-        x, y, vx: Math.cos(a) * 5, vy: Math.sin(a) * 5,
-        life: 14, color, size: 4, star: true,
-      });
-    }
-  }
-
-  spawnSlash(x, y, dir, color) {
-    this.particles.push({
-      x, y, vx: dir * 0.4, vy: -0.2, life: 10, color, slash: true, rot: dir > 0 ? -0.6 : 0.6,
-    });
-  }
-
-  say(fighter, text) {
-    this.speech = { fighter, text, until: this.time + 150 };
-  }
-
-  showMessage(text, ms = 800, color = '#fff', sub = '') {
-    this.message = { text, color, sub };
-    this.messageUntil = this.time + Math.max(8, Math.round(ms * 60 / 1000));
-  }
-
-  shake(n) { this.shakeMag = Math.max(this.shakeMag, n); }
-
-  flashScreen(color) {
-    this.flashColor = color;
-    this.flashUntil = this.time + 10;
-  }
-
-  spawnSparks(x, y, color, n) {
-    for (let i = 0; i < n; i++) {
-      this.particles.push({
-        x, y,
-        vx: (Math.random() - 0.5) * 7,
-        vy: -Math.random() * 6 - 1.5,
-        life: 22 + Math.random() * 14,
-        color,
-        size: 2 + Math.random() * 3,
-      });
-    }
-    if (this.particles.length > 260) this.particles.splice(0, this.particles.length - 260);
-  }
-
-  spawnBurst(sheet, clip, x, y, dir = 1, scale = 2) {
-    this.bursts.push({ sheet, clip, x, y, dir, scale, frame: 0, life: clip === 'ultimate' ? 22 : 14 });
-    if (this.bursts.length > 40) this.bursts.shift();
-  }
-
-  spawnProjectile(owner, spec, delay) {
-    this.projectiles.push(new Projectile(owner, spec, delay || 0));
-  }
-
-  aoeBlast(owner, radius, dmg, heal) {
-    const target = owner === this.p1 ? this.p2 : this.p1;
-    if (target && target.alive && Math.abs(target.x - owner.x) < radius) {
-      target.takeHit(dmg, {
-        kx: 8, attacker: owner, stun: 18, height: 'mid', launch: -3.5, hitstop: 8, superChip: true,
-      });
-    }
-    if (heal) owner.heal(heal);
-    for (let i = 0; i < 36; i++) {
-      const a = (i / 36) * Math.PI * 2;
-      this.particles.push({
-        x: owner.x, y: -70,
-        vx: Math.cos(a) * 6.5, vy: Math.sin(a) * 6.5,
-        life: 32, color: owner.def.colors.accent, size: 4,
-      });
-    }
-    this.shake(10);
-  }
-
+  /* ---------- K.O. ---------- */
   onKO(loser) {
-    if (this.roundState !== 'fight') return;
+    if (this.roundState !== 'fight' || this.netRole === 'guest') return;
+    const team = this.teams[loser.team];
+    const partnerIdx = team.members.findIndex((m, k) => k !== team.active && m.alive);
+    if (this.mode === 'tag' && partnerIdx >= 0) {
+      this.announce('K.O.!', '#ff3b30', loser.def.name + ' caiu — entra o parceiro!');
+      this.slowmo = 30;
+      this.pendingTag = { ti: loser.team, idx: partnerIdx, at: 50 };
+      return;
+    }
     this.roundState = 'ko';
     this.roundStateTime = 0;
-    this.slowmo = 80;
-    const winner = loser === this.p1 ? this.p2 : this.p1;
-    winner.state = 'win';
-    winner.wins++;
-    const q = winner.def.quotes.win;
-    this.say(winner, q[(Math.random() * q.length) | 0]);
-    const sub = winner.hp >= 99 ? 'PERFEITO!' : winner.def.name + ' levou o round';
-    this.showMessage('K.O.!', 1100, '#ff3b30', sub);
+    this.slowmo = this.reduced ? 20 : 70;
+    const wt = 1 - loser.team;
+    this.teamWins[wt]++;
+    const winner = this.activeOf(wt);
+    if (winner) {
+      winner.state = 'win';
+      const q = winner.def.quotes.win;
+      if (q) this.say(winner, q[(Math.random() * q.length) | 0]);
+    }
+    const perfect = winner && winner.hp >= winner.maxHp - 0.5;
+    this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
+    this.audio.voice(perfect ? 'perfect' : 'ko');
+    this.audio.play('crowd', { vol: 0.6 });
     this.shake(14);
   }
-
-  cycleStage(dir) {
-    this.stageIdx = (this.stageIdx + dir + STAGES.length) % STAGES.length;
-    this.audio.cursor();
+  tagIn(ti, idx, forced) {
+    const t = this.teams[ti];
+    const out = t.members[t.active];
+    const inn = t.members[idx];
+    if (!inn || !inn.alive) return;
+    out.benched = true;
+    out.state = forced ? 'ko' : 'idle';
+    inn.benched = false;
+    inn.x = Math.max(60, Math.min(W - 60, out.x));
+    inn.y = -260;
+    inn.vy = 2;
+    inn.vx = 0;
+    inn.state = 'jump';
+    inn.hitstun = 0;
+    const opp = this.activeOf(1 - ti);
+    inn.dir = opp && opp.x > inn.x ? 1 : -1;
+    inn.now = this.time;
+    inn.addStatus('invuln', 40);
+    inn.charge = out.charge.slice();
+    inn.ultimate = out.ultimate;
+    t.active = idx;
+    t.tagCd = 360;
+    this.floatText(inn.x, -300, 'TROCA! ' + inn.def.name, inn.def.colors.accent);
+    this.audio.play('whoosh');
+    this.spawnBurst('impact', 3, inn.x, -120, 1, 3);
+    UI.hud.reset(this);
+  }
+  tryTag(ti) {
+    if (this.mode !== 'tag' && !(this.mode === 'online' && this.cfg.tag)) return;
+    const t = this.teams[ti];
+    if (t.tagCd > 0) return;
+    const cur = t.members[t.active];
+    if (!cur.canAct() || !cur.onGround) return;
+    const idx = t.members.findIndex((m, k) => k !== t.active && m.alive);
+    if (idx < 0) return;
+    this.tagIn(ti, idx, false);
   }
 
-  startFight() {
-    const d1 = FIGHTERS[this.selIdx[0]];
-    const d2 = FIGHTERS[this.selIdx[1]];
-    this.p1 = new Fighter(d1, W * 0.28, 1, this);
-    this.p2 = new Fighter(d2, W * 0.72, -1, this);
-    this.stage = new StageFX(STAGES[this.stageIdx], W, H);
-    this.projectiles = [];
-    this.particles = [];
-    this.bursts = [];
-    this.cinema = null;
-    this.speech = null;
-    this.roundTimer = ROUND_TIME * 60;
-    this.round = 1;
-    this.p1.wins = 0;
-    this.p2.wins = 0;
-    this.ghostHp = [100, 100];
-    this.dmgNumbers = [];
-    this.combo = { owner: null, count: 0, until: 0 };
-    this.slowmo = 0;
-    this.hitstop = 0;
-    this.camX = 0;
-    this.screen = 'vs';
-    this.roundState = 'intro';
+  /* ---------- entradas ---------- */
+  inputFor(ti) {
+    if (this.bsod > 0) return EMPTY_INPUT;
+    const f = this.activeOf(ti);
+    const opp = this.activeOf(1 - ti);
+    if (this.mode === 'online') return ti === this.cfg.localTeam ? Input.read(0) : Net.takeRemote();
+    if (this.mode === 'demo') return AI.think(f, opp, 1.2);
+    if (this.mode === 'training' && ti === 1) {
+      const dm = this.cfg.dummy || 'stand';
+      if (dm === 'cpu') return AI.think(f, opp, this.cfg.difficulty);
+      if (dm === 'block') { const i = Object.assign({}, EMPTY_INPUT); if (opp.x > f.x) i.left = true; else i.right = true; i.down = this.time % 120 > 60; return i; }
+      if (dm === 'jump') return Object.assign({}, EMPTY_INPUT, { up: this.time % 70 === 0 });
+      return EMPTY_INPUT;
+    }
+    if (this.cfg.cpu[ti]) return AI.think(f, opp, this.cfg.difficulty);
+    return Input.read(this.cfg.cpu[0] ? 0 : ti);
+  }
+
+  /* ---------- loop ---------- */
+  tick() {
+    if (!this.running || this.paused) return;
+    this.time++;
+    if (this.netRole === 'guest') { this.guestTick(); return; }
+    if (this.freeze > 0) {
+      this.freeze--;
+      if (this.freeze === 0) this.freezeOwner = null;
+      this.tickFxOnly();
+      return;
+    }
+    if (this.hitstop > 0) { this.hitstop--; this.tickFxOnly(); return; }
+    if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
+    this.step();
+  }
+  step() {
+    this.roundStateTime++;
+    const fighting = this.roundState === 'fight';
+    this.stage.update(this.weather);
+    this.weather.update(fighting);
+    this.mech.tick(fighting);
+    if (this.bsod > 0) this.bsod--;
+    if (this.glitch > 0) this.glitch--;
+    if (this.pendingTag && --this.pendingTag.at <= 0) { const p = this.pendingTag; this.pendingTag = null; this.tagIn(p.ti, p.idx, true); }
+    if (this.roundState === 'intro') {
+      if (this.roundStateTime === 1) {
+        const wi = WEATHER_INFO[this.weather.kind];
+        this.announce('ROUND ' + this.round, '#ffd27d', this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name);
+        this.audio.voice('round' + Math.min(3, this.round));
+        if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[(Math.random() * q.length) | 0]); });
+      }
+      if (this.roundStateTime === 70) { this.announce('LUTA!', '#7dff5e'); this.audio.voice('fight'); }
+      if (this.roundStateTime > 100) { this.roundState = 'fight'; this.roundStateTime = 0; }
+      this.fighters().forEach((f) => f.update(EMPTY_INPUT));
+      this.tickEntities();
+      return;
+    }
+    if (fighting) {
+      if (this.roundTimer !== Infinity) this.roundTimer--;
+      for (const ti of [0, 1]) {
+        const t = this.teams[ti];
+        if (t.tagCd > 0) t.tagCd--;
+        const inp = this.inputFor(ti);
+        if (inp.tag) this.tryTag(ti);
+        const f = this.activeOf(ti);
+        f.update(inp);
+        t.members.forEach((m) => { if (m !== f) m.update(EMPTY_INPUT); });
+      }
+      this.separate();
+      this.tickEntities();
+      if (this.mode === 'training') this.trainingRefill();
+      if (this.roundTimer <= 0 && this.roundState === 'fight') this.timeUp();
+      return;
+    }
+    this.fighters().forEach((f) => f.update(EMPTY_INPUT));
+    this.tickEntities();
+    if (this.roundStateTime > 150) this.endRound();
+  }
+  separate() {
+    const [a, b] = this.activePair();
+    for (const f of [a, b]) if (f) f.x = Math.max(44, Math.min(W - 44, f.x));
+    if (a && b && a.alive && b.alive) {
+      const minDist = 54;
+      if (Math.abs(a.x - b.x) < minDist && Math.abs(a.y - b.y) < 80 && a.state !== 'thrown' && b.state !== 'thrown') {
+        const push = (minDist - Math.abs(a.x - b.x)) / 2;
+        if (a.x === b.x) a.x -= 1;
+        if (a.x < b.x) { a.x -= push; b.x += push; } else { a.x += push; b.x -= push; }
+        a.x = Math.max(44, Math.min(W - 44, a.x));
+        b.x = Math.max(44, Math.min(W - 44, b.x));
+      }
+    }
+  }
+  tickEntities() {
+    for (const p of this.projectiles) p.update(this);
+    this.clashProjectiles();
+    for (const s of this.strikes) s.update(this);
+    for (const z of this.zones) z.update(this);
+    for (const w of this.walls) w.update(this);
+    for (const p of this.pickups) p.update(this);
+    for (const b of this.beams) b.age++;
+    this.projectiles = this.projectiles.filter((p) => !p.dead);
+    this.strikes = this.strikes.filter((p) => !p.dead);
+    this.zones = this.zones.filter((p) => !p.dead);
+    this.walls = this.walls.filter((p) => !p.dead);
+    this.pickups = this.pickups.filter((p) => !p.dead);
+    this.beams = this.beams.filter((b) => b.age < b.life);
+    this.tickFxOnly();
+  }
+  clashProjectiles() {
+    const ps = this.projectiles;
+    for (let i = 0; i < ps.length; i++) {
+      for (let j = i + 1; j < ps.length; j++) {
+        const a = ps[i];
+        const b = ps[j];
+        if (a.dead || b.dead || a.owner.team === b.owner.team) continue;
+        if (Math.abs(a.x - b.x) > a.r + b.r || Math.abs(a.y - b.y) > a.r + b.r) continue;
+        const ap = a.p.heavy || a.p.big;
+        const bp = b.p.heavy || b.p.big;
+        if (a.seek && !b.seek) b.dead = true;
+        else if (b.seek && !a.seek) a.dead = true;
+        else if (ap && !bp) b.dead = true;
+        else if (bp && !ap) a.dead = true;
+        else { a.dead = true; b.dead = true; }
+        this.spawnBurst('impact', 3, (a.x + b.x) / 2, (a.y + b.y) / 2, 1, 2);
+        this.audio.play('explosion', { vol: 0.6 });
+      }
+    }
+  }
+  tickFxOnly() {
+    if (this.shakeMag > 0) this.shakeMag *= 0.85;
+    if (this.shakeMag < 0.3) this.shakeMag = 0;
+    for (const b of this.bursts) b.age++;
+    this.bursts = this.bursts.filter((b) => b.age < b.dur);
+    for (const s of this.sparks) { s.x += s.vx; s.y += s.vy; s.vy += s.dust ? 0.04 : 0.28; s.life--; }
+    this.sparks = this.sparks.filter((s) => s.life > 0);
+    for (const t of this.texts) { t.y += t.vy; t.life--; }
+    this.texts = this.texts.filter((t) => t.life > 0);
+  }
+  trainingRefill() {
+    for (const f of this.allFighters()) {
+      if (f.state === 'idle' && f.stateTime > 60 && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + 1.5);
+      if (this.cfg.infiniteMeter) { f.charge = [100, 100]; f.ultimate = 100; }
+      if (!f.alive || f.state === 'ko') { f.hp = f.maxHp; f.state = 'idle'; f.y = 0; }
+    }
+  }
+  timeUp() {
+    this.roundState = 'end';
     this.roundStateTime = 0;
-    this.time = 0;
-    const q1 = d1.quotes.intro;
-    this.say(this.p1, q1[(Math.random() * q1.length) | 0]);
-    this.audio.ensure();
-    this.audio.startMusic();
+    const hpOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.hp) / m.maxHp, 0);
+    const a = hpOf(0);
+    const b = hpOf(1);
+    this.audio.voice('timeup');
+    if (Math.abs(a - b) < 0.001) {
+      this.announce('EMPATE!', '#9adcff', 'Ninguém pontua');
+      return;
+    }
+    const wt = a > b ? 0 : 1;
+    this.teamWins[wt]++;
+    const w = this.activeOf(wt);
+    if (w) w.state = 'win';
+    this.announce('TEMPO!', '#ffd27d', (w ? w.def.name : 'Time') + ' vence pela vida');
   }
-
-  nextRound() {
-    const w1 = this.p1.wins;
-    const w2 = this.p2.wins;
-    const meters = [
-      { charge: this.p1.charge.slice(), ultimate: this.p1.ultimate },
-      { charge: this.p2.charge.slice(), ultimate: this.p2.ultimate },
-    ];
-    const d1 = this.p1.def;
-    const d2 = this.p2.def;
+  endRound() {
+    const need = this.cfg.roundsToWin;
+    if (this.teamWins[0] >= need || this.teamWins[1] >= need || this.round >= 5) { this.finishMatch(); return; }
     this.round++;
-    this.difficulty = 1 + (this.round - 1) * 0.35;
-    this.p1 = new Fighter(d1, W * 0.28, 1, this);
-    this.p2 = new Fighter(d2, W * 0.72, -1, this);
-    this.p1.wins = w1;
-    this.p2.wins = w2;
-    this.p1.charge = meters[0].charge;
-    this.p1.ultimate = meters[0].ultimate;
-    this.p2.charge = meters[1].charge;
-    this.p2.ultimate = meters[1].ultimate;
-    this.stageIdx = (this.stageIdx + 1) % STAGES.length;
-    this.stage = new StageFX(STAGES[this.stageIdx], W, H);
-    this.projectiles = [];
-    this.particles = [];
-    this.bursts = [];
-    this.cinema = null;
-    this.roundTimer = ROUND_TIME * 60;
-    this.roundState = 'intro';
-    this.roundStateTime = 0;
-    this.screen = 'fight';
-    this.speech = null;
-    this.ghostHp = [100, 100];
-    this.dmgNumbers = [];
-    this.combo = { owner: null, count: 0, until: 0 };
-    this.camX = 0;
-    this.hitstop = 0;
-    this.slowmo = 0;
+    this.beginRound();
+  }
+  finishMatch() {
+    if (this.matchOver) return;
+    this.matchOver = true;
+    this.running = false;
+    this.weather.stop();
+    this.mech.stop();
+    AudioSys.stopLoops();
+    const winner = this.teamWins[0] === this.teamWins[1] ? -1 : this.teamWins[0] > this.teamWins[1] ? 0 : 1;
+    const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
+    if (this.mode !== 'demo') {
+      Profile.record('fights');
+      if (winner === humanTeam) Profile.record('wins');
+      Profile.record('maxCombo', Math.max(...this.teams[humanTeam].members.map((m) => m.stats.maxCombo)));
+      const vsHuman = this.mode === 'versus' && !this.cfg.cpu[1];
+      this.audio.voice(winner < 0 ? 'draw' : (vsHuman || winner === humanTeam) ? 'youwin' : 'youlose');
+    }
+    const result = {
+      winner,
+      wins: this.teamWins.slice(),
+      teams: this.teams.map((t) => t.members.map((m) => ({ id: m.def.id, name: m.def.name, dmg: Math.round(m.stats.dmg), combo: m.stats.maxCombo, hits: m.stats.hits }))),
+      mode: this.mode,
+    };
+    if (this.netRole === 'host' && this.onNetEnd) this.onNetEnd(result);
+    UI.onMatchEnd(result, this);
+  }
+  stop() {
+    this.running = false;
+    if (this.weather) this.weather.stop();
+    if (this.mech) this.mech.stop();
+    AudioSys.stopLoops();
   }
 
-  freshInput(padIndex, map) {
-    if (this.mode === 'demo') return null;
-    if (this.mode === 'versus' || padIndex === 0) return Input.read(map, padIndex);
+  /* ---------- rede (anfitrião → convidado) ---------- */
+  ent(e) {
+    if (e.type === 'proj') return ['p', Math.round(e.x), Math.round(e.y), e.key || ('abil:' + e.fid), e.row, e.age, Math.round(e.vx * 10) / 10, Math.round(e.vy * 10) / 10, e.scale, e.p.boomerang ? 1 : 0];
+    if (e.type === 'strike') return ['s', Math.round(e.x), e.age, e.delay, e.duration, e.sheet ? e.sheet.key : 0, e.sheet ? e.sheet.row : 0, e.scale, e.w, e.fromSky ? 1 : 0, e.label || 0, e.warnColor || 0, e.dir || 1];
+    if (e.type === 'zone') return ['z', Math.round(e.x), e.age, e.time, e.w, e.key || (e.fid ? 'abil:' + e.fid : 0), e.row, e.honey ? 1 : 0];
+    if (e.type === 'wall') return ['w', Math.round(e.x), e.age, e.time, e.fid, e.row, e.owner.dir];
     return null;
   }
-
-  update() {
-    Input.pollPads();
-    if (this.hitstop > 0) { this.hitstop--; return; }
-    if (this.slowmo > 0) {
-      this.slowmo--;
-      if (this.slowmo % 3 !== 0) return;
-    }
-    this.time++;
-    const t = this.time / 60;
-    const pad = Input.pad(0);
-    const confirm = Input.hit('Enter') || Input.hit('Space') || Input.hit('KeyA') || pad.kickHit || pad.startHit || pad.punchHit;
-
-    if (this.screen === 'title') {
-      if (confirm) {
-        this.screen = 'menu';
-        this.audio.ensure();
-        this.audio.cursor();
-      }
-      return;
-    }
-
-    if (this.screen === 'menu') {
-      if (Input.hit('ArrowUp') || Input.hit('KeyW') || pad.upHit) {
-        this.menuIdx = (this.menuIdx + this.menuOptions.length - 1) % this.menuOptions.length;
-        this.audio.cursor();
-      }
-      if (Input.hit('ArrowDown') || Input.hit('KeyS') || pad.downHit) {
-        this.menuIdx = (this.menuIdx + 1) % this.menuOptions.length;
-        this.audio.cursor();
-      }
-      if (confirm) {
-        this.audio.select();
-        if (this.menuIdx === 0) {
-          this.mode = 'arcade';
-          this.difficulty = 1;
-          this.screen = 'select';
-          this.selIdx = [0, (Math.random() * FIGHTERS.length) | 0];
-          this.selConfirmed = [false, false];
-        } else if (this.menuIdx === 1) {
-          this.mode = 'versus';
-          this.screen = 'select';
-          this.selIdx = [0, 1];
-          this.selConfirmed = [false, false];
-        } else this.screen = 'help';
-      }
-      return;
-    }
-
-    if (this.screen === 'help') {
-      if (confirm || Input.hit('Escape') || pad.specialHit) {
-        this.screen = 'menu';
-        this.audio.cursor();
-      }
-      return;
-    }
-
-    if (this.screen === 'select') {
-      this.updateSelect(pad);
-      return;
-    }
-
-    if (this.screen === 'vs') {
-      this.roundStateTime++;
-      if (this.p1 && this.p2) {
-        this.p1.update(EMPTY_INPUT, this.p2);
-        this.p2.update(EMPTY_INPUT, this.p1);
-      }
-      if (this.roundStateTime > 130 || Input.hit('Enter') || Input.hit('Space') || pad.startHit || pad.kickHit) {
-        this.screen = 'fight';
-        this.roundState = 'intro';
-        this.roundStateTime = 0;
-      }
-      return;
-    }
-
-    if (this.screen === 'fight') {
-      if (Input.hit('Escape')) {
-        this.screen = 'menu';
-        this.audio.stopMusic();
-        return;
-      }
-      this.updateFight(t);
-      return;
-    }
-
-    if (this.screen === 'gameover') {
-      if (confirm) {
-        this.audio.select();
-        this.screen = 'title';
-        this.audio.stopMusic();
-      }
-    }
-  }
-
-  updateSelect(pad) {
-    const pad2 = Input.pad(1);
-    const nav = (i, dir) => {
-      let n = this.selIdx[i] + dir;
-      if (n < 0) n = FIGHTERS.length - 1;
-      if (n >= FIGHTERS.length) n = 0;
-      this.selIdx[i] = n;
-      this.audio.cursor();
+  snapshot() {
+    const fx = this.netFx;
+    this.netFx = [];
+    return {
+      t: this.time,
+      rs: this.roundState, rst: this.roundStateTime, rnd: this.round, tw: this.teamWins, tm: this.roundTimer === Infinity ? 99 : Math.max(0, Math.ceil(this.roundTimer / 60)),
+      wk: this.weather.kind, wind: Math.round(this.weather.wind * 100) / 100, wf: this.weather.flash,
+      fr: this.freeze, bs: this.bsod, gl: this.glitch, sh: Math.round(this.shakeMag),
+      teams: this.teams.map((t) => ({ a: t.active, cd: t.tagCd, m: t.members.map((m) => m.snap()) })),
+      e: [...this.projectiles, ...this.strikes, ...this.zones, ...this.walls].map((e) => this.ent(e)).filter(Boolean),
+      pk: this.pickups.map((p) => [p.id, Math.round(p.x), Math.round(p.y), p.def.id, p.age]),
+      bm: this.beams.map((b) => [b.fid, b.row, Math.round(b.x), b.dir, b.len, b.age, b.life, Math.round(b.y), b.single ? 1 : 0, b.scale || 0]),
+      co: this.combo.owner ? [this.combo.owner.team, this.combo.count, this.combo.until - this.time] : 0,
+      fx,
     };
-    const confirm = Input.hit('KeyA') || Input.hit('Enter') || pad.kickHit || pad.punchHit || pad.startHit;
-    if (!this.selConfirmed[0]) {
-      if (Input.hit('ArrowLeft') || pad.leftHit) nav(0, -1);
-      if (Input.hit('ArrowRight') || pad.rightHit) nav(0, 1);
-      if (Input.hit('ArrowUp') || pad.upHit) this.cycleStage(-1);
-      if (Input.hit('ArrowDown') || pad.downHit) this.cycleStage(1);
-      if (confirm) { this.selConfirmed[0] = true; this.audio.select(); }
-    } else if (this.mode === 'arcade') {
-      if (Input.hit('ArrowLeft') || pad.leftHit) nav(1, -1);
-      if (Input.hit('ArrowRight') || pad.rightHit) nav(1, 1);
-      if (Input.hit('ArrowUp') || pad.upHit) this.cycleStage(-1);
-      if (Input.hit('ArrowDown') || pad.downHit) this.cycleStage(1);
-      if (confirm) { this.audio.select(); this.startFight(); }
-    } else if (!this.selConfirmed[1]) {
-      if (Input.hit('KeyJ') || pad2.leftHit) nav(1, -1);
-      if (Input.hit('KeyL') || pad2.rightHit) nav(1, 1);
-      if (Input.hit('Digit1') || pad2.kickHit || pad2.punchHit || pad2.startHit) {
-        this.selConfirmed[1] = true;
-        this.audio.select();
-        this.startFight();
-      }
-    }
-    if (Input.hit('Escape')) { this.screen = 'menu'; this.selConfirmed = [false, false]; }
   }
-
-  updateFight() {
-    this.roundStateTime++;
-    if (this.stage) this.stage.tick();
-
-    if (this.roundState === 'intro') {
-      if (this.roundStateTime === 1) { this.showMessage('ROUND ' + this.round, 800, '#ffd27d'); this.audio.round(); }
-      if (this.roundStateTime === 48) this.showMessage('LUTA!', 650, '#7dff5e');
-      if (this.roundStateTime > 88) { this.roundState = 'fight'; this.roundStateTime = 0; }
-      this.p1.update(EMPTY_INPUT, this.p2);
-      this.p2.update(EMPTY_INPUT, this.p1);
-      this.tickFx();
-      return;
-    }
-
-    if (this.roundState === 'fight') {
-      this.roundTimer--;
-      const p1Input = this.mode === 'demo' ? AI.think(this.p1, this.p2, this.difficulty) : Input.read(Input.p1, 0);
-      const p2Input = this.mode === 'versus' ? Input.read(Input.p2, 1) : AI.think(this.p2, this.p1, this.difficulty);
-      this.p1.update(p1Input, this.p2);
-      this.p2.update(p2Input, this.p1);
-
-      for (const f of [this.p1, this.p2]) {
-        f.x = Math.max(48, Math.min(W - 48, f.x));
-        const other = f === this.p1 ? this.p2 : this.p1;
-        const minDist = 56;
-        if (Math.abs(f.x - other.x) < minDist && Math.abs(f.y - other.y) < 70) {
-          const push = (minDist - Math.abs(f.x - other.x)) / 2;
-          if (f.x === other.x) f.x += f.dir;
-          else f.x += f.x < other.x ? -push : push;
-        }
-        this.stage.check(f);
-      }
-
-      for (const p of this.projectiles) p.update(this, p.owner === this.p1 ? this.p2 : this.p1);
-      this.resolveProjectileClashes();
-      this.projectiles = this.projectiles.filter((p) => !p.dead);
-      this.tickFx();
-
-      if (this.roundTimer <= 0 && this.roundState === 'fight') {
-        this.roundState = 'end';
-        this.roundStateTime = 0;
-        const w = this.p1.hp === this.p2.hp ? null : (this.p1.hp > this.p2.hp ? this.p1 : this.p2);
-        if (w) {
-          w.wins++;
-          w.state = 'win';
-          const other = w === this.p1 ? this.p2 : this.p1;
-          if (other.alive) other.state = 'ko';
-          this.showMessage('TEMPO!', 1000, '#ffd27d', w.def.name + ' vence no critério');
-          this.audio.ko();
-        } else this.showMessage('EMPATE!', 1000, '#9adcff');
-      }
-      return;
-    }
-
-    if (this.roundState === 'ko' || this.roundState === 'end') {
-      this.p1.update(EMPTY_INPUT, this.p2);
-      this.p2.update(EMPTY_INPUT, this.p1);
-      for (const p of this.projectiles) p.update(this, p.owner === this.p1 ? this.p2 : this.p1);
-      this.projectiles = this.projectiles.filter((p) => !p.dead);
-      this.tickFx();
-      if (this.roundStateTime > 120) {
-        if (this.p1.wins >= 2 || this.p2.wins >= 2) {
-          this.screen = 'gameover';
-          this.audio.stopMusic();
-        } else this.nextRound();
-      }
+  applySnapshot(s) {
+    this.roundState = s.rs;
+    this.roundStateTime = s.rst;
+    this.round = s.rnd;
+    this.teamWins = s.tw;
+    this.roundTimer = s.tm * 60;
+    if (this.weather.kind !== s.wk) this.weather.set(s.wk);
+    this.weather.wind = s.wind;
+    this.weather.flash = s.wf;
+    this.freeze = s.fr;
+    this.bsod = s.bs;
+    this.glitch = s.gl;
+    if (s.sh) this.shake(s.sh);
+    s.teams.forEach((ts, ti) => {
+      const t = this.teams[ti];
+      if (!t) return;
+      if (t.active !== ts.a) { t.active = ts.a; UI.hud.reset(this); }
+      t.tagCd = ts.cd;
+      ts.m.forEach((ms, k) => { if (t.members[k]) t.members[k].applySnap(ms); });
+    });
+    this.hostTime = s.t;
+    this.allFighters().forEach((f) => { f.now = s.t; });
+    this.netEnts = s.e;
+    this.netPickups = s.pk;
+    this.beams = s.bm.map((b) => ({ fid: b[0], row: b[1], x: b[2], dir: b[3], len: b[4], age: b[5], life: b[6], y: b[7], single: !!b[8], scale: b[9] }));
+    this.combo = s.co ? { owner: this.activeOf(s.co[0]), count: s.co[1], until: this.time + s.co[2] } : { owner: null, count: 0, until: 0 };
+    for (const f of s.fx || []) this.replayFx(f);
+  }
+  replayFx(f) {
+    switch (f[0]) {
+      case 'a': { const fn = AudioSys[f[1]]; if (typeof fn === 'function') fn.apply(AudioSys, f[2]); break; }
+      case 'b': this.bursts.push({ key: f[1], row: f[2], x: f[3], y: f[4], dir: f[5], scale: f[6], age: 0, dur: 16 }); break;
+      case 't': this.texts.push({ x: f[1], y: f[2], text: f[3], color: f[4], life: 54, vy: -1.1 }); break;
+      case 's': UI.hud.say(f[1], f[2]); break;
+      case 'n': UI.banner(f[1], f[2], f[3]); break;
+      case 'c': { const fi = this.activeOf(f[1]); if (fi) UI.cutIn(fi, { name: f[3] }); break; }
+      case 'h': UI.hud.combo(f[1], f[2]); break;
+      default: break;
     }
   }
-
-  resolveProjectileClashes() {
-    const list = this.projectiles;
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        const a = list[i];
-        const b = list[j];
-        if (a.dead || b.dead || a.owner === b.owner || a.age < 0 || b.age < 0) continue;
-        if (Math.abs(a.x - b.x) < (a.w + b.w) * 0.45 && Math.abs(a.y - b.y) < (a.h + b.h) * 0.5) {
-          if (a.spec.heavy && !b.spec.heavy) b.dead = true;
-          else if (b.spec.heavy && !a.spec.heavy) a.dead = true;
-          else { a.dead = true; b.dead = true; }
-          this.spawnSparks((a.x + b.x) / 2, (a.y + b.y) / 2, '#ffffff', 12);
-        }
-      }
-    }
+  guestTick() {
+    this.stage.update(this.weather);
+    this.weather.updateParticles();
+    if (this.weather.flash > 0) this.weather.flash--;
+    this.allFighters().forEach((f) => { f.now = this.hostTime || 0; });
+    this.tickFxOnly();
   }
 
-  tickFx() {
-    for (const pt of this.particles) {
-      pt.x += pt.vx;
-      pt.y += pt.vy;
-      pt.vy += 0.28;
-      pt.life--;
-    }
-    this.particles = this.particles.filter((p) => p.life > 0);
-    for (const b of this.bursts) { b.life--; b.frame++; }
-    this.bursts = this.bursts.filter((b) => b.life > 0);
-    if (this.cinema) {
-      this.cinema.life--;
-      if (this.cinema.life <= 0) this.cinema = null;
-    }
-    for (const d of this.dmgNumbers) { d.y += d.vy; d.life--; }
-    this.dmgNumbers = this.dmgNumbers.filter((d) => d.life > 0);
-    for (let i = 0; i < 2; i++) {
-      const f = i === 0 ? this.p1 : this.p2;
-      if (f && this.ghostHp[i] > f.hp) this.ghostHp[i] = Math.max(f.hp, this.ghostHp[i] - 0.7);
-    }
-    if (this.p1 && this.p2) {
-      const mid = (this.p1.x + this.p2.x) / 2;
-      const target = (mid - W / 2) * 0.45;
-      this.camX += (target - this.camX) * 0.12;
-      this.camX = Math.max(-90, Math.min(90, this.camX));
-    }
-  }
-
-  draw() {
-    const t = this.time / 60;
-    if (this.screen === 'title') this.drawTitle(t);
-    else if (this.screen === 'menu') { this.drawScene(t); this.drawMenu(t); }
-    else if (this.screen === 'help') { this.drawScene(t); this.drawHelp(); }
-    else if (this.screen === 'select') this.drawSelect(t);
-    else if (this.screen === 'vs') { this.drawScene(t); this.drawVS(t); this.drawSpeech(); }
-    else if (this.screen === 'fight') {
-      this.drawScene(t);
-      this.drawHUD(t);
-      this.drawSpeech();
-      this.drawMessage();
-    } else if (this.screen === 'gameover') { this.drawScene(t); this.drawGameOver(t); }
-  }
-
-  drawScene(t) {
+  /* ---------- desenho ---------- */
+  render() {
     const ctx = this.ctx;
-    ctx.imageSmoothingEnabled = false;
-    const cam = this.camX;
+    if (!this.stage) return;
+    const [a, b] = this.activePair();
+    const mid = a && b ? (a.x + b.x) / 2 : W / 2;
+    const camX = (mid - W / 2) / (W / 2);
+    let zoom = 1;
+    if (this.freeze > 0 && !this.reduced) zoom = 1.06;
+    else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) zoom = 1.04;
+    const sx = this.shakeMag ? (Math.random() - 0.5) * this.shakeMag : 0;
+    const sy = this.shakeMag ? (Math.random() - 0.5) * this.shakeMag : 0;
     ctx.save();
-    if (this.shakeMag > 0) {
-      ctx.translate((Math.random() - 0.5) * this.shakeMag, (Math.random() - 0.5) * this.shakeMag);
-      this.shakeMag *= 0.86;
-      if (this.shakeMag < 0.4) this.shakeMag = 0;
+    ctx.clearRect(0, 0, W, H);
+    if (zoom !== 1) {
+      const fx = this.freezeOwner ? this.freezeOwner.x : mid;
+      ctx.translate(fx, GROUND_Y - 120);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-fx, -(GROUND_Y - 120));
     }
-    if (!this.stage && !this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[this.stageIdx] || STAGES[0], W, H);
-    const backdrop = this.stage || this._titleStage;
-    if (backdrop) backdrop.draw(ctx, t, cam);
-    else { ctx.fillStyle = '#070910'; ctx.fillRect(0, 0, W, H); }
-    if (this.p1 && this.p2) {
-      ctx.save();
-      ctx.translate(-Math.round(cam), GROUND_Y);
-      const order = this.p1.x < this.p2.x ? [this.p1, this.p2] : [this.p2, this.p1];
-      for (const p of this.projectiles) p.draw(ctx);
-      for (const b of this.bursts) {
-        if (typeof Fx !== 'undefined') Fx.blit(ctx, b.sheet, b.clip, b.frame, b.x, b.y, { dir: b.dir, scale: b.scale, alpha: Math.min(1, b.life / 8) });
-      }
-      for (const f of order) f.draw(ctx);
-      for (const pt of this.particles) {
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, pt.life / 16);
-        ctx.fillStyle = pt.color;
-        ctx.strokeStyle = pt.color;
-        if (pt.slash) {
-          ctx.translate(pt.x, pt.y);
-          ctx.rotate(pt.rot || 0);
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(0, 0, 16, -0.2, 2.2);
-          ctx.stroke();
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = '#fff';
-          ctx.beginPath();
-          ctx.arc(0, 0, 10, 0.2, 1.6);
-          ctx.stroke();
-        } else if (pt.star) {
-          ctx.translate(pt.x, pt.y);
-          ctx.rotate(this.time * 0.2);
-          ctx.fillRect(-pt.size, -1, pt.size * 2, 2);
-          ctx.fillRect(-1, -pt.size, 2, pt.size * 2);
-        } else {
-          ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
-        }
-        ctx.restore();
-      }
-      ctx.font = 'bold 18px monospace';
+    ctx.translate(sx, sy);
+    this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
+    if (this.freeze > 0) {
+      ctx.fillStyle = 'rgba(0,0,10,0.62)';
+      ctx.fillRect(-20, -20, W + 40, H + 40);
+    }
+    ctx.save();
+    ctx.translate(0, GROUND_Y);
+    this.mech.draw(ctx);
+    const guest = this.netRole === 'guest';
+    if (guest) this.drawNetEntities(ctx, ['z', 'w']);
+    else { this.zones.forEach((z) => z.draw(ctx, this)); this.walls.forEach((w) => w.draw(ctx, this)); }
+    if (guest) this.drawNetPickups(ctx); else this.pickups.forEach((p) => p.draw(ctx));
+    const busy = (f) => (f.state === 'attack' || f.state === 'cast' || f.state === 'rush' ? 1 : 0);
+    const fs = this.fighters().slice().sort((p, q) => busy(p) - busy(q));
+    fs.forEach((f) => f.drawBack(ctx));
+    fs.forEach((f) => f.draw(ctx));
+    if (guest) this.drawNetEntities(ctx, ['s', 'p']);
+    else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
+    this.drawBeams(ctx);
+    for (const bu of this.bursts) {
+      Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
+    }
+    for (const s of this.sparks) {
+      ctx.globalAlpha = Math.min(1, s.life / 12);
+      ctx.fillStyle = s.color;
+      ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+    }
+    ctx.globalAlpha = 1;
+    this.mech.drawFront(ctx);
+    this.weather.draw(ctx);
+    ctx.restore();
+    this.stage.drawAmbient(ctx);
+    this.weather.drawOverlay(ctx, W, H);
+    if (this.bsod > 0) {
+      ctx.fillStyle = `rgba(20,60,200,${Math.min(0.55, this.bsod / 60)})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
-      for (const d of this.dmgNumbers) {
-        ctx.globalAlpha = Math.min(1, d.life / 18);
-        ctx.fillStyle = '#000';
-        ctx.fillText(d.text, d.x + 1, d.y + 1);
-        ctx.fillStyle = d.color;
-        ctx.fillText(d.text, d.x, d.y);
+      ctx.fillText(':( SEU PC ENCONTROU UM PROBLEMA', W / 2, 200);
+    }
+    if (this.glitch > 0 && !this.reduced) {
+      for (let k = 0; k < 6; k++) {
+        const y = Math.random() * H;
+        const h = 6 + Math.random() * 18;
+        ctx.drawImage(this.canvas, 0, y, W, h, (Math.random() - 0.5) * 30, y, W, h);
       }
-      ctx.globalAlpha = 1;
-      ctx.textAlign = 'left';
+    }
+    this.stage.drawVignette(ctx);
+    ctx.save();
+    ctx.translate(0, GROUND_Y);
+    ctx.textAlign = 'center';
+    for (const t of this.texts) {
+      ctx.globalAlpha = Math.min(1, t.life / 14);
+      ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#000';
+      ctx.strokeText(t.text, t.x, t.y);
+      ctx.fillStyle = t.color;
+      ctx.fillText(t.text, t.x, t.y);
+    }
+    ctx.restore();
+    ctx.restore();
+    UI.hud.update(this);
+  }
+  drawBeams(ctx) {
+    for (const b of this.beams) {
+      const f = Math.min(3, Math.floor((b.age / b.life) * 4));
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, (b.life - b.age) / 6));
+      if (b.single || !b.len) Art.ability(ctx, b.fid, b.row, f, b.x, b.y, { scale: b.scale || 1.4, dir: b.dir });
+      else {
+        const step = 80;
+        for (let d = 0; d < b.len; d += step) Art.ability(ctx, b.fid, b.row, f + ((d / step) | 0), b.x + b.dir * (d + step / 2), b.y, { scale: 0.95, dir: b.dir });
+      }
       ctx.restore();
     }
-    ctx.restore();
-
-    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.42, W / 2, H / 2, H * 0.95);
-    vg.addColorStop(0, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0,0,0,0.38)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, W, H);
-    if (this.flashColor && this.time < this.flashUntil) {
-      ctx.globalAlpha = 0.32;
-      ctx.fillStyle = this.flashColor;
-      ctx.fillRect(0, 0, W, H);
-      ctx.globalAlpha = 1;
-    }
-    if (this.cinema && typeof Fx !== 'undefined') {
-      const life = this.cinema.life;
-      Fx.blit(ctx, this.cinema.sheet, 'flash', (28 - life) / 6 | 0, W / 2, H / 2, { scale: 8, alpha: Math.min(0.45, life / 22) });
-      Fx.blit(ctx, this.cinema.sheet, 'ultimate', (28 - life) / 3 | 0, W / 2, H / 2 - 10, { scale: 4.2, alpha: Math.min(1, life / 8) });
-    }
   }
-
-  bar(x, y, w, h, pct, color, flip, ghostPct = null) {
-    const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(0,0,0,0.75)';
-    ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
-    ctx.strokeStyle = '#f2f2f2';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x - 3, y - 3, w + 6, h + 6);
-    ctx.fillStyle = '#2a0808';
-    ctx.fillRect(x, y, w, h);
-    if (ghostPct !== null && ghostPct > pct) {
-      const gw = w * ghostPct;
-      ctx.fillStyle = '#ffd24d';
-      if (flip) ctx.fillRect(x + w - gw, y, gw, h);
-      else ctx.fillRect(x, y, gw, h);
-    }
-    const fillW = Math.max(0, w * Math.max(0, Math.min(1, pct)));
-    const g = ctx.createLinearGradient(x, y, x, y + h);
-    g.addColorStop(0, '#d8ffc4');
-    g.addColorStop(1, color);
-    ctx.fillStyle = g;
-    if (flip) ctx.fillRect(x + w - fillW, y, fillW, h);
-    else ctx.fillRect(x, y, fillW, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
-    ctx.fillRect(x, y, w, 3);
-  }
-
-  drawHUD(t) {
-    const ctx = this.ctx;
-    this.bar(24, 28, 360, 18, this.p1.hp / this.p1.maxHp, this.p1.hp > 30 ? '#3dde45' : '#ff3b30', false, this.ghostHp[0] / 100);
-    this.bar(W - 384, 28, 360, 18, this.p2.hp / this.p2.maxHp, this.p2.hp > 30 ? '#3dde45' : '#ff3b30', true, this.ghostHp[1] / 100);
-    const drawMeters = (x, f, flip) => {
-      const slots = [
-        { pct: f.charge[0] / 100, ready: f.charge[0] >= 100, color: '#3ecbff', label: 'C1' },
-        { pct: f.charge[1] / 100, ready: f.charge[1] >= 100, color: '#ffb020', label: 'C2' },
-      ];
-      slots.forEach((slot, i) => {
-        const bx = flip ? x + (1 - i) * 178 : x + i * 178;
-        ctx.fillStyle = 'rgba(0,0,0,0.72)';
-        ctx.fillRect(bx, 50, 170, 8);
-        ctx.strokeStyle = '#8d93a8';
-        ctx.strokeRect(bx + 0.5, 50.5, 169, 7);
-        ctx.fillStyle = slot.ready && Math.sin(t * 10) > 0 ? '#fff' : slot.color;
-        const fw = 170 * Math.max(0, Math.min(1, slot.pct));
-        if (flip) ctx.fillRect(bx + 170 - fw, 50, fw, 8);
-        else ctx.fillRect(bx, 50, fw, 8);
-        if (slot.ready) {
-          ctx.strokeStyle = '#fff';
-          ctx.strokeRect(bx, 50, 170, 8);
+  drawNetEntities(ctx, types) {
+    for (const e of this.netEnts || []) {
+      if (!types.includes(e[0])) continue;
+      if (e[0] === 'p') {
+        Art.cell(ctx, e[3], e[4], Math.floor(e[5] / 4), e[1], e[2], { scale: e[8], dir: Math.sign(e[6]) || 1, rot: e[9] ? e[5] * 0.35 : 0 });
+      } else if (e[0] === 's') {
+        const [, x, age, delay, dur, key, row, scale, w, sky, label, warn, dir] = e;
+        if (age < delay) {
+          ctx.save();
+          ctx.globalAlpha = 0.5;
+          ctx.fillStyle = warn || '#ff3b30';
+          ctx.beginPath();
+          ctx.ellipse(x, -2, w / 2, 9, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          if (label) this.drawWarnLabel(ctx, x, label);
+        } else if (key) {
+          const a = age - delay;
+          const fr = Math.min(3, Math.floor(a / (dur / 4)));
+          const size = (ART_SHEETS[key] || { size: 64 }).size * scale;
+          let y = -size / 2;
+          if (sky) y -= Math.max(0, 240 - a * 40);
+          Art.cell(ctx, key, row, fr, x, y, { scale, dir });
         }
-      });
-      const up = f.ultimate / 100;
-      const full = up >= 1;
-      ctx.fillStyle = 'rgba(0,0,0,0.72)';
-      ctx.fillRect(x, 62, 348, 10);
-      ctx.fillStyle = full ? (Math.sin(t * 12) > 0 ? '#fff' : '#ff7de0') : '#b26bff';
-      const uw = 348 * Math.max(0, Math.min(1, up));
-      if (flip) ctx.fillRect(x + 348 - uw, 62, uw, 10);
-      else ctx.fillRect(x, 62, uw, 10);
-      ctx.strokeStyle = full ? '#ff7de0' : '#5a5a6a';
-      ctx.strokeRect(x, 62, 348, 10);
-      if (full) {
-        ctx.font = 'bold 10px monospace';
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = flip ? 'right' : 'left';
-        ctx.fillText('ULT', flip ? x + 340 : x + 6, 71);
+      } else if (e[0] === 'z') {
+        const z = new Zone(null, { x: e[1], time: e[3], w: e[4], key: e[5] || null, row: e[6], honey: !!e[7] });
+        z.age = e[2];
+        z.draw(ctx);
+      } else if (e[0] === 'w') {
+        Art.ability(ctx, e[4], e[5], e[2] < 12 ? Math.floor(e[2] / 4) : 3, e[1], -80, { scale: 1.4, dir: e[6] });
       }
-    };
-    drawMeters(24, this.p1, false);
-    drawMeters(W - 372, this.p2, true);
-
-    ctx.font = 'bold 15px monospace';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(this.p1.def.name, 24, 20);
-    ctx.textAlign = 'right';
-    ctx.fillText(this.p2.def.name, W - 24, 20);
-    ctx.textAlign = 'center';
-    const secs = Math.max(0, Math.ceil(this.roundTimer / 60));
-    ctx.font = 'bold 28px monospace';
-    ctx.fillStyle = secs <= 10 ? '#ff3b30' : '#fff';
-    ctx.fillText(String(secs).padStart(2, '0'), W / 2, 42);
-    ctx.fillStyle = '#ffd27d';
-    for (let i = 0; i < this.p1.wins; i++) {
-      ctx.beginPath();
-      ctx.arc(36 + i * 16, 86, 5, 0, Math.PI * 2);
-      ctx.fill();
     }
-    for (let i = 0; i < this.p2.wins; i++) {
-      ctx.beginPath();
-      ctx.arc(W - 36 - i * 16, 86, 5, 0, Math.PI * 2);
-      ctx.fill();
+  }
+  drawNetPickups(ctx) {
+    for (const p of this.netPickups || []) {
+      const def = PICKUPS.find((d) => d.id === p[3]);
+      if (def) Art.cell(ctx, 'pickups', def.row, Math.floor(p[4] / 7), p[1], p[2] + Math.sin(p[4] * 0.08) * 5, { scale: 0.9 });
     }
-    ctx.font = '12px monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.fillText(this.stage.def.name, W / 2, H - 10);
-    if (this.combo.count >= 2 && this.time < this.combo.until) {
-      ctx.font = 'bold 22px monospace';
-      ctx.fillStyle = '#ffe14d';
-      const cx = this.combo.owner === this.p1 ? 180 : W - 180;
-      ctx.fillText(this.combo.count + ' HITS', cx, 100);
-    }
-    ctx.textAlign = 'left';
-  }
-
-  drawSpeech() {
-    if (!this.speech || this.time > this.speech.until || !this.speech.fighter) return;
-    const ctx = this.ctx;
-    const f = this.speech.fighter;
-    ctx.font = 'bold 13px monospace';
-    const tw = Math.min(W - 24, ctx.measureText(this.speech.text).width + 18);
-    const sx = Math.max(8, Math.min(W - tw - 8, f.x - this.camX - tw / 2));
-    const sy = Math.max(78, GROUND_Y + f.y - 198);
-    ctx.fillStyle = 'rgba(0,0,0,0.78)';
-    ctx.fillRect(sx, sy, tw, 22);
-    ctx.strokeStyle = f.def.colors.accent;
-    ctx.strokeRect(sx, sy, tw, 22);
-    ctx.fillStyle = '#fff';
-    ctx.fillText(this.speech.text, sx + 8, sy + 15);
-  }
-
-  drawMessage() {
-    if (!this.message || this.time > this.messageUntil) return;
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 54px monospace';
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = '#000';
-    ctx.strokeText(this.message.text, W / 2, H / 2 - 24);
-    ctx.fillStyle = this.message.color;
-    ctx.fillText(this.message.text, W / 2, H / 2 - 24);
-    if (this.message.sub) {
-      ctx.font = 'bold 18px monospace';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(this.message.sub, W / 2, H / 2 + 12);
-    }
-    ctx.restore();
-  }
-
-  drawTitle(t) {
-    const ctx = this.ctx;
-    if (!this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[3] || STAGES[0], W, H);
-    if (this._titleStage) this._titleStage.draw(ctx, t, Math.sin(t * 0.4) * 20);
-    else { ctx.fillStyle = '#070910'; ctx.fillRect(0, 0, W, H); }
-    const frame = Math.floor(this.time / 8);
-    if (typeof SpriteGen !== 'undefined') {
-      SpriteGen.blit(ctx, 'du', 'idle', frame, 1, 150, GROUND_Y, false, 1);
-      SpriteGen.blit(ctx, 'frontend', 'idle', frame + 2, -1, W - 150, GROUND_Y, false, 1);
-    }
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 68px monospace';
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = '#000';
-    ctx.strokeText('DS FIGHTERS', W / 2, 168);
-    const lg = ctx.createLinearGradient(0, 100, 0, 180);
-    lg.addColorStop(0, '#fff6b0');
-    lg.addColorStop(0.5, '#ffd24d');
-    lg.addColorStop(1, '#ff4fa3');
-    ctx.fillStyle = lg;
-    ctx.fillText('DS FIGHTERS', W / 2, 168);
-    ctx.font = 'bold 16px monospace';
-    ctx.fillStyle = '#9dffdf';
-    ctx.fillText('TORNEIO DOS DESENVOLVEDORES', W / 2, 204);
-    ctx.fillStyle = Math.sin(t * 4) > 0 ? '#fff' : '#888';
-    ctx.font = 'bold 16px monospace';
-    ctx.fillText('ENTER  ·  X DO CONTROLE  ·  TOQUE', W / 2, 250);
-    if (Input.padCount > 0) {
-      ctx.fillStyle = '#7dffb0';
-      ctx.font = '13px monospace';
-      ctx.fillText('CONTROLE DETECTADO', W / 2, 274);
-    }
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 1);
-    ctx.textAlign = 'left';
-  }
-
-  drawMenu() {
-    const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#7dffd4';
-    ctx.font = 'bold 34px monospace';
-    ctx.fillText('MENU', W / 2, 150);
-    this.menuOptions.forEach((opt, i) => {
-      const on = i === this.menuIdx;
-      ctx.font = on ? 'bold 22px monospace' : '18px monospace';
-      ctx.fillStyle = on ? '#ffd27d' : '#b7c0d4';
-      ctx.fillText((on ? '▶ ' : '') + opt, W / 2, 230 + i * 48);
-    });
-    ctx.font = '13px monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.fillText('↑↓ escolhe   ·   ENTER / X confirma', W / 2, 420);
-    ctx.textAlign = 'left';
-  }
-
-  drawHelp() {
-    const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(4,6,12,0.88)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#7dffd4';
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText('COMO JOGAR', W / 2, 48);
-    ctx.font = '15px monospace';
-    ctx.fillStyle = '#e8e8f0';
-    const lines = [
-      'P1: setas movem    A soco    S chute    D especial    F super',
-      'P2: J L I K        1 soco    2 chute    3 especial    4 super',
-      'Controle: direcional / analógico    □ soco    X chute',
-      '○ ou L2 especial    △ ou R2 super    Options confirma',
-      '',
-      'Segure para trás para bloquear em pé (segura o pulo).',
-      'Segure para baixo para bloquear agachado (segura a rasteira).',
-      'Pulo + ataque é golpe alto. Agachado + chute é golpe baixo.',
-      'D ou ↓↘→+soco: simples 1.  ↓↙←+chute: simples 2.',
-      '↓↘→+chute: carga 1.  ↓↙←+soco: carga 2.  F ou ↓↘→↓↘→+soco: ultimate.',
-      'C1 e C2 enchem ao bater e ao apanhar. ULT pisca quando está pronto.',
-      '',
-      'ENTER volta    ·    Esc no meio da luta volta ao menu',
-    ];
-    lines.forEach((line, i) => {
-      ctx.fillStyle = line.startsWith('Segure') || line.startsWith('Pulo') || line.startsWith('↓') || line.startsWith('Toque') || line.startsWith('A barra') ? '#ffd27d' : '#eee';
-      ctx.fillText(line, W / 2, 88 + i * 28);
-    });
-    ctx.textAlign = 'left';
-  }
-
-  drawSelect(t) {
-    const ctx = this.ctx;
-    if (!this._titleStage && STAGES.length) this._titleStage = new StageFX(STAGES[this.stageIdx] || STAGES[0], W, H);
-    if (this._titleStage) this._titleStage.draw(ctx, t, 0);
-    ctx.fillStyle = 'rgba(4,6,12,0.86)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#7dffd4';
-    ctx.font = 'bold 20px monospace';
-    const pickingP2 = this.selConfirmed[0] && this.mode === 'versus' && !this.selConfirmed[1];
-    const title = !this.selConfirmed[0]
-      ? 'P1 — ESCOLHA SEU LUTADOR'
-      : (this.mode === 'arcade' ? 'ESCOLHA O ADVERSÁRIO E O CENÁRIO' : (pickingP2 ? 'P2 — ESCOLHA SEU LUTADOR' : 'PRONTO'));
-    ctx.fillText(title, W / 2, 28);
-    const cols = 7;
-    const cw = 128;
-    const ch = 118;
-    const ox = (W - cols * cw) / 2;
-    const oy = 42;
-    const focus = this.selConfirmed[0] && this.mode === 'versus' ? 1 : (this.selConfirmed[0] ? 1 : 0);
-    FIGHTERS.forEach((f, i) => {
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const cx = ox + col * cw + cw / 2;
-      const cy = oy + row * ch;
-      const isP1 = this.selIdx[0] === i;
-      const isP2 = this.selIdx[1] === i;
-      ctx.fillStyle = 'rgba(10,16,28,0.92)';
-      ctx.fillRect(cx - 46, cy + 4, 92, 100);
-      ctx.strokeStyle = isP1 ? '#3dffe0' : isP2 ? '#ff7de0' : '#24344e';
-      ctx.lineWidth = isP1 || isP2 ? 3 : 1;
-      ctx.strokeRect(cx - 46, cy + 4, 92, 100);
-      const footY = oy + row * ch + ch - 4;
-      SpriteGen.blit(ctx, f.id, 'idle', Math.floor(this.time / 8) + i, 1, cx, footY, false, 0.34);
-      if (isP1) { ctx.fillStyle = '#3dffe0'; ctx.font = 'bold 11px monospace'; ctx.fillText('P1', cx - 28, cy + 16); }
-      if (isP2) { ctx.fillStyle = '#ff7de0'; ctx.font = 'bold 11px monospace'; ctx.fillText('P2', cx + 28, cy + 16); }
-    });
-
-    const f = FIGHTERS[this.selIdx[focus]];
-    ctx.fillStyle = 'rgba(0,0,0,0.78)';
-    ctx.fillRect(12, 292, W - 24, 236);
-    ctx.strokeStyle = f.colors.accent;
-    ctx.strokeRect(12, 292, W - 24, 236);
-    SpriteGen.blit(ctx, f.id, 'idle', Math.floor(t * 8), 1, 108, 512, false, 0.7);
-    ctx.textAlign = 'left';
-    ctx.fillStyle = f.colors.accent;
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText(f.name, 230, 328);
-    ctx.fillStyle = '#d5e4ff';
-    ctx.font = '14px monospace';
-    ctx.fillText(f.title, 230, 352);
-    this.wrapText(ctx, f.bio, 230, 378, 500, 18);
-    ctx.fillStyle = '#ffd27d';
-    ctx.font = '13px monospace';
-    ctx.fillText('FORÇA', 230, 430);
-    this.statBar(ctx, 300, 420, f.stats.power / 1.35);
-    ctx.fillText('VEL.', 430, 430);
-    this.statBar(ctx, 490, 420, f.stats.speed / 1.4);
-    ctx.fillText('PESO', 620, 430);
-    this.statBar(ctx, 680, 420, f.stats.weight / 1.35);
-    ctx.fillStyle = '#9dffc9';
-    ctx.font = '13px monospace';
-    const kit = (typeof POWERS !== 'undefined' && POWERS[f.id]) || null;
-    if (kit) {
-      const by = (slot) => kit.powers.filter((p) => p.slot === slot).map((p) => p.name).join('  ·  ');
-      ctx.fillText(kit.element.toUpperCase() + '   SIMPLES: ' + by('simple'), 230, 462);
-      ctx.fillText('CARGA: ' + by('charge'), 230, 482);
-      ctx.fillText('ULTIMATE: ' + by('ultimate'), 230, 502);
-    }
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#fff';
-    ctx.font = '14px monospace';
-    ctx.fillText('CENÁRIO: ' + STAGES[this.stageIdx].name + '     ↑↓ troca', W / 2, 516);
-    ctx.textAlign = 'left';
-  }
-
-  statBar(ctx, x, y, pct) {
-    ctx.fillStyle = '#1c2433';
-    ctx.fillRect(x, y, 90, 8);
-    ctx.fillStyle = '#ffd27d';
-    ctx.fillRect(x, y, 90 * Math.max(0, Math.min(1, pct)), 8);
-  }
-
-  wrapText(ctx, text, x, y, maxW, lh) {
-    const words = text.split(' ');
-    let line = '';
-    let yy = y;
-    for (const word of words) {
-      const test = line ? line + ' ' + word : word;
-      if (ctx.measureText(test).width > maxW) {
-        ctx.fillText(line, x, yy);
-        line = word;
-        yy += lh;
-      } else line = test;
-    }
-    if (line) ctx.fillText(line, x, yy);
-  }
-
-  drawVS(t) {
-    const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect(0, 70, W, 86);
-    ctx.fillRect(0, H - 120, W, 70);
-    const f1 = this.p1.def;
-    const f2 = this.p2.def;
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 64px monospace';
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = '#000';
-    ctx.strokeText('VS', W / 2, 128);
-    ctx.fillStyle = '#ffd27d';
-    ctx.fillText('VS', W / 2, 128);
-    ctx.font = 'bold 22px monospace';
-    ctx.fillStyle = f1.colors.accent;
-    ctx.fillText(f1.name, W * 0.25, H - 78);
-    ctx.fillStyle = f2.colors.accent;
-    ctx.fillText(f2.name, W * 0.75, H - 78);
-    ctx.fillStyle = '#ddd';
-    ctx.font = '13px monospace';
-    ctx.fillText(f1.title, W * 0.25, H - 56);
-    ctx.fillText(f2.title, W * 0.75, H - 56);
-    ctx.fillStyle = 'rgba(255,255,255,' + (0.45 + Math.sin(t * 5) * 0.35) + ')';
-    ctx.fillText(STAGES[this.stageIdx].name, W / 2, H - 56);
-    ctx.textAlign = 'left';
-  }
-
-  drawGameOver(t) {
-    const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(0,0,0,0.62)';
-    ctx.fillRect(0, 0, W, H);
-    const winner = this.p1.wins >= 2 ? this.p1 : this.p2;
-    const loser = winner === this.p1 ? this.p2 : this.p1;
-    SpriteGen.blit(ctx, winner.def.id, 'win', Math.floor(this.time / 7), 1, 210, H - 70, false, 2);
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 42px monospace';
-    ctx.fillStyle = winner.def.colors.accent;
-    ctx.fillText(winner.def.name, 400, H / 2 - 20);
-    ctx.font = 'bold 28px monospace';
-    ctx.fillStyle = '#fff';
-    ctx.fillText('VENCEU', 400, H / 2 + 18);
-    ctx.font = '16px monospace';
-    ctx.fillStyle = '#ddd';
-    ctx.fillText(loser.def.name + ' caiu em ' + this.round + ' round(s).', 400, H / 2 + 52);
-    ctx.fillStyle = Math.sin(t * 4) > 0 ? '#ffd27d' : '#aaa';
-    ctx.fillText('ENTER volta ao título', 400, H / 2 + 84);
   }
 }

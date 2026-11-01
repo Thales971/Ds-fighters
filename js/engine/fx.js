@@ -1,38 +1,113 @@
 /* ============================================================
-   DS FIGHTERS — Blit de efeitos. Nenhum golpe desenha forma:
-   tudo sai do spritesheet declarado em assets/fx/layout.js.
+   DS FIGHTERS — Carregador de arte e blit de spritesheets.
+   Art.cell() é o único caminho de desenho de sprites de efeito:
+   nada de formas desenhadas à mão para poderes.
    ============================================================ */
+const ART_SHEETS = {
+  // habilidades: 4 col x 5 lin, 128px
+  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack']
+    .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
+  // pacote retrô nativo: 4x4, 64px
+  ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
+    .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
+  pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
+  pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
+  fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
+};
+
+const Art = {
+  images: {},
+  load() {
+    Object.entries(ART_SHEETS).forEach(([key, s]) => {
+      const img = new Image();
+      img.onload = () => { this.images[key] = img; };
+      img.src = s.src;
+    });
+  },
+  ready(key) { const i = this.images[key]; return !!(i && i.naturalWidth); },
+  /* Desenha a célula (row, col) centrada em (x, y). */
+  cell(ctx, key, row, col, x, y, opts = {}) {
+    const img = this.images[key];
+    const s = ART_SHEETS[key];
+    if (!img || !s) return false;
+    const n = s.cols;
+    const c = ((col % n) + n) % n;
+    const sc = opts.scale || 1;
+    const dw = s.size * sc;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (opts.alpha != null) ctx.globalAlpha *= opts.alpha;
+    if (opts.add) ctx.globalCompositeOperation = 'lighter';
+    ctx.translate(Math.round(x), Math.round(y));
+    if (opts.rot) ctx.rotate(opts.rot);
+    if (opts.dir < 0) ctx.scale(-1, 1);
+    if (opts.sy) ctx.scale(1, opts.sy);
+    const ax = opts.anchor === 'bottom' ? -dw : -dw / 2;
+    ctx.drawImage(img, c * s.size, row * s.size, s.size, s.size, Math.round(-dw / 2), Math.round(ax), dw, dw);
+    ctx.restore();
+    return true;
+  },
+  ability(ctx, fid, row, frame, x, y, opts) { return this.cell(ctx, 'abil:' + fid, row, frame, x, y, opts); },
+  fx2(ctx, sheet, row, frame, x, y, opts) { return this.cell(ctx, 'fx2:' + sheet, row, frame, x, y, opts); },
+  /* Ícone em CSS (para a HUD em HTML). */
+  css(key, row, col, px) {
+    const s = ART_SHEETS[key];
+    if (!s) return '';
+    const k = px / s.size;
+    const img = this.images[key];
+    const w = img ? img.naturalWidth : s.size * s.cols;
+    const h = img ? img.naturalHeight : s.size * 5;
+    return `background-image:url(${s.src});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-row * px}px;`;
+  },
+};
+Art.load();
+
+/* Folhas antigas por elemento (8x5, 96px) — mantidas para impactos e auras genéricas. */
+const FX_LAYOUT = {
+  frameW: 96,
+  frameH: 96,
+  cols: 8,
+  clips: {
+    projectile: { row: 0, frames: 8 },
+    impact: { row: 1, frames: 6 },
+    aura: { row: 2, frames: 8 },
+    ultimate: { row: 3, frames: 8 },
+    flash: { row: 4, frames: 4 },
+  },
+  sheets: {
+    fogo: 'assets/fx/fogo.png', gelo: 'assets/fx/gelo.png', raio: 'assets/fx/raio.png', vento: 'assets/fx/vento.png',
+    sombra: 'assets/fx/sombra.png', veneno: 'assets/fx/veneno.png', neon: 'assets/fx/neon.png', terra: 'assets/fx/terra.png',
+    metal: 'assets/fx/metal.png', acido: 'assets/fx/acido.png', tempo: 'assets/fx/tempo.png', arcano: 'assets/fx/arcano.png',
+  },
+};
+const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano' };
 
 const Fx = {
   images: {},
-
   load() {
-    const sheets = (typeof FX_LAYOUT !== 'undefined' && FX_LAYOUT.sheets) || {};
-    Object.entries(sheets).forEach(([id, src]) => {
+    Object.entries(FX_LAYOUT.sheets).forEach(([id, src]) => {
       const img = new Image();
       img.onload = () => { this.images[id] = img; };
-      img.onerror = () => { this.images[id] = null; };
       img.src = src;
     });
   },
-
   blit(ctx, sheet, clip, frame, x, y, opts = {}) {
-    const L = typeof FX_LAYOUT !== 'undefined' ? FX_LAYOUT : null;
-    const img = this.images[sheet];
-    const spec = L && L.clips[clip];
-    if (!L || !img || !img.complete || !img.naturalWidth || !spec) return;
+    const L = FX_LAYOUT;
+    const img = this.images[ELEMENT_TO_OLD[sheet] || sheet];
+    const spec = L.clips[clip];
+    if (!img || !img.naturalWidth || !spec) return;
     const f = ((frame % spec.frames) + spec.frames) % spec.frames;
     const sc = opts.scale || 2;
     const dw = L.frameW * sc;
     const dh = L.frameH * sc;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha;
+    ctx.globalAlpha *= opts.alpha == null ? 1 : opts.alpha;
+    if (opts.add) ctx.globalCompositeOperation = 'lighter';
     ctx.translate(Math.round(x), Math.round(y));
     if (opts.dir < 0) ctx.scale(-1, 1);
     ctx.drawImage(img, f * L.frameW, spec.row * L.frameH, L.frameW, L.frameH, Math.round(-dw / 2), Math.round(-dh / 2), dw, dh);
     ctx.restore();
   },
 };
-
 Fx.load();

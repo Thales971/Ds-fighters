@@ -2,43 +2,263 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>DS FIGHTERS — Torneio dos Desenvolvedores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>DS Fighters — Expansão Arcade</title>
+  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 12 lutadores devs, 5 habilidades cada, 26 cenários com clima e mecânicas, 2x2 e online." />
+  <meta name="theme-color" content="#120a24" />
+  <link rel="icon" href="assets/ui/face-iales.png" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="game-shell">
-    <canvas id="game" width="960" height="540"></canvas>
-    <div id="touch-controls" class="hidden">
-      <div class="pad-left">
-        <button class="tbtn" data-k="ArrowLeft">◀</button>
-        <button class="tbtn" data-k="ArrowRight">▶</button>
-        <button class="tbtn" data-k="ArrowUp">▲</button>
-        <button class="tbtn" data-k="ArrowDown">▼</button>
+  <div id="app" class="crt">
+    <div id="stage-wrap" aria-hidden="true">
+      <canvas id="game" width="960" height="540"></canvas>
+    </div>
+
+    <div id="hud" class="hidden" aria-live="off">
+      <div class="hud-top">
+        <div class="side p1" data-team="0"></div>
+        <div class="center">
+          <div class="timer" id="hud-timer">99</div>
+          <div class="round-label" id="hud-round">ROUND 1</div>
+        </div>
+        <div class="side p2" data-team="1"></div>
       </div>
-      <div class="pad-right">
-        <button class="tbtn atk" data-k="KeyA">A</button>
-        <button class="tbtn atk" data-k="KeyS">S</button>
-        <button class="tbtn atk" data-k="KeyD">D</button>
-        <button class="tbtn sp" data-k="KeyF">★</button>
+      <div class="hud-stage" id="hud-stage"></div>
+      <div class="hud-combo p1" id="combo-0"></div>
+      <div class="hud-combo p2" id="combo-1"></div>
+      <div class="speech p1" id="speech-0"></div>
+      <div class="speech p2" id="speech-1"></div>
+      <div class="hud-bottom">
+        <div class="skills p1" id="skills-0"></div>
+        <div class="skills p2" id="skills-1"></div>
+      </div>
+    </div>
+    <div id="banner" aria-live="polite"><div class="b-main"></div><div class="b-sub"></div></div>
+    <div id="cutin" aria-hidden="true"><div class="ci-bg"></div><div class="ci-face"></div><div class="ci-name"></div><div class="ci-move"></div></div>
+    <div id="toast" role="status"></div>
+
+    <section class="screen" id="scr-title" data-screen="title">
+      <div class="title-bg"></div>
+      <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
+      <p class="tagline">EXPANSÃO ARCADE · 12 LUTADORES · 26 ARENAS</p>
+      <button class="press-start nav" id="btn-start">PRESSIONE START</button>
+      <p class="hint">Enter, toque ou botão Start do controle</p>
+      <p class="credit">Arte, código e trilha originais · Jogo gratuito</p>
+    </section>
+
+    <section class="screen" id="scr-menu" data-screen="menu">
+      <div class="menu-bg"></div>
+      <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
+      <nav class="main-menu" aria-label="Menu principal">
+        <button class="nav mm" data-go="arcade"><span>ARCADE</span><small>Escada de 7 lutas contra a CPU</small></button>
+        <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
+        <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
+        <button class="nav mm" data-go="training"><span>TREINO</span><small>Boneco, medidores infinitos</small></button>
+        <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
+        <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
+        <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
+        <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
+        <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
+      </nav>
+      <div class="menu-side">
+        <div class="stats-card" id="stats-card"></div>
+        <div class="demo-roster" id="menu-roster"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-select" data-screen="select">
+      <div class="select-bg"></div>
+      <header class="sel-head">
+        <h2 id="sel-title">ESCOLHA SEU LUTADOR</h2>
+        <div class="sel-mode" id="sel-mode"></div>
+      </header>
+      <div class="sel-layout">
+        <aside class="sel-card p1" id="card-0"></aside>
+        <div class="sel-grid-wrap">
+          <div class="sel-grid" id="sel-grid" role="grid" aria-label="Lutadores"></div>
+          <div class="sel-help" id="sel-help"></div>
+        </div>
+        <aside class="sel-card p2" id="card-1"></aside>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-stage" data-screen="stage">
+      <div class="select-bg"></div>
+      <header class="sel-head"><h2>ESCOLHA A ARENA</h2><div class="sel-mode">Cada arena tem mecânica própria e clima aleatório</div></header>
+      <div class="stage-layout">
+        <div class="stage-preview" id="stage-preview"></div>
+        <div class="stage-grid" id="stage-grid" role="listbox" aria-label="Arenas"></div>
+      </div>
+      <div class="stage-opts">
+        <label>Clima <select id="opt-weather"><option value="random">Aleatório</option><option value="clear">Céu limpo</option><option value="rain">Chuva</option><option value="wind">Ventania</option><option value="storm">Tempestade</option><option value="snow">Nevasca</option></select></label>
+        <label id="lbl-diff">Dificuldade <select id="opt-diff"><option value="0.6">Fácil</option><option value="1" selected>Normal</option><option value="1.5">Difícil</option><option value="2.2">Insano</option></select></label>
+        <label id="lbl-dummy" class="hidden">Boneco <select id="opt-dummy"><option value="stand">Parado</option><option value="block">Defende</option><option value="jump">Pula</option><option value="cpu">CPU</option></select></label>
+        <label id="lbl-inf" class="hidden"><input type="checkbox" id="opt-inf" checked /> Medidores infinitos</label>
+        <button class="nav btn primary" id="btn-fight">LUTAR!</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-vs" data-screen="vs">
+      <div class="vs-wrap">
+        <div class="vs-side p1" id="vs-0"></div>
+        <div class="vs-mid">VS</div>
+        <div class="vs-side p2" id="vs-1"></div>
+      </div>
+      <div class="vs-stage" id="vs-stage"></div>
+    </section>
+
+    <section class="screen" id="scr-pause" data-screen="pause">
+      <div class="panel">
+        <h2>PAUSA</h2>
+        <button class="nav btn" id="btn-resume">CONTINUAR</button>
+        <button class="nav btn" id="btn-pause-moves">LISTA DE GOLPES</button>
+        <button class="nav btn" id="btn-pause-opts">OPÇÕES</button>
+        <button class="nav btn danger" id="btn-quit">SAIR DA LUTA</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-results" data-screen="results">
+      <div class="panel wide">
+        <h2 id="res-title">VITÓRIA</h2>
+        <div class="res-body" id="res-body"></div>
+        <div class="row">
+          <button class="nav btn primary" id="btn-again">REVANCHE</button>
+          <button class="nav btn" id="btn-next" hidden>PRÓXIMA LUTA</button>
+          <button class="nav btn" id="btn-res-select">TROCAR LUTADOR</button>
+          <button class="nav btn" id="btn-res-menu">MENU</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-custom" data-screen="custom">
+      <div class="panel wide">
+        <h2>MASCOTES</h2>
+        <p class="sub">O mascote equipado acompanha seu lutador e concede um bônus real. Fica salvo no seu perfil.</p>
+        <div class="pet-tabs" role="tablist">
+          <button class="nav tab on" data-slot="0" role="tab">JOGADOR 1</button>
+          <button class="nav tab" data-slot="1" role="tab">JOGADOR 2</button>
+        </div>
+        <div class="pet-grid" id="pet-grid"></div>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-redeem" data-screen="redeem">
+      <div class="panel">
+        <h2>RESGATAR CÓDIGO</h2>
+        <p class="sub">Códigos liberam lutadores secretos para sempre neste navegador.</p>
+        <form id="redeem-form" autocomplete="off">
+          <label for="redeem-input" class="sr">Código</label>
+          <input id="redeem-input" class="code-input" maxlength="24" placeholder="DIGITE O CÓDIGO" />
+          <button class="nav btn primary" type="submit">RESGATAR</button>
+        </form>
+        <div class="redeem-msg" id="redeem-msg" role="status"></div>
+        <div class="redeem-faces" id="redeem-faces"></div>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-options" data-screen="options">
+      <div class="panel wide">
+        <h2>OPÇÕES</h2>
+        <div class="opts">
+          <label>Música <input type="range" min="0" max="1" step="0.05" data-set="music" /></label>
+          <label>Efeitos <input type="range" min="0" max="1" step="0.05" data-set="sfx" /></label>
+          <label>Narrador <input type="range" min="0" max="1" step="0.05" data-set="voice" /></label>
+          <label class="chk"><input type="checkbox" data-set="mute" /> Silenciar tudo</label>
+          <label>Movimento reduzido <select data-set="reducedMotion"><option value="auto">Automático (sistema)</option><option value="on">Ligado</option><option value="off">Desligado</option></select></label>
+          <label class="chk"><input type="checkbox" data-set="shake" /> Tremor de tela</label>
+          <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
+          <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
+        </div>
+        <p class="sub small">Trilha atual: <span id="now-playing">—</span> · Envie seus rocks para <code>assets/music/rock/</code> e liste em <code>playlist.json</code>.</p>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-moves" data-screen="moves">
+      <div class="panel wide tall">
+        <h2>LISTA DE GOLPES</h2>
+        <div class="moves-keys" id="moves-keys"></div>
+        <div class="moves-pick" id="moves-pick"></div>
+        <div class="moves-list" id="moves-list"></div>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-online" data-screen="online">
+      <div class="panel wide">
+        <h2>ONLINE</h2>
+        <div class="net-status" id="net-status" role="status"></div>
+        <div class="net-connect" id="net-connect">
+          <label>Servidor <input type="text" id="net-url" placeholder="wss://seu-servidor.exemplo.com" /></label>
+          <label>Seu nome <input type="text" id="net-name" maxlength="16" /></label>
+          <div class="row">
+            <label>Modo <select id="net-mode"><option value="1v1">1 × 1</option><option value="2x2">2 × 2 (duplas com troca)</option></select></label>
+            <button class="nav btn primary" id="net-create">CRIAR SALA</button>
+          </div>
+          <div class="row">
+            <input type="text" id="net-code" class="code-input small" maxlength="6" placeholder="CÓDIGO" aria-label="Código da sala" />
+            <button class="nav btn" id="net-join">ENTRAR NA SALA</button>
+          </div>
+        </div>
+        <div class="net-lobby hidden" id="net-lobby">
+          <div class="lobby-code">SALA <b id="lobby-code">------</b> <button class="nav btn tiny" id="lobby-copy">COPIAR</button></div>
+          <div class="lobby-players" id="lobby-players"></div>
+          <div class="row">
+            <button class="nav btn" id="lobby-pick">ESCOLHER LUTADOR</button>
+            <label>Arena <select id="lobby-stage"></select></label>
+            <button class="nav btn primary" id="lobby-ready">PRONTO</button>
+            <button class="nav btn danger" id="lobby-leave">SAIR</button>
+          </div>
+        </div>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <div id="touch-controls" class="hidden" aria-hidden="true">
+      <div class="dpad">
+        <button data-k="ArrowUp" class="t-up">▲</button>
+        <button data-k="ArrowLeft" class="t-left">◀</button>
+        <button data-k="ArrowRight" class="t-right">▶</button>
+        <button data-k="ArrowDown" class="t-down">▼</button>
+      </div>
+      <div class="tbtns">
+        <button data-k="KeyA">SOCO</button>
+        <button data-k="KeyS">CHUTE</button>
+        <button data-k="KeyD">H1</button>
+        <button data-k="KeyF">H2</button>
+        <button data-k="KeyQ">H3</button>
+        <button data-k="KeyW">H4</button>
+        <button data-k="KeyE" class="ult">ULT</button>
+        <button data-k="KeyR">TROCA</button>
+        <button data-k="Escape" class="pause">II</button>
       </div>
     </div>
   </div>
+
   <script src="assets/sprites/layout.js"></script>
   <script src="assets/stages/sheets.js"></script>
-  <script src="assets/fx/layout.js"></script>
-  <script src="js/data/stages.js"></script>
+  <script src="js/core/profile.js"></script>
   <script src="js/data/fighters.js"></script>
   <script src="js/data/powers.js"></script>
-  <script src="js/engine/audio.js"></script>
+  <script src="js/data/pets.js"></script>
+  <script src="js/data/stages.js"></script>
   <script src="js/engine/sprites.js"></script>
   <script src="js/engine/fx.js"></script>
+  <script src="js/engine/audio.js"></script>
   <script src="js/engine/input.js"></script>
-  <script src="js/engine/fighter.js"></script>
   <script src="js/engine/projectile.js"></script>
+  <script src="js/engine/fighter.js"></script>
+  <script src="js/engine/weather.js"></script>
+  <script src="js/engine/mechanics.js"></script>
   <script src="js/engine/stage.js"></script>
   <script src="js/engine/ai.js"></script>
   <script src="js/engine/game.js"></script>
+  <script src="js/net/online.js"></script>
+  <script src="js/ui/hud.js"></script>
+  <script src="js/ui/ui.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

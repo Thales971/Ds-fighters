@@ -51,7 +51,6 @@ const SPRITE_LAYOUT = {
     "devops": "assets/sprites/devops.png",
     "qa": "assets/sprites/qa.png",
     "scrum": "assets/sprites/scrum.png",
-    "fullstack": "assets/sprites/fullstack.png",
-    "senpai": "assets/sprites/senpai.png"
+    "fullstack": "assets/sprites/fullstack.png"
   }
 };
