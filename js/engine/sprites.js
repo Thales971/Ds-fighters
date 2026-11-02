@@ -11,7 +11,12 @@ const SpriteGen = {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
     if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8';
+    if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10';
     return ['kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
+  },
+  faceUrl(id) {
+    const version = ['gemini', 'meta'].includes(id) ? 'expansion-v10' : 'stable-loop-mistral-v1';
+    return `assets/ui/face-${id}.png?v=${version}`;
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};

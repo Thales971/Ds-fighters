@@ -48,8 +48,8 @@ const T = (t) => (m) => m.t === t;
     assert.equal(RoomCore.normalizeConfig({ timer: 999 }).timer, 300);
     assert.equal(RoomCore.normalizeConfig({ timer: 1 }).timer, 30);
     assert(RoomCore.FIGHTER_IDS.includes('thl') && RoomCore.FIGHTER_IDS.includes('dolynho'));
-    assert(['winx-exe', 'nina-vector'].every((id) => RoomCore.FIGHTER_IDS.includes(id)));
-    pass('padrão 180s, limite 300s e lutadores V8 permitidos');
+    assert(['winx-exe', 'nina-vector', 'gemini', 'meta'].every((id) => RoomCore.FIGHTER_IDS.includes(id)));
+    pass('padrão 180s, limite 300s e lutadores V10 permitidos');
     // protocolo incompatível
     const bad = await new Promise((res) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 99 }))); ws.on('message', (d) => res(JSON.parse(d.toString()))); });
     assert.equal(bad.code, 'protocol'); pass('rejeita versão de protocolo diferente');

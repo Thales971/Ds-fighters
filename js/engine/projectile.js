@@ -227,7 +227,11 @@ class Zone {
     for (const f of game.fighters()) {
       if (!f.alive || (this.owner && f.team === this.owner.team)) continue;
       if (Math.abs(f.x - this.x) < this.w / 2 && f.y > -20) {
-        if (this.dmg && this.age % 6 === 0) f.chip(this.dmg * 6, this.owner);
+        if (this.dmg && this.age % 6 === 0) {
+          const heatwave = game.weather && game.weather.kind === 'heatwave' && this.owner && this.power && this.owner.weatherDmgMult;
+          const climateScale = heatwave ? this.owner.weatherDmgMult(this.power, 'heatwave') : 1;
+          f.chip(this.dmg * 6 * climateScale, this.owner);
+        }
         if (this.slow) f.addStatus('slow', this.slow);
         if (this.burn && this.age % 20 === 0) f.addStatus('burn', this.burn, this.owner);
         if (this.poison && this.age % 30 === 0) f.addStatus('poison', this.poison, this.owner);

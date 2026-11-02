@@ -7,12 +7,12 @@ const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
   ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
-  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query']
+  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
-  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query']
+  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta']
     .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
@@ -22,7 +22,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    if (/(?:winx-exe|nina-vector|kimi|deepseek|dandara-query)\.png$/.test(src)) return src + '?v=exclusive-effects-v9';
+    if (/(?:winx-exe|nina-vector|kimi|deepseek|dandara-query|gemini|meta)\.png$/.test(src)) return src + '?v=exclusive-effects-v10';
     return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=stable-loop-mistral-v1' : src;
   },
   load() {

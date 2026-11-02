@@ -498,7 +498,7 @@ const Net = {
     this.$('lobby-players').innerHTML = slots.map((slot) => {
       const p = r.players.find((x) => x.slot === slot);
       if (!p) return `<div class="lp empty team${slot >> 1}"><b>${label(slot)}</b><span>Vaga livre — envie o código <b>${r.code}</b></span></div>`;
-      const faces = (p.picks || []).map((id) => `<i style="background-image:url(assets/ui/face-${id}.png)"></i>`).join('');
+      const faces = (p.picks || []).map((id) => `<i style="background-image:url(${SpriteGen.faceUrl(id)})"></i>`).join('');
       const host = p.id === r.hostId ? ' ★ ANFITRIÃO' : '';
       return `<div class="lp team${p.team} ${p.ready ? 'ready' : ''} ${p.connected ? '' : 'off'} ${p.id === this.me ? 'me' : ''}">
         <b>${label(slot)}${host}${p.id === this.me ? ' (você)' : ''}</b>

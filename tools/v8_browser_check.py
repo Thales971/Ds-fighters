@@ -50,7 +50,7 @@ with sync_playwright() as p:
         {'id':'winx-exe','exists':True,'secret':True,'idleFrames':4},
         {'id':'nina-vector','exists':True,'secret':False,'idleFrames':4},
     ],'dados ou sprites de Winx/Nina inválidos'
-    assert result['totalFighters']==31 and result['totalStages']==46,'contagem V8 não carregou'
+    assert result['totalFighters']==33 and result['totalStages']==46,'contagem atual do roster/arenas não carregou'
     assert result['stageExists'] and result['stageFrames']==24 and result['stageWidth']==3840 and result['stageHeight']==1440,'mapa Pós-Codigocalipse não está animado'
     assert result['attackBursts']==[{'key':'fx2:winx-exe','row':0},{'key':'fx2:nina-vector','row':0}],'ataques ainda compartilham o FX genérico'
     assert result['abilitiesReady'] and result['glitch'],'atlas ou status não foi aplicado'

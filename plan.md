@@ -104,3 +104,20 @@ Remover toda a funcionalidade de replay conforme o pedido, inclusive gravação 
 ## Correção de ataques compartilhados — Kimi, DeepSeek e Dandara Query
 
 As três personagens V7 apontavam os ícones/impactos para sheets genéricas de água, gelo e plataformas. Reaproveitar o contrato V8 `visualSheet` e adicionar um atlas próprio 4×5 para cada personagem; cada uma das cinco habilidades ocupa sua linha/loop próprio no HUD, no impacto e nos projéteis/zonas, inclusive nos snapshots online. Atualizar o efeito básico para a folha própria de cada uma. Kimi passa a ser explicitamente elétrica (nomes, projétil em raio, cor, som e status de choque breve). Preservar identidade, desbloqueios, stats e categorias de DeepSeek/Dandara; usar efeitos abissais de baleia e consulta/banco de dados, respectivamente. Limitar a alteração a esses kits, registros dos atlas e testes.
+
+
+## Expansão V10 — Gemini, Meta, status e climas
+
+**Objetivo:** adicionar Gemini e Meta como lutadoras normais de força média equivalente ao ET 1155, cada uma com cinco habilidades e efeitos visuais próprios, além de novos status e climas.
+
+**Arquitetura:** manter os dados modulares: `js/data/fighters-v10.js` acrescenta lutadoras e registra as spritesheets 4×8 em `SPRITE_LAYOUT`; `js/data/powers-v10.js`, carregado após V9, define os kits 4×5 e os especiais/ultimates; `js/engine/fx.js` registra cada atlas em `abil:` e `fx2:`. O empacotador V10 converte grades transparentes 4×8 e 4×5 para o tamanho esperado pelo Canvas, gerando spritesheets, faces/retratos e atlas de efeitos. Atualizar seleção, cache, allowlists client/server e extensões de teste sem reescrever os dados legados.
+
+**Direção visual:** manter o arcade pixel-art do DS Fighters. Gemini é uma combatente adulta original de tema dual/espelhado, em roxo e ciano; Meta é uma mulher adulta de aparência anime kawaii, cabelo azul-claro longo, óculos redondos cianos, presilhas de estrela e roupa preta/branca com acentos azuis, usando a imagem anexada apenas como referência visual. Os efeitos de Gemini usam órbitas/prismas e os de Meta usam brilhos, laços e formas de comunidade; sem texto, logotipos ou reprodução literal de marcas.
+
+**Mecânicas:** igualar ambos aos atributos de `stack` (power 1.35, speed 1.20, weight 0.96, hp 122 e meterRate 1.15), sem códigos ou alteração de unlocks existentes. Adicionar `resonance`, uma marca consumida no primeiro acerto não bloqueado e expirada em até 150 frames, que aumenta esse único dano em 15%; e `veil`, buff de até 150 frames que reduz dano recebido em 10%. Nenhum novo status interfere nos controles. Acrescentar `aurora` (medidor +8% para todos) e `heatwave` (fogo/magma +8%, água/gelo −5%), com identidade visual, descrição, opção no seletor e inclusão em pools de arenas tematicamente adequadas.
+
+**Arquivos:** dados em `js/data/fighters-v10.js`, `js/data/powers-v10.js`, `js/data/stages.js`; arte em `assets/sprites/`, `assets/ui/` e `assets/abilities/`; desenho de sprites/atlas em `js/engine/sprites.js`, `js/engine/fx.js`, `js/engine/fighter.js`, `js/engine/weather.js` e `js/ui/ui.js`; integração em `index.html`, `js/net/room-core.js` e `online-server/room-core.js`; regressões unitárias e de navegador em `tools/`.
+
+**Restrições:** duas novas personagens e quatro imagens geradas em uma única rodada; cinco linhas exclusivas por kit; manter o restante do elenco, golpes, arenas e protocolo; os dois climas devem continuar justos para ambos os lados e respeitar movimento reduzido.
+
+**Hardening da revisão:** reaplicações de Resonância/Véu não podem estender a janela ativa além de 150 frames; Onda de Calor deve modificar também ticks de zonas persistentes; rostos V10 usam o mesmo cache-bust na seleção, HUD e lobby.

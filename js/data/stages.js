@@ -61,8 +61,8 @@ const STAGE_LIST = [
 STAGE_LIST.push(
   { id: 'area-de-trabalho', name: 'Área de Trabalho', image: 'assets/maps/area-de-trabalho.jpg', group: 'Expansão V7', weather: ['clear'], fauna: [], mech: 'pulse', tint: '#4db9ff' },
   { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true },
-  { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
-  { id: 'pos-codigocalipse', name: 'Pós-Codigocalipse', image: 'assets/maps/pos-codigocalipse.jpg', group: 'Expansão V8', weather: ['clear', 'storm'], fauna: [], mech: 'glitch', tint: '#a783ff', embers: true },
+  { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind', 'heatwave'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
+  { id: 'pos-codigocalipse', name: 'Pós-Codigocalipse', image: 'assets/maps/pos-codigocalipse.jpg', group: 'Expansão V8', weather: ['clear', 'storm', 'aurora'], fauna: [], mech: 'glitch', tint: '#a783ff', embers: true },
 );
 
 /* Compatibilidade com código antigo. */
@@ -74,6 +74,8 @@ const WEATHER_INFO = {
   wind: { name: 'Ventania', icon: '≋', desc: 'Rajadas empurram lutadores e projéteis.' },
   storm: { name: 'Tempestade', icon: 'ϟ', desc: 'Chuva + vento + raios na arena. Raio +25%.' },
   snow: { name: 'Nevasca', icon: '❄', desc: 'Movimento 8% mais lento. Gelo +20%.' },
+  aurora: { name: 'Aurora Boreal', icon: '✧', desc: 'Faixas ciano e violeta no céu. Ganho de medidor +8% para ambos.' },
+  heatwave: { name: 'Onda de Calor', icon: '♨', desc: 'Fogo/magma +8%; água/gelo −5%. Sem dano ambiental.' },
 };
 
 const MECH_INFO = {

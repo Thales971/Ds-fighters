@@ -5,7 +5,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 BASE=os.environ.get('DS_WEB_BASE','http://localhost:8099/')
-ROSTER_4X8={'kimi','deepseek','dandara-query'}
+ROSTER_4X8={'kimi','deepseek','dandara-query','gemini','meta'}
 
 def full_frame_scale(background_size, is_4x8=False):
     parts=background_size.split()
@@ -54,7 +54,7 @@ with sync_playwright() as pw:
     })()""")
     # Reopen the real character selection with the isolated code fixture already applied.
     page.evaluate("UI.show('menu'); UI.startFlow('versus')")
-    ids=['urbano','stack','qwen','xeon','thl','dolynho','lobao','winx-exe','kimi','deepseek','dandara-query','nina-vector']
+    ids=['urbano','stack','qwen','xeon','thl','dolynho','lobao','winx-exe','kimi','deepseek','dandara-query','nina-vector','gemini','meta']
     portraits=page.evaluate("ids=>ids.map(id=>{const i=FIGHTERS.findIndex(f=>f.id===id);const e=document.querySelector('.cell[data-i=\"'+i+'\"] .face');if(!e)return{id,found:false};const s=getComputedStyle(e);return{id,found:true,className:e.className,bg:s.backgroundImage,bgSize:s.backgroundSize,width:s.width,height:s.height}})",ids)
     nina=page.evaluate("(()=>{const f=FIGHTERS.find(f=>f.id==='nina-vector');return{exists:!!f,secret:!!(f&&f.secret),unlocked:Profile.isUnlocked('nina-vector'),idleFrames:SpriteGen.count('idle','nina-vector')}})()")
     preview=Path(__file__).resolve().parents[1]/'test-results/visual/v8-selection.png'

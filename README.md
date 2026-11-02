@@ -1,12 +1,19 @@
-# DS FIGHTERS — Expansão V8
+# DS FIGHTERS — Edição V10
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**31 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**33 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
 
-## Novidades da V8
+## Novidades da V10
+
+- **Gemini Twinbyte e Meta** entram como lutadores normais com força equivalente ao Stack/ET 1155, spritesheets de combate próprios e cinco efeitos exclusivos cada; Meta usa a referência de anime kawaii enviada pelo usuário.
+- **Resonância e Véu** adicionam marca de próximo acerto e proteção leve, com duração absoluta limitada e sem travar controles.
+- **Aurora Boreal e Onda de Calor** acrescentam efeitos de clima selecionáveis e bônus elementais moderados; os efeitos de calor também valem para zonas persistentes.
+- Kimi passa a lutar com eletricidade; Kimi, DeepSeek e Dandara Query têm atlas próprio de cinco habilidades no HUD e nos impactos de combate.
+
+## Destaques da V8 (histórico)
 
 - **Winx.EXE corrigida**: folha original 4×15 com 15 poses reais sem linhas duplicadas; cinco ataques reformulados e atlas próprios de habilidade/impacto, em vez dos FX genéricos do elenco.
 - **Nina Vector** entra como personagem normal: piloto de cabelo curto e óculos ligada ao mecha original Kestrel-09, com folha 4×15, ataques e atlas autorais.
@@ -251,7 +258,7 @@ tools/                  scripts de build de assets e testes automáticos
 
 Testes:
 
-- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 31 lutadores e habilidades no Chromium.
+- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 33 lutadores e habilidades no Chromium.
 - `python3 tools/abilities_check.py` — as 5 habilidades dos lutadores novos e os efeitos de tela (cegueira/choque).
 - `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
 - `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).

@@ -1,10 +1,10 @@
 /* ============================================================
    DS FIGHTERS — Clima aleatório por mapa.
-   kind: clear | rain | wind | storm | snow
+   kind: clear | rain | wind | storm | snow | aurora | heatwave
    - wind: força horizontal que muda de direção (empurra lutadores e projéteis)
    - rain/storm: bônus de água/raio, fogo mais fraco, chão escorregadio
    - storm: raios caem com aviso e causam dano a qualquer lutador
-   - snow: movimento mais lento
+   - snow: movimento mais lento; aurora: medidor +8%; heatwave: bônus elemental leve
    O clima pode mudar no meio do round (frente fria / tempestade chegando).
    ============================================================ */
 class Weather {
@@ -91,13 +91,30 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 140 : this.kind === 'storm' ? 220 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 40 : 0;
+    const want = this.kind === 'rain' ? 140 : this.kind === 'storm' ? 220 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 40 : this.kind === 'aurora' ? 60 : this.kind === 'heatwave' ? 28 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
-      this.drops.push({ x: (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100, y: -540 + (this.game.rnd ? this.game.rnd() : Math.random()) * 540, s: (this.game.rnd ? this.game.rnd() : Math.random()) });
+      const r = this.game.rnd ? this.game.rnd() : Math.random();
+      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : -540 + r * 540;
+      this.drops.push({ x: (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()) });
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
+      if (this.kind === 'aurora') {
+        d.x += reduced ? 0 : 0.35 + d.s * 0.7;
+        d.y = -320 + d.s * 100 + (reduced ? 0 : Math.sin((this.t + d.x) * 0.015) * 4);
+        if (d.x > W + 60) d.x = -60;
+        continue;
+      }
+      if (this.kind === 'heatwave') {
+        d.x += reduced ? 0 : this.wind * 0.15 + Math.sin((this.t + d.s * 50) * 0.03) * 0.35;
+        d.y -= reduced ? 0 : 0.35 + d.s * 0.45;
+        if (d.y < -145) {
+          d.y = -40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 55;
+          d.x = (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 120) - 60;
+        }
+        continue;
+      }
       if (this.kind === 'snow') {
         d.y += 0.8 + d.s * 1.2;
         d.x += this.wind * 1.4 + Math.sin((this.t + d.s * 100) * 0.03) * 0.6;
@@ -120,7 +137,37 @@ class Weather {
   draw(ctx) {
     if (!this.drops.length && !this.flash) return;
     ctx.save();
-    if (this.kind === 'snow') {
+    if (this.kind === 'aurora') {
+      const colors = ['rgba(75,255,202,0.42)', 'rgba(119,124,255,0.38)', 'rgba(79,211,255,0.38)', 'rgba(224,113,255,0.32)'];
+      const bands = this.game.reduced ? 2 : 4;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < bands; i++) {
+        ctx.beginPath();
+        for (let x = -10; x <= this.game.W + 20; x += 32) {
+          const y = -305 + i * 20 + (this.game.reduced ? 0 : Math.sin((x + this.t * 2 + i * 60) * 0.012) * 9);
+          if (x < 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.globalAlpha = 0.42;
+        ctx.strokeStyle = colors[i];
+        ctx.lineWidth = 14 + (i % 2) * 5;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.8;
+      for (const d of this.drops) {
+        ctx.fillStyle = d.s > 0.5 ? '#b8fff0' : '#d9c8ff';
+        ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+      }
+    } else if (this.kind === 'heatwave') {
+      ctx.strokeStyle = 'rgba(255,190,112,0.52)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (const d of this.drops) {
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x + 9, d.y + (this.game.reduced ? 0 : Math.sin((this.t + d.x) * 0.08) * 3));
+        ctx.lineTo(d.x + 18, d.y);
+      }
+      ctx.stroke();
+    } else if (this.kind === 'snow') {
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2 + (d.s > 0.7 ? 1 : 0), 2 + (d.s > 0.7 ? 1 : 0));
     } else if (this.kind === 'wind') {
@@ -151,6 +198,16 @@ class Weather {
     } else if (this.kind === 'snow') {
       ctx.fillStyle = 'rgba(200,230,255,0.10)';
       ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'aurora') {
+      const glow = ctx.createLinearGradient(0, 0, 0, H * 0.58);
+      glow.addColorStop(0, 'rgba(70,235,205,0.09)');
+      glow.addColorStop(0.55, 'rgba(137,104,255,0.07)');
+      glow.addColorStop(1, 'rgba(20,25,70,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H * 0.58);
+    } else if (this.kind === 'heatwave') {
+      ctx.fillStyle = 'rgba(255,145,65,0.035)';
+      ctx.fillRect(0, H * 0.58, W, H * 0.42);
     }
     if (this.flash > 0 && !this.game.reduced) {
       ctx.fillStyle = `rgba(235,240,255,${0.08 * this.flash})`;

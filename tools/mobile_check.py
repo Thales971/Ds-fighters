@@ -30,7 +30,7 @@ with sync_playwright() as p:
             if inputs.count():
                 inp=inputs.first;size=inp.bounding_box()
                 check(size and size['height']>=36,f'campo {screen} minúsculo {width}')
-        page.evaluate("(()=>{UI.show('fight');DSGame.start({teams:[['thl'],['dolynho']],stage:'cyberpunk',cpu:[false,false],mode:'versus'});DSGame.roundState='fight';DSGame.running=false;DSGame.render(1);UI.updateTouch();})()")
+        page.evaluate("(()=>{UI.show('fight');DSGame.start({teams:[['gemini'],['meta']],stage:'cyberpunk',cpu:[false,false],mode:'versus'});DSGame.roundState='fight';DSGame.running=false;DSGame.render(1);UI.updateTouch();})()")
         buttons=page.locator('#touch-controls button:visible');check(buttons.count()>=13,f'faltam controles {width}')
         for button in buttons.all():
             rect=button.bounding_box();name=button.get_attribute('data-k') or button.inner_text()

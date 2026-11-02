@@ -101,3 +101,12 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Os ataques da Kimi têm tema elétrico explícito na habilidade e nos FX (descarga/raio, cor e impacto); somente as quatro habilidades que declaram shock aplicam pulsos curtos, sem choque herdado por combos básicos ou pela Grade Tesla.
 - [x] Preservar nomes/identidade de DeepSeek e Dandara, stats, desbloqueios e o restante do elenco; validar atlas na HUD/Canvas, caminho host→cliente online e duração do status.
 - [x] Regressões: `unique_attack_atlas_check.py` (15 FX, HUD, host/guest e recuperação do choque), `v7_regressions.cjs`, `v7_browser_check.py`, `v8_browser_check.py`, testes de combate/áudio, seleção, mobile, arenas, V5 e servidor online (38 verificações).
+
+
+## Expansão Gemini + Meta — critérios
+- [x] Gemini e Meta entram como lutadoras normais, selecionáveis e online, com força média igual ao ET 1155 (power 1.35, speed 1.20, weight 0.96, hp 122, meterRate 1.15); preservar stats, unlocks, arenas e personagens existentes.
+- [x] Cada lutadora recebe spritesheet de combate e cinco habilidades com atlas/efeitos próprios: Gemini com identidade dual de prismas/órbitas; Meta adulta de anime kawaii inspirada na imagem anexada (cabelo azul-claro, óculos redondos e estrelas), sem texto ou logotipos copiados.
+- [x] Adicionar dois status novos com feedback na HUD: Resonância amplia em 15% somente o próximo acerto não bloqueado e expira em até 150 frames; Véu reduz dano recebido em 10% por até 150 frames. Reaplicações não estendem a janela ativa absoluta; nenhum deles bloqueia controles.
+- [x] Adicionar Aurora Boreal e Onda de Calor como climas visuais e selecionáveis; Aurora aumenta ganho de medidor em 8% para ambos, enquanto calor favorece fogo/magma em 8% e reduz água/gelo em 5%, inclusive em zonas persistentes; disponibilizar em arenas tematicamente adequadas.
+- [x] Validar sprites/atlas, HUD, dez efeitos Canvas, projétil real e status, partículas/climas, seleção/mobile, cache de faces na HUD/lobby, allowlists e regressões V5–V9 sem alterar protocolo.
+- [x] Regressões V10: `v10_regressions.mjs` (74 assertions), `v10_browser_check.py`, seleção/mobile (Gemini+Meta), V7/V8 browser, V9 atlas, combate/áudio, arenas, V5 e servidor online (38 verificações).

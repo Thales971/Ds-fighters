@@ -24,6 +24,7 @@ const STATUS_LABEL = {
   locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' }, glitch: { t: 'TRAVAMENTO', c: '#48dfff' },
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
   chill: { t: 'CONGELANDO', c: '#a8e6ff' }, bleed: { t: 'SANGRANDO', c: '#ff2d55' }, vuln: { t: 'VULNERÁVEL', c: '#ff9f1c' }, overclock: { t: 'OVERCLOCK', c: '#00f0ff' }, dizzy: { t: 'TONTO', c: '#ffe14d' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
+  resonance: { t: 'RESSONÂNCIA', c: '#88eaff' }, veil: { t: 'VÉU', c: '#f49bdf' },
 };
 
 class Fighter {
@@ -47,6 +48,7 @@ class Fighter {
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     this.status = {};
+    this.statusCapWindows = {};
     this.statusSource = {};
     this.stolen = null;
     this.afo = 0;
@@ -128,6 +130,14 @@ class Fighter {
   }
   addStatus(s, frames, source = null) {
     this.syncControlMemory();
+    if (s === 'resonance' || s === 'veil') {
+      let window = this.statusCapWindows[s];
+      if (!this.has(s) || !window || this.now >= window.until) {
+        window = { start: this.now, until: this.now + 150 };
+        this.statusCapWindows[s] = window;
+      }
+      frames = Math.min(frames, Math.max(0, window.until - this.now));
+    }
     let expiry = this.now + frames;
     /* Cegueira/choque/travamento podem ser renovados por vários projéteis. Uma sequência
        curta ganha extensão decrescente, mas tem teto absoluto para não virar
@@ -185,6 +195,7 @@ class Fighter {
   meterRate() {
     let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0));
     if (this.has('meterSlow')) m *= 0.4;
+    if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
     return m;
   }
   gain(dealt, amount = 1) {
@@ -201,6 +212,18 @@ class Fighter {
 
   /* ---------- multiplicadores ---------- */
   spriteKey() { return this.has('astra') && this.def.id === 'qwen' ? 'qwen-astra' : this.def.id; }
+  weatherDmgMult(p, weatherKind = null) {
+    const w = weatherKind || (this.game.weather ? this.game.weather.kind : 'clear');
+    const el = p ? this.elementOf(p) : null;
+    if (!el) return 1;
+    let m = 1;
+    if ((w === 'rain' || w === 'storm') && ['agua', 'ia', 'neon', 'electric', 'deepseek'].includes(el)) m *= w === 'storm' ? 1.25 : 1.15;
+    if ((w === 'rain' || w === 'storm') && el === 'magma') m *= 0.85;
+    if (w === 'snow' && ['tempo', 'agua', 'deepseek'].includes(el)) m *= 1.2;
+    if (w === 'heatwave' && (el === 'magma' || el === 'fire')) m *= 1.08;
+    if (w === 'heatwave' && ['agua', 'water', 'gelo', 'ice', 'deepseek'].includes(el)) m *= 0.95;
+    return m;
+  }
   dmgMult(p) {
     let m = this.def.stats.power || 1;
     if (this.has('atk')) m *= 1.35;
@@ -211,18 +234,13 @@ class Fighter {
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
-    const w = this.game.weather ? this.game.weather.kind : 'clear';
-    const el = p ? this.elementOf(p) : null;
-    if (el) {
-      if ((w === 'rain' || w === 'storm') && (el === 'agua' || el === 'ia' || el === 'neon')) m *= w === 'storm' ? 1.25 : 1.15;
-      if ((w === 'rain' || w === 'storm') && el === 'magma') m *= 0.85;
-      if (w === 'snow' && (el === 'tempo' || el === 'agua')) m *= 1.2;
-    }
+    m *= this.weatherDmgMult(p);
     return m;
   }
   defMult() {
     let m = 1 / Math.sqrt(this.weight());
     if (this.has('def')) m *= 0.65;
+    if (this.has('veil')) m *= 0.9;
     if (this.has('vuln')) m *= 1.2;
     if (this.has('aura') && this.aura && this.aura.defMult) m *= this.aura.defMult;
     m *= 1 - (this.pfx.def || 0);
@@ -353,6 +371,10 @@ class Fighter {
       if (this.hp <= 0) this.defeat(sign);
       return true;
     }
+    if (this.has('resonance')) {
+      d *= 1.15;
+      this.status.resonance = 0;
+    }
     const controlScale = this.controlScaleFor(o);
     // escudo do mascote
     if (this.shield > 0) {
@@ -455,6 +477,7 @@ class Fighter {
     if (fx.burn) this.addStatus('burn', fx.burn, atk);
     if (fx.poison) this.addStatus('poison', fx.poison, atk);
     if (fx.vuln) this.addStatus('vuln', fx.vuln);
+    if (fx.resonance) this.addStatus('resonance', fx.resonance, atk);
     if (fx.slow) this.addStatus('slow', fx.slow);
     if (fx.lock) this.addStatus('locked', fx.lock);
     if (fx.stun) this.stunGauge += fx.stun * controlScale;
@@ -641,7 +664,8 @@ class Fighter {
         if (p.burstDmg && tgt && Math.abs(tgt.x - this.x) < 150) {
           tgt.takeHit(p.burstDmg, { attacker: this, kx: 9, dirSign: this.dir, launch: -6, stun: 20, ability: true, power: p });
         }
-        game.spawnBurst('impact', 3, this.x, this.y - 100, 1, 2.6);
+        if (p.visualSheet && game.spawnAbilityImpact) game.spawnAbilityImpact(this, p, this.x, this.y - 100);
+        else game.spawnBurst('impact', 3, this.x, this.y - 100, 1, 2.6);
         break;
       }
       case 'beam': {

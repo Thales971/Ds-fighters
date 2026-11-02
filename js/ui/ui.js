@@ -5,9 +5,8 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'kimi', 'deepseek', 'dandara-query', 'nina-vector']);
-const ROSTER_4X8_SPRITES = new Set(['kimi', 'deepseek', 'dandara-query']);
-
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'kimi', 'deepseek', 'dandara-query', 'nina-vector', 'gemini', 'meta']);
+const ROSTER_4X8_SPRITES = new Set(['kimi', 'deepseek', 'dandara-query', 'gemini', 'meta']);
 const UI = {
   hud: HUD,
   screen: null,
@@ -113,7 +112,7 @@ const UI = {
   cutIn(f, p) {
     if (this.game && this.game.mode === 'demo') return;
     const c = this.$('cutin');
-    c.querySelector('.ci-face').style.backgroundImage = `url(assets/ui/face-${f.def.id}.png?v=stable-loop-mistral-v1)`;
+    c.querySelector('.ci-face').style.backgroundImage = `url(${SpriteGen.faceUrl(f.def.id)})`;
     c.querySelector('.ci-name').textContent = f.def.name;
     c.querySelector('.ci-move').textContent = p.name || '';
     c.style.setProperty('--accent', f.def.colors.accent || '#ffd27d');
@@ -137,7 +136,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO V8 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
+    if (tagline) tagline.textContent = `EDIÇÃO V10 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -184,7 +183,7 @@ const UI = {
       const lock = !Profile.isUnlocked(d.id);
       const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
       const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
-      const thumb = fullSprite ? SpriteGen.url(d.id) : `assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1`;
+      const thumb = fullSprite ? SpriteGen.url(d.id) : SpriteGen.faceUrl(d.id);
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
         <span class="face ${spriteClass}" style="background-image:url(${thumb})" aria-hidden="true"></span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
@@ -255,7 +254,7 @@ const UI = {
     const keyFor = ti === 1 && f.p2Human ? 1 : 0;
     el.innerHTML = `
       <div class="who">${ti === 0 ? 'P1' : f.p2Human ? 'P2' : f.mode === 'training' ? 'BONECO' : 'CPU'}${f.need > 1 ? ` · ${f.picks[ti].length}/${f.need}` : ''}</div>
-      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(assets/ui/face-${id}.png?v=stable-loop-mistral-v1)"></span>`).join('')}</div>
+      <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(${SpriteGen.faceUrl(id)})"></span>`).join('')}</div>
       ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>???</h3><p class="bio">Lutador secreto. Resgate um código no menu para liberar.</p>` : `
       <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
@@ -696,7 +695,7 @@ const UI = {
       </tbody></table>
       <p class="sub small">Carga A e B enchem batendo e apanhando; a ULT enche mais devagar. Defender demais enche a barra de tontura do rival… e a sua.</p>`;
     const pick = this.$('moves-pick');
-    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1)" aria-label="${d.name}"></button>`).join('');
+    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(${SpriteGen.faceUrl(d.id)})" aria-label="${d.name}"></button>`).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);
       const kit = POWERS[id];
