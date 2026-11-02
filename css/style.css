@@ -425,6 +425,8 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 /* ===== Expansão Turbo: status de tela, traços, lobby 4 jogadores, chat, FPS ===== */
 #game { transition: filter .25s; }
 #game.blinded { filter: blur(6px) brightness(.72) saturate(.55) contrast(1.15); }
+#game.vertigo { transform: rotate(180deg); transform-origin: center center; }
+body.reduced #game.vertigo { transform: none; transition: none; }
 body.reduced #game.blinded { filter: blur(4px) brightness(.8); transition: none; }
 #stage-wrap:has(#game.blinded)::after { content: 'CEGO!'; position: absolute; top: 46%; left: 0; right: 0; text-align: center; font-size: 22px; color: #e6e6e6; text-shadow: 3px 3px 0 #000; pointer-events: none; animation: blink-txt .5s steps(2) infinite; }
 @keyframes blink-txt { 50% { opacity: .35; } }

@@ -240,6 +240,7 @@ class Zone {
           if (this.fx.bleed) f.addStatus('bleed', this.fx.bleed, this.owner);
           if (this.fx.vuln) f.addStatus('vuln', this.fx.vuln);
           if (this.fx.lock) f.addStatus('locked', this.fx.lock);
+          if (this.fx.paralyze && this.age % 12 === 0) f.addStatus('paralyze', this.fx.paralyze, this.owner);
           if (this.fx.meterSlow) f.addStatus('meterSlow', this.fx.meterSlow);
           if (this.fx.glitch && this.age % 18 === 0) f.addStatus('glitch', this.fx.glitch);
         }

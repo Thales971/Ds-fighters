@@ -11,6 +11,8 @@ const WALK_SPEED = 3.25;
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 2.00;
 const QUAKE_HOLD_MAX = 28;
+const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
+const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
 
 function boxesOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -25,6 +27,7 @@ const STATUS_LABEL = {
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
   chill: { t: 'CONGELANDO', c: '#a8e6ff' }, bleed: { t: 'SANGRANDO', c: '#ff2d55' }, vuln: { t: 'VULNERÁVEL', c: '#ff9f1c' }, overclock: { t: 'OVERCLOCK', c: '#00f0ff' }, dizzy: { t: 'TONTO', c: '#ffe14d' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
   resonance: { t: 'RESSONÂNCIA', c: '#88eaff' }, veil: { t: 'VÉU', c: '#f49bdf' },
+  vertigo: { t: 'VERTIGEM', c: '#ff9a36' }, paralyze: { t: 'PARALISADO', c: '#bd80ff' }, nanomachines: { t: 'NANOMÁQUINAS', c: '#ffad4d' },
 };
 
 class Fighter {
@@ -138,6 +141,16 @@ class Fighter {
       }
       frames = Math.min(frames, Math.max(0, window.until - this.now));
     }
+    const absoluteCap = STATUS_WINDOW_CAPS[s];
+    if (frames > 0 && absoluteCap) {
+      let window = this.statusCapWindows[s];
+      const recoveryGap = STATUS_WINDOW_GAPS[s] || 0;
+      if (!window || this.now >= window.until + recoveryGap) {
+        window = { start: this.now, until: this.now + absoluteCap };
+        this.statusCapWindows[s] = window;
+      }
+      frames = Math.min(frames, Math.max(0, window.until - this.now));
+    }
     let expiry = this.now + frames;
     /* Cegueira/choque/travamento podem ser renovados por vários projéteis. Uma sequência
        curta ganha extensão decrescente, mas tem teto absoluto para não virar
@@ -211,7 +224,26 @@ class Fighter {
   autoAim() { return !!(this.kit && this.kit.autoAim); }
 
   /* ---------- multiplicadores ---------- */
-  spriteKey() { return this.has('astra') && this.def.id === 'qwen' ? 'qwen-astra' : this.def.id; }
+  spriteKey() {
+    if (this.def.id === 'qwen' && this.has('astra')) return 'qwen-astra';
+    if (this.def.id === 'dev-senior' && this.has('nanomachines')) return 'dev-senior-nano';
+    return this.def.id;
+  }
+  nanoElectricPulse() {
+    if (this.def.id !== 'dev-senior' || !this.has('nanomachines') || this.frame % 36 !== 0) return false;
+    const target = this.game.enemyOf(this);
+    if (!target || !target.alive || target.benched || Math.abs(target.x - this.x) > 150 || Math.abs(target.y - this.y) > 180) return false;
+    const power = POWERS['dev-senior'] && POWERS['dev-senior'].powers[4];
+    if (!power) return false;
+    const dir = Math.sign(target.x - this.x) || this.dir;
+    if (!target.takeHit(4, { attacker: this, kx: 3.5, dirSign: dir, stun: 6, ability: true, power, element: 'dev-senior' })) return false;
+    target.addStatus('shock', 8, this);
+    const x = (this.x + target.x) / 2;
+    const y = Math.min(this.y, target.y) - 82;
+    this.game.spawnBurst('fx2:dev-senior-electric', 0, x, y, dir, 1.35);
+    for (let i = 0; i < (this.game.reduced ? 2 : 5); i++) this.game.spark(x + (i - 2) * 8, y + (i % 2 ? -12 : 12), '#ff2948');
+    return true;
+  }
   weatherDmgMult(p, weatherKind = null) {
     const w = weatherKind || (this.game.weather ? this.game.weather.kind : 'clear');
     const el = p ? this.elementOf(p) : null;
@@ -470,6 +502,8 @@ class Fighter {
     const game = this.game;
     const thermalPrepared = this.has('chill') || this.has('burn');
     if (fx.blind) this.addStatus('blind', fx.blind);
+    if (fx.vertigo) this.addStatus('vertigo', fx.vertigo, atk);
+    if (fx.paralyze) this.addStatus('paralyze', fx.paralyze, atk);
     if (fx.shock) this.addStatus('shock', fx.shock);
     if (fx.glitch) this.addStatus('glitch', fx.glitch, atk);
     if (fx.chill) this.addStatus('chill', fx.chill);
@@ -527,7 +561,7 @@ class Fighter {
     return { ready: this.ultimate >= 100 && needOk, pct: this.ultimate / 100, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
   }
   canAct() {
-    return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched;
+    return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched && !this.has('paralyze');
   }
   tryCast(i) {
     const kit = this.currentKit();
@@ -1038,6 +1072,7 @@ class Fighter {
     if (this.stunGauge > 0) this.stunGauge = Math.max(0, this.stunGauge - 0.18);
     // efeitos contínuos
     if (this.alive && !this.benched) {
+      if (this.has('nanomachines')) this.nanoElectricPulse();
       if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9, this.statusSource.burn);
       if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8, this.statusSource.poison);
       if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
@@ -1077,7 +1112,7 @@ class Fighter {
     if (this.state === 'win' || this.state === 'tagout') { this.vx *= 0.8; this.physics(); return this.endUpdate(input); }
     if (this.state === 'ko' || !this.alive) { this.state = 'ko'; this.physics(); return this.endUpdate(input); }
 
-    if (this.has('freeze') || this.has('trap')) {
+    if (this.has('freeze') || this.has('trap') || this.has('paralyze')) {
       this.state = 'hit';
       this.vx *= 0.5;
       this.physics();

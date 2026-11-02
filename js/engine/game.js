@@ -128,6 +128,7 @@ class Game {
         f.blockstun = 0;
         f.status = {};
         f.statusSource = {};
+        f.statusCapWindows = {};
         if (typeof f.resetControlMemory === 'function') f.resetControlMemory(this.round);
         f.stolen = null;
         f.attack = null;
@@ -372,7 +373,7 @@ class Game {
     if ((t.assistCd || 0) > 0) return;
     const cur = t.members[t.active];
     const idx = t.members.findIndex((m, k) => k !== t.active && m.alive);
-    if (idx < 0 || !cur.alive) return;
+    if (idx < 0 || !cur.alive || !cur.canAct()) return;
     const m = t.members[idx];
     const st = m.powerState(0);
     if (!st.p) return;
@@ -437,7 +438,15 @@ class Game {
   /** Times controlados por humanos nesta tela (para efeitos de tela como cegueira). */
   localTeams() {
     if (!this.cfg || this.mode === 'demo') return [];
-    if (this.mode === 'online') return [this.cfg.localTeam];
+    if (this.mode === 'online') {
+      if (this.cfg.fourP && Number.isInteger(this.cfg.mySlot)) {
+        const slot = this.cfg.mySlot;
+        const ti = Math.floor(slot / 2);
+        if (ti < 0 || ti > 1 || !this.teams[ti] || this.teams[ti].active !== slot % 2) return [];
+        return [ti];
+      }
+      return [this.cfg.localTeam];
+    }
     if (this.mode === 'training') return [0];
     return [0, 1].filter((ti) => !this.cfg.cpu[ti]);
   }
@@ -607,6 +616,8 @@ class Game {
     if (this.matchOver) return;
     this.matchOver = true;
     this.running = false;
+    this.canvas.classList.remove('vertigo');
+    this._vertigoOn = false;
     this.weather.stop();
     this.mech.stop();
     AudioSys.stopLoops();
@@ -630,9 +641,9 @@ class Game {
   }
   stop() {
     this.running = false;
-    this.canvas.classList.remove('blinded');
+    this.canvas.classList.remove('blinded', 'vertigo');
     document.body.classList.remove('shocked');
-    this._blurOn = false; this._shockOn = false;
+    this._blurOn = false; this._vertigoOn = false; this._shockOn = false;
     if (this.weather) this.weather.stop();
     if (this.mech) this.mech.stop();
     AudioSys.stopLoops();
@@ -735,6 +746,9 @@ class Game {
     // com 2 humanos na mesma tela não dá para embaçar só um: o efeito fica no lutador (status CEGO)
     const blind = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('blind'); });
     if (blind !== this._blurOn) { this._blurOn = blind; this.canvas.classList.toggle('blinded', blind); }
+    // A vertigem altera só a viewport do jogador local atingido; HUD e controles ficam normais.
+    const vertigo = !this.reduced && lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('vertigo'); });
+    if (vertigo !== this._vertigoOn) { this._vertigoOn = vertigo; this.canvas.classList.toggle('vertigo', vertigo); }
     const shocked = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('shock'); });
     if (shocked !== this._shockOn) { this._shockOn = shocked; document.body.classList.toggle('shocked', shocked); }
   }

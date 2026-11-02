@@ -12,10 +12,11 @@ const SpriteGen = {
     if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
     if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8';
     if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10';
+    if (['mis', 'grika', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11';
     return ['kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
   },
   faceUrl(id) {
-    const version = ['gemini', 'meta'].includes(id) ? 'expansion-v10' : 'stable-loop-mistral-v1';
+    const version = ['mis', 'grika', 'dev-senior'].includes(id) ? 'expansion-v11' : (['gemini', 'meta'].includes(id) ? 'expansion-v10' : 'stable-loop-mistral-v1');
     return `assets/ui/face-${id}.png?v=${version}`;
   },
   load() {

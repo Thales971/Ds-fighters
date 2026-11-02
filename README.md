@@ -1,10 +1,17 @@
-# DS FIGHTERS — Edição V10
+# DS FIGHTERS — Edição V11
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**33 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**36 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+
+## Novidades da V11
+
+- **Mis** (power 1.37) estreia com fogo/queimadura; a ultimate combina dano contínuo, cegueira breve e inversão temporária somente da viewport do alvo.
+- **Grika** (power 1.37) luta com trevas e pesadelos; sua ultimate abre um buraco negro de chão que causa dano contínuo e paralisia curta com intervalo de recuperação.
+- **Dev Senior** (power 1.38, patamar THL) usa nanomáquinas; a ultimate ativa por tempo limitado uma forma sem camisa de tons metálicos cinza, veias/circuitos e núcleo cardíaco estilizado, com superarmadura, força e defesa elevadas e pulsos de raio vermelho sincronizados ao cliente online.
+- As três personagens têm spritesheets de combate e cinco efeitos de habilidade exclusivos cada, com atlases próprios no HUD e no Canvas; seus IDs estão disponíveis na seleção e nas salas online.
 
 ## Novidades da V10
 
@@ -258,7 +265,7 @@ tools/                  scripts de build de assets e testes automáticos
 
 Testes:
 
-- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 33 lutadores e habilidades no Chromium.
+- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 36 lutadores e habilidades no Chromium.
 - `python3 tools/abilities_check.py` — as 5 habilidades dos lutadores novos e os efeitos de tela (cegueira/choque).
 - `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
 - `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).

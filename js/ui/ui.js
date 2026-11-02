@@ -5,8 +5,8 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'kimi', 'deepseek', 'dandara-query', 'nina-vector', 'gemini', 'meta']);
-const ROSTER_4X8_SPRITES = new Set(['kimi', 'deepseek', 'dandara-query', 'gemini', 'meta']);
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'kimi', 'deepseek', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'grika', 'dev-senior']);
+const ROSTER_4X8_SPRITES = new Set(['kimi', 'deepseek', 'dandara-query', 'gemini', 'meta', 'mis', 'grika', 'dev-senior']);
 const UI = {
   hud: HUD,
   screen: null,
@@ -136,7 +136,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO V10 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
+    if (tagline) tagline.textContent = `EDIÇÃO V11 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
