@@ -94,3 +94,10 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Arena selecionável **Pós-Codigocalipse**, arte original de ruínas de código e cenário de infraestrutura digital colapsada, piso livre e loop animado de 24 quadros.
 - [x] Preservar Winx secreta pelo código atual, Batata, os outros 30 lutadores antes da nova e as 45 arenas anteriores; total pós-expansão: 31 lutadores e 46 arenas.
 - [x] Reproduzir o defeito Winx antes da correção; testar linhas 4×15, atlas exclusivo, cinco ataques no Canvas, Nina/mecha/sem código, arena animada, regressões de combate e protocolo online.
+
+
+## Ataques exclusivos — Kimi, DeepSeek e Dandara Query
+- [x] Cada uma das cinco habilidades de Kimi, DeepSeek e Dandara Query usa arte e efeito visual próprios; nenhum dos 15 ataques aponta para o sheet genérico compartilhado de água/gelo/plataformas, e cada um usa uma linha distinta do atlas de seu personagem.
+- [x] Os ataques da Kimi têm tema elétrico explícito na habilidade e nos FX (descarga/raio, cor e impacto); somente as quatro habilidades que declaram shock aplicam pulsos curtos, sem choque herdado por combos básicos ou pela Grade Tesla.
+- [x] Preservar nomes/identidade de DeepSeek e Dandara, stats, desbloqueios e o restante do elenco; validar atlas na HUD/Canvas, caminho host→cliente online e duração do status.
+- [x] Regressões: `unique_attack_atlas_check.py` (15 FX, HUD, host/guest e recuperação do choque), `v7_regressions.cjs`, `v7_browser_check.py`, `v8_browser_check.py`, testes de combate/áudio, seleção, mobile, arenas, V5 e servidor online (38 verificações).
