@@ -9,7 +9,8 @@ const SpriteGen = {
 
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
-    return id === 'lobao' ? src + '?v=stable-loop-mistral-v1' : src;
+    if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
+    return ['winx-exe', 'kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};
@@ -27,7 +28,9 @@ const SpriteGen = {
     return SPRITE_LAYOUT.frames[pose] || SPRITE_LAYOUT.frames.idle || 1;
   },
 
-  rowOf(pose) {
+  rowOf(pose, id) {
+    const own = SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[id];
+    if (own && own.rows && Number.isInteger(own.rows[pose])) return own.rows[pose];
     const i = SPRITE_LAYOUT.poses.indexOf(pose);
     return i < 0 ? 0 : i;
   },
@@ -39,7 +42,7 @@ const SpriteGen = {
     const fh = L.frameH;
     const n = this.count(pose, id);
     const col = ((frame % n) + n) % n;
-    const row = this.rowOf(pose);
+    const row = this.rowOf(pose, id);
     const dw = fw * sc;
     const dh = fh * sc;
     const top = Math.round(feetY - L.baseline * sc);

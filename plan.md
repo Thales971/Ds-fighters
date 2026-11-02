@@ -73,3 +73,18 @@ A inspeção confirmou que os oito pets clássicos são idênticos à versão an
 ## Continuação — excluir replay e estabilizar o loop real
 
 Remover toda a funcionalidade de replay conforme o pedido, inclusive gravação e gravação em localStorage, mas preservar perfil e dados não relacionados. Investigar o caminho real menu → seleção → VS → luta com CPU e em iframe, não apenas a simulação chamada manualmente. Verificar permissões de gamepad e sobrecarga de carregamento. Disponibilizar claramente o pet Mistral existente sem duplicar IDs; aumentar pouco o ganho da música com ducking mantido. Refinar os dez clássicos com tratamento comum da arte existente/renderer, sem criar dez conjuntos novos nem pesquisa por cenário.
+
+
+## Expansão V7 — quatro lutadores e três arenas
+
+**Objetivo:** acrescentar as quatro personagens pedidas e três mapas selecionáveis, mantendo o motor Canvas, as salas online e os arquivos existentes.
+
+**Arquitetura:** adicionar kits em `js/data/powers-v7.js`, os quatro dados a `FIGHTERS`, os novos IDs ao protocolo autoritativo online e o código de Winx ao perfil. Implementar o status temporário `glitch` no mesmo fluxo de `addStatus`/`applyEffects`, com interrupções curtas determinísticas, deslocamento de velocidade modesto e feedback de scanlines; não congelar a simulação nem permitir controle permanentemente bloqueado. Estender `SPRITE_LAYOUT.perFighter` com mapeamento de linhas para sheets 4×8, preservando o 4×15 dos lutadores antigos; produzir faces/retratos do idle. Criar fundos estáticos e deixar `tools/animate-maps.py` produzir os loops de 24 quadros.
+
+**Direção visual:** reutilizar o arcade pixel art existente: silhueta íntegra, paletas contrastantes, piso estável na linha inferior, quatro quadros por estado, pivô no pé, sem texto ilegível ou logotipos copiados. Winx.EXE é uma personagem original com linguagem visual de desktop/sistema operacional, não uma personagem licenciada; Kimi tem cabelo verde-água; DeepSeek será uma combatente anime aquática com cauda/fluke de baleia; Dandara Query é uma adulta do interior do RJ, de dreads e roupa de trabalho contemporânea, sem caricaturar a origem rural.
+
+**Conteúdo:** Winx.EXE secreta por código `WINX` (ou `WINX.EXE`), poder permanente equivalente a Du (1,38) e ataques de interferência; Kimi, DeepSeek e Dandara Query são normais sem código, com kits próprios e força moderada. Como apenas um tema de mapa foi especificado, os dois adicionais serão **Abismo das Baleias** (mar profundo) e **Vale do Cache** (interior serrano do RJ com sítio/estação de dados); o terceiro é **Área de Trabalho** com desktop Windows-inspired, sem copiar logotipo.
+
+**Arquivos:** sprites em `assets/sprites/`, retratos em `assets/ui/`, folhas animadas em `assets/maps/anim/`; manifest em `assets/sprites/layout.js` e `assets/maps/anim.js`; dados em `js/data/fighters.js`, `js/data/powers-v7.js`, `js/data/stages.js`, `js/core/profile.js`; mecânica em `js/engine/fighter.js` e `js/engine/sprites.js`; seleção em `js/ui/ui.js`; sincronização em `js/net/room-core.js` e `online-server/room-core.js`; testes determinísticos e smoke de navegador em `tools/`.
+
+**Restrições:** manter intacto o conteúdo existente; V7 acrescenta exatamente quatro personagens e três arenas, totalizando 30 lutadores e 45 arenas no aplicativo verificado. IDs únicos; Winx permanece acessível por código próprio, enquanto Kimi, DeepSeek e Dandara continuam livres; allowlist igual no cliente e servidor online. Usar uma rodada limitada de arte (quatro folhas transparentes e três fundos) e não gerar variações se a integração passar. Executar regressões focadas de ranking, resgate, status, recortes/animações, seleção, arena e protocolo.

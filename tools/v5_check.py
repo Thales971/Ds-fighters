@@ -44,9 +44,9 @@ with sync_playwright() as p:
     page.goto('http://localhost:8099/',wait_until='load')
     page.wait_for_function("window.DSGame && Object.keys(SpriteGen.images).length>=Object.keys(SPRITE_LAYOUT.files).length")
     page.wait_for_function("Art.ready('abil:thl') && Art.ready('abil:dolynho') && AudioSys.playlist.tracks.length===38")
-    assert page.evaluate("FIGHTERS.length===26 && STAGE_LIST.length===39")
+    assert page.evaluate("FIGHTERS.length===30 && STAGE_LIST.length===45")
     assert page.evaluate("['thl','dolynho'].every(id=>Profile.isUnlocked(id)&&!Profile.SECRET_IDS.includes(id)&&SpriteGen.count('cpunch',id)===4)")
-    assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power).slice(0,4).map(f=>f.id).join(',')==='iales,felipinho,qwen,thl'")
+    assert page.evaluate("FIGHTERS.slice().sort((a,b)=>b.stats.power-a.stats.power).slice(0,3).map(f=>f.id).join(',')==='iales,felipinho,qwen' && FIGHTERS.find(f=>f.id==='winx-exe').stats.power===FIGHTERS.find(f=>f.id==='du').stats.power")
     page.evaluate("UI.startFlow('versus');UI.flow.picks=[[FIGHTERS.findIndex(f=>f.id==='thl')],[FIGHTERS.findIndex(f=>f.id==='dolynho')]]")
     assert page.evaluate('UI.matchConfig().timer===180')
     page.evaluate("UI.show('rules')")
@@ -88,7 +88,9 @@ with sync_playwright() as p:
     page.wait_for_function('AudioSys.music && AudioSys.music.currentTime>0',timeout=20000)
     page.wait_for_function('AudioSys.voiceActive===0',timeout=20000)
     audio=page.evaluate("(()=>{let normal=AudioSys.music.volume;AudioSys.voice('fight');return {normal,duck:AudioSys.music.volume,file:AudioSys.music.src};})()")
-    assert audio['normal']<=0.22 and audio['duck']<audio['normal']
+    # O ganho de fundo foi elevado levemente a pedido do proprietário; o teste
+    # mantém o limite moderado e continua exigindo ducking real do narrador.
+    assert audio['normal']<=0.26 and audio['duck']<audio['normal']
     assert '/assets/music/rock/' in audio['file']
     print('PASS música enviada realmente tocando, ducking real do narrador',flush=True)
     b.close()

@@ -58,6 +58,12 @@ const STAGE_LIST = [
   { id: 'pizzaria', name: 'Pizzaria à Noite', image: 'assets/maps/pizzaria.jpg', group: 'Novos V6', weather: ['clear', 'rain'], fauna: [], mech: 'coffee', tint: '#ff6a2a' },
 ];
 
+STAGE_LIST.push(
+  { id: 'area-de-trabalho', name: 'Área de Trabalho', image: 'assets/maps/area-de-trabalho.jpg', group: 'Expansão V7', weather: ['clear'], fauna: [], mech: 'pulse', tint: '#4db9ff' },
+  { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true },
+  { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
+);
+
 /* Compatibilidade com código antigo. */
 const STAGES = STAGE_LIST;
 

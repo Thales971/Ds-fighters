@@ -1,4 +1,4 @@
-/* Gerado por tools/make-new-stages.py — mapas novos animados (24 quadros). */
+/* Gerado por tools/animate-maps.py — mapas estáticos animados (24 quadros). */
 const MAP_ANIM = {
  "dojo-noite": {
   "sheet": "assets/maps/anim/dojo-noite.png",
@@ -27,35 +27,6 @@ const MAP_ANIM = {
   "frameW": 480,
   "frameH": 270
  },
-
- "dojo-noite": {
-  "sheet": "assets/maps/anim/dojo-noite.png",
-  "cols": 6,
-  "rows": 4,
-  "frames": 24,
-  "fps": 10,
-  "frameW": 480,
-  "frameH": 270
- },
- "circo": {
-  "sheet": "assets/maps/anim/circo.png",
-  "cols": 6,
-  "rows": 4,
-  "frames": 24,
-  "fps": 10,
-  "frameW": 480,
-  "frameH": 270
- },
- "pizzaria": {
-  "sheet": "assets/maps/anim/pizzaria.png",
-  "cols": 6,
-  "rows": 4,
-  "frames": 24,
-  "fps": 10,
-  "frameW": 480,
-  "frameH": 270
- },
-
  "11-oficina-latas": {
   "sheet": "assets/maps/anim/11-oficina-latas.png",
   "cols": 6,
@@ -310,6 +281,33 @@ const MAP_ANIM = {
  },
  "cyberpunk": {
   "sheet": "assets/maps/anim/cyberpunk.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
+ },
+ "area-de-trabalho": {
+  "sheet": "assets/maps/anim/area-de-trabalho.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
+ },
+ "abismo-das-baleias": {
+  "sheet": "assets/maps/anim/abismo-das-baleias.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
+ },
+ "vale-do-cache": {
+  "sheet": "assets/maps/anim/vale-do-cache.png",
   "cols": 6,
   "rows": 4,
   "frames": 24,

@@ -7,6 +7,8 @@ const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
   ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
+  ...Object.fromEntries([['winx-exe', 'ai-symbols'], ['kimi', 'water'], ['deepseek', 'water'], ['dandara-query', 'platforms']]
+    .map(([id, art]) => ['abil:' + id, { src: 'assets/fx2/' + art + '.png', size: 64, cols: 4, rows: 4 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
@@ -33,6 +35,8 @@ const Art = {
     if (!img || !s) return false;
     const n = s.cols;
     const c = ((col % n) + n) % n;
+    const rowCount = s.rows || 5;
+    const r = ((row % rowCount) + rowCount) % rowCount;
     const sc = opts.scale || 1;
     const dw = s.size * sc;
     ctx.save();
@@ -44,7 +48,7 @@ const Art = {
     if (opts.dir < 0) ctx.scale(-1, 1);
     if (opts.sy) ctx.scale(1, opts.sy);
     const ax = opts.anchor === 'bottom' ? -dw : -dw / 2;
-    ctx.drawImage(img, c * s.size, row * s.size, s.size, s.size, Math.round(-dw / 2), Math.round(ax), dw, dw);
+    ctx.drawImage(img, c * s.size, r * s.size, s.size, s.size, Math.round(-dw / 2), Math.round(ax), dw, dw);
     ctx.restore();
     return true;
   },
@@ -57,8 +61,9 @@ const Art = {
     const k = px / s.size;
     const img = this.images[key];
     const w = img ? img.naturalWidth : s.size * s.cols;
-    const h = img ? img.naturalHeight : s.size * 5;
-    return `background-image:url(${this.url(s.src)});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-row * px}px;`;
+    const h = img ? img.naturalHeight : s.size * (s.rows || 5);
+    const r = ((row % (s.rows || 5)) + (s.rows || 5)) % (s.rows || 5);
+    return `background-image:url(${this.url(s.src)});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-r * px}px;`;
   },
 };
 Art.load();

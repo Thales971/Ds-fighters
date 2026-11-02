@@ -66,7 +66,11 @@ const SPRITE_LAYOUT = {
     "fullstack": "assets/sprites/fullstack.png",
     "thl": "assets/sprites/thl.png",
     "dolynho": "assets/sprites/dolynho.png",
-    "lobao": "assets/sprites/lobao.png"
+    "lobao": "assets/sprites/lobao.png",
+    "winx-exe": "assets/sprites/winx-exe.png",
+    "kimi": "assets/sprites/kimi.png",
+    "deepseek": "assets/sprites/deepseek.png",
+    "dandara-query": "assets/sprites/dandara-query.png"
   }
 };
 
@@ -74,3 +78,12 @@ const SPRITE_LAYOUT = {
 SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl', 'dolynho', 'lobao'].map((id) => [id, {
   frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
 }]));
+
+/* V7: folhas 4x8 com pivô e oito ações distintas, mantendo intactos os sheets 4x15. */
+const V7_POSE_ROWS = { idle: 0, walk: 1, jump: 2, crouch: 3, block: 3, punch: 4, cpunch: 4, jpunch: 4, kick: 5, ckick: 5, jkick: 5, special: 6, hit: 7, ko: 7, win: 0 };
+['winx-exe', 'kimi', 'deepseek', 'dandara-query'].forEach((id) => {
+  SPRITE_LAYOUT.perFighter[id] = {
+    frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    rows: V7_POSE_ROWS,
+  };
+});

@@ -7,7 +7,8 @@ const Profile = {
   ACCOUNT_KEY_PREFIX: 'dsfighters.profile.account.v1.',
   DEVICE_SETTINGS_KEY: 'dsfighters.profile.device-settings.v1',
   SKINS_ENABLED: false,
-  SECRET_IDS: ['du', 'iales', 'felipinho', 'qwen'],
+  SECRET_IDS: ['du', 'iales', 'felipinho', 'qwen', 'winx-exe'],
+  BATATA_IDS: ['du', 'iales', 'felipinho', 'qwen'],
   data: null,
   accountUid: null,
 
@@ -211,11 +212,17 @@ const Profile = {
     const c = String(code || '').trim().toLowerCase();
     if (!c) return { ok: false, msg: 'Digite um código.' };
     if (c === 'batata') {
-      const fresh = this.SECRET_IDS.filter((id) => !this.data.unlocked.includes(id));
-      if (!fresh.length) return { ok: true, already: true, msg: 'Todos os secretos (DU, IALES, FELIPINHO e QWEN) já estão liberados.', ids: [] };
+      const fresh = this.BATATA_IDS.filter((id) => !this.data.unlocked.includes(id));
+      if (!fresh.length) return { ok: true, already: true, msg: 'Todos os secretos (DU, IALES, FELIPINHO e QWEN) já estão liberados.', ids: this.BATATA_IDS };
       this.data.unlocked.push(...fresh);
       this.save();
       return { ok: true, msg: 'Desbloqueados: ' + fresh.map((id) => ((typeof FIGHTERS !== 'undefined' && FIGHTERS.find((f) => f.id === id)) || { name: id.toUpperCase() }).name).join(', ') + '!', ids: fresh };
+    }
+    if (c === 'winx' || c === 'winx.exe') {
+      if (this.data.unlocked.includes('winx-exe')) return { ok: true, already: true, msg: 'WINX.EXE já está liberada.', ids: ['winx-exe'] };
+      this.data.unlocked.push('winx-exe');
+      this.save();
+      return { ok: true, msg: 'Desbloqueada: WINX.EXE!', ids: ['winx-exe'] };
     }
     return { ok: false, msg: 'Código inválido.' };
   },

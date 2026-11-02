@@ -1,10 +1,20 @@
-# DS FIGHTERS — Expansão V5
+# DS FIGHTERS — Expansão V7
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**26 lutadores · 39 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**30 lutadores · 45 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+
+## Novidades da V7
+
+- **Winx.EXE** é a personagem secreta de código: `WINX` ou `WINX.EXE`. Sua força-base é igual à de DU (1,38); o código Batata mantém os quatro desbloqueios antigos.
+- **Kimi**, **DeepSeek** (com cauda de baleia) e **Dandara Query**, especialista em banco de dados do interior do RJ, entram como personagens normais, disponíveis sem código.
+- A Winx introduz **TRAVAMENTO**: interferência visual em scanlines ciano/magenta, leve redução de movimento e três quadros de atraso de comandos em pulsos curtos. O efeito expira e tem limite de renovação; a simulação não congela.
+- Três arenas novas com arte própria: **Área de Trabalho** (desktop Windows-inspired, sem logotipo copiado), **Abismo das Baleias** e **Vale do Cache**. Cada uma tem folha de ambiente animada de 24 quadros.
+- Os quatro sprites novos usam folhas 4×8 com oito ações; os quadros são encaixados no motor sem alterar o layout 4×15 dos lutadores antigos.
+
+Veja [EXPANSAO-V7.md](EXPANSAO-V7.md) para os detalhes, testes e limitações.
 
 ## Novidades da V5
 

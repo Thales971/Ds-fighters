@@ -135,6 +135,7 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
 .cell .face.roster-sprite { background-size: 492.3077% 1500%; background-position: 2.941176% 0; background-repeat: no-repeat; animation: rosterIdle .8s steps(4) infinite; }
 .cell .face.roster-sprite + .nm { padding-top: 4px; }
+.cell .face.roster-sprite-4x8 { background-size: 492.3077% 800%; }
 @keyframes rosterIdle { from { background-position-x: 2.941176%; } to { background-position-x: 128.431373%; } }
 body.reduced .cell .face.roster-sprite { animation: none; }
 .cell .face.q { display: grid; place-items: center; font-size: 24px; color: var(--gold); }
@@ -186,6 +187,8 @@ body.reduced .cell .face.roster-sprite { animation: none; }
 @keyframes vsR { from { transform: translateX(400px); } }
 .vs-f { display: flex; flex-direction: column; align-items: center; }
 .vs-sprite { width: 320px; height: 260px; background-size: 1280px 3900px; background-position: 0 -2600px; image-rendering: pixelated; animation: idle2 .5s steps(2) infinite; transform: scale(1.25); }
+.vs-sprite.sprite-4x8 { background-size: 1280px 2080px; background-position: 0 0; animation: v7VsIdle .8s steps(4) infinite; }
+@keyframes v7VsIdle { from { background-position: 0 0; } to { background-position: -1280px 0; } }
 .vs-side.p2 .vs-sprite { transform: scale(1.25) scaleX(-1); }
 .vs-side .vs-f + .vs-f .vs-sprite { transform: scale(1); }
 .vs-f b { margin-top: 30px; font-size: 16px; color: var(--c); text-shadow: 3px 3px 0 #000; }

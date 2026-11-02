@@ -5,7 +5,8 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao']);
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'kimi', 'deepseek', 'dandara-query']);
+const ROSTER_4X8_SPRITES = new Set(['winx-exe', 'kimi', 'deepseek', 'dandara-query']);
 
 const UI = {
   hud: HUD,
@@ -136,7 +137,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO V5 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
+    if (tagline) tagline.textContent = `EDIÇÃO V7 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -182,9 +183,10 @@ const UI = {
     grid.innerHTML = FIGHTERS.map((d, i) => {
       const lock = !Profile.isUnlocked(d.id);
       const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
+      const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
       const thumb = fullSprite ? SpriteGen.url(d.id) : `assets/ui/face-${d.id}.png?v=stable-loop-mistral-v1`;
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face ${fullSprite ? 'roster-sprite' : ''}" style="background-image:url(${thumb})" aria-hidden="true"></span>
+        <span class="face ${spriteClass}" style="background-image:url(${thumb})" aria-hidden="true"></span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
@@ -433,7 +435,8 @@ const UI = {
   showVs(cfg, then) {
     const side = (ti) => cfg.teams[ti].map((id) => {
       const d = FIGHTERS.find((x) => x.id === id);
-      return `<div class="vs-f"><div class="vs-sprite" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
+      const sheetClass = ROSTER_4X8_SPRITES.has(id) ? ' sprite-4x8' : '';
+      return `<div class="vs-f"><div class="vs-sprite${sheetClass}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
     }).join('');
     this.$('vs-0').innerHTML = side(0);
     this.$('vs-1').innerHTML = side(1);
@@ -611,10 +614,11 @@ const UI = {
     msg.textContent = r.msg;
     msg.className = 'redeem-msg ' + (r.ok ? 'ok' : 'err');
     if (r.ok) {
-      const ids = r.already ? Profile.SECRET_IDS : r.ids;
+      const ids = r.ids || [];
       this.$('redeem-faces').innerHTML = ids.map((id, k) => {
         const d = FIGHTERS.find((x) => x.id === id);
-        return `<div class="rf" style="--d:${k * 0.25}s"><div class="vs-sprite" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
+        const sheetClass = ROSTER_4X8_SPRITES.has(id) ? ' sprite-4x8' : '';
+        return `<div class="rf" style="--d:${k * 0.25}s"><div class="vs-sprite${sheetClass}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
       }).join('');
       if (!r.already) { AudioSys.play('unlock'); AudioSys.voice('unlocked'); }
       input.value = '';

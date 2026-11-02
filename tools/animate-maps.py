@@ -46,6 +46,15 @@ CFG = {
     '08-crystal-cavern': dict(glow=0.55),
     '09-orbital-core': dict(glow=0.5),
     '10-digital-forest': dict(glow=0.4, sway=(0.0, 0.5, 1.2)),
+    'area-de-trabalho': dict(glow=0.34, sway=(0.10, 0.64, 0.2)),
+    'abismo-das-baleias': dict(glow=0.26, water=(0.08, 0.78, 1.0)),
+    'vale-do-cache': dict(glow=0.2, sway=(0.12, 0.50, 0.45)),
+}
+
+PRESERVED_ANIMATIONS = {
+    mid: {'sheet': f'assets/maps/anim/{mid}.png', 'cols': 6, 'rows': 4, 'frames': 24,
+          'fps': 10, 'frameW': 480, 'frameH': 270}
+    for mid in ('dojo-noite', 'circo', 'pizzaria')
 }
 
 
@@ -141,6 +150,8 @@ if __name__ == '__main__':
     if reg_p.exists():
         txt = reg_p.read_text()
         reg = json.loads(txt[txt.index('{'):txt.rindex('}') + 1])
+    for mid, definition in PRESERVED_ANIMATIONS.items():
+        reg.setdefault(mid, definition)
     for mid in ids:
         reg[mid] = build(mid)
         print('ok', mid, round((OUT / f'{mid}.png').stat().st_size / 1e6, 2), 'MB')

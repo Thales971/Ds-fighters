@@ -21,7 +21,7 @@ const STATUS_LABEL = {
   rage: { t: 'FÚRIA', c: '#ff6a1c' }, armor: { t: 'ARMADURA', c: '#ffd27d' }, reflect: { t: 'REFLEXO', c: '#7de0ff' },
   invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
   burn: { t: 'QUEIMANDO', c: '#ff7b1c' }, poison: { t: 'VENENO', c: '#9dff4a' }, slow: { t: 'LENTO', c: '#7db8ff' },
-  locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' },
+  locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' }, glitch: { t: 'TRAVAMENTO', c: '#48dfff' },
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
   chill: { t: 'CONGELANDO', c: '#a8e6ff' }, bleed: { t: 'SANGRANDO', c: '#ff2d55' }, vuln: { t: 'VULNERÁVEL', c: '#ff9f1c' }, overclock: { t: 'OVERCLOCK', c: '#00f0ff' }, dizzy: { t: 'TONTO', c: '#ffe14d' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
 };
@@ -129,10 +129,10 @@ class Fighter {
   addStatus(s, frames, source = null) {
     this.syncControlMemory();
     let expiry = this.now + frames;
-    /* Cegueira/choque podem ser renovados por vários projéteis. Uma sequência
+    /* Cegueira/choque/travamento podem ser renovados por vários projéteis. Uma sequência
        curta ganha extensão decrescente, mas tem teto absoluto para não virar
        um loop visual/controlável permanente. */
-    if (frames > 0 && (s === 'blind' || s === 'shock')) {
+    if (frames > 0 && (s === 'blind' || s === 'shock' || s === 'glitch')) {
       const current = this.statusPulse[s];
       if (!current || this.now - current.last > 75 || !this.has(s)) {
         this.statusPulse[s] = {
@@ -238,6 +238,7 @@ class Fighter {
     if (this.has('aura') && this.aura && this.aura.speedMult) m *= this.aura.speedMult;
     if (this.has('slow')) m *= 0.55;
     if (this.has('chill')) m *= 0.68;
+    if (this.has('glitch')) m *= 0.88;
     if (this.has('overclock')) m *= 1.3;
     m *= 1 + (this.pfx.speed || 0);
     if (this.game.weather && this.game.weather.kind === 'snow') m *= 0.92;
@@ -448,6 +449,7 @@ class Fighter {
     const thermalPrepared = this.has('chill') || this.has('burn');
     if (fx.blind) this.addStatus('blind', fx.blind);
     if (fx.shock) this.addStatus('shock', fx.shock);
+    if (fx.glitch) this.addStatus('glitch', fx.glitch, atk);
     if (fx.chill) this.addStatus('chill', fx.chill);
     if (fx.bleed) this.addStatus('bleed', fx.bleed, atk);
     if (fx.burn) this.addStatus('burn', fx.burn, atk);
@@ -1037,6 +1039,7 @@ class Fighter {
       return;
     }
     if (this.has('shock')) input = this.shockInput(input);
+    if (this.has('glitch')) input = this.glitchInput(input);
     this.press(input);
     this.queue = this.queue.filter((q) => {
       q.at--;
@@ -1409,6 +1412,16 @@ class Fighter {
     }
   }
   autoBlock() { return false; }
+  /** Travamento: três frames de atraso espaçados; o relógio e a simulação continuam. */
+  glitchInput(input) {
+    const i = Object.assign({}, input);
+    const phase = this.now % 36;
+    if (phase >= 31 && phase < 34) {
+      ['left', 'right', 'down', 'up', 'punch', 'kick'].forEach((key) => { i[key] = false; });
+      for (let k = 0; k < 10; k++) i['a' + k] = false;
+    }
+    return i;
+  }
   /** Eletrizado: os controles "mexem sozinhos" (direções invertidas em pulsos e apertos fantasmas). */
   shockInput(input) {
     const i = Object.assign({}, input);
@@ -1602,6 +1615,17 @@ class Fighter {
     SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
     ctx.restore();
+    if (this.has('glitch') && !game.reduced && this.frame % 24 < 5) {
+      const jitter = (this.frame % 4) - 1.5;
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.62;
+      ctx.fillStyle = '#48dfff';
+      ctx.fillRect(this.x - 30 + jitter, this.y - 138, 60, 3);
+      ctx.fillStyle = '#f06bff';
+      ctx.fillRect(this.x - 24 - jitter, this.y - 77, 48, 2);
+      ctx.restore();
+    }
     if (this.has('shock') && this.frame % 5 === 0) Art.fx2(ctx, 'lightning', 2, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.1, alpha: 0.7 });
     if (this.has('blind')) Art.fx2(ctx, 'chaos', 1, Math.floor(this.frame / 6), this.x, this.y - 170, { scale: 0.7, alpha: 0.6 });
     // status visuais

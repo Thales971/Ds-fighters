@@ -73,3 +73,13 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] O botão VOLTAR de SKINS — EM BREVE retorna ao menu.
 - [x] Ao confirmar um lutador, falar o nome oficial com a síntese de voz pt-BR disponível no navegador/dispositivo; respeitar o volume de voz salvo e reduzir a música durante a fala.
 - [x] Regressão: `python3 tools/selection_ui_check.py` (desktop/mobile/voltar/nomes); `python3 tools/mobile_check.py` (0 falhas); `node tools/audio_mix_test.js`; `node tools/combat_regressions.mjs`; `npm test --prefix online-server` (38 verificações); sintaxe JavaScript e `git diff --check`.
+
+
+## Expansão V7 — novos lutadores e arenas
+- [x] Adicionar três mapas (Área de Trabalho, Abismo das Baleias e Vale do Cache) com imagem e loops ambientais de 24 quadros; preservar as arenas existentes.
+- [x] Adicionar Winx.EXE secreta por `WINX`/`WINX.EXE`, Kimi, DeepSeek e Dandara Query como normais e livres; sheets 4×8 e faces de cut-in integrados.
+- [x] Implementar `TRAVAMENTO` visual, determinístico, breve, com retorno de controles e limite anti-loop; Winx tem força 1,38 igual a DU, sem alterar o top 3.
+- [x] Permitir os quatro IDs no protocolo online; Batata continua desbloqueando somente DU, IALES, Felipinho e Qwen.
+- [x] Testes: `v7_regressions.cjs`, `selection_ui_check.py` (8 casos), `v7_browser_check.py` (3 mapas novos + dojo/circo/pizzaria), `map_events_check.py`, `mobile_check.py` (0 falhas), `v5_check.py`, `combat_regressions.mjs`, `audio_mix_test.js` e `npm test --prefix online-server` (38 verificações).
+- [x] Contagem conferida no jogo carregado: 30 lutadores e 45 arenas.
+- [x] Manter os sheets animados de `dojo-noite`, `circo` e `pizzaria`; proteger as entradas no gerador de manifest.
