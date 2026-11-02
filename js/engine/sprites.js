@@ -10,7 +10,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
-    return ['winx-exe', 'kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
+    if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8';
+    return ['kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};

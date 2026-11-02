@@ -2,6 +2,8 @@
 
 ## Conteúdo
 
+> Histórico da V7: o sprite e o atlas atuais da Winx.EXE foram refeitos na V8. Veja [EXPANSAO-V8.md](EXPANSAO-V8.md) para a implementação vigente.
+
 A expansão acrescenta quatro lutadores e três arenas à base existente. No jogo carregado no navegador, o elenco passou a **30 lutadores** e o catálogo, a **45 arenas**.
 
 - **Winx.EXE** é a personagem secreta de código, com força-base **1,38**, igual à de DU. `WINX` e `WINX.EXE` desbloqueiam somente a Winx. O código **Batata** continua liberando seu grupo antigo (DU, IALES, Felipinho e Qwen).

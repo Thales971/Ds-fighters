@@ -49,6 +49,7 @@ CFG = {
     'area-de-trabalho': dict(glow=0.34, sway=(0.10, 0.64, 0.2)),
     'abismo-das-baleias': dict(glow=0.26, water=(0.08, 0.78, 1.0)),
     'vale-do-cache': dict(glow=0.2, sway=(0.12, 0.50, 0.45)),
+    'pos-codigocalipse': dict(glow=0.32, sway=(0.04, 0.58, 0.25)),
 }
 
 PRESERVED_ANIMATIONS = {

@@ -5,11 +5,11 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 BASE=os.environ.get('DS_WEB_BASE','http://localhost:8099/')
-V7_4X8={'winx-exe','kimi','deepseek','dandara-query'}
+ROSTER_4X8={'kimi','deepseek','dandara-query'}
 
-def full_frame_scale(background_size, is_v7=False):
+def full_frame_scale(background_size, is_4x8=False):
     parts=background_size.split()
-    expected_h=800 if is_v7 else 1500
+    expected_h=800 if is_4x8 else 1500
     return (len(parts)==2 and parts[0].endswith('%') and parts[1].endswith('%')
             and abs(float(parts[0][:-1])-492.3077)<0.01
             and abs(float(parts[1][:-1])-expected_h)<0.01)
@@ -49,13 +49,15 @@ with sync_playwright() as pw:
       UI.redeem();
       const faces=[...document.querySelectorAll('#redeem-faces .rf')];
       const sprite=faces[0]&&faces[0].querySelector('.vs-sprite');
-      return {unlocked:Profile.isUnlocked('winx-exe'),faces:faces.length,spriteClass:sprite&&sprite.className};
+      const style=sprite&&getComputedStyle(sprite);
+      return {unlocked:Profile.isUnlocked('winx-exe'),faces:faces.length,spriteClass:sprite&&sprite.className,bg:sprite&&style.backgroundImage,bgSize:style&&style.backgroundSize};
     })()""")
     # Reopen the real character selection with the isolated code fixture already applied.
     page.evaluate("UI.show('menu'); UI.startFlow('versus')")
-    ids=['urbano','stack','qwen','xeon','thl','dolynho','lobao','winx-exe','kimi','deepseek','dandara-query']
+    ids=['urbano','stack','qwen','xeon','thl','dolynho','lobao','winx-exe','kimi','deepseek','dandara-query','nina-vector']
     portraits=page.evaluate("ids=>ids.map(id=>{const i=FIGHTERS.findIndex(f=>f.id===id);const e=document.querySelector('.cell[data-i=\"'+i+'\"] .face');if(!e)return{id,found:false};const s=getComputedStyle(e);return{id,found:true,className:e.className,bg:s.backgroundImage,bgSize:s.backgroundSize,width:s.width,height:s.height}})",ids)
-    preview=Path(__file__).resolve().parents[1]/'test-results/visual/v7-selection.png'
+    nina=page.evaluate("(()=>{const f=FIGHTERS.find(f=>f.id==='nina-vector');return{exists:!!f,secret:!!(f&&f.secret),unlocked:Profile.isUnlocked('nina-vector'),idleFrames:SpriteGen.count('idle','nina-vector')}})()")
+    preview=Path(__file__).resolve().parents[1]/'test-results/visual/v8-selection.png'
     preview.parent.mkdir(parents=True,exist_ok=True)
     page.screenshot(path=str(preview))
     expected_names=page.evaluate("ids=>ids.map(id=>FIGHTERS.find(f=>f.id===id).name)",['thl','lobao'])
@@ -72,12 +74,13 @@ with sync_playwright() as pw:
       'skins_back_returns_to_menu':back_ok,
       'batata_keeps_legacy_secret_group':codes['batataIds']==['du','iales','felipinho','qwen'] and codes['winxLockedAfterBatata'],
       'winx_own_code_unlocks_only_winx':codes['winxOk'] and codes['winxIds']==['winx-exe'] and codes['winxUnlocked'],
-      'short_code_unlocks_full_winx_sprite_in_modal':modal['unlocked'] and modal['faces']==1 and 'sprite-4x8' in modal['spriteClass'],
-      'new_roster_thumbnails_fit_their_full_sheets':all(x['found'] and 'roster-sprite' in x['className'] and 'assets/sprites/' in x['bg'] and full_frame_scale(x['bgSize'],x['id'] in V7_4X8) for x in portraits),
-      'mobile_portraits_fit_without_cropping':mobile_portraits['mobile'] and all(x['w']>0 and full_frame_scale(x['bg'],x['id'] in V7_4X8) for x in mobile_portraits['items']),
+      'short_code_unlocks_full_winx_sprite_in_modal':modal['unlocked'] and modal['faces']==1 and 'sprite-4x8' not in modal['spriteClass'] and 'expansion-v8' in modal['bg'] and modal['bgSize']=='1280px 3900px',
+      'nina_is_normal_and_available':nina['exists'] and not nina['secret'] and nina['unlocked'] and nina['idleFrames']==4,
+      'new_roster_thumbnails_fit_their_full_sheets':all(x['found'] and 'roster-sprite' in x['className'] and 'assets/sprites/' in x['bg'] and full_frame_scale(x['bgSize'],x['id'] in ROSTER_4X8) for x in portraits),
+      'mobile_portraits_fit_without_cropping':mobile_portraits['mobile'] and all(x['w']>0 and full_frame_scale(x['bg'],x['id'] in ROSTER_4X8) for x in mobile_portraits['items']),
       'both_selected_names_spoken_in_portuguese':len(spoken)>=2 and [x['text'] for x in spoken[-2:]]==expected_names and all(x['lang']=='pt-BR' for x in spoken[-2:]),
       'no_javascript_errors':not errors,
     }
-    print(json.dumps({'checks':checks,'codes':codes,'modal':modal,'portraits':portraits,'mobilePortraits':mobile_portraits,'spoken':spoken,'errors':errors},ensure_ascii=False,indent=2))
+    print(json.dumps({'checks':checks,'codes':codes,'modal':modal,'nina':nina,'portraits':portraits,'mobilePortraits':mobile_portraits,'spoken':spoken,'errors':errors},ensure_ascii=False,indent=2))
     browser.close()
     assert all(checks.values()),'seleção/navegação/código/narração ainda falha'

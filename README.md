@@ -1,10 +1,19 @@
-# DS FIGHTERS — Expansão V7
+# DS FIGHTERS — Expansão V8
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**30 lutadores · 45 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**31 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+
+## Novidades da V8
+
+- **Winx.EXE corrigida**: folha original 4×15 com 15 poses reais sem linhas duplicadas; cinco ataques reformulados e atlas próprios de habilidade/impacto, em vez dos FX genéricos do elenco.
+- **Nina Vector** entra como personagem normal: piloto de cabelo curto e óculos ligada ao mecha original Kestrel-09, com folha 4×15, ataques e atlas autorais.
+- Arena **Pós-Codigocalipse**, cidade arruinada ao pôr do sol com glitches discretos e loop ambiental de 24 quadros.
+- O mecha e os efeitos da Winx/Kestrel são assets de combate reais no Canvas, e Nina está autorizada também no protocolo online.
+
+Veja [EXPANSAO-V8.md](EXPANSAO-V8.md) para a arte, os testes e os detalhes de compatibilidade.
 
 ## Novidades da V7
 
@@ -12,7 +21,7 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 - **Kimi**, **DeepSeek** (com cauda de baleia) e **Dandara Query**, especialista em banco de dados do interior do RJ, entram como personagens normais, disponíveis sem código.
 - A Winx introduz **TRAVAMENTO**: interferência visual em scanlines ciano/magenta, leve redução de movimento e três quadros de atraso de comandos em pulsos curtos. O efeito expira e tem limite de renovação; a simulação não congela.
 - Três arenas novas com arte própria: **Área de Trabalho** (desktop Windows-inspired, sem logotipo copiado), **Abismo das Baleias** e **Vale do Cache**. Cada uma tem folha de ambiente animada de 24 quadros.
-- Os quatro sprites novos usam folhas 4×8 com oito ações; os quadros são encaixados no motor sem alterar o layout 4×15 dos lutadores antigos.
+- Kimi, DeepSeek e Dandara Query usam folhas 4×8; Winx foi migrada para 4×15 na V8. Os quadros antigos do roster permanecem intactos.
 
 Veja [EXPANSAO-V7.md](EXPANSAO-V7.md) para os detalhes, testes e limitações.
 
@@ -179,9 +188,9 @@ Depois (nomes novos; ROOT PHANTOM no topo da faixa normal, não mais entre os fr
 
 Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: continuam apelões.
 
-## Arenas (30)
+## Arenas (46)
 
-10 cenários animados originais, 10 do pacote retrô, 6 de tecnologia (**Floresta Spring Boot**, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python) e 4 da Edição Turbo:
+O catálogo atual contém **46 arenas selecionáveis**: preserva os dez cenários animados originais, dez do pacote retrô e seis de tecnologia (**Floresta Spring Boot**, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python), além dos mapas Turbo, SENAI/SESI, V5, V7 e V8. Abaixo estão as quatro arenas de tecnologia da Edição Turbo:
 
 | Arena | Mecânica |
 |---|---|
@@ -242,11 +251,11 @@ tools/                  scripts de build de assets e testes automáticos
 
 Testes:
 
-- `python3 tools/smoke.py` — arenas, os 20 lutadores e habilidades no Chromium.
+- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 31 lutadores e habilidades no Chromium.
 - `python3 tools/abilities_check.py` — as 5 habilidades dos lutadores novos e os efeitos de tela (cegueira/choque).
 - `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
 - `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).
-- `cd online-server && npm test` — 30 verificações do servidor (salas, isolamento, 4 jogadores, reconexão, limites).
+- `cd online-server && npm test` — 38 verificações do servidor (salas, isolamento, 4 jogadores, reconexão, limites e escolhas V8).
 
 Fonte: Press Start 2P (SIL Open Font License).
 

@@ -229,8 +229,10 @@ class Game {
     const fid = owner.kitOwnerId(p);
     const el = owner.elementOf(p);
     const fx = ELEMENT_FX[el] || { sheet: 'impact', color: '#fff' };
-    this.spawnBurst('abil:' + fid, p.row, x, y, owner.dir, p.big ? 1.3 : 0.9);
-    const sheets = p.impactSheets || (p.impactSheet ? [p.impactSheet] : [fx.sheet]);
+    const key = p.visualSheet ? 'fx2:' + p.visualSheet : 'abil:' + fid;
+    const row = Number.isInteger(p.visualRow) ? p.visualRow : p.row;
+    this.spawnBurst(key, row, x, y, owner.dir, p.big ? 1.3 : 0.9);
+    const sheets = p.impactSheets || (p.impactSheet ? [p.impactSheet] : (p.visualSheet ? [] : [fx.sheet]));
     sheets.forEach((sheet) => this.spawnBurst(sheet, 3, x, y, owner.dir, 2.2));
     for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, p.impactColor || fx.color);
   }

@@ -15,7 +15,8 @@ class Projectile {
     this.owner = owner;
     this.p = p;
     this.fid = opts.fid || owner.kitOwnerId(p);
-    this.row = p.row;
+    this.key = p.visualSheet ? 'fx2:' + p.visualSheet : null;
+    this.row = Number.isInteger(p.visualRow) ? p.visualRow : p.row;
     this.dir = owner.dir;
     const speed = (p.speed || 8) * (opts.speedMul || 1);
     const ang = opts.angle || 0;
@@ -124,7 +125,7 @@ class Projectile {
   }
   explode(game) {
     this.dead = true;
-    game.zones.push(new Zone(this.owner, { fid: this.fid, row: this.row, x: this.x, w: 120, time: 150, dmg: 0.1, poison: this.p.poison, slow: 20 }));
+    game.zones.push(new Zone(this.owner, { fid: this.fid, key: this.key, row: this.row, x: this.x, w: 120, time: 150, dmg: 0.1, poison: this.p.poison, slow: 20 }));
     game.spawnAbilityImpact(this.owner, this.p, this.x, -20);
   }
   draw(ctx, game) {
@@ -236,6 +237,7 @@ class Zone {
           if (this.fx.vuln) f.addStatus('vuln', this.fx.vuln);
           if (this.fx.lock) f.addStatus('locked', this.fx.lock);
           if (this.fx.meterSlow) f.addStatus('meterSlow', this.fx.meterSlow);
+          if (this.fx.glitch && this.age % 18 === 0) f.addStatus('glitch', this.fx.glitch);
         }
       }
     }

@@ -1,5 +1,5 @@
 /* ============================================================
-   DS FIGHTERS — 26 cenários.
+   DS FIGHTERS — catálogo original + expansões anexadas ao fim.
    - 10 animados originais (spritesheet em assets/stages, STAGE_SHEETS)
    - 10 do pacote retrô (assets/maps/NN-*.jpg)
    - 6 novos de tecnologia (assets/maps/<id>.jpg)
@@ -62,6 +62,7 @@ STAGE_LIST.push(
   { id: 'area-de-trabalho', name: 'Área de Trabalho', image: 'assets/maps/area-de-trabalho.jpg', group: 'Expansão V7', weather: ['clear'], fauna: [], mech: 'pulse', tint: '#4db9ff' },
   { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true },
   { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
+  { id: 'pos-codigocalipse', name: 'Pós-Codigocalipse', image: 'assets/maps/pos-codigocalipse.jpg', group: 'Expansão V8', weather: ['clear', 'storm'], fauna: [], mech: 'glitch', tint: '#a783ff', embers: true },
 );
 
 /* Compatibilidade com código antigo. */

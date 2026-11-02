@@ -85,3 +85,12 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Manter os sheets animados de `dojo-noite`, `circo` e `pizzaria`; proteger as entradas no gerador de manifest.
 
 - [x] Publicação V7 validada em `https://online-server-one.vercel.app/`: 8/8 verificações do seletor/código/voz e smoke Canvas dos três mapas novos + dojo/circo/pizzaria clássicos.
+
+
+## Correção Winx + expansão V8 — critérios
+- [x] Winx.EXE usa uma folha própria 4×15: cada um dos 15 estados (idle, andar, salto, agachar, soco, chute, ataques agachados/aéreos, especial, dano, defesa, nocaute e vitória) tem linha dedicada; não mapear vários ataques para a mesma linha.
+- [x] Os cinco ataques Winx deixam de usar atlas/ícones genéricos de IA; o atlas exclusivo 4×5 carrega e aparece na HUD e nos efeitos efetivos de combate/projéteis.
+- [x] Nina Vector é lutadora normal, livre e compatível com salas online: piloto adulta de cabelo curto e óculos, mecha original Kestrel-09 e cinco golpes/efeitos próprios.
+- [x] Arena selecionável **Pós-Codigocalipse**, arte original de ruínas de código e cenário de infraestrutura digital colapsada, piso livre e loop animado de 24 quadros.
+- [x] Preservar Winx secreta pelo código atual, Batata, os outros 30 lutadores antes da nova e as 45 arenas anteriores; total pós-expansão: 31 lutadores e 46 arenas.
+- [x] Reproduzir o defeito Winx antes da correção; testar linhas 4×15, atlas exclusivo, cinco ataques no Canvas, Nina/mecha/sem código, arena animada, regressões de combate e protocolo online.

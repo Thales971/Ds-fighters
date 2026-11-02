@@ -7,11 +7,15 @@ const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
   ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
-  ...Object.fromEntries([['winx-exe', 'ai-symbols'], ['kimi', 'water'], ['deepseek', 'water'], ['dandara-query', 'platforms']]
+  ...Object.fromEntries([['kimi', 'water'], ['deepseek', 'water'], ['dandara-query', 'platforms']]
     .map(([id, art]) => ['abil:' + id, { src: 'assets/fx2/' + art + '.png', size: 64, cols: 4, rows: 4 }])),
+  ...Object.fromEntries(['winx-exe', 'nina-vector']
+    .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
+  ...Object.fromEntries(['winx-exe', 'nina-vector']
+    .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
   fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
@@ -19,7 +23,10 @@ const ART_SHEETS = {
 
 const Art = {
   images: {},
-  url(src) { return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=stable-loop-mistral-v1' : src; },
+  url(src) {
+    if (/(?:winx-exe|nina-vector)\.png$/.test(src)) return src + '?v=expansion-v8';
+    return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=stable-loop-mistral-v1' : src;
+  },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
       const img = new Image();

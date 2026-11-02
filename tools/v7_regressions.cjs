@@ -7,7 +7,7 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const ids = ['winx-exe', 'kimi', 'deepseek', 'dandara-query'];
-const mapIds = ['area-de-trabalho', 'abismo-das-baleias', 'vale-do-cache'];
+const mapIds = ['area-de-trabalho', 'abismo-das-baleias', 'vale-do-cache', 'pos-codigocalipse'];
 const legacyMapIds = ['dojo-noite', 'circo', 'pizzaria'];
 const context = vm.createContext({
   console,
@@ -19,18 +19,20 @@ const context = vm.createContext({
 for (const f of [
   'js/data/fighters.js', 'js/data/powers.js', 'js/data/powers-v4.js',
   'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js',
-  'js/data/powers-v7.js',
+  'js/data/powers-v7.js', 'js/data/powers-v8.js',
 ]) vm.runInContext(read(f), context, { filename:f });
 const fighters = vm.runInContext('FIGHTERS', context);
 for (const id of ids) assert(fighters.some((f) => f.id === id), `lutador não carregado: ${id}`);
 assert.strictEqual(fighters.filter((f) => ids.includes(f.id)).length, 4, 'os quatro IDs devem ser únicos');
 const winx = fighters.find((f) => f.id === 'winx-exe');
 const du = fighters.find((f) => f.id === 'du');
+const nina = fighters.find((f) => f.id === 'nina-vector');
+assert(nina && !nina.secret, 'Nina Vector precisa entrar como personagem normal');
 assert(winx.secret, 'Winx deve ser secreta');
 assert.strictEqual(winx.stats.power, du.stats.power, 'Winx deve ter a força-base de Du');
 for (const id of ids.slice(1)) assert(!fighters.find((f) => f.id === id).secret, `${id} deve ser normal e livre`);
 const powers = vm.runInContext('POWERS', context);
-for (const id of ids) {
+for (const id of [...ids, 'nina-vector']) {
   assert(powers[id], `kit ausente: ${id}`);
   const moves = Object.values(powers[id]).find(Array.isArray) || [];
   assert(moves.length >= 5, `${id} deve ter pelo menos cinco golpes`);
@@ -67,17 +69,18 @@ const layoutCtx = vm.createContext({ Image: class ImageStub {} });
 vm.runInContext(read('assets/sprites/layout.js'), layoutCtx, { filename:'assets/sprites/layout.js' });
 vm.runInContext(read('js/engine/sprites.js'), layoutCtx, { filename:'js/engine/sprites.js' });
 const spriteMap = vm.runInContext('SpriteGen', layoutCtx);
-for (const id of ids) {
+for (const id of [...ids, 'nina-vector']) {
   const sheet = path.join(root, `assets/sprites/${id}.png`);
   assert(fs.existsSync(sheet), `spritesheet ausente: ${id}`);
   assert(fs.existsSync(path.join(root, `assets/ui/face-${id}.png`)), `face do recorte de combate ausente: ${id}`);
   assert.strictEqual(spriteMap.count('idle', id), 4, `idle 4 quadros ausente: ${id}`);
-  assert.strictEqual(spriteMap.rowOf('special', id), 6, `linha de especial incorreta: ${id}`);
+  assert.strictEqual(spriteMap.rowOf('special', id), id === 'winx-exe' || id === 'nina-vector' ? 10 : 6, `linha de especial incorreta: ${id}`);
 }
+assert.strictEqual(new Set(vm.runInContext("SPRITE_LAYOUT.poses.map(p => SpriteGen.rowOf(p,'winx-exe'))", layoutCtx)).size, 15, 'Winx precisa de 15 poses sem reutilizar linhas');
 assert.strictEqual(spriteMap.rowOf('special', 'stack'), 10, 'layout antigo 4×15 deve continuar intacto');
 
 const online = require(path.join(root, 'online-server/room-core.js'));
-for (const id of ids) assert(online.FIGHTER_IDS.includes(id), `ID V7 não permitido online: ${id}`);
+for (const id of [...ids, 'nina-vector']) assert(online.FIGHTER_IDS.includes(id), `ID não permitido online: ${id}`);
 const stageCtx = vm.createContext({ STAGE_SHEETS:[] });
 vm.runInContext(read('assets/maps/anim.js'), stageCtx, { filename:'assets/maps/anim.js' });
 vm.runInContext(read('js/data/stages.js'), stageCtx, { filename:'js/data/stages.js' });
@@ -118,4 +121,4 @@ const shortCode = vm.runInContext("Profile.redeem('WINX')", aliasCtx);
 assert(shortCode.ok && vm.runInContext("Profile.isUnlocked('winx-exe')", aliasCtx), 'código curto WINX também precisa funcionar');
 assert.deepStrictEqual(JSON.parse(JSON.stringify(shortCode.ids)), ['winx-exe']);
 
-console.log(`V7: ${ids.length} lutadores, ${mapIds.length} mapas, glitch limitado, WINX separado e compatibilidade online — PASS`);
+console.log(`V8: ${ids.length} lutadores V7 preservados + Nina, Winx 15 poses, ${mapIds.length} mapas, glitch limitado e compatibilidade online — PASS`);

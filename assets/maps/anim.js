@@ -314,5 +314,14 @@ const MAP_ANIM = {
   "fps": 10,
   "frameW": 640,
   "frameH": 360
+ },
+ "pos-codigocalipse": {
+  "sheet": "assets/maps/anim/pos-codigocalipse.png",
+  "cols": 6,
+  "rows": 4,
+  "frames": 24,
+  "fps": 10,
+  "frameW": 640,
+  "frameH": 360
  }
 };

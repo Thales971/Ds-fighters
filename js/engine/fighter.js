@@ -567,7 +567,7 @@ class Fighter {
     const tgt = this.enemy();
     const tx = tgt ? tgt.x : this.x + this.dir * 260;
     const fid = this.kitOwnerId(p);
-    const key = 'abil:' + fid;
+    const key = p.visualSheet ? 'fx2:' + p.visualSheet : 'abil:' + fid;
     const el = this.elementOf(p);
     const scaleBig = p.big ? 1.9 : 1.45;
     const seek = p.seek || this.autoAim();
@@ -820,7 +820,7 @@ class Fighter {
         break;
       }
       case 'zone': {
-        game.zones.push(new Zone(this, { fid, row: p.row, x: tx, w: 200, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 0, burn: p.burn || 0, poison: p.poison || 0, fx: p.fx, power: p }));
+        game.zones.push(new Zone(this, { fid, key, row: Number.isInteger(p.visualRow) ? p.visualRow : p.row, x: tx, w: 200, time: p.time || 300, dmg: p.dmg || 0.12, slow: p.slow || 0, burn: p.burn || 0, poison: p.poison || 0, fx: p.fx, power: p }));
         break;
       }
       case 'barrage': {

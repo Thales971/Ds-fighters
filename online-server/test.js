@@ -9,7 +9,7 @@ const RoomCore = require('./room-core');
 
 const PORT = 18787;
 const URL = `ws://localhost:${PORT}`;
-const STAGES = ['spring', 'hive', 'rust'];
+const STAGES = ['spring', 'hive', 'rust', 'pos-codigocalipse'];
 
 function client(name) {
   return new Promise((resolve) => {
@@ -48,7 +48,8 @@ const T = (t) => (m) => m.t === t;
     assert.equal(RoomCore.normalizeConfig({ timer: 999 }).timer, 300);
     assert.equal(RoomCore.normalizeConfig({ timer: 1 }).timer, 30);
     assert(RoomCore.FIGHTER_IDS.includes('thl') && RoomCore.FIGHTER_IDS.includes('dolynho'));
-    pass('padrão 180s, limite 300s e novos lutadores permitidos');
+    assert(['winx-exe', 'nina-vector'].every((id) => RoomCore.FIGHTER_IDS.includes(id)));
+    pass('padrão 180s, limite 300s e lutadores V8 permitidos');
     // protocolo incompatível
     const bad = await new Promise((res) => { const ws = new WebSocket(URL); ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', v: 99 }))); ws.on('message', (d) => res(JSON.parse(d.toString()))); });
     assert.equal(bad.code, 'protocol'); pass('rejeita versão de protocolo diferente');
@@ -99,21 +100,22 @@ const T = (t) => (m) => m.t === t;
     await A.wait(T('error')); pass('quantidade errada de lutadores para 1x1 é recusada');
     B.send({ t: 'stage', id: 'hive' });
     await B.none((m) => m.t === 'room' && m.room.stage === 'hive'); pass('só o anfitrião escolhe a arena');
-    A.send({ t: 'stage', id: 'rust' });
-    await A.wait((m) => m.t === 'room' && m.room.stage === 'rust');
+    A.send({ t: 'stage', id: 'pos-codigocalipse' });
+    await A.wait((m) => m.t === 'room' && m.room.stage === 'pos-codigocalipse');
 
     // entrada antes da partida é ignorada
     B.send({ t: 'input', i: 5 });
     await A.none(T('input')); pass('entradas fora de partida são ignoradas');
 
-    A.send({ t: 'pick', fighters: ['iales'], pet: 'tux' });
-    B.send({ t: 'pick', fighters: ['du'], pet: 'hacker' });
-    await B.wait((m) => m.t === 'room' && m.room.players.every((p) => p.picks.length));
+    A.send({ t: 'pick', fighters: ['winx-exe'], pet: 'tux' });
+    B.send({ t: 'pick', fighters: ['nina-vector'], pet: 'hacker' });
+    const v8Picks = await B.wait((m) => m.t === 'room' && m.room.players.every((p) => p.picks.length));
+    assert.deepEqual(v8Picks.room.players.map((p) => p.picks), [['winx-exe'], ['nina-vector']]);
     A.send({ t: 'ready', on: true });
     B.send({ t: 'ready', on: true });
     const sa = await A.wait(T('start'));
     const sb = await B.wait(T('start'));
-    assert.equal(sa.stage, 'rust'); assert.equal(sb.matchId, sa.matchId);
+    assert.equal(sa.stage, 'pos-codigocalipse'); assert.equal(sb.matchId, sa.matchId);
     const pb = sb.room.players.find((p) => p.name === 'Beto');
     assert.equal(pb.pet, 'none'); pass('partida inicia quando os dois estão prontos (mascote inválido vira "nenhum")');
 
