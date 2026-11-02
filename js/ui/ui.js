@@ -136,7 +136,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO V11 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · ONLINE ATÉ 4 JOGADORES`;
+    if (tagline) tagline.textContent = `EDIÇÃO V12 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · TORNEIO VERCEL EM ATIVAÇÃO`;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -429,6 +429,9 @@ const UI = {
       this.$('stage-wrap').classList.add('on');
       this.show('fight');
       this.game.start(cfg);
+      if (cfg && cfg.mode === 'online' && typeof Net !== 'undefined' && Net.room && window.TournamentUI && typeof window.TournamentUI.matchStarted === 'function') {
+        window.TournamentUI.matchStarted(Net.room.code).catch(() => {});
+      }
     });
   },
   showVs(cfg, then) {

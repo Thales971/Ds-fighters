@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>DS Fighters — Expansão Arcade</title>
+  <title>DS Fighters — Edição V12</title>
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 36 lutadores, 5 habilidades cada, 46 arenas animadas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=expansion-v11" />
+  <link rel="stylesheet" href="css/style.css?v=tournament-v12" />
   <link rel="stylesheet" href="css/account.css?v=expansion-v8" />
   <link rel="stylesheet" href="css/mobile.css?v=expansion-v8" />
 </head>
@@ -52,7 +52,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EDIÇÃO V11 · 36 LUTADORES · 46 ARENAS · ONLINE ATÉ 4 JOGADORES</p>
+      <p class="tagline">EDIÇÃO V12 · 36 LUTADORES · 46 ARENAS · TORNEIO VERCEL EM ATIVAÇÃO</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
       <p class="credit">Arte e código originais · Música enviada pelo proprietário · Jogo gratuito</p>
@@ -161,6 +161,7 @@
           <button class="nav btn primary" id="btn-again">REVANCHE</button>
           <button class="nav btn" id="btn-next" hidden>PRÓXIMA LUTA</button>
           <button class="nav btn" id="btn-res-select">TROCAR LUTADOR</button>
+          <button class="nav btn" id="btn-res-tournament" hidden>VOLTAR AO TORNEIO</button>
           <button class="nav btn" id="btn-res-menu">MENU</button>
         </div>
       </div>
@@ -280,6 +281,42 @@
             <div class="row"><input type="text" id="chat-text" maxlength="80" placeholder="Mensagem para a sala…" aria-label="Mensagem" /><button class="nav btn tiny" id="chat-send">ENVIAR</button></div>
           </div>
         </div>
+        <section class="tourney-panel" id="tourney-panel" aria-labelledby="tourney-title">
+          <h3 id="tourney-title">TORNEIO ONLINE · 2–32 PARTICIPANTES</h3>
+          <p class="sub">Com o armazenamento ativado, inscrições e chave ficam persistidas no Redis vinculado à Vercel. Cada confronto continua sendo uma partida P2P 1 × 1. Sem login Google.</p>
+          <p class="tourney-status info" id="tourney-status" role="status" aria-live="polite">Verificando serviço de torneio…</p>
+          <p class="sub small">Ativação pelo proprietário do projeto: <a href="https://vercel.com/integrations/upstash" target="_blank" rel="noopener noreferrer">conectar Upstash Redis na Vercel</a>. Depois, faça redeploy.</p>
+          <div class="tourney-home" id="tourney-home">
+            <div class="tourney-create-box">
+              <h4>Criar torneio</h4>
+              <label for="tourney-name">Nome</label>
+              <input id="tourney-name" type="text" maxlength="40" value="Torneio DS Fighters" />
+              <label for="tourney-capacity">Máximo de participantes</label>
+              <input id="tourney-capacity" type="number" min="2" max="32" step="1" value="32" />
+              <button class="nav btn primary" id="tourney-create" type="button">CRIAR E ENTRAR</button>
+            </div>
+            <div class="tourney-join-box">
+              <h4>Entrar por código</h4>
+              <label for="tourney-join-code">Código do torneio</label>
+              <input id="tourney-join-code" type="text" maxlength="6" autocomplete="off" placeholder="6 CARACTERES" />
+              <p class="sub small">Seu token de participante fica salvo somente neste navegador.</p>
+              <button class="nav btn" id="tourney-join" type="button">ENTRAR NO TORNEIO</button>
+            </div>
+          </div>
+          <div class="tourney-board" id="tourney-board" hidden>
+            <div class="tourney-heading">
+              <div><b id="tourney-name-view"></b><small><span id="tourney-capacity-view"></span> participantes</small></div>
+              <div class="tourney-share">CÓDIGO <b id="tourney-code">------</b><button class="nav btn tiny" id="tourney-copy" type="button">COPIAR</button></div>
+            </div>
+            <div class="tourney-controls">
+              <button class="nav btn primary" id="tourney-start" type="button" hidden>INICIAR CHAVE</button>
+              <button class="nav btn tiny" id="tourney-refresh" type="button">ATUALIZAR</button>
+            </div>
+            <h4>Participantes</h4>
+            <ol class="tourney-players" id="tourney-players"></ol>
+            <div class="tourney-bracket" id="tourney-bracket" aria-live="polite"></div>
+          </div>
+        </section>
         <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
@@ -356,5 +393,6 @@
   <script src="js/ui/ui.js?v=expansion-v11"></script>
   <script src="js/ui/account.js?v=expansion-v8"></script>
   <script src="js/main.js?v=expansion-v8"></script>
+  <script src="js/net/tournament.js?v=tournament-v12"></script>
 </body>
 </html>

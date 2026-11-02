@@ -121,7 +121,23 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Regressões V11: `v11_regressions.mjs` (102 assertions), `v11_browser_check.py` (ataques, status, 2×2-4 slots, redução de movimento, rounds e FX online), V7/V8, seleção/mobile, V9/V10, combate/áudio, eventos, V5 e servidor online (38 verificações).
 
 ## Online e torneio — Vercel
-- [ ] O modo torneio permite criar/entrar por código com 2 a 32 participantes, gerar chave de eliminação simples, parear participantes, jogar os confrontos pelo modo online existente, registrar/confirmar resultados e avançar as rodadas; não exige Google OAuth.
-- [ ] API e front-end do torneio são publicados pelo Vercel; inscrições, tokens e estado de bracket sobrevivem a mudança de instância/redeploy em storage Redis integrado ao Vercel Marketplace, nunca apenas na memória da Function. Sem configuração de storage, o serviço informa indisponibilidade e não finge sucesso.
-- [ ] O modo online conserva a simulação P2P/WebRTC de baixa latência para cada luta; atualizações/reconexão não fabricam vitórias nem perdem estado persistido do torneio. O relay Node opcional não é apresentado como hospedado no Vercel.
-- [ ] Atualizar a documentação de hospedagem, registrar as dependências de configuração Vercel e validar o caminho de produção após a integração Redis estar conectada; preservar Google OAuth adiado e não criar serviços pagos sem autorização explícita.
+- [x] Implementar a API/UI de torneio para 2–32 jogadores, chave single-elimination/byes, salas P2P, dupla confirmação/disputa e rehost; só marcar a luta como `playing` depois que os dois clientes recebem `Net.startMatch`; Google OAuth não é requisito.
+- [x] Persistência via Redis REST/CAS e Vercel Function (não em memória): idempotência, rate-limit, validação, TTL absoluto de sete dias e resposta fail-closed 503 quando sem credenciais; 110 asserts de API.
+- [x] Manter partidas P2P existentes e o protocolo intacto; `python3 tools/online_e2e.py p2p 2` passou, e UI/browser mocks exercitam host, convidado, start, rehost e retorno.
+- [x] Documentar configuração pendente em `HOSPEDAGEM.md`/README e incluir testes de API, UI, teclado/foco e auditoria do roster; nenhum serviço pago foi criado.
+- [ ] Conectar Upstash Redis ao projeto real pela Vercel Marketplace, redeploy e provar `GET /api/tournaments?health=1` com 200, cadastro real e persistência após nova instância. Não havia CLI/credenciais nem Redis conectado nesta sessão.
+- [ ] Validar partida do torneio com duas pessoas em dispositivos/redes diferentes; depois fazer playtest com 32 vagas. Os testes locais cobrem o limite 32, mas não substituem partidas públicas.
+
+## Próxima leva — balanceamento, visual e nomes
+- [ ] Dar pequenos reforços medidos (sem multiplicador global) em Kael, ET 1155, Dolynho, Ada, Urbano, Lobão, BHM, Cromo, Xeon, Winx, DU, Katya, Rin, Ash, Meta e Gemini; comparar taxa de vitória antes/depois e preservar o topo secreto.
+- [ ] Refinar habilidades visuais próprias de Urbano, Xeon e Caçador de Bugs (THL); na ultimate do ET 1155, o carro precisa atropelar e acertar o adversário, não aparecer só como adereço.
+- [ ] Pesquisar a sensação visual de Quake Awakening de Blox Fruits e criar para Urbano fraturas/onda sísmica originais, sem copiar assets ou sequências.
+- [ ] Refazer por completo sprites, poses e identidade visual de Katya Queue, Rin Shader e Ash Vault, preservando IDs internos e saves.
+- [ ] Renomear o texto público de THL para **Caçador de Bugs**, preservando `id: 'thl'`, unlock Batata, saves e salas existentes.
+
+## Próxima leva — 10 arenas animadas
+- [ ] Adicionar dez arenas originais com folhas/sprites ambientais animados; preservar as 46 arenas atuais e levar o total a 56.
+- [ ] Validar piso, contraste, movimento reduzido, miniaturas e carregamento mobile sem encobrir lutadores/HUD.
+
+## Exclusividade visual — roster legado
+- [ ] Cobrir os 26 kits legados ainda sem cinco rows próprios de VFX, em lotes menores: du, iales, felipinho, stack, gitmaster, bughunter, frontend, backend, devops, qa, scrum, fullstack, kotlin, hacker, java, merc, bhm, zoya, rin, noir, urbano, xeon, qwen, dolynho, thl e lobao. V8–V11 recentes já têm atlas exclusivos.

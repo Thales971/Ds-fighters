@@ -1,6 +1,6 @@
 # Hospedagem do DS Fighters (jogo + online)
 
-O jogo é **100 % estático** (`index.html`, `js/`, `css/`, `assets/`). Publique a pasta em qualquer hospedagem estática e o online já funciona para todo mundo, sem servidor próprio.
+O cliente do jogo é estático (`index.html`, `js/`, `css/`, `assets/`). A tela de torneio usa ainda uma Vercel Function HTTP (`api/tournaments.js`) e, quando ativada, Redis persistente conectado pela Vercel Marketplace.
 
 > Aviso: Vercel, Netlify, GitHub Pages e Cloudflare Pages têm planos gratuitos com limites de uso. O servidor dedicado opcional (mais abaixo) pode ter custo dependendo do serviço. Confira os preços antes de contratar qualquer coisa.
 
@@ -36,6 +36,14 @@ Quedas: quem cair tem **30 s** para voltar (o navegador reconecta sozinho). A lu
 
 O `vercel.json` do repositório já define o cache dos assets, e o `.vercelignore` deixa de fora ferramentas e o servidor.
 
+### Torneios online V12 (até 32 participantes)
+
+O front-end e a API HTTP do torneio ficam no projeto Vercel. A API grava inscrições, chave e resultados em Redis persistente; não usa memória de uma Function. Para ativar em produção, conecte Upstash Redis ao projeto pela [integração Vercel](https://vercel.com/integrations/upstash) ou [guia oficial](https://upstash.com/docs/redis/howto/vercelintegration), confirme que `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` estão disponíveis no ambiente de produção e faça um novo deploy. Nunca copie esses tokens para o JavaScript do navegador.
+
+Sem essas variáveis, `GET /api/tournaments?health=1` responde **503** e a interface desativa criar/entrar, em vez de fingir que o torneio foi salvo. O torneio usa chave de eliminação simples para 2–32 jogadores, códigos de inscrição, confrontos P2P 1 × 1 e dupla confirmação do resultado; disputas ficam para o organizador. O painel atualiza a chave em intervalo moderado, e também tem atualização manual, porque a REST do Redis cobra por comando/request conforme o [guia da API](https://upstash.com/docs/redis/features/restapi).
+
+O gameplay continua usando o transporte P2P/WebRTC atual, com o broker público PeerJS para apresentação inicial dos navegadores. A hospedagem da Function não transforma o navegador do anfitrião em servidor dedicado; se ele fechar a aba, a sala pode cair e o organizador precisa reabrir o confronto. As partidas não são retransmitidas pela API do torneio.
+
 **Erro `500 FUNCTION_INVOCATION_FAILED`?** O Vercel tentou rodar o servidor Node em vez de servir os arquivos. No projeto do Vercel, vá em **Settings → Build and Deployment** e confira:
 
 - **Root Directory**: vazio (raiz do repositório), **não** `online-server`.
@@ -47,10 +55,12 @@ Salve e faça **Deployments → ⋯ → Redeploy** (desmarque "Use existing Buil
 ### Netlify / Cloudflare Pages
 
 Mesmo esquema: importe o repositório, sem comando de build, diretório de publicação = raiz.
+Isso hospeda o jogo e as salas P2P normais; o painel de torneio V12 continuará indisponível, pois `api/tournaments.js` é uma Vercel Function. Para usar torneio, mantenha a implantação da aplicação na Vercel e conecte o Redis conforme a seção acima.
 
 ### GitHub Pages
 
 Repositório → **Settings → Pages → Deploy from a branch → `main` / `(root)`**. Endereço: `https://thales971.github.io/Ds-fighters/`.
+O jogo e o online P2P normal funcionam como arquivos estáticos; o torneio V12 não, pois o endpoint `/api/tournaments` e seu Redis persistente precisam ser implantados pela Vercel.
 
 ### Testar localmente
 
@@ -64,7 +74,7 @@ python3 -m http.server 8080   # abra http://localhost:8080
 cd online-server
 npm install
 npm start          # ws://localhost:8787
-npm test           # 30 verificações automáticas com conexões reais
+npm test           # 38 verificações automáticas com conexões reais
 ```
 
 O servidor usa `room-core.js` (cópia de `js/net/room-core.js`; rode `npm run sync` depois de alterar o núcleo).
@@ -79,7 +89,9 @@ O servidor usa `room-core.js` (cópia de `js/net/room-core.js`; rode `npm run sy
 
 `GET /health` responde `{ ok, protocol, rooms, connections }`.
 
-Onde publicar (Node 18+ com WebSocket; o Vercel **não** serve para isto, porque não mantém WebSocket aberto):
+Onde publicar o servidor dedicado (Node 18+ com WebSocket):
+
+> Atualização 2026: a [Vercel documenta suporte a WebSockets em Functions em beta](https://vercel.com/docs/functions/websockets), mas cada conexão continua sujeita a um limite de duração e instâncias independentes não compartilham memória. O modo torneio não depende dessa conexão longa: usa Functions HTTP + Redis integrado, enquanto os frames das lutas seguem P2P. Para o servidor dedicado contínuo descrito aqui, mantenha um serviço Node com suporte a WebSocket.
 
 - **Render / Railway / Fly.io / Koyeb**: serviço web a partir do repositório, diretório `online-server`, build `npm install`, início `npm start`. No jogo use `wss://seu-app...`.
 - **VPS** com Nginx + HTTPS:

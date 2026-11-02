@@ -1,10 +1,10 @@
-# DS FIGHTERS — Edição V11
+# DS FIGHTERS — Edição V12
 
 Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
 
 ![DS Fighters — Edição Turbo](assets/ui/logo.png)
 
-**36 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · modo personalizado · 38 músicas enviadas**
+**36 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · chave de torneio até 32 (Redis Vercel ainda precisa ser conectado) · modo personalizado · 38 músicas enviadas**
 
 ## Novidades da V11
 
@@ -12,6 +12,13 @@ Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos an
 - **Grika** (power 1.37) luta com trevas e pesadelos; sua ultimate abre um buraco negro de chão que causa dano contínuo e paralisia curta com intervalo de recuperação.
 - **Dev Senior** (power 1.38, patamar THL) usa nanomáquinas; a ultimate ativa por tempo limitado uma forma sem camisa de tons metálicos cinza, veias/circuitos e núcleo cardíaco estilizado, com superarmadura, força e defesa elevadas e pulsos de raio vermelho sincronizados ao cliente online.
 - As três personagens têm spritesheets de combate e cinco efeitos de habilidade exclusivos cada, com atlases próprios no HUD e no Canvas; seus IDs estão disponíveis na seleção e nas salas online.
+
+## Torneio online V12 — código pronto, ativação Redis pendente
+
+- A API `api/tournaments.js` cria/ingressa por código, monta chave single-elimination para 2–32 jogadores (incluindo byes), só libera resultado depois de host e convidado receberem `Net.startMatch` e executarem `Game.start`, avança com confirmação dupla e encaminha disputas ao organizador.
+- O painel Vercel conecta cada confronto às salas P2P 1×1 existentes e permite reabrir a sala com outro anfitrião se o navegador cair; lutas não são retransmitidas pela API.
+- Para ativar em produção, o proprietário precisa conectar Upstash Redis pela Vercel Marketplace e fazer redeploy. Sem as variáveis Redis, a API retorna 503 e desativa criar/entrar; não há credenciais no repositório. Veja [HOSPEDAGEM.md](HOSPEDAGEM.md).
+- Auditoria runtime de efeitos (`python3 tools/roster_visual_audit.py`) confirma cinco rows próprios em Winx/Nina (V8) e nas oito personagens adicionadas em V9–V11, 10 no total; identifica 26 kits mais antigos sem mapeamento explícito de atlas por lutador, cuja migração visual continua pendente em `TODO.md`.
 
 ## Novidades da V10
 
@@ -89,9 +96,8 @@ Quem cria a sala é o anfitrião: o navegador dele simula a luta, então ele nã
 
 O jogo é só arquivos estáticos, então qualquer hospedagem estática gratuita serve:
 
-- **Vercel**: importe o repositório, preset **Other**, sem comando de build, diretório = raiz. O `vercel.json` e o `.vercelignore` já estão prontos.
-- **Netlify / Cloudflare Pages**: mesmo esquema.
-- **GitHub Pages**: *Settings → Pages → `main` / `(root)`* → `https://thales971.github.io/Ds-fighters/`.
+- **Vercel**: importe o repositório, preset **Other**, sem comando de build, diretório = raiz. O `vercel.json` e o `.vercelignore` já estão prontos; é a única dessas opções que hospeda a Function do torneio V12.
+- **Netlify / Cloudflare Pages / GitHub Pages**: podem hospedar o jogo estático e o P2P normal; o torneio ficará indisponível porque `/api/tournaments` é uma Vercel Function. GitHub Pages: *Settings → Pages → `main` / `(root)`* → `https://thales971.github.io/Ds-fighters/`.
 
 Passo a passo completo, servidor dedicado (Render, Fly.io, VPS, Docker) e checklist em [HOSPEDAGEM.md](HOSPEDAGEM.md).
 
@@ -256,6 +262,7 @@ js/engine/              game (rounds, 2x2, câmera, rede), fighter (combate),
 js/ui/                  hud.js (HUD em HTML), ui.js (telas e navegação)
 js/net/room-core.js     núcleo das salas (mesmo código no servidor e no anfitrião P2P)
 js/net/online.js        cliente online (P2P via PeerJS/WebRTC ou WebSocket)
+api/tournaments.js     Vercel Function HTTP para torneio e estado Redis
 js/vendor/peerjs.min.js PeerJS 1.5.4 (MIT)
 online-server/          servidor dedicado opcional (Node + ws) e testes
 assets/abilities        sprite sheets das habilidades
@@ -270,6 +277,9 @@ Testes:
 - `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
 - `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).
 - `cd online-server && npm test` — 38 verificações do servidor (salas, isolamento, 4 jogadores, reconexão, limites e escolhas V8).
+- `node tools/tournament_api_tests.mjs` — 110 assertivas: até 32 participantes, CAS concorrente, retries idempotentes, health-check, TTL absoluto, handshake P2P, confirmação/disputa e recuperação.
+- `python3 tools/tournament_ui_check.py` — smoke Playwright com API mockada (host/guest, dois `Net.startMatch`, bracket, rehost, confirmação, polling, teclado/foco, mobile e modo sem Redis). Não testa uma conta Redis de produção.
+- `python3 tools/roster_visual_audit.py` — conta a cobertura de atlas exclusivo por lutador; `--strict` falha até que todo o elenco tenha cinco rows próprios.
 
 Fonte: Press Start 2P (SIL Open Font License).
 
