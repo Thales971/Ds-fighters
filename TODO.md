@@ -83,3 +83,5 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Testes: `v7_regressions.cjs`, `selection_ui_check.py` (8 casos), `v7_browser_check.py` (3 mapas novos + dojo/circo/pizzaria), `map_events_check.py`, `mobile_check.py` (0 falhas), `v5_check.py`, `combat_regressions.mjs`, `audio_mix_test.js` e `npm test --prefix online-server` (38 verificações).
 - [x] Contagem conferida no jogo carregado: 30 lutadores e 45 arenas.
 - [x] Manter os sheets animados de `dojo-noite`, `circo` e `pizzaria`; proteger as entradas no gerador de manifest.
+
+- [x] Publicação V7 validada em `https://online-server-one.vercel.app/`: 8/8 verificações do seletor/código/voz e smoke Canvas dos três mapas novos + dojo/circo/pizzaria clássicos.

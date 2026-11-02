@@ -42,3 +42,7 @@ As capturas locais de revisão ficam em `test-results/visual/` e não fazem part
 
 ### Compatibilidade dos cenários
 As folhas clássicas **Dojo à Noite**, **Circo Abandonado** e **Pizzaria à Noite** permanecem no manifest e passaram no mesmo teste real do Canvas. O gerador `tools/animate-maps.py` agora mantém essas três entradas quando novas folhas são construídas.
+
+
+## Publicação verificada
+Commit `2c9f491` publicado em `main`; a URL pública `https://online-server-one.vercel.app/` serviu o index V7 e as folhas da Winx e da Área de Trabalho com HTTP 200. Na própria publicação passaram as 8 verificações de seleção/código/voz e a partida visual nos três mapas novos e nos três mapas clássicos preservados.
