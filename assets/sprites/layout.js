@@ -71,7 +71,13 @@ const SPRITE_LAYOUT = {
     "kimi": "assets/sprites/kimi.png",
     "deepseek": "assets/sprites/deepseek.png",
     "dandara-query": "assets/sprites/dandara-query.png",
-    "nina-vector": "assets/sprites/nina-vector.png"
+    "nina-vector": "assets/sprites/nina-vector.png",
+    "gemini": "assets/sprites/gemini.png",
+    "meta": "assets/sprites/meta.png",
+    "mis": "assets/sprites/mis.png",
+    "grika": "assets/sprites/grika.png",
+    "dev-senior": "assets/sprites/dev-senior.png",
+    "dev-senior-nano": "assets/sprites/dev-senior-nano.png"
   }
 };
 
@@ -80,14 +86,7 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
   frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
 }]));
 
-/* V7: Kimi, DeepSeek e Dandara usam 4x8; Winx foi migrada para 4x15 na V8. */
-const V7_POSE_ROWS = { idle: 0, walk: 1, jump: 2, crouch: 3, block: 3, punch: 4, cpunch: 4, jpunch: 4, kick: 5, ckick: 5, jkick: 5, special: 6, hit: 7, ko: 7, win: 0 };
-['kimi', 'deepseek', 'dandara-query'].forEach((id) => {
-  SPRITE_LAYOUT.perFighter[id] = {
-    frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-    rows: V7_POSE_ROWS,
-  };
-});
+/* V7/V10/V11: folhas expandidas para 4x15 (uma linha por pose) — sem rows custom. */
 
 /* V8: Winx e Nina têm uma linha real para cada pose do motor. */
 ['winx-exe', 'nina-vector'].forEach((id) => {
