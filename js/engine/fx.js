@@ -43,7 +43,8 @@ const Art = {
     const c = ((col % n) + n) % n;
     const rowCount = s.rows || 5;
     const r = ((row % rowCount) + rowCount) % rowCount;
-    const sc = opts.scale || 1;
+    const rawScale = opts.scale || 1;
+    const sc = key.includes('grika') ? rawScale * 0.8 : rawScale;
     const dw = s.size * sc;
     ctx.save();
     ctx.imageSmoothingEnabled = false;

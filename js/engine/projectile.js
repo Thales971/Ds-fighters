@@ -133,7 +133,7 @@ class Projectile {
     const rot = this.p.boomerang ? this.age * 0.35 : 0;
     const dir = Math.sign(this.vx) || this.dir;
     const key = this.key || ('abil:' + this.fid);
-    if (!game.reduced) {
+    if (!game.reduced && !this.p.visualSheet) {
       ctx.save();
       ctx.globalAlpha = 0.28;
       Art.cell(ctx, key, this.row, frame, this.x - this.vx * 2.4, this.y - this.vy * 2.4, { scale: this.scale * 0.9, dir, rot, add: true });
@@ -269,7 +269,12 @@ class Zone {
     const f = 1 + (Math.floor(this.age / 8) % 3);
     ctx.save();
     ctx.globalAlpha = 0.9 * fade;
-    Art.cell(ctx, key, this.row, f, this.x, -size * sc * 0.25, { scale: sc, sy: 0.6 });
+    const grikaGround = key.includes('grika');
+    Art.cell(ctx, key, this.row, f, this.x, grikaGround ? 0 : -size * sc * 0.25, {
+      scale: sc,
+      sy: 0.6,
+      anchor: grikaGround ? 'bottom' : undefined,
+    });
     ctx.restore();
   }
 }

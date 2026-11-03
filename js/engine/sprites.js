@@ -13,7 +13,8 @@ const SpriteGen = {
     if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
     if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8b';
     if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10b';
-    if (['mis', 'grika', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11c';
+    if (id === 'grika') return src + '?v=grika-foot-20261103-r27';
+    if (['mis', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11c';
     if (['kimi', 'deepseek', 'dandara-query', 'urbano', 'zoya', 'rin', 'noir'].includes(id)) return src + '?v=expansion-v7b';
     return src;
   },
@@ -46,15 +47,23 @@ const SpriteGen = {
 
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
     const L = SPRITE_LAYOUT;
-    const sc = scale || L.drawScale;
+    const own = L.perFighter && L.perFighter[id];
+    const poseScale = own && own.scaleByPose && own.scaleByPose[pose];
+    const grikaScale = id === 'grika' ? 0.74 : null;
+    const sc = scale || grikaScale || poseScale || (own && own.drawScale) || L.drawScale;
     const fw = L.frameW;
     const fh = L.frameH;
+    const sourceH = fh;
     const n = this.count(pose, id);
-    const col = ((frame % n) + n) % n;
+    const map = own && own.frameMap && own.frameMap[pose];
+    const mapped = Array.isArray(map) && map.length ? map[((frame % map.length) + map.length) % map.length] : frame;
+    const col = ((mapped % n) + n) % n;
     const row = this.rowOf(pose, id);
     const dw = fw * sc;
-    const dh = fh * sc;
-    const top = Math.round(feetY - L.baseline * sc);
+    const dh = sourceH * sc;
+    const baseline = (own && own.baseline) || L.baseline;
+    const groundOffset = id === 'grika' ? -8 : 0;
+    const top = Math.round(feetY - baseline * sc + groundOffset);
 
     ctx.save();
     if (skinHue === -1) { try { ctx.filter = 'grayscale(1)'; } catch (e) {} }
@@ -63,7 +72,7 @@ const SpriteGen = {
     ctx.translate(Math.round(centerX + (xf ? xf.dx * dir : 0)), top + (xf ? xf.dy : 0));
     if (xf && (xf.sx !== 1 || xf.sy !== 1 || xf.rot)) {
       // pivô no pé: o boneco estica/achata/inclina sem sair do chão
-      const py = L.baseline * sc;
+      const py = baseline * sc;
       ctx.translate(0, py);
       if (xf.rot) ctx.rotate(xf.rot * dir);
       ctx.scale(xf.sx, xf.sy);
@@ -75,17 +84,17 @@ const SpriteGen = {
     if (img) {
       if (white) {
         const c = this._flash || (this._flash = document.createElement('canvas'));
-        if (c.width !== fw) { c.width = fw; c.height = fh; }
+        if (c.width !== fw || c.height !== sourceH) { c.width = fw; c.height = sourceH; }
         const fx = c.getContext('2d');
-        fx.clearRect(0, 0, fw, fh);
-        fx.drawImage(img, col * fw, row * fh, fw, fh, 0, 0, fw, fh);
+        fx.clearRect(0, 0, fw, sourceH);
+        fx.drawImage(img, col * fw, row * fh, fw, sourceH, 0, 0, fw, sourceH);
         fx.globalCompositeOperation = 'source-in';
         fx.fillStyle = '#ffffff';
-        fx.fillRect(0, 0, fw, fh);
+        fx.fillRect(0, 0, fw, sourceH);
         fx.globalCompositeOperation = 'source-over';
         ctx.drawImage(c, Math.round(-dw / 2), 0, dw, dh);
       } else {
-        ctx.drawImage(img, col * fw, row * fh, fw, fh, Math.round(-dw / 2), 0, dw, dh);
+        ctx.drawImage(img, col * fw, row * fh, fw, sourceH, Math.round(-dw / 2), 0, dw, dh);
       }
     } else {
       this.drawFallback(ctx, id, pose, frame, dw, dh);

@@ -5,9 +5,9 @@
   // nao precisa mais de rows custom — o padrao do motor (linha = indice da pose) vale.
   ids.forEach((id) => {
     SPRITE_LAYOUT.files[id] = `assets/sprites/${id}.png`;
-    SPRITE_LAYOUT.perFighter[id] = {
+    SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
       frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-    };
+    });
   });
 
   const moves = {

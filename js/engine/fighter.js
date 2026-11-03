@@ -1363,6 +1363,7 @@ class Fighter {
     const len = this.dashHit ? 18 : (c.p.slot === 'ultimate' ? 28 : 18);
     if (c.t > len && !this.queue.length) {
       this.cast = null;
+      this.dashHit = null;
       this.state = this.onGround ? 'idle' : 'jump';
       this.stateTime = 0;
     } else if (c.t > 70) {
@@ -1637,7 +1638,7 @@ class Fighter {
     const pose = this.animPose();
     const frame = this.animFrame(pose);
     const game = this.game;
-    const xf = this.motionXf(pose);
+    const xf = this.spriteKey() === 'grika' ? null : this.motionXf(pose);
     // sombra
     ctx.fillStyle = 'rgba(0,0,0,0.42)';
     const sh = 34 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
@@ -1650,7 +1651,7 @@ class Fighter {
       const py = this.y - 168 + Math.sin(this.frame * 0.07) * 6;
       Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
     }
-    const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
+    const ghost = this.spriteKey() !== 'grika' && (this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock'));
     if (ghost && !game.reduced) {
       ctx.save();
       ctx.globalAlpha = 0.25;
@@ -1658,7 +1659,7 @@ class Fighter {
       ctx.globalAlpha = 0.12;
       SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x - this.dir * 44, this.y, false, null, xf);
       ctx.restore();
-      if (this.dashHit) Art.ability(ctx, this.kitOwnerId(this.dashHit.p), this.dashHit.p.row, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.2, dir: this.dir });
+      if (this.dashHit && this.spriteKey() !== 'grika') Art.ability(ctx, this.kitOwnerId(this.dashHit.p), this.dashHit.p.row, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.2, dir: this.dir });
     }
     ctx.save();
     if (this.has('cloak')) ctx.globalAlpha = 0.28;
