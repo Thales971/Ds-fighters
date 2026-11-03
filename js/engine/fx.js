@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    if (/(?:winx-exe|nina-vector|kimi|deepseek|dandara-query|gemini|meta|mis|grika|dev-senior|dev-senior-electric)\.png$/.test(src)) return src + '?v=exclusive-effects-v11';
+    if (/(?:winx-exe|nina-vector|kimi|deepseek|dandara-query|gemini|meta|mis|grika|dev-senior|dev-senior-electric)\.png$/.test(src)) return src + '?v=exclusive-effects-v11b';
     return /(?:lobao|iales|pets)\.png$/.test(src) ? src + '?v=stable-loop-mistral-v1' : src;
   },
   load() {

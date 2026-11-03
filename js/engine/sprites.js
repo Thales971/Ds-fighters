@@ -9,14 +9,16 @@ const SpriteGen = {
 
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
+    // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
     if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
-    if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8';
-    if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10';
-    if (['mis', 'grika', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11';
-    return ['kimi', 'deepseek', 'dandara-query'].includes(id) ? src + '?v=expansion-v7' : src;
+    if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8b';
+    if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10b';
+    if (['mis', 'grika', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11c';
+    if (['kimi', 'deepseek', 'dandara-query', 'urbano', 'zoya', 'rin', 'noir'].includes(id)) return src + '?v=expansion-v7b';
+    return src;
   },
   faceUrl(id) {
-    const version = ['mis', 'grika', 'dev-senior'].includes(id) ? 'expansion-v11' : (['gemini', 'meta'].includes(id) ? 'expansion-v10' : 'stable-loop-mistral-v1');
+    const version = ['mis', 'grika', 'dev-senior'].includes(id) ? 'expansion-v11c' : (['gemini', 'meta'].includes(id) ? 'expansion-v10b' : (['kimi','deepseek','dandara-query','urbano','zoya','rin','noir'].includes(id) ? 'expansion-v7b' : 'stable-loop-mistral-v1'));
     return `assets/ui/face-${id}.png?v=${version}`;
   },
   load() {
