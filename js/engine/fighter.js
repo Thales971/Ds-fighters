@@ -1659,7 +1659,7 @@ class Fighter {
       ctx.globalAlpha = 0.12;
       SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x - this.dir * 44, this.y, false, null, xf);
       ctx.restore();
-      if (this.dashHit) Art.ability(ctx, this.kitOwnerId(this.dashHit.p), this.dashHit.p.row, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: this.dashHit.p.dashScale || 1.2, dir: this.dir });
+      if (this.dashHit) Art.ability(ctx, this.kitOwnerId(this.dashHit.p), this.dashHit.p.row, Math.floor(this.frame / 3), this.x, this.y - 100, { scale: 1.2, dir: this.dir });
     }
     ctx.save();
     if (this.has('cloak')) ctx.globalAlpha = 0.28;
