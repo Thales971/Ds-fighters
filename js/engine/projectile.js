@@ -32,7 +32,7 @@ class Projectile {
     this.age = 0;
     this.life = p.boomerang ? 110 : 220;
     this.dead = false;
-    this.scale = opts.scale || p.projScale || (p.big ? 1.15 : 0.82);
+    this.scale = opts.scale || p.projScale || (p.big ? 1.35 : 0.82);
     this.r = 34 * this.scale;
     this.seek = !!(p.seek || opts.seek);
     this.homing = opts.homing != null ? opts.homing : (p.homing || 0);
