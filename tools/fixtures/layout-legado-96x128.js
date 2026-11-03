@@ -1,0 +1,57 @@
+/* Gerado por tools/generate-sprites.mjs — não edite à mão. */
+const SPRITE_LAYOUT = {
+  "frameW": 96,
+  "frameH": 128,
+  "cols": 8,
+  "baseline": 121,
+  "drawScale": 2,
+  "poses": [
+    "idle",
+    "walk",
+    "jump",
+    "crouch",
+    "punch",
+    "kick",
+    "cpunch",
+    "ckick",
+    "jpunch",
+    "jkick",
+    "special",
+    "hit",
+    "block",
+    "ko",
+    "win"
+  ],
+  "frames": {
+    "idle": 6,
+    "walk": 8,
+    "jump": 5,
+    "crouch": 4,
+    "punch": 5,
+    "kick": 6,
+    "cpunch": 4,
+    "ckick": 5,
+    "jpunch": 4,
+    "jkick": 5,
+    "special": 6,
+    "hit": 4,
+    "block": 4,
+    "ko": 6,
+    "win": 6
+  },
+  "files": {
+    "du": "assets/sprites/du.png",
+    "iales": "assets/sprites/iales.png",
+    "felipinho": "assets/sprites/felipinho.png",
+    "stack": "assets/sprites/stack.png",
+    "gitmaster": "assets/sprites/gitmaster.png",
+    "bughunter": "assets/sprites/bughunter.png",
+    "frontend": "assets/sprites/frontend.png",
+    "backend": "assets/sprites/backend.png",
+    "devops": "assets/sprites/devops.png",
+    "qa": "assets/sprites/qa.png",
+    "scrum": "assets/sprites/scrum.png",
+    "fullstack": "assets/sprites/fullstack.png",
+    "senpai": "assets/sprites/senpai.png"
+  }
+};

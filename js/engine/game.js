@@ -95,14 +95,19 @@ class Game {
     this.running = true;
     this.paused = false;
     /* Autoteste de folha: se o navegador carregar uma folha antiga (ex.: 4x8 de
-       2080px em cache), avisa na tela em vez de parecer bug do jogo. */
+       2080px em cache), avisa na tela em vez de parecer bug do jogo.
+       A geometria vem de SpriteGen.expectedHeight() — já corrigida a partir da
+       imagem real, então layout.js velho não gera falso alarme nem boneco torto. */
     this.spriteWarnings = [];
-    const expectH = SPRITE_LAYOUT.poses.length * SPRITE_LAYOUT.frameH;
+    const expectH = SpriteGen.expectedHeight();
     for (const f of this.allFighters()) {
       const img = SpriteGen.images[f.spriteKey()];
       if (!img || !img.naturalWidth) this.spriteWarnings.push(f.def.id + ': folha nao carregou');
       else if (img.naturalHeight !== expectH) this.spriteWarnings.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
     }
+    // layout.js velho em cache já é corrigido em SpriteGen.reconcile(); avisa
+    // pra pessoa saber que o problema foi cache do aparelho, não o jogo.
+    if (SpriteGen.fixes && SpriteGen.fixes.length) this.spriteWarnings.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
     this.beginRound();
     if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
   }

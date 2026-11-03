@@ -306,7 +306,39 @@ node tools/process-stages.mjs
 
 ## Sprites dos lutadores
 
-As folhas ficam em `assets/sprites/`. Cada frame tem 320×260. A ordem das linhas está em `assets/sprites/layout.js`: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória. O jogo alinha o pé na linha `baseline`.
+As folhas ficam em `assets/sprites/`. Cada frame tem 320×260 (folha 1280×3900 = 4 colunas × 15 poses). A ordem das linhas está em `assets/sprites/layout.js`: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória. O jogo alinha o pé na linha `baseline` (246).
+
+### Bug dos "bonecos gigantes" (causa e blindagem)
+
+O PNG era atualizado, mas `assets/sprites/layout.js?v=expansion-v8b` **nunca mudava de versão** — e é ele quem diz `frameW`, `frameH`, `baseline` e `drawScale`. Um aparelho com esse arquivo velho em cache (já existiu versão `96×128` com `drawScale 2`) desenhava a folha nova com a geometria antiga: boneco gigante, pé dentro do chão e corpo fatiado/duplicado. O deploy estava verde porque o arquivo servido era o novo; o navegador de quem jogava usava o velho.
+
+Blindagem em três camadas (não confie no cache de ninguém):
+
+1. **Geometria derivada da imagem** — `SpriteGen.reconcile()` lê `naturalWidth/naturalHeight` da folha carregada e corrige `frameW/frameH/baseline/drawScale/cols/poses` se o layout discordar. Layout velho não deforma mais nada.
+2. **Token único de cache** — todas as tags `?v=` do `index.html` usam o mesmo token (`spritefix-4x15b`), inclusive `layout.js`. `tools/audit_sprites.mjs` falha se voltarem a divergir.
+3. **Selo de build na tela** — o canto inferior esquerdo mostra `build <token>` vindo do próprio motor. Se o selo estiver com token velho, o aparelho está com arquivo antigo (Ctrl+F5 resolve).
+
+O `index.html` também garante `SPRITE_LAYOUT.files/perFighter` antes dos arquivos de dados rodarem: sem isso um layout antigo lançava exceção e o lutador novo nem era registrado.
+
+### Ferramentas de sprite (Node puro, sem numpy/Pillow)
+
+```bash
+node tools/audit_sprites.mjs            # auditoria completa (falha se o bug voltar)
+node tools/png_probe.mjs                # medidas de cada célula de cada folha
+node tools/png_probe.mjs grika --json   # dados crus de um lutador
+node tools/fix_sprite_cells.mjs         # conserta pé no chão / frame pulsando / membro cortado
+node tools/split_doubles.mjs            # acha células com mais de um corpo (sprite duplo)
+```
+
+Para ver o jogo rodando de verdade (headless), sem abrir navegador na mão:
+
+```bash
+node tools/lab.mjs --a grika --b winx-exe --act kick --out /tmp/x.png
+node tools/lab.mjs --a grika --b winx-exe --override assets/sprites/layout.js=tools/fixtures/layout-legado-96x128.js
+node tools/measure.mjs grika winx-exe --out /tmp/med.json   # mede o desenho real por pose/frame
+```
+
+`DIAG-SPRITES.html` (abre direto, sem servidor) mostra as 15 poses × 4 frames de cada lutador, a geometria que o motor está usando e um comparativo arquivo × motor — é a página para pedir print quando alguém relatar bug visual.
 
 
 ## Atualização V4
