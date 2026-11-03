@@ -1,17 +1,12 @@
 /* DS Fighters V10 — Gemini e Meta. Carregado após fighters.js e antes dos kits. */
 (() => {
   const ids = ['gemini', 'meta'];
-  const poseRows = {
-    idle: 0, walk: 1, jump: 2, crouch: 3, block: 3,
-    punch: 4, cpunch: 4, jpunch: 4,
-    kick: 5, ckick: 5, jkick: 5,
-    special: 6, hit: 7, ko: 7, win: 0,
-  };
+  // Folhas V10/V11 sao 4x15 (uma linha por pose) apos a correcao de sprites;
+  // nao precisa mais de rows custom — o padrao do motor (linha = indice da pose) vale.
   ids.forEach((id) => {
     SPRITE_LAYOUT.files[id] = `assets/sprites/${id}.png`;
     SPRITE_LAYOUT.perFighter[id] = {
       frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-      rows: Object.assign({}, poseRows),
     };
   });
 
