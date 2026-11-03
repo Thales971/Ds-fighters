@@ -35,6 +35,13 @@ function preloadAll() {
   SpriteGen.load();
   Art.load();
   if (typeof Fx !== 'undefined' && Fx.load) Fx.load();
+  // Selo de build: mostra o MESMO token que o motor usa pra pedir as folhas.
+  // Se o aparelho estiver com arquivo velho em cache, o selo entrega na hora.
+  const buildEl = document.getElementById('build');
+  if (buildEl) {
+    const token = (SpriteGen.url('du').split('?v=')[1] || '?');
+    buildEl.textContent = 'build ' + token;
+  }
   Input.init();
   const game = new Game(canvas);
   window.DSGame = game;

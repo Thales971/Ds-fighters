@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DS Fighters — diagnóstico de sprites</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0d0a16; color: #e8e4f5; font: 13px/1.45 monospace; padding: 14px; }
+  h1 { font-size: 16px; margin: 0 0 4px; color: #ffd27d; }
+  .sub { color: #9b93b8; margin-bottom: 12px; }
+  .panel { background: #16112b; border: 1px solid #2d2448; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .bad { color: #ff6b6b; font-weight: bold; }
+  .ok { color: #7dff9e; font-weight: bold; }
+  .warn { color: #ffd27d; }
+  table { border-collapse: collapse; }
+  td, th { border: 1px solid #2d2448; padding: 2px 6px; font-size: 11px; text-align: center; }
+  th { background: #1e1738; color: #b9a8e6; font-weight: normal; }
+  canvas { image-rendering: pixelated; background: #0a0714; }
+  label { display: inline-flex; gap: 6px; align-items: center; }
+  select, button { background: #221a3d; color: #e8e4f5; border: 1px solid #3b2f63; border-radius: 6px; padding: 4px 8px; font: inherit; }
+  code { color: #9fe8ff; }
+</style>
+</head>
+<body>
+<!-- ============================================================
+     DIAGNÓSTICO DE SPRITES — abre local, sem servidor.
+     Mostra, lutador por lutador, as 15 poses x 4 frames direto do
+     arquivo PNG, e a geometria que o MOTOR está usando (frameW,
+     frameH, baseline, drawScale). Se o arquivo aqui estiver certo e
+     o jogo mostrar outra coisa, o problema é cache/versão velha no
+     aparelho: compare o "build" abaixo com o selo do jogo.
+     ============================================================ -->
+<h1>DS Fighters — diagnóstico de sprites</h1>
+<div class="sub">Abre direto no navegador (file:// ou no site). Compara o que o ARQUIVO tem com o que o MOTOR desenha.</div>
+
+<div class="panel" id="status">Carregando layout e folhas…</div>
+
+<div class="panel row">
+  <label>Lutador <select id="who"></select></label>
+  <label>Zoom <select id="zoom"><option>1</option><option selected>2</option><option>3</option></select></label>
+  <label><input type="checkbox" id="grid" checked> grade de medição</label>
+</div>
+
+<div class="panel" id="compare"></div>
+<div class="panel"><table id="poses"></table></div>
+
+<script src="assets/sprites/layout.js?v=spritefix-4x15b"></script>
+<script src="js/engine/sprites.js?v=spritefix-4x15b"></script>
+<script>
+(function () {
+  const CW = 320, CH = 260;
+  const POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
+    'jpunch', 'jkick', 'special', 'hit', 'block', 'ko', 'win'];
+  const status = document.getElementById('status');
+  const who = document.getElementById('who');
+  const zoomSel = document.getElementById('zoom');
+  const gridChk = document.getElementById('grid');
+  const table = document.getElementById('poses');
+  const compare = document.getElementById('compare');
+  const build = (SpriteGen.url('du').split('?v=')[1] || '?');
+
+  const ids = Object.keys(SPRITE_LAYOUT.files || {});
+  ids.forEach((id) => {
+    const o = document.createElement('option');
+    o.value = id; o.textContent = id;
+    who.appendChild(o);
+  });
+
+  let loaded = 0; const failed = []; const imgs = {};
+  ids.forEach((id) => {
+    const im = new Image();
+    im.onload = () => { imgs[id] = im; loaded++; SpriteGen.reconcile(im, id); if (loaded === ids.length) ready(); };
+    im.onerror = () => { failed.push(id); loaded++; if (loaded === ids.length) ready(); };
+    im.src = SpriteGen.url(id);
+  });
+
+  function ready() {
+    const L = SPRITE_LAYOUT;
+    const geo = `${L.frameW}x${L.frameH} · baseline ${L.baseline} · drawScale ${L.drawScale} · ${L.cols} colunas · ${(L.poses || []).length} poses`;
+    const good = failed.length === 0 && L.frameW === CW && L.frameH === CH && L.drawScale === 1;
+    status.innerHTML =
+      `<div>build do motor: <code>${build}</code></div>` +
+      `<div>geometria que o motor vai usar: <code>${geo}</code></div>` +
+      `<div>folhas carregadas: ${ids.length - failed.length}/${ids.length}` +
+      (failed.length ? ` — <span class="bad">falhou: ${failed.join(', ')}</span>` : '') + `</div>` +
+      (SpriteGen.fixes.length ? `<div class="warn">corrigido agora: ${SpriteGen.fixes.join(' · ')}</div>` : '') +
+      `<div>situação: ${good ? '<span class="ok">layout e folhas batem (320x260, escala 1)</span>'
+        : '<span class="bad">layout NÃO bate com a folha — é isso que deforma o boneco</span>'}</div>`;
+    draw();
+  }
+
+  function drawCell(id, pose, frame, zoom) {
+    const img = imgs[id];
+    const c = document.createElement('canvas');
+    c.width = CW * zoom; c.height = CH * zoom;
+    const x = c.getContext('2d');
+    x.imageSmoothingEnabled = false;
+    if (img) {
+      const row = SpriteGen.rowOf(pose, id);
+      const col = frame % SpriteGen.count(pose, id);
+      x.drawImage(img, col * CW, row * CH, CW, CH, 0, 0, c.width, c.height);
+    }
+    if (gridChk.checked) {
+      x.strokeStyle = 'rgba(255,120,120,.45)';
+      x.beginPath(); x.moveTo(0, SPRITE_LAYOUT.baseline * zoom + .5); x.lineTo(c.width, SPRITE_LAYOUT.baseline * zoom + .5); x.stroke();
+      x.strokeStyle = 'rgba(120,200,255,.25)';
+      x.beginPath(); x.moveTo(CW / 2 * zoom + .5, 0); x.lineTo(CW / 2 * zoom + .5, c.height); x.stroke();
+    }
+    return c;
+  }
+
+  /* mesma célula desenhada pelo motor: pé na baseline, centrada no eixo */
+  function drawMotor(id, pose, frame, zoom) {
+    const c = document.createElement('canvas');
+    c.width = CW * zoom; c.height = CH * zoom;
+    const x = c.getContext('2d');
+    x.imageSmoothingEnabled = false;
+    x.save();
+    x.scale(zoom, zoom);
+    x.translate(CW / 2, SPRITE_LAYOUT.baseline);
+    SpriteGen.blit(x, id, pose, frame, 1, 0, 0);
+    x.restore();
+    return c;
+  }
+
+  function draw() {
+    const id = who.value || ids[0];
+    const zoom = Number(zoomSel.value) || 2;
+    table.innerHTML = '';
+    const head = document.createElement('tr');
+    head.innerHTML = '<th>pose</th>' + [0, 1, 2, 3].map((f) => `<th>frame ${f}</th>`).join('');
+    table.appendChild(head);
+    POSES.forEach((pose) => {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th');
+      th.textContent = pose;
+      tr.appendChild(th);
+      for (let f = 0; f < 4; f++) {
+        const td = document.createElement('td');
+        if (f < SpriteGen.count(pose, id)) td.appendChild(drawCell(id, pose, f, zoom));
+        else td.innerHTML = '<span style="color:#4d4666">—</span>';
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    });
+    compare.innerHTML = `<div><strong>${id}</strong> — idle frame 0: <em>arquivo</em> ao lado de <em>motor</em> (tem que ser idêntico)</div>`;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.marginTop = '8px';
+    row.appendChild(drawCell(id, 'idle', 0, zoom));
+    row.appendChild(drawMotor(id, 'idle', 0, zoom));
+    compare.appendChild(row);
+  }
+
+  who.addEventListener('change', draw);
+  zoomSel.addEventListener('change', draw);
+  gridChk.addEventListener('change', draw);
+})();
+</script>
+</body>
+</html>

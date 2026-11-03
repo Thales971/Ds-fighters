@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=spritefix-4x15';
+    return src + '?v=spritefix-4x15b';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

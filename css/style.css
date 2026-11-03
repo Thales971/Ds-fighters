@@ -449,6 +449,7 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .net-url-row.hidden { display: none; }
 .fps { position: fixed; top: 6px; right: 8px; z-index: 99; font-size: 9px; color: #7dff5e; background: rgba(0,0,0,.6); padding: 3px 6px; pointer-events: none; }
 .fps[hidden] { display: none; }
+.build { position: fixed; left: 6px; bottom: 4px; z-index: 99; font-size: 8px; color: #6f6a86; background: rgba(0,0,0,.45); padding: 2px 5px; border-radius: 3px; pointer-events: none; }
 @media (max-width: 900px) { .lobby-players.four { grid-template-columns: 1fr 1fr; } }
 /* cartão da seleção: bio curta + 5 habilidades + frases (tela de bio do lutador) */
 .sel-card .bio { max-height: 30px; }

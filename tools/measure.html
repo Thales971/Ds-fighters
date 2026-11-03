@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>medir</title>
+<style>html,body{margin:0;background:#111}iframe{position:fixed;left:-4000px;width:960px;height:540px}</style>
+</head>
+<body>
+<canvas id="out" width="960" height="540"></canvas>
+<iframe id="frame" src="/index.html"></iframe>
+<script>
+/* Mede EXATAMENTE o que o jogo pinta para cada lutador/pose/frame:
+   pinta a célula num canvas transparente com o pé na linha do chão
+   (GROUND_Y=458) e lê o bbox de pixels opacos. Também mede o caminho
+   real de desenho (fighter.draw, com as transformações de movimento).
+   Resultado em window.__MEASURE; termina com title='LAB-DONE'. */
+const Q = new URLSearchParams(location.search);
+const IDS = (Q.get('ids') || 'grika,winx-exe').split(',').map((s) => s.trim()).filter(Boolean);
+const GROUND = 458;
+const CW = 420, CHh = 540, CX = 210;
+const frame = document.getElementById('frame');
+const cv = document.createElement('canvas');
+cv.width = CW; cv.height = CHh;
+const ctx = cv.getContext('2d', { willReadFrequently: true });
+window.__MEASURE = {};
+
+const wait = async (cond, ms = 40000) => {
+  const t0 = performance.now();
+  while (performance.now() - t0 < ms) { try { if (cond()) return true; } catch (e) {} await new Promise((r) => setTimeout(r, 60)); }
+  return false;
+};
+function bbox() {
+  const d = ctx.getImageData(0, 0, CW, CHh).data;
+  let x0 = CW, y0 = CHh, x1 = -1, y1 = -1;
+  for (let y = 0; y < CHh; y++) {
+    for (let x = 0; x < CW; x++) {
+      if (d[(y * CW + x) * 4 + 3] > 16) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+  }
+  if (x1 < 0) return null;
+  return { x0, y0, x1, y1, h: y1 - y0 + 1, w: x1 - x0 + 1, cx: (x0 + x1) / 2, pe: y1 - GROUND };
+}
+
+async function boot() {
+  const W = frame.contentWindow;
+  const SG = () => W.eval('SpriteGen');
+  const SL = () => W.eval('SPRITE_LAYOUT');
+  if (!await wait(() => W.DSGame && SG() && SG().images)) { document.title = 'LAB-ERRO'; return; }
+  await wait(() => IDS.every((id) => SG().images[id] && SG().images[id].naturalWidth > 0), 90000);
+  const L = SL();
+  const poses = L.poses;
+  for (const id of IDS) {
+    const out = { poses: {}, cells: [] };
+    for (let r = 0; r < poses.length; r++) {
+      const pose = poses[r];
+      const rows = [];
+      for (let f = 0; f < 4; f++) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, CW, CHh);
+        ctx.save();
+        ctx.translate(0, GROUND);
+        SG().blit(ctx, id, pose, f, 1, CX, 0);
+        ctx.restore();
+        const b = bbox();
+        rows.push(b);
+        out.cells.push({ pose, f, ...(b || {}) });
+      }
+      const used = rows.filter(Boolean);
+      out.poses[pose] = used.length ? {
+        h: Math.round(used.reduce((s, b) => s + b.h, 0) / used.length),
+        hMin: Math.min(...used.map((b) => b.h)), hMax: Math.max(...used.map((b) => b.h)),
+        pe: Math.max(...used.map((b) => b.pe)), cx: Math.round(used.reduce((s, b) => s + b.cx, 0) / used.length),
+      } : null;
+    }
+    window.__MEASURE[id] = out;
+  }
+  // caminho real: fighter.draw (inclui xf, sombra, mascote)
+  const G = W.DSGame;
+  G.start({ mode: 'versus', stage: Q.get('stage') || undefined, teams: [[IDS[0]], [IDS[1] || IDS[0]]], cpu: [false, false], roundsToWin: 1 });
+  const p1 = G.teams[0].members[0];
+  p1.pet = null;
+  for (const st of ['idle', 'walk', 'jump', 'crouch', 'hit', 'block', 'ko', 'win']) {
+    const c = document.createElement('canvas');
+    c.width = 960; c.height = 540;
+    const c2 = c.getContext('2d', { willReadFrequently: true });
+    p1.state = st; p1.stateTime = 4; p1.frame = 24; p1.onGround = st !== 'jump';
+    if (st === 'jump') p1.y = -120;
+    p1.updateAnim ? null : null;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, CW, CHh);
+    ctx.save(); ctx.translate(0, GROUND);
+    p1.x = CX; p1.y = (st === 'jump') ? -120 : 0;
+    p1.draw(ctx);
+    ctx.restore();
+    window.__MEASURE[IDS[0]].real = window.__MEASURE[IDS[0]].real || {};
+    window.__MEASURE[IDS[0]].real[st] = bbox();
+  }
+  document.title = 'LAB-DONE';
+}
+frame.addEventListener('load', boot);
+setTimeout(boot, 1500);
+</script>
+</body>
+</html>

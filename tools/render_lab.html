@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DS Fighters — laboratório de render</title>
+<style>
+  html,body{margin:0;background:#0b0d12;color:#e7ecf3;font:13px/1.4 monospace}
+  #out{display:block}
+  iframe{position:fixed;left:-3000px;top:0;width:960px;height:540px;border:0}
+</style>
+</head>
+<body>
+<!-- Página de teste: sobe o jogo real num iframe (mesma origem), inicia uma
+     partida entre dois ids, roda N ticks e copia o canvas para #out.
+     Parâmetros: ?a=grika&b=winx-exe&stage=sesi&ticks=40&act=punch&cd=1&zoom=1
+     Termina com document.title = 'LAB-DONE' (o script de screenshot espera isso). -->
+<canvas id="out" width="960" height="540"></canvas>
+<iframe id="frame" src="/index.html"></iframe>
+<script>
+const Q = new URLSearchParams(location.search);
+const A = Q.get('a') || 'grika';
+const B = Q.get('b') || 'winx-exe';
+const ACT = Q.get('act') || '';
+const TICKS = Number(Q.get('ticks') || 40);
+const CD = Number(Q.get('cd') || 0);          // countdown/round intro pulado
+const HUD = Q.get('hud') !== '0';
+const ANNOT = Q.get('annot') !== '0';
+const ZOOM = Number(Q.get('zoom') || 1);
+const out = document.getElementById('out');
+const octx = out.getContext('2d');
+const frame = document.getElementById('frame');
+
+function note(t) { document.title = t; }
+
+async function wait(cond, ms = 30000, step = 50) {
+  const t0 = performance.now();
+  while (performance.now() - t0 < ms) {
+    try { if (cond()) return true; } catch (e) {}
+    await new Promise((r) => setTimeout(r, step));
+  }
+  return false;
+}
+
+frame.addEventListener('load', boot);
+setTimeout(boot, 1500);   // caso o load já tenha passado antes do listener
+
+let booted = false;
+async function boot() {
+  if (booted) return;
+  booted = true;
+  try { await bootInner(); } catch (e) { note('LAB-ERRO: ' + (e && e.message || e)); }
+}
+
+async function bootInner() {
+  const W = frame.contentWindow;
+  // SpriteGen/SPRITE_LAYOUT são `const` de script clássico: não viram
+  // propriedade de window. Só dá pra ler com eval no escopo global da página.
+  const SG = () => W.eval('SpriteGen');
+  const SL = () => W.eval('SPRITE_LAYOUT');
+  const ok = await wait(() => W.DSGame && SG() && SG().images);
+  if (!ok) { note('LAB-ERRO: jogo não carregou'); return; }
+  // espera as duas folhas pedidas
+  await wait(() => [A, B].every((id) => {
+    const im = SG().images[id];
+    return im && im.naturalWidth > 0;
+  }), 60000);
+  const G = W.DSGame;
+  G.start({ mode: 'versus', stage: Q.get('stage') || undefined, teams: [[A], [B]], cpu: [false, false], timer: 180, roundsToWin: 1 });
+  const p1 = G.teams[0].members[0], p2 = G.teams[1].members[0];
+  // pula o "READY/FIGHT" e coloca os dois em idle estável
+  for (let i = 0; i < Math.max(0, CD); i++) { G.capturePrev(); G.tick(); }
+  if (ACT) {
+    if (ACT === 'jump') { p1.vy = -12; p1.onGround = false; p1.state = 'jump'; }
+    else if (ACT === 'crouch') { p1.state = 'crouch'; }
+    else if (ACT === 'hit') { p1.state = 'hit'; p1.stateTime = 4; }
+    else if (ACT === 'ko') { p1.state = 'down'; }
+    else if (ACT === 'win') { p1.state = 'win'; }
+    else if (ACT === 'cast') { p1.state = 'cast'; p1.stateTime = 5; }
+    else p1.startAttack(ACT);  // punch / kick / cpunch / ckick
+    for (let i = 0; i < 3; i++) { G.capturePrev(); G.tick(); }
+  } else {
+    p1.state = 'idle'; p2.state = 'idle';
+  }
+  for (let i = 0; i < TICKS; i++) { G.capturePrev(); G.tick(); }
+  G.render(0);
+  // desenha o canvas do jogo (com ou sem HUD do iframe) no nosso canvas
+  const src = W.document.getElementById('game');
+  octx.imageSmoothingEnabled = false;
+  octx.clearRect(0, 0, out.width, out.height);
+  octx.drawImage(src, 0, 0, 960, 540);
+  const s = W.SPRITE_SCALE_LAB || null;
+  if (ANNOT) {
+    octx.font = 'bold 13px monospace';
+    const rows = [
+      `${A} vs ${B}  act=${ACT || 'idle'}  ticks=${TICKS}`,
+      ...[p1, p2].map((f) => {
+        const im = SG().images[f.spriteKey()];
+        const L = SL();
+        return `${f.def.id.padEnd(14)} y=${f.y.toFixed(0)} sheet=${im ? im.naturalWidth + 'x' + im.naturalHeight : 'n/a'} cell=${L.frameW}x${L.frameH} sc=${L.drawScale}`;
+      }),
+      ...(G.spriteWarnings || []),
+    ];
+    rows.forEach((t, i) => {
+      octx.fillStyle = 'rgba(0,0,0,.62)';
+      octx.fillRect(6, 6 + i * 17, octx.measureText(t).width + 10, 16);
+      octx.fillStyle = i === 0 ? '#ffe27a' : '#9fe8ff';
+      octx.fillText(t, 11, 18 + i * 17);
+    });
+  }
+  if (!HUD) { /* HUD já vem do render do jogo; nada a esconder */ }
+  if (ZOOM !== 1) {
+    const tmp = document.createElement('canvas');
+    tmp.width = 960; tmp.height = 540;
+    tmp.getContext('2d').drawImage(out, 0, 0);
+    out.width = Math.round(960 * ZOOM); out.height = Math.round(540 * ZOOM);
+    octx.imageSmoothingEnabled = false;
+    octx.drawImage(tmp, 0, 0, out.width, out.height);
+  }
+  note('LAB-DONE');
+}
+</script>
+</body>
+</html>
