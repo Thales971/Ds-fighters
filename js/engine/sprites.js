@@ -10,16 +10,11 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    if (id === 'lobao') return src + '?v=stable-loop-mistral-v1';
-    if (['winx-exe', 'nina-vector'].includes(id)) return src + '?v=expansion-v8b';
-    if (['gemini', 'meta'].includes(id)) return src + '?v=expansion-v10b';
-    if (['mis', 'dev-senior', 'dev-senior-nano'].includes(id)) return src + '?v=expansion-v11c';
-    if (['kimi', 'deepseek', 'dandara-query', 'urbano', 'zoya', 'rin', 'noir'].includes(id)) return src + '?v=expansion-v7b';
-    return src;
+    // spritefix-4x15: todas as folhas agora são 4 colunas x 15 poses (1280x3900).
+    return src + '?v=spritefix-4x15';
   },
   faceUrl(id) {
-    const version = ['mis', 'grika', 'dev-senior'].includes(id) ? 'expansion-v11c' : (['gemini', 'meta'].includes(id) ? 'expansion-v10b' : (['kimi','deepseek','dandara-query','urbano','zoya','rin','noir'].includes(id) ? 'expansion-v7b' : 'stable-loop-mistral-v1'));
-    return `assets/ui/face-${id}.png?v=${version}`;
+    return `assets/ui/face-${id}.png?v=spritefix-4x15`;
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};

@@ -94,6 +94,15 @@ class Game {
     });
     this.running = true;
     this.paused = false;
+    /* Autoteste de folha: se o navegador carregar uma folha antiga (ex.: 4x8 de
+       2080px em cache), avisa na tela em vez de parecer bug do jogo. */
+    this.spriteWarnings = [];
+    const expectH = SPRITE_LAYOUT.poses.length * SPRITE_LAYOUT.frameH;
+    for (const f of this.allFighters()) {
+      const img = SpriteGen.images[f.spriteKey()];
+      if (!img || !img.naturalWidth) this.spriteWarnings.push(f.def.id + ': folha nao carregou');
+      else if (img.naturalHeight !== expectH) this.spriteWarnings.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
+    }
     this.beginRound();
     if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
   }
@@ -751,6 +760,16 @@ class Game {
     if (vertigo !== this._vertigoOn) { this._vertigoOn = vertigo; this.canvas.classList.toggle('vertigo', vertigo); }
     const shocked = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('shock'); });
     if (shocked !== this._shockOn) { this._shockOn = shocked; document.body.classList.toggle('shocked', shocked); }
+    if (this.spriteWarnings && this.spriteWarnings.length) {
+      ctx.save();
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#000';
+      ctx.fillText(this.spriteWarnings.join(' | '), W / 2 + 1, 17);
+      ctx.fillStyle = '#ff4b4b';
+      ctx.fillText(this.spriteWarnings.join(' | '), W / 2, 16);
+      ctx.restore();
+    }
   }
   renderScene(ctx) {
     const [a, b] = this.activePair();
