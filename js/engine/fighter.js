@@ -249,11 +249,11 @@ class Fighter {
     const el = p ? this.elementOf(p) : null;
     if (!el) return 1;
     let m = 1;
-    if ((w === 'rain' || w === 'storm') && ['agua', 'ia', 'neon', 'electric', 'deepseek'].includes(el)) m *= w === 'storm' ? 1.25 : 1.15;
+    if ((w === 'rain' || w === 'storm') && ['agua', 'ia', 'neon', 'electric'].includes(el)) m *= w === 'storm' ? 1.25 : 1.15;
     if ((w === 'rain' || w === 'storm') && el === 'magma') m *= 0.85;
-    if (w === 'snow' && ['tempo', 'agua', 'deepseek'].includes(el)) m *= 1.2;
+    if (w === 'snow' && ['tempo', 'agua'].includes(el)) m *= 1.2;
     if (w === 'heatwave' && (el === 'magma' || el === 'fire')) m *= 1.08;
-    if (w === 'heatwave' && ['agua', 'water', 'gelo', 'ice', 'deepseek'].includes(el)) m *= 0.95;
+    if (w === 'heatwave' && ['agua', 'water', 'gelo', 'ice'].includes(el)) m *= 0.95;
     return m;
   }
   dmgMult(p) {

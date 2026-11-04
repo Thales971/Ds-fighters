@@ -19,7 +19,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 SPR = ROOT / 'assets/sprites'
 CW, CH, BASE, TARGET = 320, 260, 246, 220
-SUSPECTS = ['mis', 'nina-vector', 'gemini', 'meta', 'deepseek', 'kimi']
+SUSPECTS = ['mis', 'nina-vector', 'gemini', 'meta']
 JUMP_ROW = 2
 
 
