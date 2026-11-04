@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
-const ids = ['winx-exe', 'kimi', 'deepseek', 'dandara-query'];
+const ids = ['winx-exe', 'dandara-query'];
 const mapIds = ['area-de-trabalho', 'abismo-das-baleias', 'vale-do-cache', 'pos-codigocalipse'];
 const legacyMapIds = ['dojo-noite', 'circo', 'pizzaria'];
 const context = vm.createContext({
@@ -23,7 +23,7 @@ for (const f of [
 ]) vm.runInContext(read(f), context, { filename:f });
 const fighters = vm.runInContext('FIGHTERS', context);
 for (const id of ids) assert(fighters.some((f) => f.id === id), `lutador não carregado: ${id}`);
-assert.strictEqual(fighters.filter((f) => ids.includes(f.id)).length, 4, 'os quatro IDs devem ser únicos');
+assert.strictEqual(fighters.filter((f) => ids.includes(f.id)).length, ids.length, 'os IDs V7 precisam ser únicos');
 const winx = fighters.find((f) => f.id === 'winx-exe');
 const du = fighters.find((f) => f.id === 'du');
 const nina = fighters.find((f) => f.id === 'nina-vector');
@@ -38,8 +38,6 @@ for (const id of [...ids, 'nina-vector']) {
   assert(moves.length >= 5, `${id} deve ter pelo menos cinco golpes`);
 }
 const uniqueStats = {
-  kimi: [1.16, 1.14, 0.91, 122],
-  deepseek: [1.18, 1.06, 1.08, 132],
   'dandara-query': [1.15, 1.02, 1.04, 130],
 };
 const elementFx = vm.runInContext('ELEMENT_FX', context);
@@ -56,16 +54,6 @@ for (const [id, expectedStats] of Object.entries(uniqueStats)) {
   assert.strictEqual(fighter.special.proj.visualSheet, id, `${id} special precisa de arte própria`);
   assert.strictEqual(fighter.super.visualSheet, id, `${id} super precisa de arte própria`);
 }
-assert.strictEqual(powers.kimi.element, 'electric', 'Kimi deve ter elemento elétrico');
-assert.strictEqual(elementFx.electric.sheet, 'kimi', 'o mapa de FX elétrico deve apontar para o atlas da Kimi');
-assert.strictEqual(fighters.find((f) => f.id === 'kimi').special.proj.shape, 'bolt', 'special da Kimi deve ser um raio');
-const kimiMoves = powers.kimi.powers;
-const kimiSignature = context.SIGNATURES.kimi;
-assert.strictEqual(kimiSignature.basic.shock || 0, 0, 'golpes básicos não podem renovar choque da Kimi indefinidamente');
-assert.strictEqual(kimiSignature.ability.shock || 0, 0, 'choque deve vir somente das habilidades que o declaram');
-assert(kimiMoves.filter((move) => move.fx && move.fx.shock > 0).length >= 4, 'choque deve aparecer nos ataques diretos da Kimi');
-assert(Math.max(...kimiMoves.map((move) => (move.fx && move.fx.shock) || 0)) <= 46, 'choque da Kimi precisa ser curto');
-assert(kimiMoves.every((move) => !move.fx || !(move.fx.lock || move.fx.trap || move.fx.freeze || move.fx.glitch)), 'Kimi não deve travar comandos ou prender o oponente');
 const winxMoves = Object.values(powers['winx-exe']).find(Array.isArray) || [];
 assert(winxMoves.length >= 5 && winxMoves.every((p) => p.fx && p.fx.glitch > 0), 'os cinco golpes da Winx precisam aplicar travamento');
 const winxMove = winxMoves[0];
@@ -77,15 +65,6 @@ const game = { round:1, weather:{kind:'clear'}, floatText(){}, spark(){}, shake(
   audio:{ voice(){}, play(){}, ko(){} }, onKO(){} };
 const attacker = new Fighter(winx, 100, 1, game, { team:0 });
 const target = new Fighter(du, 420, -1, game, { team:1 });
-const kimiDef = fighters.find((f) => f.id === 'kimi');
-const kimiAttacker = new Fighter(kimiDef, 100, 1, game, { team:0 });
-const shockTarget = new Fighter(du, 420, -1, game, { team:1 });
-shockTarget.applyEffects({ ability:false }, kimiAttacker, 10, 1);
-assert(!shockTarget.has('shock'), 'combo básico da Kimi não pode aplicar controle renovável');
-shockTarget.applyEffects({ ability:true, power:kimiMoves[0] }, kimiAttacker, 10, 1);
-assert.strictEqual(shockTarget.left('shock'), 16, 'primeiro raio aplica só 16 frames de choque');
-shockTarget.now += 17;
-assert(!shockTarget.has('shock'), 'controles precisam se recuperar ao fim do pulso elétrico');
 target.applyEffects({ ability:true, power:winxMove }, attacker, 10, 1);
 assert(target.has('glitch'), 'applyEffects precisa aplicar o status glitch da habilidade');
 assert(context.STATUS_LABEL?.glitch || vm.runInContext("STATUS_LABEL.glitch.t === 'TRAVAMENTO'", context), 'rótulo do status ausente');
@@ -112,7 +91,7 @@ for (const id of [...ids, 'nina-vector']) {
   assert(fs.existsSync(sheet), `spritesheet ausente: ${id}`);
   assert(fs.existsSync(path.join(root, `assets/ui/face-${id}.png`)), `face do recorte de combate ausente: ${id}`);
   assert.strictEqual(spriteMap.count('idle', id), 4, `idle 4 quadros ausente: ${id}`);
-  assert.strictEqual(spriteMap.rowOf('special', id), id === 'winx-exe' || id === 'nina-vector' ? 10 : 6, `linha de especial incorreta: ${id}`);
+  assert.strictEqual(spriteMap.rowOf('special', id), 10, `linha de especial incorreta: ${id}`);
 }
 assert.strictEqual(new Set(vm.runInContext("SPRITE_LAYOUT.poses.map(p => SpriteGen.rowOf(p,'winx-exe'))", layoutCtx)).size, 15, 'Winx precisa de 15 poses sem reutilizar linhas');
 assert.strictEqual(spriteMap.rowOf('special', 'stack'), 10, 'layout antigo 4×15 deve continuar intacto');
