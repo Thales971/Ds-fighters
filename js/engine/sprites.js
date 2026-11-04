@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12e-devvet-hq: Dev Veterano HQ (sem fringe, sem frames congelados) (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12e-devvet-hq';
+    // v12f-devvet-v2: Dev Veterano com a arte reformulada (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12f-devvet-v2';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;

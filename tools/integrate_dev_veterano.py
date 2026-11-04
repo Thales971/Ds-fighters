@@ -24,31 +24,31 @@ from PIL import Image, ImageFilter
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC_SPR = ROOT / 'bugs/Novos-personagens/Dev veterano.jpg'
+SRC_SPR = ROOT / 'bugs/Novos-personagens/dev veterano reformulado.jpg'
 SRC_AB = ROOT / 'bugs/Novos-personagens/habilidades-dev-veterano.png'
 CW, CH, BASE = 320, 260, 246
 AIR_BASE = 220
 
 ROWS = [0, 105, 200, 303, 402, 490, 556, 693, 896]
 COLS = [(5, 196), (306, 467), (581, 718), (794, 955), (1010, 1170)]
-MAGENTA = np.array([225, 3, 171])
+MAGENTA = np.array([240, 3, 212])
 
 # pose -> (lista de índices de célula [col,row], altura alvo da arte, pé)
 POSES = [
     ('idle',    [(0, 0), (1, 0), (2, 0), (3, 0)], 195, BASE),
-    ('walk',    [(0, 1), (1, 1), (2, 1), (3, 1)], 190, BASE),
-    ('jump',    [(0, 6), (1, 6), (2, 6), (3, 6)], 165, AIR_BASE),
-    ('crouch',  [(0, 3), (1, 3), (2, 3), (3, 3)], 120, BASE),
-    ('punch',   [(0, 2), (1, 2), (2, 2), (3, 2)], 175, BASE),
-    ('kick',    [(0, 4), (1, 4), (2, 4), (3, 4)], 165, BASE),
+    ('walk',    [(0, 1), (1, 1), (2, 1), (4, 1)], 185, BASE),
+    ('jump',    [(0, 6), (1, 6), (4, 6), (1, 6)], 165, AIR_BASE),
+    ('crouch',  [(0, 3), (1, 3), (2, 3), (0, 3)], 125, BASE),
+    ('punch',   [(0, 2), (1, 2), (2, 2), (4, 2)], 175, BASE),
+    ('kick',    [(0, 4), (1, 4), (2, 4), (4, 4)], 165, BASE),
     ('cpunch',  [(4, 3), (4, 3), (4, 3), (4, 3)], 130, BASE),
-    ('ckick',   [(4, 4), (4, 4), (4, 4), (4, 4)], 150, BASE),
+    ('ckick',   [(3, 4), (3, 4), (3, 4), (3, 4)], 150, BASE),
     ('jpunch',  [(4, 2), (4, 2), (4, 2), (4, 2)], 170, AIR_BASE),
-    ('jkick',   [(4, 6), (4, 6), (4, 6), (4, 6)], 160, AIR_BASE),
+    ('jkick',   [(4, 4), (4, 4), (4, 4), (4, 4)], 160, AIR_BASE),
     ('special', [(0, 7), (1, 7), (2, 7), (3, 7)], 195, BASE),
     ('hit',     [(4, 1), (4, 1), (4, 1), (4, 1)], 185, BASE),
     ('block',   [(4, 0), (4, 0), (4, 0), (4, 0)], 190, BASE),
-    ('ko',      [(0, 5), (1, 5), (2, 5), (3, 5)], 70, BASE),
+    ('ko',      [(2, 6), (2, 6), (2, 6), (2, 6)], 76, BASE),
     ('win',     [(4, 7), (4, 7), (4, 7), (4, 7)], 195, BASE),
 ]
 
@@ -62,6 +62,7 @@ SHAKE = {
     'hit': [0, 5, -5, 2],
     'block': [0, -2, 0, 2],
     'win': [0, 2, 0, -2],
+    'ko': [0, 4, -4, 0],
 }
 
 
