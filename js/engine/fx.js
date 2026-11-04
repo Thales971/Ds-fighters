@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v12f-devvet-v2';
+    return src + '?v=v12g-devvet-fix';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

@@ -29,38 +29,46 @@ SRC_AB = ROOT / 'bugs/Novos-personagens/habilidades-dev-veterano.png'
 CW, CH, BASE = 320, 260, 246
 AIR_BASE = 220
 
-ROWS = [0, 105, 200, 303, 402, 490, 556, 693, 896]
-COLS = [(5, 196), (306, 467), (581, 718), (794, 955), (1010, 1170)]
+# Grid real da folha reformulada (detectado por projecao de alpha):
+# 4 colunas x 5 linhas de figuras completas.
+ROWS = [(7, 177), (198, 347), (368, 520), (541, 683), (705, 874)]
+COLS = [(24, 258), (341, 513), (611, 845), (905, 1107)]
 MAGENTA = np.array([240, 3, 212])
 
 # pose -> (lista de índices de célula [col,row], altura alvo da arte, pé)
+# Mapeamento das 20 figuras reais (ci, ri):
+#   r0: andar, andar, correr, pular   | r1: agachar, block, block, soco
+#   r2: chute, tiro, tiro, tiro       | r3: tiro, tomando hit, deitado, agachar
+#   r4: idle, idle, idle, vitoria
 POSES = [
-    ('idle',    [(0, 0), (1, 0), (2, 0), (3, 0)], 195, BASE),
-    ('walk',    [(0, 1), (1, 1), (2, 1), (4, 1)], 185, BASE),
-    ('jump',    [(0, 6), (1, 6), (4, 6), (1, 6)], 165, AIR_BASE),
-    ('crouch',  [(0, 3), (1, 3), (2, 3), (0, 3)], 125, BASE),
-    ('punch',   [(0, 2), (1, 2), (2, 2), (4, 2)], 175, BASE),
-    ('kick',    [(0, 4), (1, 4), (2, 4), (4, 4)], 165, BASE),
-    ('cpunch',  [(4, 3), (4, 3), (4, 3), (4, 3)], 130, BASE),
-    ('ckick',   [(3, 4), (3, 4), (3, 4), (3, 4)], 150, BASE),
-    ('jpunch',  [(4, 2), (4, 2), (4, 2), (4, 2)], 170, AIR_BASE),
-    ('jkick',   [(4, 4), (4, 4), (4, 4), (4, 4)], 160, AIR_BASE),
-    ('special', [(0, 7), (1, 7), (2, 7), (3, 7)], 195, BASE),
-    ('hit',     [(4, 1), (4, 1), (4, 1), (4, 1)], 185, BASE),
-    ('block',   [(4, 0), (4, 0), (4, 0), (4, 0)], 190, BASE),
-    ('ko',      [(2, 6), (2, 6), (2, 6), (2, 6)], 76, BASE),
-    ('win',     [(4, 7), (4, 7), (4, 7), (4, 7)], 195, BASE),
+    ('idle',    [(0, 4), (1, 4), (2, 4), (1, 4)], 195, BASE),
+    ('walk',    [(0, 0), (1, 0), (2, 0), (1, 0)], 190, BASE),
+    ('jump',    [(3, 0), (3, 0), (3, 0), (3, 0)], 165, AIR_BASE),
+    ('crouch',  [(0, 1), (3, 3), (0, 1), (3, 3)], 125, BASE),
+    ('punch',   [(3, 1), (3, 1), (3, 1), (3, 1)], 175, BASE),
+    ('kick',    [(0, 2), (0, 2), (0, 2), (0, 2)], 165, BASE),
+    ('cpunch',  [(0, 1), (0, 1), (0, 1), (0, 1)], 130, BASE),
+    ('ckick',   [(3, 3), (3, 3), (3, 3), (3, 3)], 150, BASE),
+    ('jpunch',  [(3, 1), (3, 1), (3, 1), (3, 1)], 170, AIR_BASE),
+    ('jkick',   [(0, 2), (0, 2), (0, 2), (0, 2)], 160, AIR_BASE),
+    ('special', [(1, 2), (2, 2), (3, 2), (0, 3)], 195, BASE),
+    ('hit',     [(1, 3), (1, 3), (1, 3), (1, 3)], 185, BASE),
+    ('block',   [(1, 1), (2, 1), (1, 1), (2, 1)], 190, BASE),
+    ('ko',      [(2, 3), (2, 3), (2, 3), (2, 3)], 76, BASE),
+    ('win',     [(3, 4), (3, 4), (3, 4), (3, 4)], 195, BASE),
 ]
 
 # deslocamento sintetico por frame para as poses com uma unica celula:
 # evita "sprite congelado" (4 frames identicos) sem inventar pose nova.
 SHAKE = {
+    'jump': [0, 3, 0, -3],
+    'punch': [0, 4, 0, -4],
+    'kick': [0, -4, 0, 4],
     'cpunch': [0, 3, 0, -3],
     'ckick': [0, -4, 0, 4],
     'jpunch': [0, 3, -3, 0],
     'jkick': [0, -3, 3, 0],
     'hit': [0, 5, -5, 2],
-    'block': [0, -2, 0, 2],
     'win': [0, 2, 0, -2],
     'ko': [0, 4, -4, 0],
 }
@@ -73,8 +81,7 @@ def cut_cells():
     fg = ndimage.binary_closing(d > 110, structure=np.ones((3, 3)))
     cells = {}
     for ci, (cx0, cx1) in enumerate(COLS):
-        for ri in range(8):
-            y0, y1 = ROWS[ri], ROWS[ri + 1]
+        for ri, (y0, y1) in enumerate(ROWS):
             sub = fg[y0:y1, cx0:cx1]
             lab, n = ndimage.label(sub)
             if not n:
@@ -189,7 +196,7 @@ def build_abilities():
 
 
 def build_ui(cells):
-    crop, mask = cells[(1, 7)]
+    crop, mask = cells[(0, 4)]
     fig = figure_rgba(crop, mask)
     # retrato: figura inteira em 320x360
     port = Image.new('RGBA', (320, 360), (0, 0, 0, 0))
