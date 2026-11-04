@@ -100,14 +100,14 @@ setTimeout(() => {
   const g = w.DSGame || vm.runInContext('DSGame', vmc);
   const UI = vm.runInContext('typeof UI === "undefined" ? null : UI', vmc);
   if (!g || !UI) { console.error('DSGame/UI ausentes', !!g, !!UI); process.exit(1); }
-  const outDir = path.join(ROOT, '.vibe', 'game');
+  const outDir = path.join(ROOT, '.vibe', 'game2');
   fs.mkdirSync(outDir, { recursive: true });
   const pairs = process.argv.length > 3
     ? [[process.argv[2], process.argv[3]]]
     : process.argv.length > 2
       ? [[process.argv[2], process.argv[2]]]
       : [
-        ['grika', 'grika'], ['mis', 'mis'], ['meta', 'meta'], ['dandara-query', 'dandara-query'],
+        ['mis', 'mis'], ['meta', 'meta'], ['dandara-query', 'dandara-query'],
         ['kimi', 'kimi'], ['deepseek', 'deepseek'], ['nina-vector', 'nina-vector'],
         ['gemini', 'gemini'], ['winx-exe', 'winx-exe'], ['urbano', 'urbano'],
       ];

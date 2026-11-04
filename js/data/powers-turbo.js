@@ -64,39 +64,6 @@ Object.assign(POWERS, {
       { id: 'storm', name: 'Tempestade do Submundo', slot: 'ultimate', row: 4, kind: 'rain', count: 7, dmg: 38, fx: { shock: 200, blind: 120 }, sfx: 'ultimate', desc: 'Raios negros e azuis caem sobre o rival.' },
     ],
   },
-  zoya: {
-    element: 'kafka',
-    theme: 'Filas, tópicos e entrega exatamente uma vez',
-    powers: [
-      { id: 'topic', name: 'Tópico Quente', slot: 'simple', row: 0, kind: 'shot', dmg: 12, speed: 11, cd: 40, sfx: 'magic', desc: 'Um envelope de mensagem atravessa a arena.' },
-      { id: 'lag', name: 'Consumer Lag', slot: 'simple', row: 1, kind: 'pillar', at: 'target', delay: 10, dmg: 14, slow: 150, cd: 50, sfx: 'whoosh', desc: 'O rival fica preso na fila e anda mais devagar.' },
-      { id: 'part', name: 'Partição', slot: 'charge', meter: 0, row: 2, kind: 'wall', time: 280, dmg: 9, sfx: 'heavy', desc: 'Duas paredes de commit seguram projéteis.' },
-      { id: 'offset', name: 'Offset', slot: 'charge', meter: 1, row: 3, kind: 'pull', range: 380, dmg: 12, stun: 28, sfx: 'whoosh', desc: 'Rebobina o rival para perto.' },
-      { id: 'once', name: 'Exactly-Once', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 6, count: 7, homing: 0.5, finisher: 16, sfx: 'ultimate', desc: 'A fila inteira é entregue de uma vez só.' },
-    ],
-  },
-  rin: {
-    element: 'shader',
-    theme: 'GPU, vértices e raster',
-    powers: [
-      { id: 'vert', name: 'Corte de Vértice', slot: 'simple', row: 0, kind: 'dash', dmg: 11, speed: 16, cd: 40, sfx: 'dash', desc: 'Investida luminosa em linha reta.' },
-      { id: 'frag', name: 'Chuva de Fragmentos', slot: 'simple', row: 1, kind: 'shot', dmg: 7, speed: 11, count: 3, spread: 0.28, cd: 46, sfx: 'magic', desc: 'Três lascas de shader.' },
-      { id: 'compute', name: 'Compute', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 300, speedMult: 1.4, dmgMult: 1.15, sfx: 'shield', desc: 'A GPU sobe o clock de movimento.' },
-      { id: 'ray', name: 'Raio de Escudo', slot: 'charge', meter: 1, row: 3, kind: 'aura', time: 260, reflect: true, defMult: 0.6, sfx: 'shield', desc: 'Um escudo de luz devolve projéteis.' },
-      { id: 'raster', name: 'Raster Infinito', slot: 'ultimate', row: 4, kind: 'blast', at: 'wave', dmg: 34, sfx: 'ultimate', desc: 'Faixas de luz varrem a arena.' },
-    ],
-  },
-  noir: {
-    element: 'cipher',
-    theme: 'Cifra, prova e conhecimento zero',
-    powers: [
-      { id: 'hash', name: 'Hash', slot: 'simple', row: 0, kind: 'shot', dmg: 10, speed: 11, homing: 0.25, cd: 44, sfx: 'magic', desc: 'Orbe cifrado que busca o alvo.' },
-      { id: 'keyx', name: 'Troca de Chave', slot: 'simple', row: 1, kind: 'dash', dmg: 11, speed: 15, cd: 42, sfx: 'dash', desc: 'Atravessa trocando de lado.' },
-      { id: 'proof', name: 'Prova', slot: 'charge', meter: 0, row: 2, kind: 'aura', time: 300, reflect: true, dmgMult: 1.2, sfx: 'shield', desc: 'Runas refletem e aumentam o dano.' },
-      { id: 'fog', name: 'Texto Cifrado', slot: 'charge', meter: 1, row: 3, kind: 'zone', at: 'target', time: 260, dmg: 0.1, slow: 36, fx: { blind: 80 }, sfx: 'magic', desc: 'Névoa que cega e deixa lento.' },
-      { id: 'zk', name: 'Conhecimento Zero', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 36, fx: { blind: 180, lock: 80 }, sfx: 'ultimate', desc: 'O rival não vê o golpe chegar.' },
-    ],
-  },
 });
 
 Object.assign(ELEMENT_FX, {
@@ -133,7 +100,4 @@ const SIGNATURES = {
   java: { trait: 'TANQUE + EXPLOSÃO', desc: 'Armadura pesada; habilidades queimam e explodem.', ability: { burn: 90 } },
   merc: { trait: 'ESQUIVA', desc: 'Passo fantasma atravessa o rival; um desvio limpo devolve medidor.', ability: { bleed: 100 }, dodge: 0.1 },
   bhm: { trait: 'RAIO + SOMBRA', desc: 'Eletriza os controles, cega e atravessa o chão como um portal.', ability: { shock: 70 } },
-  zoya: { trait: 'FILAS', desc: 'Mensagens que atrasam, puxam e atravessam a arena.', ability: { slow: 60 } },
-  rin: { trait: 'SHADER', desc: 'Cortes de luz e velocidade de GPU.', ability: { chill: 40 } },
-  noir: { trait: 'CIFRA', desc: 'Trava a leitura do rival e reflete o que vem de frente.', ability: { blind: 50 } },
 };

@@ -59,9 +59,6 @@ const SPRITE_LAYOUT = {
     "qwen": "assets/sprites/qwen.png",
     "qwen-astra": "assets/sprites/qwen-astra.png",
     "bhm": "assets/sprites/bhm.png",
-    "zoya": "assets/sprites/zoya.png",
-    "rin": "assets/sprites/rin.png",
-    "noir": "assets/sprites/noir.png",
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png",
     "thl": "assets/sprites/thl.png",
@@ -75,7 +72,6 @@ const SPRITE_LAYOUT = {
     "gemini": "assets/sprites/gemini.png",
     "meta": "assets/sprites/meta.png",
     "mis": "assets/sprites/mis.png",
-    "grika": "assets/sprites/grika.png",
     "dev-senior": "assets/sprites/dev-senior.png",
     "dev-senior-nano": "assets/sprites/dev-senior-nano.png"
   }
@@ -93,6 +89,16 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
   SPRITE_LAYOUT.perFighter[id] = {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
   };
+});
+
+/* V12: pose de dano compacta. A arte de hit da Mis (196px) e da Kimi (230px)
+   era muito mais larga que o padrão do elenco (~110px) — ao tomar porrada elas
+   pareciam ficar gigantes. O blit desenha essas poses com o pivô no pé. */
+SPRITE_LAYOUT.perFighter['mis'] = Object.assign(SPRITE_LAYOUT.perFighter['mis'] || {}, {
+  poseScale: { hit: 0.8 },
+});
+SPRITE_LAYOUT.perFighter['kimi'] = Object.assign(SPRITE_LAYOUT.perFighter['kimi'] || {}, {
+  poseScale: { hit: 0.75 },
 });
 
 /* Fim do layout. */

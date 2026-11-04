@@ -35,7 +35,7 @@ CW, CH, BASE = 320, 260, 246
 POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
          'jpunch', 'jkick', 'special', 'hit', 'block', 'ko', 'win']
 
-SUSPECTS = ['zoya', 'rin', 'noir', 'gemini', 'meta', 'mis', 'grika',
+SUSPECTS = ['gemini', 'meta', 'mis',
             'dev-senior', 'dev-senior-nano', 'nina-vector', 'kimi', 'deepseek',
             'dandara-query', 'winx-exe']
 

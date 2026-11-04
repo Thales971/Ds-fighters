@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
-const fighters = ['mis', 'grika', 'dev-senior'];
+const fighters = ['mis', 'dev-senior'];
 const required = [
   'js/data/fighters-v11.js', 'js/data/powers-v11.js',
   ...fighters.map((id) => `assets/sprites/${id}.png`),
@@ -46,7 +46,7 @@ let checks = 0;
 function pass(condition, message) { assert.ok(condition, message); checks++; }
 function def(id) { const f = api.FIGHTERS.find((x) => x.id === id); assert.ok(f, `fighter ${id} exists`); return f; }
 
-const expectedPower = { mis: 1.37, grika: 1.37, 'dev-senior': 1.38 };
+const expectedPower = { mis: 1.37, 'dev-senior': 1.38 };
 for (const id of fighters) {
   const f = def(id);
   pass(f.secret !== true, `${id} is a normal unlocked fighter`);
@@ -70,8 +70,6 @@ pass(api.ART_SHEETS['fx2:dev-senior-electric']?.cols === 4 && api.ART_SHEETS['fx
 pass(!!api.STATUS_LABEL.vertigo && !!api.STATUS_LABEL.paralyze && !!api.STATUS_LABEL.nanomachines, 'new status effects are labelled in the HUD');
 const misUlt = api.POWERS.mis.powers[4];
 pass(misUlt.fx && misUlt.fx.vertigo > 0 && misUlt.fx.blind > 0 && misUlt.fx.burn > 0, 'Mis ultimate inverts the target view, blinds and applies continuous fire damage');
-const grikaUlt = api.POWERS.grika.powers[4];
-pass(grikaUlt.kind === 'zone' && grikaUlt.time > 0 && grikaUlt.dmg > 0 && grikaUlt.fx && grikaUlt.fx.paralyze > 0, 'Grika ultimate creates a damaging black-hole zone with paralyze');
 const nanoUlt = api.POWERS['dev-senior'].powers[4];
 pass(nanoUlt.kind === 'aura' && nanoUlt.grant === 'nanomachines' && nanoUlt.form === 'nano', 'Dev Senior ultimate activates the alternate shirtless nano form');
 pass(nanoUlt.time <= 240 && nanoUlt.armor && nanoUlt.dmgMult >= 1.15 && nanoUlt.defMult <= 0.85, 'Dev Senior ultimate has strong but finite armor, force and defense');
@@ -99,7 +97,7 @@ function pair(aId, bId = 'stack') {
 }
 
 {
-  const { a, b } = pair('grika');
+  const { a, b } = pair('mis');
   b.addStatus('paralyze', 300, a);
   pass(b.left('paralyze') <= 72, 'paralysis is capped to a short absolute window');
   pass(!b.canAct(), 'paralyzed fighters cannot attack or act');
@@ -111,14 +109,14 @@ function pair(aId, bId = 'stack') {
   pass(b.left('paralyze') <= 20, 'paralysis can be applied again after a clear recovery window');
 }
 {
-  const { game, a, b } = pair('grika');
-  const ult = api.POWERS.grika.powers[4];
-  const zone = new api.Zone(a, { x: b.x, w: 220, time: ult.time, dmg: ult.dmg, fx: ult.fx, power: ult, fid: 'grika', key: 'abil:grika', row: 4 });
+  const { game, a, b } = pair('mis');
+  const ult = { time: 96, dmg: 0.16, fx: { paralyze: 20 } };
+  const zone = new api.Zone(a, { x: b.x, w: 220, time: ult.time, dmg: ult.dmg, fx: ult.fx, power: ult, fid: 'mis', key: 'abil:mis', row: 4 });
   zone.age = 11; zone.update(game);
-  pass(b.has('paralyze'), 'black-hole Zone applies paralysis through the real Zone update');
+  pass(b.has('paralyze'), 'paralysis Zone applies paralysis through the real Zone update');
   let chip = 0; b.chip = (amount) => { chip += amount; };
   zone.age = 17; zone.update(game);
-  pass(chip > 0, 'black-hole Zone causes damage-over-time on its tick');
+  pass(chip > 0, 'paralysis Zone causes damage-over-time on its tick');
 }
 {
   const { a } = pair('dev-senior');

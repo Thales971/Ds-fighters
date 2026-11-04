@@ -37,34 +37,6 @@
         desc: 'Um vórtice de fogo inverte brevemente o viewport de jogo do alvo, causa cegueira e queimadura contínua.',
       }),
     ]),
-    grika: kit('grika', 'trevas violeta, garras oníricas e singularidade sombria', [
-      withVisual('grika', 0, '#b252f0', {
-        id: 'nightmare-shard', name: 'Estilhaço Onírico', slot: 'simple', row: 0,
-        kind: 'shot', dmg: 12, speed: 9, stun: 18, cd: 45, fx: { slow: 24 }, sfx: 'magic',
-        desc: 'Um fragmento de pesadelo reduz a velocidade do rival por um instante.',
-      }),
-      withVisual('grika', 1, '#8d42cf', {
-        id: 'gothic-lunge', name: 'Investida do Eclipse', slot: 'simple', row: 1,
-        kind: 'dash', dmg: 16, speed: 12, stun: 22, cd: 49, fx: { vuln: 34 }, sfx: 'dash',
-        desc: 'Grika cruza a arena num arco violeta e deixa o alvo vulnerável por pouco tempo.',
-      }),
-      withVisual('grika', 2, '#cc90ff', {
-        id: 'nightmare-claw', name: 'Garra do Pesadelo', slot: 'charge', meter: 0, row: 2,
-        kind: 'pillar', at: 'target', delay: 16, dmg: 20, stun: 27, launch: -8, cd: 74, fx: { blind: 34 }, sfx: 'explosion',
-        desc: 'Uma garra de sombra golpeia o ponto marcado e obscurece a visão brevemente.',
-      }),
-      withVisual('grika', 3, '#7f35bd', {
-        id: 'shadow-chains', name: 'Correntes do Sono', slot: 'charge', meter: 1, row: 3,
-        kind: 'zone', at: 'target', time: 72, dmg: 0.075, slow: 25, cd: 82, fx: { meterSlow: 24 }, sfx: 'magic',
-        desc: 'Correntes de sombra prendem o chão e atrasam a recuperação de medidor por um instante.',
-      }),
-      withVisual('grika', 4, '#c06bff', {
-        id: 'nightmare-black-hole', name: 'Buraco Negro do Pesadelo', slot: 'ultimate', row: 4,
-        kind: 'zone', at: 'target', time: 96, w: 220, dmg: 0.16, cd: 130,
-        fx: { paralyze: 20 }, sfx: 'ultimate',
-        desc: 'Uma singularidade no chão causa dano contínuo e paralisa por uma janela curta, sem renovar o controle indefinidamente.',
-      }),
-    ]),
     'dev-senior': kit('dev-senior', 'punhos pesados, circuitos de nanomáquinas e overdrive', [
       withVisual('dev-senior', 0, '#f3a348', {
         id: 'pipeline-fist', name: 'Punho de Pipeline', slot: 'simple', row: 0,
@@ -97,12 +69,10 @@
 
   Object.assign(ELEMENT_FX, {
     mis: { sheet: 'mis', color: '#ff8427' },
-    grika: { sheet: 'grika', color: '#a24ce8' },
     'dev-senior': { sheet: 'dev-senior', color: '#f29438' },
   });
   Object.assign(SIGNATURES, {
     mis: { trait: 'BRASA MISTRAL', desc: 'As chamas podem queimar por janelas curtas; a ultimate também causa cegueira e vertigem visual.', basic: {}, ability: {} },
-    grika: { trait: 'PESADELO', desc: 'Ataques de sombra controlam o espaço; a ultimate paralisa por uma janela limitada.', basic: {}, ability: {} },
     'dev-senior': { trait: 'NANOMÁQUINAS', desc: 'A ultimate ativa por tempo limitado uma forma sem camisa com armadura e força aumentadas.', basic: {}, ability: {} },
   });
 })();
