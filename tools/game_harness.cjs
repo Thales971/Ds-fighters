@@ -122,8 +122,10 @@ setTimeout(() => {
       g.start({ mode: 'versus', teams: [[a], [b]], stage: '06-sakura-dojo', cpu: [false, false], roundsToWin: 2, timer: 99, weather: 'clear' });
       for (let k = 0; k < 700 && g.roundState !== 'fight'; k++) g.tick();
       const shots = [
-        ['idle', 60, null], ['h1', 26, 0], ['h2', 26, 1], ['h3', 26, 2],
-        ['h4', 22, 3], ['ult', 34, 4],
+        ['idle', 60, null], ['walk', 40, 'walkf'], ['walkback', 40, 'walkback'],
+        ['jump', 30, 'jump'], ['crouch', 40, 'crouch'], ['block', 40, 'block'],
+        ['hit', 30, 'hit'], ['ko', 60, 'ko'], ['dash', 26, 'dash'],
+        ['h1', 26, 0], ['h2', 26, 1], ['h3', 26, 2], ['h4', 22, 3], ['ult', 34, 4],
       ];
       let j = 0;
       const sub = () => {
@@ -133,12 +135,21 @@ setTimeout(() => {
           const pair = g.activePair();
           const f = pair[0], o = pair[1];
           f.x = 380; o.x = 620; f.y = 0; o.y = 0;
+          f.alive = true; f.hp = 280; f.state = 'idle'; f.stateTime = 0;
+          f.blocking = false; f.crouching = false; f.vx = 0; f.vy = 0;
           f.charge = [100, 100]; f.ultimate = 100;
+          f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.afo = 6;
           f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.afo = 6;
           if (move === 'block') { f.state = 'block'; f.stateTime = 20; f.blocking = true; }
           else if (move === 'walkback') { f.state = 'walk'; f.stateTime = 30; f.dir = 1; f.x = 480; }
-          else if (move === 'crouch') { f.state = 'crouch'; f.stateTime = 20; }
-          else if (move !== null) f.tryCast(move);
+          else if (move === 'walkf') { f.state = 'walk'; f.stateTime = 30; f.dir = 1; f.x = 300; }
+          else if (move === 'jump') { f.state = 'jump'; f.vy = -13; f.y = -60; }
+          else if (move === 'crouch') { f.state = 'crouch'; f.stateTime = 20; f.crouching = true; }
+          else if (move === 'dash') { f.state = 'dash'; f.stateTime = 10; f.vx = 14; }
+          else if (move === 'hit') { o.dir = -1; f.takeHit({ dmg: 8, stun: 24, launch: -4, kb: 3 }); }
+          else if (move === 'ko') { f.hp = 0; f.state = 'down'; f.stateTime = 30; f.alive = false; }
+          if (move === 4) { o.x = f.x + 90; }  // ultimate e corpo a corpo: alvo colado
+          else if (move !== null) { const okk = f.tryCast(move); console.log('CAST ' + move + ' -> ' + okk); }
           for (let k = 0; k < ticks; k++) g.tick();
           g.render && g.render();
           try {
