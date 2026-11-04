@@ -269,11 +269,9 @@ class Zone {
     const f = 1 + (Math.floor(this.age / 8) % 3);
     ctx.save();
     ctx.globalAlpha = 0.9 * fade;
-    const grikaGround = key.includes('grika');
-    Art.cell(ctx, key, this.row, f, this.x, grikaGround ? 0 : -size * sc * 0.25, {
+    Art.cell(ctx, key, this.row, f, this.x, -size * sc * 0.25, {
       scale: sc,
       sy: 0.6,
-      anchor: grikaGround ? 'bottom' : undefined,
     });
     ctx.restore();
   }

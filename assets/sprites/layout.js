@@ -59,9 +59,6 @@ const SPRITE_LAYOUT = {
     "qwen": "assets/sprites/qwen.png",
     "qwen-astra": "assets/sprites/qwen-astra.png",
     "bhm": "assets/sprites/bhm.png",
-    "zoya": "assets/sprites/zoya.png",
-    "rin": "assets/sprites/rin.png",
-    "noir": "assets/sprites/noir.png",
     "scrum": "assets/sprites/scrum.png",
     "fullstack": "assets/sprites/fullstack.png",
     "thl": "assets/sprites/thl.png",
@@ -75,7 +72,6 @@ const SPRITE_LAYOUT = {
     "gemini": "assets/sprites/gemini.png",
     "meta": "assets/sprites/meta.png",
     "mis": "assets/sprites/mis.png",
-    "grika": "assets/sprites/grika.png",
     "dev-senior": "assets/sprites/dev-senior.png",
     "dev-senior-nano": "assets/sprites/dev-senior-nano.png"
   }
@@ -93,6 +89,32 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
   SPRITE_LAYOUT.perFighter[id] = {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
   };
+});
+
+/* V12: normalizacao visual das folhas refinadas (mis, nina, kimi, deep, gemini,
+   meta). Todas as poses delas ocupam a celula inteira (198px de altura, ate
+   304px de largura), enquanto o elenco classico bloqueia/agacha a ~115-124px.
+   Resultado: ao defender, agachar, atacar agachado ou tomar porrada elas
+   pareciam GIGANTES. poseScale e aplicado pelo blit com pivo no PE: encolhe a
+   silhueta sem tirar ninguem do chao. */
+SPRITE_LAYOUT.perFighter['mis'] = Object.assign(SPRITE_LAYOUT.perFighter['mis'] || {}, {
+  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
+});
+SPRITE_LAYOUT.perFighter['kimi'] = Object.assign(SPRITE_LAYOUT.perFighter['kimi'] || {}, {
+  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.75 },
+});
+SPRITE_LAYOUT.perFighter['deepseek'] = Object.assign(SPRITE_LAYOUT.perFighter['deepseek'] || {}, {
+  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.75 },
+});
+SPRITE_LAYOUT.perFighter['gemini'] = Object.assign(SPRITE_LAYOUT.perFighter['gemini'] || {}, {
+  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
+});
+SPRITE_LAYOUT.perFighter['meta'] = Object.assign(SPRITE_LAYOUT.perFighter['meta'] || {}, {
+  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
+});
+/* Nina e uma composicao piloto+mecha: normalizacao mais suave. */
+SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter['nina-vector'] || {}, {
+  poseScale: { block: 0.8, crouch: 0.8, walk: 0.85, hit: 0.8 },
 });
 
 /* Fim do layout. */

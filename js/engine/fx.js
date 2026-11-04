@@ -5,14 +5,14 @@
    ============================================================ */
 const ART_SHEETS = {
   // habilidades: 4 col x 5 lin, 128px
-  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'zoya', 'rin', 'noir', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao']
+  ...Object.fromEntries(['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
-  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta', 'mis', 'grika', 'dev-senior']
+  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativo: 4x4, 64px
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
-  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta', 'mis', 'grika', 'dev-senior']
+  ...Object.fromEntries(['winx-exe', 'nina-vector', 'kimi', 'deepseek', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior']
     .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=spritefix-4x15b';
+    return src + '?v=v12b-compact-poses';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
@@ -43,7 +43,7 @@ const Art = {
     const rowCount = s.rows || 5;
     const r = ((row % rowCount) + rowCount) % rowCount;
     const rawScale = opts.scale || 1;
-    const sc = key.includes('grika') ? rawScale * 0.8 : rawScale;
+    const sc = rawScale;
     const dw = s.size * sc;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -96,7 +96,7 @@ const FX_LAYOUT = {
 };
 const ELEMENT_TO_OLD = { magma: 'fogo', ia: 'arcano', agua: 'gelo', vento: 'vento', sombra: 'sombra', veneno: 'veneno', neon: 'neon', terra: 'terra', metal: 'metal', acido: 'acido', tempo: 'tempo', arcano: 'arcano', lata: 'lata', kafka: 'arcano', shader: 'raio', cipher: 'arcano', hack: 'hackfx' };
 Object.assign(ELEMENT_TO_OLD, { tremor: 'terra', termico: 'gelo', fizz: 'veneno', tactical: 'metal' });
-Object.assign(ELEMENT_TO_OLD, { mis: 'fogo', grika: 'sombra', 'dev-senior': 'metal' });
+Object.assign(ELEMENT_TO_OLD, { mis: 'fogo', 'dev-senior': 'metal' });
 
 const Fx = {
   images: {},

@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // spritefix-4x15b: célula 320x260 + layout.js com o MESMO token.
-    return src + '?v=spritefix-4x15b';
+    // v12b-compact-poses: poses compactas normalizadas (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12b-compact-poses';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
@@ -119,7 +119,10 @@ const SpriteGen = {
 
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
     const L = SPRITE_LAYOUT;
-    const sc = scale || L.drawScale;
+    // poseScale por lutador (ex.: hit compacto da Mis/Kimi, pivô no pé).
+    const own = L.perFighter && L.perFighter[id];
+    const poseScale = own && own.poseScale && own.poseScale[pose];
+    const sc = scale || poseScale || L.drawScale;
     const fw = L.frameW;
     const fh = L.frameH;
     const n = this.count(pose, id);

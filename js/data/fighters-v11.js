@@ -1,6 +1,6 @@
-/* DS Fighters V11 — Mis, Grika e Dev Senior. Carregado após V10. */
+/* DS Fighters V11 — Mis e Dev Senior. Carregado após V10. */
 (() => {
-  const ids = ['mis', 'grika', 'dev-senior', 'dev-senior-nano'];
+  const ids = ['mis', 'dev-senior', 'dev-senior-nano'];
   // Folhas V10/V11 sao 4x15 (uma linha por pose) apos a correcao de sprites;
   // nao precisa mais de rows custom — o padrao do motor (linha = indice da pose) vale.
   ids.forEach((id) => {
@@ -35,27 +35,6 @@
         proj: { row: 0, speed: 10, dmg: 12, w: 28, h: 24, color: '#ff8427', shape: 'orb', visualSheet: 'mis', visualRow: 0 },
       },
       super: { name: 'Vórtice de Cabeça para Baixo', type: 'aoe', dmg: 30, radius: 210, visualSheet: 'mis', visualRow: 4 },
-    },
-    {
-      id: 'grika',
-      name: 'GRIKA, A SONHADORA SOMBRIA',
-      title: 'A Voz Debaixo da Cama',
-      bio: 'Combatente gótica adulta de camiseta de rock, legging e correntes prateadas. Seus pesadelos ganham garras, correntes de sombra e um buraco negro no chão.',
-      colors: { skin: '#e4c7bf', hair: '#17131f', shirt: '#201c28', pants: '#16151d', shoes: '#100f15', accent: '#a24ce8' },
-      traits: { gothic: true, nightmare: true, longHair: true },
-      stats: { power: 1.37, speed: 1.03, weight: 1.08, hp: 128, meterRate: 1.16 },
-      quotes: {
-        intro: ['Apague a luz. O sonho começa.', 'Não olhe para o fundo.'],
-        win: ['O pesadelo era seu.', 'Acorde quando puder.'],
-        special: ['GARRA DO PESADELO!', 'NOITE SEM FIM!', 'SOMBRA, PRENDA!'],
-        super: ['SINGULARIDADE DO PESADELO!'],
-      },
-      moves,
-      special: {
-        name: 'Estilhaço Onírico', type: 'projectile', cost: 25,
-        proj: { row: 0, speed: 9, dmg: 12, w: 28, h: 24, color: '#9d4ce9', shape: 'orb', visualSheet: 'grika', visualRow: 0 },
-      },
-      super: { name: 'Buraco Negro do Pesadelo', type: 'aoe', dmg: 31, radius: 205, visualSheet: 'grika', visualRow: 4 },
     },
     {
       id: 'dev-senior',
