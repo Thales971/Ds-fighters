@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v12-roster-32';
+    return src + '?v=v12b-compact-poses';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
