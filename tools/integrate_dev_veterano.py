@@ -20,7 +20,7 @@ Mapeamento de poses (linha da folha fonte -> pose do motor):
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +52,18 @@ POSES = [
     ('win',     [(4, 7), (4, 7), (4, 7), (4, 7)], 195, BASE),
 ]
 
+# deslocamento sintetico por frame para as poses com uma unica celula:
+# evita "sprite congelado" (4 frames identicos) sem inventar pose nova.
+SHAKE = {
+    'cpunch': [0, 3, 0, -3],
+    'ckick': [0, -4, 0, 4],
+    'jpunch': [0, 3, -3, 0],
+    'jkick': [0, -3, 3, 0],
+    'hit': [0, 5, -5, 2],
+    'block': [0, -2, 0, 2],
+    'win': [0, 2, 0, -2],
+}
+
 
 def cut_cells():
     im = Image.open(SRC_SPR).convert('RGB')
@@ -81,27 +93,52 @@ def cut_cells():
 
 
 def figure_rgba(crop, mask):
-    """Aplica croma-key com descontaminação de borda e devolve RGBA recortado."""
-    a = np.array(crop).astype(int)
+    """Croma-key comdescontaminação de cor (unmixing do magenta) e denoise."""
+    a = np.array(crop).astype(float)
     d = np.abs(a - MAGENTA).sum(axis=2)
-    alpha = np.clip((d - 90.0) / 70.0, 0.0, 1.0)
+    # corte duro: o sangramento magenta do JPEG nao vira fringe.
+    # 130 = com certeza fundo; 190 = com certeza figura; sem feather longo.
+    alpha = np.clip((d - 130.0) / 60.0, 0.0, 1.0)
     alpha[~mask] = 0.0
-    out = np.dstack([np.clip(a, 0, 255).astype(np.uint8),
-                    (alpha * 255).astype(np.uint8)])
+    # pixels opacos que ainda parecem magenta (bleed do JPEG): desatura pro
+    # cinza medio da vizinhanca em vez de deixar halo rosa.
+    mag = (d < 260) & (alpha > 0.99)
+    if mag.any():
+        g = a[..., 1]
+        a2 = a.copy()
+        a2[mag, 0] = g[mag]
+        a2[mag, 2] = g[mag]
+        a = a2
+    # unmixing: c = fg*a + bg*(1-a)  =>  fg = (c - bg*(1-a))/a
+    a3 = alpha[..., None]
+    a3 = np.maximum(a3, 1e-3)
+    fg = (a - MAGENTA[None, None, :] * (1.0 - a3)) / a3
+    fg = np.clip(fg, 0, 255)
+    # denoise: remove pontinhos isolados do JPEG
+    al = ndimage.binary_opening(alpha > 0.55, structure=np.ones((2, 2)))
+    lab, n = ndimage.label(alpha > 0.55)
+    if n:
+        sizes = np.array(ndimage.sum(alpha > 0.55, lab, range(1, n + 1)))
+        for i in range(n):
+            if sizes[i] < 40:
+                al &= ~(lab == i + 1)
+    alpha = np.where(al, alpha, 0.0)
+    out = np.dstack([fg.astype(np.uint8), (alpha * 255).astype(np.uint8)])
     return Image.fromarray(out, 'RGBA')
 
 
 def build_sheet(cells):
     sheet = Image.new('RGBA', (1280, 3900), (0, 0, 0, 0))
     for pose_i, (pose, keys, target_h, foot_y) in enumerate(POSES):
+        shake = SHAKE.get(pose, [0, 0, 0, 0])
         for frame, (ci, ri) in enumerate(keys):
             crop, mask = cells[(ci, ri)]
             fig = figure_rgba(crop, mask)
-            place_paste(sheet, fig, target_h, foot_y, frame, pose_i)
+            place_paste(sheet, fig, target_h, foot_y, frame, pose_i, shake[frame])
     return sheet
 
 
-def place_paste(sheet, fig, target_h, foot_y, col, pose_i):
+def place_paste(sheet, fig, target_h, foot_y, col, pose_i, dx=0):
     w, h = fig.size
     if h <= 0:
         return
@@ -110,13 +147,14 @@ def place_paste(sheet, fig, target_h, foot_y, col, pose_i):
     if nw > CW - 24:
         s = (CW - 24) / w
         nw, nh = max(1, int(round(w * s))), max(1, int(round(h * s)))
-    fig2 = fig.resize((nw, nh), Image.NEAREST if s >= 1.4 else Image.LANCZOS)
+    fig2 = fig.resize((nw, nh), Image.LANCZOS)
+    fig2 = fig2.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2))
     arr = np.array(fig2)
     ys = np.where((arr[..., 3] > 8).any(axis=1))[0]
     if not len(ys):
         return
     bottom = int(ys.max())
-    x0 = (CW - nw) // 2
+    x0 = (CW - nw) // 2 + dx
     y0 = foot_y - bottom
     cell = np.zeros((CH, CW, 4), dtype=np.uint8)
     y0c = max(0, y0)
