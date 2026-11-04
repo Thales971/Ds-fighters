@@ -65,15 +65,14 @@ const SPRITE_LAYOUT = {
     "dolynho": "assets/sprites/dolynho.png",
     "lobao": "assets/sprites/lobao.png",
     "winx-exe": "assets/sprites/winx-exe.png",
-    "kimi": "assets/sprites/kimi.png",
-    "deepseek": "assets/sprites/deepseek.png",
     "dandara-query": "assets/sprites/dandara-query.png",
     "nina-vector": "assets/sprites/nina-vector.png",
     "gemini": "assets/sprites/gemini.png",
     "meta": "assets/sprites/meta.png",
     "mis": "assets/sprites/mis.png",
     "dev-senior": "assets/sprites/dev-senior.png",
-    "dev-senior-nano": "assets/sprites/dev-senior-nano.png"
+    "dev-senior-nano": "assets/sprites/dev-senior-nano.png",
+    "dev-veterano": "assets/sprites/dev-veterano.png"
   }
 };
 
@@ -91,20 +90,13 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
   };
 });
 
-/* V12: normalizacao visual das folhas refinadas (mis, nina, kimi, deep, gemini,
-   meta). Todas as poses delas ocupam a celula inteira (198px de altura, ate
+/* V12: normalizacao visual das folhas refinadas (mis, nina, gemini, meta). Todas as poses delas ocupam a celula inteira (198px de altura, ate
    304px de largura), enquanto o elenco classico bloqueia/agacha a ~115-124px.
    Resultado: ao defender, agachar, atacar agachado ou tomar porrada elas
    pareciam GIGANTES. poseScale e aplicado pelo blit com pivo no PE: encolhe a
    silhueta sem tirar ninguem do chao. */
 SPRITE_LAYOUT.perFighter['mis'] = Object.assign(SPRITE_LAYOUT.perFighter['mis'] || {}, {
   poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
-});
-SPRITE_LAYOUT.perFighter['kimi'] = Object.assign(SPRITE_LAYOUT.perFighter['kimi'] || {}, {
-  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.75 },
-});
-SPRITE_LAYOUT.perFighter['deepseek'] = Object.assign(SPRITE_LAYOUT.perFighter['deepseek'] || {}, {
-  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.75 },
 });
 SPRITE_LAYOUT.perFighter['gemini'] = Object.assign(SPRITE_LAYOUT.perFighter['gemini'] || {}, {
   poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },

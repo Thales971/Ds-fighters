@@ -154,13 +154,13 @@ function pair(aId = 'gemini', bId = 'stack') {
   pass(Math.abs(waterFighter.dmgMult(water) / waterClear - 0.95) < 1e-9, 'Heatwave reduces water damage by 5%');
 }
 {
-  const { game, a, b } = pair('deepseek', 'stack');
-  const zone = new api.Zone(a, { x: b.x, w: 200, time: 60, dmg: 0.08, power: api.POWERS.deepseek.powers[3] });
+  const { game, a, b } = pair('felipinho', 'stack');
+  const zone = new api.Zone(a, { x: b.x, w: 200, time: 60, dmg: 0.08, power: api.POWERS.felipinho.powers[3] });
   let chip = 0; b.chip = (amount) => { chip = amount; };
   const tick = (kind) => { game.weather.kind = kind; zone.age = 5; chip = 0; zone.update(game); return chip; };
   const clearZone = tick('clear');
   const heatZone = tick('heatwave');
-  pass(Math.abs(heatZone / clearZone - 0.95) < 1e-9, 'Heatwave reduces persistent DeepSeek water-zone damage by 5%');
+  pass(Math.abs(heatZone / clearZone - 0.95) < 1e-9, 'Heatwave reduces persistent water-zone damage by 5%');
 }
 {
   const game = makeGame();

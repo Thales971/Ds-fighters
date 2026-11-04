@@ -150,3 +150,33 @@ combat/v10/v11/online-server/sprite_audit todos verdes.
 (`punch==jpunch`, `kick==jkick`, `block==crouch`, `idle==win`) só resolvem
 com arte nova para essas linhas — o poseScale disfarça o tamanho, mas os
 frames continuam repetidos.
+
+---
+
+# V12c/V12d — Kimi e Deep fora (de novo, no main) + Dev Veterano no elenco
+
+**Nota importante:** o PR #21 foi mergeado com o branch no estado V12b — o
+commit V12c (remoção da Kimi/Deep) ficou fora do main. Este PR re-aplica a
+remoção (30 lutadores) e adiciona o **Dev Veterano** → **31 lutadores**.
+
+## Dev Veterano (Kaíke)
+Arte enviada em `bugs/Novos-personagens/` (folha de poses 5×8 em fundo
+magenta + ícones de habilidade 6×8 em fundo cinza), recortada e integrada por
+`tools/integrate_dev_veterano.py`:
+- `assets/sprites/dev-veterano.png` — 1280×3900 (4×15, célula 320×260, pé
+  y246; jump/jpunch/jkick com pé no ar y220)
+- `assets/abilities/dev-veterano.png` — 512×640 (4×5 de 128)
+- `face-`/`portrait-dev-veterano.png`
+- `js/data/fighters-v12.js` — lutador + kit:
+  - H1 Tiro Anti-Bug (shot, sangramento)
+  - H2 Soco de 1TB (pillar, paralisia 60 frames = 1s)
+  - H3 Correntes de Aço (pull range 380 — puxa o rival para perto)
+  - H4 Saraivada Anti-Bug (barrage 6 teleguiados, sangramento)
+  - Ultimate Turbina de Socos (rush, 7 hits, dano alto de perto)
+- Registrado no layout, atlas (fx.js), allowlist online (cliente+servidor) e
+  HUD. Token: **`v12d-dev-veterano`**.
+
+Verificação no jogo rodando: idle correto, H1 com projétil verde, H3 com
+correntes puxando o rival para perto, ultimate em rush de socos com o oponente
+tomando hit. combat/v7/v10/v11/online-server/sprite_audit verdes (audit já
+inclui dev-veterano).

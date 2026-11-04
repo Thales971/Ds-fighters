@@ -108,8 +108,8 @@ setTimeout(() => {
       ? [[process.argv[2], process.argv[2]]]
       : [
         ['mis', 'mis'], ['meta', 'meta'], ['dandara-query', 'dandara-query'],
-        ['kimi', 'kimi'], ['deepseek', 'deepseek'], ['nina-vector', 'nina-vector'],
-        ['gemini', 'gemini'], ['winx-exe', 'winx-exe'], ['urbano', 'urbano'],
+        ['nina-vector', 'nina-vector'], ['gemini', 'gemini'], ['winx-exe', 'winx-exe'],
+        ['urbano', 'urbano'], ['dev-veterano', 'dev-veterano'],
       ];
   let i = 0;
   const step = () => {
@@ -122,7 +122,8 @@ setTimeout(() => {
       g.start({ mode: 'versus', teams: [[a], [b]], stage: '06-sakura-dojo', cpu: [false, false], roundsToWin: 2, timer: 99, weather: 'clear' });
       for (let k = 0; k < 700 && g.roundState !== 'fight'; k++) g.tick();
       const shots = [
-        ['block', 40, 'block'], ['walkback', 40, 'walkback'], ['crouch', 40, 'crouch'],
+        ['idle', 60, null], ['h1', 26, 0], ['h2', 26, 1], ['h3', 26, 2],
+        ['h4', 30, 3], ['ult', 60, 4],
       ];
       let j = 0;
       const sub = () => {
@@ -132,6 +133,8 @@ setTimeout(() => {
           const pair = g.activePair();
           const f = pair[0], o = pair[1];
           f.x = 380; o.x = 620; f.y = 0; o.y = 0;
+          f.charge = [100, 100]; f.ultimate = 100;
+          f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.afo = 6;
           if (move === 'block') { f.state = 'block'; f.stateTime = 20; f.blocking = true; }
           else if (move === 'walkback') { f.state = 'walk'; f.stateTime = 30; f.dir = 1; f.x = 480; }
           else if (move === 'crouch') { f.state = 'crouch'; f.stateTime = 20; }
