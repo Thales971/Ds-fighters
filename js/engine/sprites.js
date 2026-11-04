@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12b-compact-poses: poses compactas normalizadas (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12b-compact-poses';
+    // v12c-roster-30: 30 lutadores (kimi/deep fora) (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12c-roster-30';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;

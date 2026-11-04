@@ -36,7 +36,7 @@ POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
          'jpunch', 'jkick', 'special', 'hit', 'block', 'ko', 'win']
 
 SUSPECTS = ['gemini', 'meta', 'mis',
-            'dev-senior', 'dev-senior-nano', 'nina-vector', 'kimi', 'deepseek',
+            'dev-senior', 'dev-senior-nano', 'nina-vector',
             'dandara-query', 'winx-exe']
 
 

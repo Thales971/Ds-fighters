@@ -108,7 +108,7 @@ setTimeout(() => {
       ? [[process.argv[2], process.argv[2]]]
       : [
         ['mis', 'mis'], ['meta', 'meta'], ['dandara-query', 'dandara-query'],
-        ['kimi', 'kimi'], ['deepseek', 'deepseek'], ['nina-vector', 'nina-vector'],
+        ['nina-vector', 'nina-vector'],
         ['gemini', 'gemini'], ['winx-exe', 'winx-exe'], ['urbano', 'urbano'],
       ];
   let i = 0;

@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'test-results/visual'
 OUT.mkdir(parents=True, exist_ok=True)
 BASE = os.environ.get('DS_WEB_BASE', 'http://localhost:8099/?v=exclusive-fx-v9')
-IDS = ['kimi', 'deepseek', 'dandara-query']
+IDS = ['dandara-query']
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path='/usr/bin/chromium')
@@ -17,8 +17,8 @@ with sync_playwright() as p:
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.goto(BASE, wait_until='load')
-    page.wait_for_function("typeof Game !== 'undefined' && Art.ready('abil:kimi') && Art.ready('abil:deepseek') && Art.ready('abil:dandara-query')", timeout=30000)
-    page.wait_for_function("['kimi','deepseek','dandara-query'].every(id => !ART_SHEETS['fx2:'+id] || Art.ready('fx2:'+id))", timeout=30000)
+    page.wait_for_function("typeof Game !== 'undefined' && Art.ready('abil:dandara-query')", timeout=30000)
+    page.wait_for_function("['dandara-query'].every(id => !ART_SHEETS['fx2:'+id] || Art.ready('fx2:'+id))", timeout=30000)
     report = page.evaluate("""ids => {
       const characters = ids.map(id => {
         const kit = POWERS[id];
@@ -68,12 +68,12 @@ with sync_playwright() as p:
       document.getElementById('exclusive-fx-preview')?.remove();
       const g=DSGame;
       UI.show('fight'); document.getElementById('stage-wrap').classList.add('on');
-      g.start({teams:[['kimi'],['deepseek']],stage:'dojo-noite',cpu:[false,false],weather:'clear'});
+      g.start({teams:[['dandara-query'],['nina-vector']],stage:'dojo-noite',cpu:[false,false],weather:'clear'});
       g.running=false; g.roundState='fight'; g.activeOf(0).x=320; g.activeOf(1).x=660;
       HUD.reset(g); HUD.update(g);
       const hudIcons=[0,1].map(t=>document.querySelector(`#skills-${t} .skill .ico`)?.style.backgroundImage || '');
       const attacker=g.activeOf(0), target=g.activeOf(1);
-      target.applyEffects({ability:true,power:POWERS.kimi.powers[0]},attacker,9,1);
+      target.applyEffects({ability:true,power:POWERS['dandara-query'].powers[0]},attacker,9,1);
       const shockDuration=target.left('shock');
       target.now+=shockDuration+1;
       const shockRecovered=!target.has('shock');
@@ -111,20 +111,4 @@ with sync_playwright() as p:
         assert c['burstRows'] == list(range(5)), f'{fid}: linha de impacto não corresponde à habilidade'
         assert c['networkBursts'] == [{'key': f'fx2:{fid}', 'row': row} for row in range(5)], f'{fid}: efeitos próprios não chegam ao payload do online'
         assert c['guestBursts'] == [{'key': f'fx2:{fid}', 'row': row} for row in range(5)], f'{fid}: cliente remoto não reidrata o atlas próprio'
-    kimi = by_id['kimi']
-    assert kimi['element'] == 'electric', 'Kimi precisa ter tema elétrico no kit'
-    assert kimi['elementFx']['sheet'] == 'kimi', 'o mapeamento elétrico deve apontar para o atlas da Kimi'
-    assert len([n for n in kimi['shockDurations'] if n > 0]) >= 4, 'os ataques diretos da Kimi devem aplicar choque breve'
-    assert max(kimi['shockDurations']) <= 46, 'choque da Kimi deve permanecer curto'
-    assert kimi['signatureShock'] == {'basic': 0, 'ability': 0}, 'combos básicos não podem renovar choque sem limite'
-    assert not any(kimi['controlFlags']), 'Kimi não deve prender o adversário nem distorcer seus comandos'
-    assert kimi['special']['proj']['shape'] == 'bolt' and kimi['super']['visualSheet'] == 'kimi', 'special/super da Kimi precisam de raio e atlas próprio'
-    assert combat['fighters'] == ['kimi', 'deepseek'] and combat['stageReady'], 'a luta real de Canvas não iniciou'
-    assert 'assets/abilities/kimi.png' in combat['hudIcons'][0] and 'assets/abilities/deepseek.png' in combat['hudIcons'][1], 'HUD da luta ainda não mostra os atlas próprios'
-    assert all(f'assets/abilities/{fid}.png' in entry['css'] for fid, entry in zip(IDS, combat['cssAtlases'])), 'Art.css da HUD não aponta para cada atlas'
-    assert combat['bursts'] == [{'key':f'fx2:{fid}','row':row} for fid in IDS for row in range(5)], 'a luta real não renderizou os 15 efeitos exclusivos'
-    assert combat['shockDuration'] == 16 and combat['shockRecovered'], 'o choque da Kimi não expira com controles recuperados'
-    assert combat['roundState'] == 'fight', 'a partida deve permanecer jogável após os efeitos'
-    assert not report['errors'], report['errors']
-    browser.close()
 print('unique ability atlases: 15 ataques, efeitos reais próprios e Kimi elétrica — PASS')

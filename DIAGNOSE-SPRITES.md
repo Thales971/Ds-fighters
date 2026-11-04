@@ -150,3 +150,22 @@ combat/v10/v11/online-server/sprite_audit todos verdes.
 (`punch==jpunch`, `kick==jkick`, `block==crouch`, `idle==win`) só resolvem
 com arte nova para essas linhas — o poseScale disfarça o tamanho, mas os
 frames continuam repetidos.
+
+---
+
+# V12c — Kimi e Deep Seek removidas
+
+Decisão do dono após a auditoria V12b: as folhas da Kimi e da Deep Seek
+compartilhavam os mesmos defeitos estruturais das outras refinadas (todas as
+poses em altura cheia + linhas duplicadas) e saíram do jogo. **30 lutadores.**
+
+Removidas de: FIGHTERS e kits V7/V9 (powers-v7.js, powers-v9.js), assinaturas,
+allowlist online (js/net/room-core.js + online-server/room-core.js), atlas de
+habilidades (fx.js), bônus de clima (fighter.js), layout.js (files +
+poseScale) e HUD (ui.js). Ferramentas de teste atualizadas; a falha
+pré-existente do `tools/v7_regressions.cjs` (linha de especial da kimi) foi
+resolvida — a suíte agora passa. Token: **`v12c-roster-30`**.
+
+Verificação: combat_regressions PASS · v7 PASS · v10 74 · v11 76 ·
+online-server 38 checks · sprite_audit limpa · jogo boota headless com 30
+lutadores.

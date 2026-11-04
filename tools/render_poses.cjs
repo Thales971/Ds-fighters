@@ -50,7 +50,7 @@ const W = 960, H = 540;
 const POSES = SG.POSES;
 
 async function main() {
-  const ids = process.argv.slice(2).length ? process.argv.slice(2) : ['mis', 'meta', 'dandara-query', 'kimi', 'deepseek', 'nina-vector', 'gemini', 'winx-exe', 'urbano'];
+  const ids = process.argv.slice(2).length ? process.argv.slice(2) : ['mis', 'meta', 'dandara-query', 'nina-vector', 'gemini', 'winx-exe', 'urbano'];
   await injectImages(ids);
   fs.mkdirSync(path.join(ROOT, '.vibe', 'render'), { recursive: true });
   for (const id of ids) {

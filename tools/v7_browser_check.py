@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'test-results/visual'
 OUT.mkdir(parents=True,exist_ok=True)
 BASE=os.environ.get('DS_WEB_BASE','http://localhost:8099/')
-FIGHTERS=['winx-exe','kimi','deepseek','dandara-query']
+FIGHTERS=['winx-exe','dandara-query']
 STAGES=['area-de-trabalho','abismo-das-baleias','vale-do-cache']
 LEGACY_STAGES=['dojo-noite','circo','pizzaria']
 errors=[]
