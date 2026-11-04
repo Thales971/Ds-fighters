@@ -123,7 +123,7 @@ setTimeout(() => {
       for (let k = 0; k < 700 && g.roundState !== 'fight'; k++) g.tick();
       const shots = [
         ['idle', 60, null], ['h1', 26, 0], ['h2', 26, 1], ['h3', 26, 2],
-        ['h4', 30, 3], ['ult', 60, 4],
+        ['h4', 22, 3], ['ult', 34, 4],
       ];
       let j = 0;
       const sub = () => {
@@ -141,6 +141,12 @@ setTimeout(() => {
           else if (move !== null) f.tryCast(move);
           for (let k = 0; k < ticks; k++) g.tick();
           g.render && g.render();
+          try {
+            const st = { shot: move, hpO: Math.round(o.hp), posO: Math.round(o.x),
+              bleed: !!o.has('bleed'), paralyze: !!o.has('paralyze'), stun: !!o.has('stun'),
+              dist: Math.round(Math.abs(o.x - f.x)), stateF: f.state, cd: f.cd && f.cd.slice(0,5) };
+            console.log('STATE ' + JSON.stringify(st));
+          } catch (e) { console.log('STATE-ERR ' + e); }
         } catch (e) { console.error('tick', a, b, name, String(e).slice(0, 200)); }
         fs.writeFileSync(path.join(outDir, `${a}-${b}-${name}.png`), gameCanvas.toBuffer('image/png'));
         console.log('shot', a, b, name);
