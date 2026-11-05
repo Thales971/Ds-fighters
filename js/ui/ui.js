@@ -5,7 +5,7 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital']);
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt']);
 const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 — nenhuma usa mais o size 800%
 const UI = {
   hud: HUD,
@@ -167,7 +167,7 @@ const UI = {
       done: [false, false],
       p2Human: false,
       picking: 0,
-      stage: 'random',
+      stage: mode === 'training' ? 'treino-dojo' : 'random',
       arcadeStep: 0,
     }, extra || {});
     this.$('stage-wrap').classList.remove('on');
@@ -180,7 +180,7 @@ const UI = {
     const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     grid.innerHTML = FIGHTERS.map((d, i) => {
-      const lock = !Profile.isUnlocked(d.id);
+      const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
       const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
       const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
       const thumb = fullSprite ? SpriteGen.url(d.id) : SpriteGen.faceUrl(d.id);
@@ -291,7 +291,7 @@ const UI = {
       i = pool[(Math.random() * pool.length) | 0];
     }
     const d = FIGHTERS[i];
-    if (!Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
+    if (f.mode !== 'training' && !Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
     if (f.picks[who].includes(i)) { AudioSys.back(); return; }
     f.picks[who].push(i);
     AudioSys.select();
@@ -374,6 +374,8 @@ const UI = {
     this.$('lbl-diff').classList.toggle('hidden', !(f.mode !== 'training' && !f.p2Human) && f.mode !== 'training');
     this.$('lbl-dummy').classList.toggle('hidden', f.mode !== 'training');
     this.$('lbl-inf').classList.toggle('hidden', f.mode !== 'training');
+    this.$('lbl-autoheal').classList.toggle('hidden', f.mode !== 'training');
+    this.$('lbl-ally').classList.toggle('hidden', f.mode !== 'training');
     const cur = grid.querySelector(`[data-id="${f.stage}"]`) || grid.querySelector('.st-cell');
     setTimeout(() => cur.focus(), 40);
     this.renderStagePreview();
@@ -401,6 +403,8 @@ const UI = {
     Profile.setting('difficulty', f.difficulty);
     f.dummy = this.$('opt-dummy').value;
     f.infinite = this.$('opt-inf').checked;
+    f.autoHeal = this.$('opt-autoheal').checked;
+    if (this.$('opt-ally').checked && f.mode === 'training') f.p2Human = true;
     this.launch();
   },
   matchConfig() {
@@ -415,6 +419,7 @@ const UI = {
       cpu: [false, !f.p2Human],
       pets: [Profile.petFor(0), f.p2Human ? Profile.petFor(1) : PETS[0]],
       dummy: f.dummy,
+      autoHeal: f.mode === 'training' ? f.autoHeal !== false : false,
       infiniteLife: !!(f.customRules && f.customRules.infiniteLife),
       infiniteMeter: f.customRules ? f.customRules.infiniteMeter : f.infinite,
       roundsToWin: f.mode === 'training' ? 99 : f.customRules ? f.customRules.roundsToWin : 2,

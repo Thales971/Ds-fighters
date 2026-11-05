@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v14a-posefix: poseScale completo na Grika/Guarda/Winx (auditoria pesada) (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v14a-posefix';
+    // v15-treino: Engenheira de Prompt + Boneco de Treino + dojo (37) (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v15-treino';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;

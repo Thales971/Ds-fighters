@@ -49,6 +49,32 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     d = np.abs(a - bg).sum(axis=2)
     R, G, B = a[..., 0], a[..., 1], a[..., 2]
     magenta_like = (R > G + 40) & (B > G + 25)
+    if getattr(load_sheet, '_dark_bg', False):
+        # fundo escuro (boneco): luminancia baixa = fundo
+        lum = 0.299 * R + 0.587 * G + 0.114 * B
+        fg = ndimage.binary_closing(lum > 45, structure=np.ones((3, 3)))
+        rb = row_bands or [b for b in bands(fg.sum(axis=1), 30) if b[1] - b[0] > 40]
+        cb = col_bands or [b for b in bands(fg.sum(axis=0), 20) if b[1] - b[0] > 40]
+        cells = {}
+        for ri, (y0, y1) in enumerate(rb):
+            for ci, (x0, x1) in enumerate(cb):
+                sub = fg[y0:y1, x0:x1]
+                lab, n = ndimage.label(sub)
+                keep = np.zeros_like(sub)
+                if n:
+                    sizes = [int(s2) for s2 in ndimage.sum(sub, lab, range(1, n + 1))]
+                    for i in range(n):
+                        if sizes[i] > min_sz:
+                            keep |= lab == i + 1
+                if not keep.any():
+                    continue
+                yy, xx = np.where(keep)
+                bx0, by0 = x0 + int(xx.min()), y0 + int(yy.min())
+                bx1, by1 = x0 + int(xx.max()) + 1, y0 + int(yy.max()) + 1
+                cells[(ci, ri)] = (im.crop((bx0, by0, bx1, by1)),
+                                   keep[(by0 - y0):(by1 - y0), (bx0 - x0):(bx1 - x0)],
+                                   np.array([25, 15, 4]))
+        return cells
     # FLOOD FILL: o fundo e conectado as bordas da imagem. Candidato a fundo
     # = magenta OU parecido com o bg; a partir das bordas, so o que e alcancavel
     # e fundo. O interior da figura (QUALQUER cor) nunca e comido.
@@ -262,7 +288,63 @@ GUARDA_POSES = {
     'win':     ([(1, 2, 1, False)] * 4, 195, BASE),
 }
 
+# Engenheira de Prompt: folha1 (si=0: idle/andar/soco/pulo | agachar/tiro/chute/vitoria)
+# folha2 (si=1: idle/tiro/chute/pulo | hit/KO/agachar/vitoria). 4-tuplas (si,ci,ri,flip).
+ENGENHEIRA_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 0, 0, False), (0, 0, 0, False), (1, 0, 0, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 3, 0, False), (1, 3, 0, False), (0, 3, 0, False), (1, 3, 0, False)], 165, AIR),
+    'crouch':  ([(0, 0, 1, False), (1, 2, 1, False), (0, 0, 1, False), (1, 2, 1, False)], 125, BASE),
+    'punch':   ([(0, 2, 0, False)] * 4, 175, BASE),
+    'kick':    ([(0, 2, 1, False), (1, 2, 0, False), (0, 2, 1, False), (1, 2, 0, False)], 165, BASE),
+    'cpunch':  ([(0, 0, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 2, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 2, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, 1, False)] * 4, 160, AIR),
+    'special': ([(0, 1, 1, False), (1, 1, 0, False), (0, 1, 1, False), (1, 1, 0, False)], 195, BASE),
+    'hit':     ([(1, 0, 1, False)] * 4, 185, BASE),
+    'block':   ([(0, 0, 1, False)] * 4, 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 195, BASE),
+}
+
+# Boneco de treino: grid real 3x3 (r0: em pe | r1: tomando hit com faisca |
+# r2: cambaleando). Celulas 3-tuplas (ci, ri, flip).
+BONECO_POSES = {
+    'idle':    ([(0, 0, False), (1, 0, False), (2, 0, False), (1, 0, False)], 195, BASE),
+    'walk':    ([(0, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 2, False)] * 4, 165, AIR),
+    'crouch':  ([(0, 2, False)] * 4, 125, BASE),
+    'punch':   ([(0, 1, False)] * 4, 175, BASE),
+    'kick':    ([(1, 1, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 2, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 2, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(1, 1, False)] * 4, 160, AIR),
+    'special': ([(2, 1, False)] * 4, 195, BASE),
+    'hit':     ([(0, 1, False), (1, 1, False), (2, 1, False), (1, 1, False)], 185, BASE),
+    'block':   ([(2, 2, False)] * 4, 190, BASE),
+    'ko':      ([(0, 2, False)] * 4, 76, BASE),
+    'win':     ([(2, 2, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'engenheira-prompt': {
+        'sheets': ['engenheira de promt 1.jpg', 'prompt-engineer-sheet-b.png'],
+        'abilities': 'prompt-engineer-ability-atlas.png',
+        'poses': ENGENHEIRA_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
+    'boneco-treino': {
+        'sheet': 'training-dummy-spritesheet.png',
+        'abilities': 'prompt-engineer-ability-atlas.png',
+        'abilities_keep': True,
+        'poses': BONECO_POSES,
+        'ui_cell': (0, 0, False),
+        'row_bands': [(19, 461), (470, 960), (960, 1440)],
+        'col_bands': [(0, 640), (640, 1280), (1280, 1920)],
+        'dark_bg': True,
+    },
     'winx-exe': {
         'sheet': 'winx.exe reformulada.jpg',
         'abilities': 'habilidades-dev-veterano.png',
@@ -359,8 +441,9 @@ def main():
         cfg = FIGHTERS[fid]
         sheets = cfg.get('sheets') or [cfg['sheet']]
         cells = {}
+        load_sheet._dark_bg = cfg.get('dark_bg', False)
         for si, sh in enumerate(sheets):
-            sc = load_sheet(SRC / sh, row_bands=cfg.get('row_bands'))
+            sc = load_sheet(SRC / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'))
             for k, v in sc.items():
                 cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
