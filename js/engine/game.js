@@ -168,6 +168,10 @@ class Game {
         f.applyPet();
         if (this.round === 1) { f.charge = [0, 0]; f.ultimate = 0; }
         if (this.mode === 'training') { f.charge = [100, 100]; f.ultimate = 100; }
+    if (this.mode === 'training' && this.cfg.autoHeal && f.alive && f.hp < f.maxHp) {
+      f.hp = Math.min(f.maxHp, f.hp + 0.25);
+      if (f.hpBar > f.hp) f.hpBar = f.hp;
+    }
       });
     });
     this.roundTimer = this.mode === 'training' ? Infinity : this.cfg.timer * 60;
@@ -419,6 +423,15 @@ class Game {
       if (dm === 'cpu') return AI.think(f, opp, this.cfg.difficulty);
       if (dm === 'block') { const i = Object.assign({}, EMPTY_INPUT); if (opp.x > f.x) i.left = true; else i.right = true; i.down = this.time % 120 > 60; return i; }
       if (dm === 'jump') return Object.assign({}, EMPTY_INPUT, { up: this.time % 70 === 0 });
+      if (dm === 'walk') { const i = Object.assign({}, EMPTY_INPUT); i[this.time % 240 < 120 ? 'left' : 'right'] = true; return i; }
+      if (dm === 'crouchd') return Object.assign({}, EMPTY_INPUT, { down: true });
+      if (dm === 'mix') {
+        const t = this.time % 400;
+        if (t < 90) return Object.assign({}, EMPTY_INPUT, { down: true });
+        if (t < 180) return Object.assign({}, EMPTY_INPUT, { up: this.time % 70 === 0 });
+        if (t < 270) { const i = Object.assign({}, EMPTY_INPUT); i[t % 40 < 20 ? 'left' : 'right'] = true; return i; }
+        return EMPTY_INPUT;
+      }
       return EMPTY_INPUT;
     }
     if (this.cfg.cpu[ti]) return AI.think(f, opp, this.cfg.difficulty);
