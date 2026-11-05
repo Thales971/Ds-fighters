@@ -43,7 +43,7 @@
       bio: 'Veterano de ombros largos, cabeça raspada e barba cinza. Resolve tudo no braço — e, no overdrive, libera nanomáquinas que reforçam o corpo e cada impacto.',
       colors: { skin: '#c98f69', hair: '#b9b3aa', shirt: '#22232a', pants: '#17191d', shoes: '#101114', accent: '#f29438' },
       traits: { veteran: true, nanomachines: true, heavyBrawler: true },
-      stats: { power: 1.38, speed: 1.0, weight: 1.1, hp: 140, meterRate: 1.35 },
+      stats: { power: 1.42, speed: 1.02, weight: 1.1, hp: 150, meterRate: 1.35 },
       quotes: {
         intro: ['Já vi esse bug antes.', 'Sem camisa, sem desculpas.'],
         win: ['Patch aplicado.', 'Pode subir para produção.'],

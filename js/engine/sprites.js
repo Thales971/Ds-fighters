@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12l-anim: Hana animada, ult cura/buff, punch/kick do Ciber (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12l-anim';
+    // v12m-status: status + buff na Hana, no Ciber e no Dev Senior (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12m-status';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
