@@ -47,7 +47,22 @@ def load_sheet(path, min_sz=350, row_bands=None):
         a[0:8, :].reshape(-1, 3), a[-8:, :].reshape(-1, 3),
         a[:, 0:8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)]), axis=0)
     d = np.abs(a - bg).sum(axis=2)
-    fg = ndimage.binary_closing(d > 120, structure=np.ones((3, 3)))
+    R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    magenta_like = (R > G + 40) & (B > G + 25)
+    # FLOOD FILL: o fundo e conectado as bordas da imagem. Candidato a fundo
+    # = magenta OU parecido com o bg; a partir das bordas, so o que e alcancavel
+    # e fundo. O interior da figura (QUALQUER cor) nunca e comido.
+    # so e inundavel o que e MAGENTA-LIKE (azul alto) ou muito proximo do bg.
+    # Cabelo vermelho da Hana (d~100 do fundo, sem azul) NUNCA e inundavel,
+    # mesmo pelos vaos entre os fios.
+    bg_like = magenta_like | (d <= 60)
+    seed = np.zeros_like(bg_like)
+    seed[0, :] = bg_like[0, :]
+    seed[-1, :] = bg_like[-1, :]
+    seed[:, 0] = bg_like[:, 0]
+    seed[:, -1] = bg_like[:, -1]
+    flooded = ndimage.binary_propagation(seed, mask=bg_like, structure=np.ones((3, 3)))
+    fg = ndimage.binary_closing(~flooded, structure=np.ones((3, 3)))
     rb = row_bands or [b for b in bands(fg.sum(axis=1), 30) if b[1] - b[0] > 40]
     cb = [b for b in bands(fg.sum(axis=0), 20) if b[1] - b[0] > 40]
     cells = {}
@@ -73,12 +88,21 @@ def load_sheet(path, min_sz=350, row_bands=None):
 
 
 def figure_rgba(crop, mask, bg):
-    """Croma-key com unmixing de cor e denoise (sem fringe do JPEG)."""
+    """Croma-key por regra de cor + unmixing + denoise (sem fringe do JPEG).
+    Fundo magenta = azul alto (B>G+25); vermelho sem azul (cabelo da Hana)
+    e figura solida, mesmo perto do fundo em distancia RGB."""
     a = np.array(crop).astype(float)
     d = np.abs(a - bg).sum(axis=2)
-    alpha = np.clip((d - 130.0) / 60.0, 0.0, 1.0)
+    # interior da figura (mask do flood fill) = 100% solido;
+    # a casca de 1px na borda recebe rampa suave (anti-aliasing).
+    solid = ndimage.binary_erosion(mask, structure=np.ones((3, 3)))
+    alpha = np.zeros(mask.shape, dtype=float)
+    alpha[solid] = 1.0
+    ring = mask & ~solid
+    alpha[ring] = np.clip((d[ring] - 60.0) / 80.0, 0.15, 1.0)
     alpha[~mask] = 0.0
-    mag = (d < 260) & (alpha > 0.99)
+    R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    mag = (R > G + 40) & (B > G + 25) & (alpha > 0.99) & (d < 260)
     if mag.any():
         g = a[..., 1]
         a2 = a.copy()
@@ -130,31 +154,34 @@ def place(sheet, fig, target_h, foot_y, col, pose_i, dx=0, flip=False):
 
 
 # (ci, ri, flip) por frame — None repete o anterior
-# Layout real da Hana (7 linhas x 4 cols, primeira banda da folha eram duas
-# linhas grudadas): r0 idle/andar/pulo/garra | r1 agachar/block/tiro/hit
-# r2 agachar/chute/andar/tiro | r3 andar/garra/hit/block | r4 garra/pulo/tiro/hit
-# r5 chute/pulo/tiro/vitoria | r6 garra/andar/tiro/hit
+# Layout real da Hana (7 linhas x 4 cols). Mapeamento CONSERVADOR: uma celula
+# por pose (zero flicker), facing verificado programaticamente pelo cabelo
+# vermelho (massa de cabelo fica atras da figura). Celulas com sinal fraco
+# de facing foram evitadas; as que olham pra esquerda foram espelhadas.
 HANA_POSES = {
-    'idle':    ([(0, 0, False)] * 4, 195, BASE),
-    'walk':    ([(1, 0, False), (2, 2, False), (1, 6, False), (1, 0, False)], 190, BASE),
-    'jump':    ([(2, 0, False), (1, 4, False), (1, 5, False), (2, 0, False)], 165, AIR),
-    'crouch':  ([(0, 1, False), (0, 2, False), (0, 1, False), (0, 2, False)], 125, BASE),
-    'punch':   ([(3, 0, False), (1, 3, False), (0, 4, False), (0, 6, False)], 175, BASE),
-    'kick':    ([(1, 2, False), (0, 5, False), (1, 2, False), (0, 5, False)], 165, BASE),
-    'cpunch':  ([(0, 4, False)] * 4, 130, BASE),
-    'ckick':   ([(0, 5, False)] * 4, 150, BASE),
-    'jpunch':  ([(3, 0, False)] * 4, 170, AIR),
-    'jkick':   ([(1, 5, False)] * 4, 160, AIR),
-    'special': ([(2, 1, False), (3, 2, False), (2, 4, False), (2, 5, False)], 195, BASE),
-    'hit':     ([(3, 1, False), (2, 3, False), (3, 4, False), (3, 6, False)], 185, BASE),
-    'block':   ([(1, 1, False), (3, 3, False), (1, 1, False), (3, 3, False)], 190, BASE),
-    'ko':      ([(3, 6, False)] * 4, 76, BASE),
-    'win':     ([(3, 5, False)] * 4, 195, BASE),
+    'idle':    ([(0, 1, False)] * 4, 195, BASE),
+    'walk':    ([(2, 0, False)] * 4, 190, BASE),
+    'jump':    ([(1, 2, True)] * 4, 165, AIR),
+    'crouch':  ([(3, 2, True)] * 4, 125, BASE),
+    'punch':   ([(0, 0, False)] * 4, 175, BASE),
+    'kick':    ([(0, 2, False)] * 4, 165, BASE),
+    'cpunch':  ([(1, 0, False)] * 4, 130, BASE),
+    'ckick':   ([(0, 6, False)] * 4, 150, BASE),
+    'jpunch':  ([(1, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, False)] * 4, 160, AIR),
+    'special': ([(2, 1, False), (2, 6, False), (2, 5, False), (2, 1, False)], 195, BASE),
+    'hit':     ([(2, 2, False)] * 4, 185, BASE),
+    'block':   ([(3, 1, True)] * 4, 190, BASE),
+    'ko':      ([(2, 2, False)] * 4, 76, BASE),
+    'win':     ([(3, 5, True)] * 4, 195, BASE),
 }
 
+# Ciber: facing verificado programaticamente pelo olho optico vermelho
+# (r2c2, r2c3 e r3c2 olham pra ESQUERDA nativamente -> espelhadas; o resto
+# e DIREITA, sem flip). Mapeamento conservador: uma celula por pose.
 CIBER_POSES = {
-    'idle':    ([(0, 0, False), (0, 3, True), (0, 4, True), (0, 0, False)], 195, BASE),
-    'walk':    ([(1, 0, False), (2, 3, True), (1, 4, True), (1, 0, False)], 190, BASE),
+    'idle':    ([(0, 0, False)] * 4, 195, BASE),
+    'walk':    ([(1, 0, False)] * 4, 190, BASE),
     'jump':    ([(2, 0, False)] * 4, 165, AIR),
     'crouch':  ([(3, 0, False)] * 4, 125, BASE),
     'punch':   ([(0, 1, False)] * 4, 175, BASE),
@@ -163,7 +190,7 @@ CIBER_POSES = {
     'ckick':   ([(3, 0, False)] * 4, 150, BASE),
     'jpunch':  ([(0, 1, False)] * 4, 170, AIR),
     'jkick':   ([(1, 1, False)] * 4, 160, AIR),
-    'special': ([(3, 2, False), (3, 4, True), (3, 2, False), (3, 4, True)], 195, BASE),
+    'special': ([(2, 1, False)] * 4, 195, BASE),
     'hit':     ([(0, 2, False)] * 4, 185, BASE),
     'block':   ([(1, 2, False)] * 4, 190, BASE),
     'ko':      ([(1, 3, False)] * 4, 76, BASE),
@@ -177,7 +204,7 @@ FIGHTERS = {
         'sheet': 'Hana sprites.jpg',
         'abilities': 'hana abilidades.jpg',
         'poses': HANA_POSES,
-        'ui_cell': (0, 0, False),
+        'ui_cell': (0, 1, False),
         # primeira banda da projecao (11-269) sao DUAS linhas grudadas: split em 135
         'row_bands': [(11, 135), (135, 269), (276, 388), (396, 507), (516, 627), (635, 750), (761, 879)],
     },

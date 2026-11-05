@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12j-hana-fix: Hana sem sprite duplo (banda dupla separada) (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12j-hana-fix';
+    // v12k-floodfix: flood-fill no recorte (Hana inteira), flips corrigidos, idle sem tiro (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12k-floodfix';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
