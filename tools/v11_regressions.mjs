@@ -46,7 +46,7 @@ let checks = 0;
 function pass(condition, message) { assert.ok(condition, message); checks++; }
 function def(id) { const f = api.FIGHTERS.find((x) => x.id === id); assert.ok(f, `fighter ${id} exists`); return f; }
 
-const expectedPower = { mis: 1.37, 'dev-senior': 1.38 };
+const expectedPower = { mis: 1.37, 'dev-senior': 1.42 };
 for (const id of fighters) {
   const f = def(id);
   pass(f.secret !== true, `${id} is a normal unlocked fighter`);

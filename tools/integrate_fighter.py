@@ -39,7 +39,7 @@ def bands(profile, thr):
     return out
 
 
-def load_sheet(path, min_sz=350, row_bands=None):
+def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     """Detecta bg pelas bordas e o grid por projecao; extrai figuras."""
     im = Image.open(path).convert('RGB')
     a = np.array(im).astype(int)
@@ -55,16 +55,21 @@ def load_sheet(path, min_sz=350, row_bands=None):
     # so e inundavel o que e MAGENTA-LIKE (azul alto) ou muito proximo do bg.
     # Cabelo vermelho da Hana (d~100 do fundo, sem azul) NUNCA e inundavel,
     # mesmo pelos vaos entre os fios.
-    bg_like = magenta_like | (d <= 60)
-    seed = np.zeros_like(bg_like)
-    seed[0, :] = bg_like[0, :]
-    seed[-1, :] = bg_like[-1, :]
-    seed[:, 0] = bg_like[:, 0]
-    seed[:, -1] = bg_like[:, -1]
-    flooded = ndimage.binary_propagation(seed, mask=bg_like, structure=np.ones((3, 3)))
-    fg = ndimage.binary_closing(~flooded, structure=np.ones((3, 3)))
+    if flood:
+        bg_like = magenta_like | (d <= 60)
+        seed = np.zeros_like(bg_like)
+        seed[0, :] = bg_like[0, :]
+        seed[-1, :] = bg_like[-1, :]
+        seed[:, 0] = bg_like[:, 0]
+        seed[:, -1] = bg_like[:, -1]
+        flooded = ndimage.binary_propagation(seed, mask=bg_like, structure=np.ones((3, 3)))
+        fg = ndimage.binary_closing(~flooded, structure=np.ones((3, 3)))
+    else:
+        # folhas de habilidade: FX rosa/petala sao magenta-like e seriam
+        # inundados pelo flood — nelas a distancia de cor basta.
+        fg = ndimage.binary_closing(d > 120, structure=np.ones((3, 3)))
     rb = row_bands or [b for b in bands(fg.sum(axis=1), 30) if b[1] - b[0] > 40]
-    cb = [b for b in bands(fg.sum(axis=0), 20) if b[1] - b[0] > 40]
+    cb = col_bands or [b for b in bands(fg.sum(axis=0), 20) if b[1] - b[0] > 40]
     cells = {}
     for ri, (y0, y1) in enumerate(rb):
         for ci, (x0, x1) in enumerate(cb):
@@ -154,43 +159,41 @@ def place(sheet, fig, target_h, foot_y, col, pose_i, dx=0, flip=False):
 
 
 # (ci, ri, flip) por frame — None repete o anterior
-# Layout real da Hana (7 linhas x 4 cols). Mapeamento CONSERVADOR: uma celula
-# por pose (zero flicker), facing verificado programaticamente pelo cabelo
-# vermelho (massa de cabelo fica atras da figura). Celulas com sinal fraco
-# de facing foram evitadas; as que olham pra esquerda foram espelhadas.
+# Hana animada: consenso das classificacoes full-res + detector de cabelo.
+# idle alterna 2 quadros, walk 3, garras 2 — ela se mexe como os outros.
 HANA_POSES = {
-    'idle':    ([(0, 1, False)] * 4, 195, BASE),
-    'walk':    ([(2, 0, False)] * 4, 190, BASE),
+    'idle':    ([(0, 1, False), (1, 1, False), (0, 1, False), (1, 1, False)], 195, BASE),
+    'walk':    ([(1, 0, False), (2, 0, False), (1, 1, False), (2, 0, False)], 190, BASE),
     'jump':    ([(1, 2, True)] * 4, 165, AIR),
     'crouch':  ([(3, 2, True)] * 4, 125, BASE),
-    'punch':   ([(0, 0, False)] * 4, 175, BASE),
+    'punch':   ([(3, 0, False), (0, 0, False), (3, 0, False), (0, 0, False)], 175, BASE),
     'kick':    ([(0, 2, False)] * 4, 165, BASE),
-    'cpunch':  ([(1, 0, False)] * 4, 130, BASE),
+    'cpunch':  ([(0, 0, False)] * 4, 130, BASE),
     'ckick':   ([(0, 6, False)] * 4, 150, BASE),
-    'jpunch':  ([(1, 0, False)] * 4, 170, AIR),
+    'jpunch':  ([(3, 0, False)] * 4, 170, AIR),
     'jkick':   ([(0, 2, False)] * 4, 160, AIR),
-    'special': ([(2, 1, False), (2, 6, False), (2, 5, False), (2, 1, False)], 195, BASE),
+    'special': ([(2, 1, False), (3, 1, True), (2, 6, False), (2, 5, False)], 195, BASE),
     'hit':     ([(2, 2, False)] * 4, 185, BASE),
-    'block':   ([(3, 1, True)] * 4, 190, BASE),
+    'block':   ([(1, 1, False)] * 4, 190, BASE),
     'ko':      ([(2, 2, False)] * 4, 76, BASE),
     'win':     ([(3, 5, True)] * 4, 195, BASE),
 }
 
-# Ciber: facing verificado programaticamente pelo olho optico vermelho
-# (r2c2, r2c3 e r3c2 olham pra ESQUERDA nativamente -> espelhadas; o resto
-# e DIREITA, sem flip). Mapeamento conservador: uma celula por pose.
+# Ciber com mais sprites da folha: idle/walk alternam 2 quadros, punch/kick
+# usam as poses de acao (r1) e special usa foguetes/buff das linhas 2 e 4.
+# Facing pelo olho optico: so r2c2, r2c3 e r3c2 olham pra esquerda (flip).
 CIBER_POSES = {
-    'idle':    ([(0, 0, False)] * 4, 195, BASE),
-    'walk':    ([(1, 0, False)] * 4, 190, BASE),
+    'idle':    ([(0, 0, False), (0, 3, False), (0, 0, False), (0, 3, False)], 195, BASE),
+    'walk':    ([(1, 0, False), (1, 4, False), (1, 0, False), (1, 4, False)], 190, BASE),
     'jump':    ([(2, 0, False)] * 4, 165, AIR),
     'crouch':  ([(3, 0, False)] * 4, 125, BASE),
-    'punch':   ([(0, 1, False)] * 4, 175, BASE),
-    'kick':    ([(1, 1, False)] * 4, 165, BASE),
+    'punch':   ([(2, 1, False), (0, 1, False), (2, 1, False), (0, 1, False)], 175, BASE),
+    'kick':    ([(1, 1, False), (3, 1, False), (1, 1, False), (3, 1, False)], 165, BASE),
     'cpunch':  ([(3, 0, False)] * 4, 130, BASE),
     'ckick':   ([(3, 0, False)] * 4, 150, BASE),
     'jpunch':  ([(0, 1, False)] * 4, 170, AIR),
     'jkick':   ([(1, 1, False)] * 4, 160, AIR),
-    'special': ([(2, 1, False)] * 4, 195, BASE),
+    'special': ([(2, 1, False), (2, 4, False), (2, 2, True), (3, 2, True)], 195, BASE),
     'hit':     ([(0, 2, False)] * 4, 185, BASE),
     'block':   ([(1, 2, False)] * 4, 190, BASE),
     'ko':      ([(1, 3, False)] * 4, 76, BASE),
@@ -203,6 +206,9 @@ FIGHTERS = {
     'hana': {
         'sheet': 'Hana sprites.jpg',
         'abilities': 'hana abilidades.jpg',
+        # grid forcado da folha de habilidades (deteccao automatica perdia a linha da sakura)
+        'ab_rows': [(14, 168), (189, 327), (350, 477), (499, 649), (669, 876)],
+        'ab_cols': [(88, 221), (348, 502), (598, 802), (885, 1118)],
         'poses': HANA_POSES,
         'ui_cell': (0, 1, False),
         # primeira banda da projecao (11-269) sao DUAS linhas grudadas: split em 135
@@ -231,8 +237,8 @@ def build_sheet(cells, pose_map):
     return sheet
 
 
-def build_abilities(path):
-    cells = load_sheet(path, min_sz=80)
+def build_abilities(path, row_bands=None, col_bands=None):
+    cells = load_sheet(path, min_sz=80, row_bands=row_bands, col_bands=col_bands, flood=False)
     # ordena por (linha, coluna) e agrupa em 5 linhas x 4 cols
     items = sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0]))
     atlas = Image.new('RGBA', (512, 640), (0, 0, 0, 0))
@@ -272,7 +278,7 @@ def main():
         print(fid, '->', len(cells), 'figuras')
         sheet = build_sheet(cells, cfg['poses'])
         sheet.save(ROOT / f'assets/sprites/{fid}.png')
-        atlas = build_abilities(SRC / cfg['abilities'])
+        atlas = build_abilities(SRC / cfg['abilities'], row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'))
         atlas.save(ROOT / f'assets/abilities/{fid}.png')
         face, port = build_ui(cells, cfg['ui_cell'])
         face.save(ROOT / f'assets/ui/face-{fid}.png')
