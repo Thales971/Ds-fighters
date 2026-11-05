@@ -32,6 +32,8 @@ const POWERS = {
       { id: 'afo', name: 'All For One: Merge Total', slot: 'ultimate', row: 4, kind: 'barrage', dmg: 7, count: 12, seek: true, finisher: 30, fx: { vuln: 240, slow: 100, meterBurn: 8 }, sfx: 'ultimate', desc: 'Rajada de IAs acumuladas: vulnerável, lento e medidor queimado no finisher.' },
       { id: 'remotesteal', name: 'Copy-Paste Remoto', slot: 'extra', row: 5, kind: 'steal', time: 360, dmg: 6, range: 420, delay: 18, blockable: true, cd: 240, sfx: 'steal', desc: 'Copia temporariamente cinco poderes dentro do alcance. Aviso antes do impacto; bloqueio, esquiva ou sair do alcance impedem o roubo.' },
       { id: 'grabsteal', name: 'Agarrão Ctrl+C', slot: 'extra', row: 6, kind: 'grabsteal', dmg: 12, speed: 20, time: 600, cd: 130, sfx: 'dash', desc: 'Investida limitada: no acerto de perto, atordoa e copia cinco poderes. Pode ser bloqueada ou evitada; errar encerra a investida.' },
+      { id: 'virus', name: 'Vírus de Corrupção', slot: 'extra', row: 8, kind: 'shot', dmg: 16, speed: 8, seek: true, pierce: true, multiHit: 2, cd: 70, fx: { freeze: 100, poison: 200, chill: 120, bleed: 160 }, sfx: 'magic', desc: 'AUTO-AIM: vírus que congela, envenena, desacelera e sangra o alvo.' },
+      { id: 'format', name: 'Format C: /IA', slot: 'extra', row: 9, kind: 'blast', at: 'target', dmg: 34, radius: 240, launch: -12, cd: 120, fx: { paralyze: 50, vertigo: 100, glitch: 160, meterBurn: 12, drain: 0.12 }, sfx: 'ultimate', desc: 'AUTO-AIM: formatação do sistema — paralisia, vertigem, glitch, dreno de vida e medidor queimado.' },
     ],
   },
   felipinho: {

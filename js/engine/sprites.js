@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v16c-fix: walk da Guarda sem flip-flop; boneco sem duplo (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v16c-fix';
+    // v17-iales: Iales com 10 habilidades e atlas 4x10
+    return src + '?v=v17-iales';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
