@@ -78,7 +78,8 @@ const SPRITE_LAYOUT = {
     "grika": "assets/sprites/grika.png",
     "guarda-digital": "assets/sprites/guarda-digital.png",
     "engenheira-prompt": "assets/sprites/engenheira-prompt.png",
-    "boneco-treino": "assets/sprites/boneco-treino.png"
+    "boneco-treino": "assets/sprites/boneco-treino.png",
+    "odette": "assets/sprites/odette.png"
   }
 };
 
@@ -108,14 +109,14 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     poseScale: {
       block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8,
-      walk: 0.85, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
+      walk: 1.0, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
       special: 0.8, win: 0.75,
     },
   });
 });
 /* Nina e uma composicao piloto+mecha: normalizacao mais suave. */
 SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter['nina-vector'] || {}, {
-  poseScale: { block: 0.8, crouch: 0.8, walk: 0.85, hit: 0.8 },
+  poseScale: { block: 0.8, crouch: 0.8, walk: 1.0, hit: 0.8 },
 });
 
 /* V12m: as DEMAIS folhas refinadas (dev-senior, dev-senior-nano, dandara,
@@ -134,7 +135,7 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     poseScale: {
       block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8,
-      walk: 0.85, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
+      walk: 1.0, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
       special: 0.8, win: 0.75,
     },
   });
