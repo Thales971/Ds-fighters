@@ -111,4 +111,14 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
   poseScale: { block: 0.8, crouch: 0.8, walk: 0.85, hit: 0.8 },
 });
 
+/* V12m: as DEMAIS folhas refinadas (dev-senior, dev-senior-nano, dandara,
+   winx) tem o mesmo defeito: hit/win em altura cheia (198px vs ~172/144 do
+   elenco classico) — ao tomar dano ou vencer elas pareciam GIGANTES.
+   Mesmo tratamento das outras: pose compacta com pivo no pe. */
+['dev-senior', 'dev-senior-nano', 'dandara-query', 'winx-exe'].forEach((id) => {
+  SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
+    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, win: 0.75 },
+  });
+});
+
 /* Fim do layout. */
