@@ -7,7 +7,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>DS Fighters — Edição V12</title>
-  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 37 lutadores, 5 habilidades cada, 46 arenas animadas, 2x2 e online." />
+  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 38 lutadores, 5 habilidades cada, 46 arenas animadas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <script>
     (async () => {
@@ -22,9 +22,9 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v15b-walkfix" />
-  <link rel="stylesheet" href="css/account.css?v=v15b-walkfix" />
-  <link rel="stylesheet" href="css/mobile.css?v=v15b-walkfix" />
+  <link rel="stylesheet" href="css/style.css?v=v16-odette" />
+  <link rel="stylesheet" href="css/account.css?v=v16-odette" />
+  <link rel="stylesheet" href="css/mobile.css?v=v16-odette" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -67,7 +67,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EDIÇÃO V12 · 37 LUTADORES · 46 ARENAS · TORNEIO VERCEL EM ATIVAÇÃO</p>
+      <p class="tagline">EDIÇÃO V12 · 38 LUTADORES · 46 ARENAS · TORNEIO VERCEL EM ATIVAÇÃO</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
       <p class="credit">Arte e código originais · Música enviada pelo proprietário · Jogo gratuito</p>
@@ -367,7 +367,7 @@
     </div>
   </div>
 
-  <script src="assets/sprites/layout.js?v=v15b-walkfix"></script>
+  <script src="assets/sprites/layout.js?v=v16-odette"></script>
   <script>
     /* Blindagem contra layout.js velho em cache: os arquivos de dados
        (fighters-v7..v11) escrevem em SPRITE_LAYOUT.files / .perFighter,
@@ -391,53 +391,54 @@
       }
     })();
   </script>
-  <script src="assets/stages/sheets.js?v=v15b-walkfix"></script>
-  <script src="assets/maps/anim.js?v=v15b-walkfix"></script>
-  <script src="js/core/profile.js?v=v15b-walkfix"></script>
-  <script src="js/config/firebase-config.js?v=v15b-walkfix"></script>
-  <script src="js/core/cloud.js?v=v15b-walkfix"></script>
-  <script src="js/config/supabase-config.js?v=v15b-walkfix"></script>
+  <script src="assets/stages/sheets.js?v=v16-odette"></script>
+  <script src="assets/maps/anim.js?v=v16-odette"></script>
+  <script src="js/core/profile.js?v=v16-odette"></script>
+  <script src="js/config/firebase-config.js?v=v16-odette"></script>
+  <script src="js/core/cloud.js?v=v16-odette"></script>
+  <script src="js/config/supabase-config.js?v=v16-odette"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=v15b-walkfix"></script>
-  <script src="js/data/fighters.js?v=v15b-walkfix"></script>
-  <script src="js/data/fighters-v10.js?v=v15b-walkfix"></script>
-  <script src="js/data/fighters-v11.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-turbo.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v4.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v5.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v6.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-balance-v6.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v7.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v8.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v9.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v10.js?v=v15b-walkfix"></script>
-  <script src="js/data/powers-v11.js?v=v15b-walkfix"></script>
-    <script src="js/data/fighters-v12.js?v=v15b-walkfix"></script>
-    <script src="js/data/fighters-v13.js?v=v15b-walkfix"></script>
-    <script src="js/data/fighters-v14.js?v=v15b-walkfix"></script>
-    <script src="js/data/fighters-v15.js?v=v15b-walkfix"></script>
-  <script src="js/data/pets.js?v=v15b-walkfix"></script>
-  <script src="js/data/stages.js?v=v15b-walkfix"></script>
-  <script src="js/engine/sprites.js?v=v15b-walkfix"></script>
-  <script src="js/engine/fx.js?v=v15b-walkfix"></script>
-  <script src="js/engine/audio.js?v=v15b-walkfix"></script>
-  <script src="js/engine/input.js?v=v15b-walkfix"></script>
-  <script src="js/ui/viewport.js?v=v15b-walkfix"></script>
-  <script src="js/engine/projectile.js?v=v15b-walkfix"></script>
-  <script src="js/engine/fighter.js?v=v15b-walkfix"></script>
-  <script src="js/engine/weather.js?v=v15b-walkfix"></script>
-  <script src="js/engine/mechanics.js?v=v15b-walkfix"></script>
-  <script src="js/engine/stage.js?v=v15b-walkfix"></script>
-  <script src="js/engine/ai.js?v=v15b-walkfix"></script>
-  <script src="js/engine/game.js?v=v15b-walkfix"></script>
+  <script src="js/core/supabase-cloud.js?v=v16-odette"></script>
+  <script src="js/data/fighters.js?v=v16-odette"></script>
+  <script src="js/data/fighters-v10.js?v=v16-odette"></script>
+  <script src="js/data/fighters-v11.js?v=v16-odette"></script>
+  <script src="js/data/powers.js?v=v16-odette"></script>
+  <script src="js/data/powers-turbo.js?v=v16-odette"></script>
+  <script src="js/data/powers-v4.js?v=v16-odette"></script>
+  <script src="js/data/powers-v5.js?v=v16-odette"></script>
+  <script src="js/data/powers-v6.js?v=v16-odette"></script>
+  <script src="js/data/powers-balance-v6.js?v=v16-odette"></script>
+  <script src="js/data/powers-v7.js?v=v16-odette"></script>
+  <script src="js/data/powers-v8.js?v=v16-odette"></script>
+  <script src="js/data/powers-v9.js?v=v16-odette"></script>
+  <script src="js/data/powers-v10.js?v=v16-odette"></script>
+  <script src="js/data/powers-v11.js?v=v16-odette"></script>
+    <script src="js/data/fighters-v12.js?v=v16-odette"></script>
+    <script src="js/data/fighters-v13.js?v=v16-odette"></script>
+    <script src="js/data/fighters-v14.js?v=v16-odette"></script>
+    <script src="js/data/fighters-v15.js?v=v16-odette"></script>
+    <script src="js/data/fighters-v16.js?v=v16-odette"></script>
+  <script src="js/data/pets.js?v=v16-odette"></script>
+  <script src="js/data/stages.js?v=v16-odette"></script>
+  <script src="js/engine/sprites.js?v=v16-odette"></script>
+  <script src="js/engine/fx.js?v=v16-odette"></script>
+  <script src="js/engine/audio.js?v=v16-odette"></script>
+  <script src="js/engine/input.js?v=v16-odette"></script>
+  <script src="js/ui/viewport.js?v=v16-odette"></script>
+  <script src="js/engine/projectile.js?v=v16-odette"></script>
+  <script src="js/engine/fighter.js?v=v16-odette"></script>
+  <script src="js/engine/weather.js?v=v16-odette"></script>
+  <script src="js/engine/mechanics.js?v=v16-odette"></script>
+  <script src="js/engine/stage.js?v=v16-odette"></script>
+  <script src="js/engine/ai.js?v=v16-odette"></script>
+  <script src="js/engine/game.js?v=v16-odette"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=v15b-walkfix"></script>
-  <script src="js/net/online.js?v=v15b-walkfix"></script>
-  <script src="js/ui/hud.js?v=v15b-walkfix"></script>
-  <script src="js/ui/ui.js?v=v15b-walkfix"></script>
-  <script src="js/ui/account.js?v=v15b-walkfix"></script>
-  <script src="js/main.js?v=v15b-walkfix"></script>
-  <script src="js/net/tournament.js?v=v15b-walkfix"></script>
+  <script src="js/net/room-core.js?v=v16-odette"></script>
+  <script src="js/net/online.js?v=v16-odette"></script>
+  <script src="js/ui/hud.js?v=v16-odette"></script>
+  <script src="js/ui/ui.js?v=v16-odette"></script>
+  <script src="js/ui/account.js?v=v16-odette"></script>
+  <script src="js/main.js?v=v16-odette"></script>
+  <script src="js/net/tournament.js?v=v16-odette"></script>
 </body>
 </html>
