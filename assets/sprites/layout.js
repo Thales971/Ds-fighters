@@ -97,18 +97,31 @@ SPRITE_LAYOUT.perFighter = Object.fromEntries(['urbano', 'stack', 'qwen', 'thl',
    Resultado: ao defender, agachar, atacar agachado ou tomar porrada elas
    pareciam GIGANTES. poseScale e aplicado pelo blit com pivo no PE: encolhe a
    silhueta sem tirar ninguem do chao. */
-SPRITE_LAYOUT.perFighter['mis'] = Object.assign(SPRITE_LAYOUT.perFighter['mis'] || {}, {
-  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
-});
-SPRITE_LAYOUT.perFighter['gemini'] = Object.assign(SPRITE_LAYOUT.perFighter['gemini'] || {}, {
-  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
-});
-SPRITE_LAYOUT.perFighter['meta'] = Object.assign(SPRITE_LAYOUT.perFighter['meta'] || {}, {
-  poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8 },
+/* V12o: normalizacao COMPLETA — elas ainda ficavam grandes em diversas
+   poses (walk/punch/kick/special/win a 198px de altura cheia vs ~145-170
+   do elenco classico). Todas as poses de acao na faixa do elenco, pivo no pe. */
+['mis', 'gemini', 'meta'].forEach((id) => {
+  SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
+    poseScale: {
+      block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8,
+      walk: 0.85, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
+      special: 0.8, win: 0.75,
+    },
+  });
 });
 /* Nina e uma composicao piloto+mecha: normalizacao mais suave. */
 SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter['nina-vector'] || {}, {
   poseScale: { block: 0.8, crouch: 0.8, walk: 0.85, hit: 0.8 },
+});
+
+/* V12m: as DEMAIS folhas refinadas (dev-senior, dev-senior-nano, dandara,
+   winx) tem o mesmo defeito: hit/win em altura cheia (198px vs ~172/144 do
+   elenco classico) — ao tomar dano ou vencer elas pareciam GIGANTES.
+   Mesmo tratamento das outras: pose compacta com pivo no pe. */
+['dev-senior', 'dev-senior-nano', 'dandara-query', 'winx-exe'].forEach((id) => {
+  SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
+    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, win: 0.75 },
+  });
 });
 
 /* Fim do layout. */

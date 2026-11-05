@@ -146,6 +146,7 @@ setTimeout(() => {
           else if (move === 'crouch') { f.state = 'crouch'; f.stateTime = 20; f.crouching = true; }
           else if (move === 'dash') { f.state = 'dash'; f.stateTime = 10; f.vx = 14; }
           else if (move === 'hit') { o.dir = -1; f.takeHit({ dmg: 8, stun: 24, launch: -4, kb: 3 }); }
+
           else if (move === 'ko') { f.hp = 0; f.state = 'down'; f.stateTime = 30; f.alive = false; }
           if (move === 4) { o.x = f.x + 90; }  // ultimate e corpo a corpo: alvo colado
           if (move === 4 || (move !== null && typeof move === 'number')) {
