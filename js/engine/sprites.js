@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v16b-hana: Hana com visual reformulado (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v16b-hana';
+    // v16c-fix: walk da Guarda sem flip-flop; boneco sem duplo (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v16c-fix';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
