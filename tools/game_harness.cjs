@@ -100,7 +100,7 @@ setTimeout(() => {
   const g = w.DSGame || vm.runInContext('DSGame', vmc);
   const UI = vm.runInContext('typeof UI === "undefined" ? null : UI', vmc);
   if (!g || !UI) { console.error('DSGame/UI ausentes', !!g, !!UI); process.exit(1); }
-  const outDir = path.join(ROOT, '.vibe', 'game2');
+  const outDir = path.join(ROOT, '.vibe', 'game4');
   fs.mkdirSync(outDir, { recursive: true });
   const pairs = process.argv.length > 3
     ? [[process.argv[2], process.argv[3]]]
@@ -125,7 +125,7 @@ setTimeout(() => {
         ['idle', 60, null], ['walk', 40, 'walkf'], ['walkback', 40, 'walkback'],
         ['jump', 30, 'jump'], ['crouch', 40, 'crouch'], ['block', 40, 'block'],
         ['hit', 30, 'hit'], ['ko', 60, 'ko'], ['dash', 26, 'dash'],
-        ['h1', 26, 0], ['h2', 26, 1], ['h3', 26, 2], ['h4', 22, 3], ['ult', 34, 4],
+        ['h1', 60, 0], ['h2', 90, 1], ['h3', 60, 2], ['h4', 22, 3], ['ult', 130, 4],
       ];
       let j = 0;
       const sub = () => {
@@ -139,7 +139,6 @@ setTimeout(() => {
           f.blocking = false; f.crouching = false; f.vx = 0; f.vy = 0;
           f.charge = [100, 100]; f.ultimate = 100;
           f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.afo = 6;
-          f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.afo = 6;
           if (move === 'block') { f.state = 'block'; f.stateTime = 20; f.blocking = true; }
           else if (move === 'walkback') { f.state = 'walk'; f.stateTime = 30; f.dir = 1; f.x = 480; }
           else if (move === 'walkf') { f.state = 'walk'; f.stateTime = 30; f.dir = 1; f.x = 300; }
@@ -149,7 +148,10 @@ setTimeout(() => {
           else if (move === 'hit') { o.dir = -1; f.takeHit({ dmg: 8, stun: 24, launch: -4, kb: 3 }); }
           else if (move === 'ko') { f.hp = 0; f.state = 'down'; f.stateTime = 30; f.alive = false; }
           if (move === 4) { o.x = f.x + 90; }  // ultimate e corpo a corpo: alvo colado
-          else if (move !== null) { const okk = f.tryCast(move); console.log('CAST ' + move + ' -> ' + okk); }
+          if (move === 4 || (move !== null && typeof move === 'number')) {
+            const okk = f.tryCast(move);
+            console.log('CAST ' + move + ' -> ' + okk + ' state=' + f.state + ' ult=' + f.ultimate);
+          }
           for (let k = 0; k < ticks; k++) g.tick();
           g.render && g.render();
           try {
