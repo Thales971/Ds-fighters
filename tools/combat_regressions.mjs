@@ -118,7 +118,7 @@ for (const id of ['urbano', 'xeon', 'qwen', 'dolynho', 'thl']) {
   assert.equal(kit.length, 5, `${id} has five powers`);
   assert.equal(new Set(kit.map((p) => p.id)).size, 5, `${id} powers are distinct`);
 }
-assert.ok(api.POWERS.iales.powers[7] && api.POWERS.iales.powers[7].id === 'afo2', 'IALES AFO2 is the eighth hotkey contract');
+assert.ok(api.POWERS.iales.powers[9] && api.POWERS.iales.powers[9].id === 'afo2', 'IALES AFO2 is the eighth hotkey contract');
 assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'remotesteal', 'IALES second steal (remote copy) is hotkey 6');
 assert.ok(api.POWERS.iales.powers[6] && api.POWERS.iales.powers[6].id === 'grabsteal' && api.POWERS.iales.powers[6].kind === 'grabsteal', 'IALES grab-steal is hotkey 7');
 assert.ok(api.Profile.SECRET_IDS.includes('qwen'), 'Batata unlock includes Qwen');
