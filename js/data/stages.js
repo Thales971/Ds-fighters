@@ -54,6 +54,7 @@ const STAGE_LIST = [
   { id: 'japan', name: 'Jardim do Sol Nascente', image: 'assets/maps/japan.jpg', group: 'Expansão V5', weather: ['clear', 'wind'], fauna: ['bird', 'butterfly'], mech: 'gong', tint: '#ffc28b', petals: true },
   { id: 'cyberpunk', name: 'Distrito Neon 2077', image: 'assets/maps/cyberpunk.jpg', group: 'Expansão V5', weather: ['rain', 'clear'], fauna: [], mech: 'neonsign', tint: '#b09aff' },
   { id: 'dojo-noite', name: 'Dojo à Noite', image: 'assets/maps/dojo-noite.jpg', group: 'Novos V6', weather: ['clear', 'rain'], fauna: [], mech: 'gong', tint: '#ff9a5c' },
+  { id: 'treino-dojo', name: 'Dojo de Treino', image: 'assets/maps/treino-dojo.jpg', group: 'Novos V6', weather: ['clear'], fauna: [], mech: null, tint: '#d8b98a' },
   { id: 'circo', name: 'Circo Abandonado', image: 'assets/maps/circo.jpg', group: 'Novos V6', weather: ['clear', 'wind'], fauna: [], mech: 'spotlight', tint: '#ffb03b' },
   { id: 'pizzaria', name: 'Pizzaria à Noite', image: 'assets/maps/pizzaria.jpg', group: 'Novos V6', weather: ['clear', 'rain'], fauna: [], mech: 'coffee', tint: '#ff6a2a' },
 ];
