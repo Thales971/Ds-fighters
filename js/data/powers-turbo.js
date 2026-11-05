@@ -57,11 +57,11 @@ Object.assign(POWERS, {
     element: 'trovao',
     theme: 'Raios e sombras do submundo',
     powers: [
-      { id: 'plasma', name: 'Bola de Plasma', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 11, fx: { shock: 90 }, cd: 42, sfx: 'thunder_cast', desc: 'Esfera elétrica que ELETRIZA os controles.' },
-      { id: 'torpedo', name: 'Torpedo Trovão', slot: 'simple', row: 1, kind: 'dash', dmg: 12, speed: 18, fx: { shock: 60 }, cd: 48, sfx: 'dash', desc: 'Voa como um raio horizontal pela arena.' },
-      { id: 'clone', name: 'Clone das Sombras', slot: 'charge', meter: 0, row: 2, kind: 'shot', dmg: 13, speed: 7, pierce: true, big: true, multiHit: 2, fx: { blind: 160 }, sfx: 'magic', desc: 'Um clone sombrio avança e CEGA o rival.' },
-      { id: 'portal', name: 'Portal do Submundo', slot: 'charge', meter: 1, row: 3, kind: 'shadowport', time: 120, burstDmg: 14, fx: { blind: 100 }, sfx: 'magic', desc: 'Afunda num portal de sombra e sai atrás ou por cima do rival. Soco ou chute na saída vira o golpe.' },
-      { id: 'storm', name: 'Tempestade do Submundo', slot: 'ultimate', row: 4, kind: 'rain', count: 7, dmg: 38, fx: { shock: 200, blind: 120 }, sfx: 'ultimate', desc: 'Raios negros e azuis caem sobre o rival.' },
+      { id: 'plasma', name: 'Bola de Plasma', slot: 'simple', row: 0, kind: 'shot', dmg: 12, speed: 12, seek: true, fx: { shock: 120, vuln: 60 }, cd: 38, sfx: 'thunder_cast', desc: 'Esfera elétrica AUTO-AIM que ELETRIZA e deixa VULNERÁVEL.' },
+      { id: 'torpedo', name: 'Torpedo Trovão', slot: 'simple', row: 1, kind: 'dash', dmg: 16, speed: 19, fx: { shock: 100, bleed: 80 }, cd: 44, sfx: 'dash', desc: 'Raio horizontal que ELETRIZA e SANGRA.' },
+      { id: 'clone', name: 'Clone das Sombras', slot: 'charge', meter: 0, row: 2, kind: 'shot', dmg: 16, speed: 8, pierce: true, big: true, multiHit: 3, fx: { blind: 200, poison: 120 }, cd: 58, sfx: 'magic', desc: 'Clone sombrio que CEGA e ENVENENA — atravessa tudo.' },
+      { id: 'portal', name: 'Portal do Submundo', slot: 'charge', meter: 1, row: 3, kind: 'shadowport', time: 140, burstDmg: 20, fx: { blind: 160, shock: 80, stun: 10 }, cd: 70, sfx: 'magic', desc: 'Portal de sombra: sai atrás/por cima com explosão que CEGA, ELETRIZA e ATORDOA.' },
+      { id: 'storm', name: 'Tempestade do Submundo', slot: 'ultimate', row: 4, kind: 'rain', count: 10, dmg: 44, fx: { shock: 260, blind: 180, paralyze: 30 }, sfx: 'ultimate', desc: 'Tempestade devastadora: 10 raios que ELETRIZA, CEGA e PARALISA.' },
     ],
   },
 });
@@ -98,6 +98,6 @@ const SIGNATURES = {
   kotlin: { trait: 'RAPIDEZ + GELO', desc: 'A mais rápida do jogo; cristais causam lentidão.', ability: { chill: 80 }, chainBonus: 1 },
   hacker: { trait: 'ROOTKIT', desc: 'Some na aproximação, abre backdoor, infecta o medidor e derruba o kernel.', ability: { shock: 40, meterBurn: 5 } },
   java: { trait: 'TANQUE + EXPLOSÃO', desc: 'Armadura pesada; habilidades queimam e explodem.', ability: { burn: 90 } },
-  merc: { trait: 'ESQUIVA', desc: 'Passo fantasma atravessa o rival; um desvio limpo devolve medidor.', ability: { bleed: 100 }, dodge: 0.1 },
+  merc: { trait: 'ESQUIVA ELÉTRICA', desc: '10% de esquiva base SEM habilidades + passos fantasma que atravessam o rival; um desvio limpo devolve medidor.', ability: { bleed: 100 }, dodge: 0.2 },
   bhm: { trait: 'RAIO + SOMBRA', desc: 'Eletriza os controles, cega e atravessa o chão como um portal.', ability: { shock: 70 } },
 };

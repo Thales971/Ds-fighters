@@ -9,7 +9,7 @@ const GRAVITY_BASE = 0.64;
 const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
-const HEALTH_MULTIPLIER = 2.00;
+const HEALTH_MULTIPLIER = 3.00;
 const QUAKE_HOLD_MAX = 28;
 const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
 const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
@@ -215,7 +215,7 @@ class Fighter {
     const r = this.meterRate() * amount;
     this.charge[0] = Math.min(100, this.charge[0] + (dealt ? 9 : 6) * r);
     this.charge[1] = Math.min(100, this.charge[1] + (dealt ? 7 : 8) * r);
-    this.ultimate = Math.min(100, this.ultimate + (dealt ? 5.5 : 4.5) * r);
+    this.ultimate = Math.min(100, this.ultimate + (dealt ? 5.5 : 4.5) * r * 0.7);
   }
   ownKit() { return (this.kit && this.kit.powers) || []; }
   currentKit() { return this.stolen ? this.stolen.powers : this.ownKit(); }

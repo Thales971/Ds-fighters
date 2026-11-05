@@ -9,7 +9,7 @@ const ART_SHEETS = {
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
-  // pacote retrô nativo: 4x4, 64px
+  // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette']
@@ -25,7 +25,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v17-iales';
+    return src + '?v=v18-balance';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
