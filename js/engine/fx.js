@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v12p-grika-guarda';
+    return src + '?v=v14a-posefix';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
