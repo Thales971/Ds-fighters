@@ -74,7 +74,9 @@ const SPRITE_LAYOUT = {
     "dev-senior-nano": "assets/sprites/dev-senior-nano.png",
     "dev-veterano": "assets/sprites/dev-veterano.png",
     "hana": "assets/sprites/hana.png",
-    "cyber-psicopata": "assets/sprites/cyber-psicopata.png"
+    "cyber-psicopata": "assets/sprites/cyber-psicopata.png",
+    "grika": "assets/sprites/grika.png",
+    "guarda-digital": "assets/sprites/guarda-digital.png"
   }
 };
 
