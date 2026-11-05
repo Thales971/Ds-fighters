@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12p-grika-guarda: Grika reformulada + Guarda Digital (35 lutadores) (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12p-grika-guarda';
+    // v14a-posefix: poseScale completo na Grika/Guarda/Winx (auditoria pesada) (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v14a-posefix';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;

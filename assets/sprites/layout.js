@@ -122,7 +122,19 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
    Mesmo tratamento das outras: pose compacta com pivo no pe. */
 ['dev-senior', 'dev-senior-nano', 'dandara-query', 'winx-exe'].forEach((id) => {
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
-    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, win: 0.75 },
+    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, win: 0.75, special: 0.8 },
+  });
+});
+
+/* V14a: Grika e Guarda Digital — mesma normalizacao completa das outras
+   folhas refinadas (auditoria pesada apontou special/block/win altas). */
+['grika', 'guarda-digital'].forEach((id) => {
+  SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
+    poseScale: {
+      block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8,
+      walk: 0.85, punch: 0.85, kick: 0.85, jpunch: 0.85, jkick: 0.85,
+      special: 0.8, win: 0.75,
+    },
   });
 });
 
