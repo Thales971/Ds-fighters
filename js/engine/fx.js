@@ -23,7 +23,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v15-treino';
+    return src + '?v=v15b-walkfix';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
