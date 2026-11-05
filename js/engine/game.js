@@ -420,6 +420,7 @@ class Game {
     if (this.mode === 'demo') return AI.think(f, opp, 1.2);
     if (this.mode === 'training' && ti === 1) {
       const dm = this.cfg.dummy || 'stand';
+      if (f.def && f.def.id === 'boneco-treino') return EMPTY_INPUT;
       if (dm === 'cpu') return AI.think(f, opp, this.cfg.difficulty);
       if (dm === 'block') { const i = Object.assign({}, EMPTY_INPUT); if (opp.x > f.x) i.left = true; else i.right = true; i.down = this.time % 120 > 60; return i; }
       if (dm === 'jump') return Object.assign({}, EMPTY_INPUT, { up: this.time % 70 === 0 });

@@ -5,7 +5,7 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt']);
+const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette']);
 const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 — nenhuma usa mais o size 800%
 const UI = {
   hud: HUD,
@@ -179,7 +179,9 @@ const UI = {
     const grid = this.$('sel-grid');
     const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
-    grid.innerHTML = FIGHTERS.map((d, i) => {
+    const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
+    grid.innerHTML = roster.map((d) => {
+      const i = FIGHTERS.indexOf(d);
       const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
       const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
       const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
@@ -300,9 +302,21 @@ const UI = {
     if (f.picks[who].length >= f.need) f.done[who] = true;
     if (f.mode === 'arcade' || f.mode === 'online') {
       if (f.done[0]) return this.afterSelect();
+    } else if (f.mode === 'training') {
+      if (f.p2Human) { if (f.done[0] && f.done[1]) return this.afterSelect(); }
+      else { this.autoDummy(); if (f.done[0]) return this.afterSelect(); }
     } else if (f.done[0] && f.done[1]) return this.afterSelect();
     if (!f.p2Human && f.done[0] && who === 0) f.cursor[1] = (i + 3) % FIGHTERS.length;
     this.renderSelect();
+  },
+  autoDummy() {
+    // Treino: o boneco de madeira entra automaticamente como P2 — parado
+    // no campo, so reage quando recebe golpes.
+    const f = this.flow;
+    if (f.mode !== 'training' || f.done[1]) return;
+    const idx = FIGHTERS.findIndex((d) => d.id === 'boneco-treino');
+    f.picks[1] = [idx];
+    f.done[1] = true;
   },
   selBack(who) {
     const f = this.flow;

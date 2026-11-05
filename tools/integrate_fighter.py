@@ -185,24 +185,25 @@ def place(sheet, fig, target_h, foot_y, col, pose_i, dx=0, flip=False):
 
 
 # (ci, ri, flip) por frame — None repete o anterior
-# Hana animada: consenso das classificacoes full-res + detector de cabelo.
-# idle alterna 2 quadros, walk 3, garras 2 — ela se mexe como os outros.
+# Hana REFORMULADA (visual novo): folha1 (si=0: idle/andar/pulo/soco |
+# agachar/chute/tiro/block) folha2 (si=1: andar/idle/pulo-ar/vitoria |
+# garra/agachar/KO-deitado/block). Toda virada pra direita, sem flips.
 HANA_POSES = {
-    'idle':    ([(0, 1, False), (1, 1, False), (0, 1, False), (1, 1, False)], 195, BASE),
-    'walk':    ([(1, 0, False), (2, 0, False), (1, 1, False), (2, 0, False)], 190, BASE),
-    'jump':    ([(1, 2, True)] * 4, 165, AIR),
-    'crouch':  ([(3, 2, True)] * 4, 125, BASE),
-    'punch':   ([(3, 0, False), (0, 0, False), (3, 0, False), (0, 0, False)], 175, BASE),
-    'kick':    ([(0, 2, False)] * 4, 165, BASE),
-    'cpunch':  ([(0, 0, False)] * 4, 130, BASE),
-    'ckick':   ([(0, 6, False)] * 4, 150, BASE),
-    'jpunch':  ([(3, 0, False)] * 4, 170, AIR),
-    'jkick':   ([(0, 2, False)] * 4, 160, AIR),
-    'special': ([(2, 1, False), (3, 1, True), (2, 6, False), (2, 5, False)], 195, BASE),
-    'hit':     ([(2, 2, False)] * 4, 185, BASE),
-    'block':   ([(1, 1, False)] * 4, 190, BASE),
-    'ko':      ([(2, 2, False)] * 4, 76, BASE),
-    'win':     ([(3, 5, True)] * 4, 195, BASE),
+    'idle':    ([(0, 0, 0, False), (1, 1, 0, False), (0, 0, 0, False), (1, 1, 0, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False), (1, 0, 0, False), (0, 1, 0, False), (1, 0, 0, False)], 190, BASE),
+    'jump':    ([(0, 2, 0, False), (1, 2, 0, False), (0, 2, 0, False), (1, 2, 0, False)], 165, AIR),
+    'crouch':  ([(0, 0, 1, False), (1, 1, 1, False), (0, 0, 1, False), (1, 1, 1, False)], 125, BASE),
+    'punch':   ([(0, 3, 0, False), (1, 0, 1, False), (0, 3, 0, False), (1, 0, 1, False)], 175, BASE),
+    'kick':    ([(0, 1, 1, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 0, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 3, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 1, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, False)] * 4, 195, BASE),
+    'hit':     ([(1, 3, 1, False)] * 4, 185, BASE),
+    'block':   ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 190, BASE),
+    'ko':      ([(1, 2, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 3, 0, False)] * 4, 195, BASE),
 }
 
 # Ciber com mais sprites da folha: idle/walk alternam 2 quadros, punch/kick
@@ -308,27 +309,53 @@ ENGENHEIRA_POSES = {
     'win':     ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 195, BASE),
 }
 
-# Boneco de treino: grid real 3x3 (r0: em pe | r1: tomando hit com faisca |
-# r2: cambaleando). Celulas 3-tuplas (ci, ri, flip).
+# Boneco de treino: PARADO — todas as poses sao o boneco em pe (linha r0);
+# so a linha de hit (r1, com faisca) e o KO (r2, cambaleando) mexem.
 BONECO_POSES = {
-    'idle':    ([(0, 0, False), (1, 0, False), (2, 0, False), (1, 0, False)], 195, BASE),
-    'walk':    ([(0, 0, False)] * 4, 190, BASE),
-    'jump':    ([(0, 2, False)] * 4, 165, AIR),
-    'crouch':  ([(0, 2, False)] * 4, 125, BASE),
-    'punch':   ([(0, 1, False)] * 4, 175, BASE),
-    'kick':    ([(1, 1, False)] * 4, 165, BASE),
-    'cpunch':  ([(0, 2, False)] * 4, 130, BASE),
-    'ckick':   ([(1, 2, False)] * 4, 150, BASE),
-    'jpunch':  ([(0, 1, False)] * 4, 170, AIR),
-    'jkick':   ([(1, 1, False)] * 4, 160, AIR),
-    'special': ([(2, 1, False)] * 4, 195, BASE),
-    'hit':     ([(0, 1, False), (1, 1, False), (2, 1, False), (1, 1, False)], 185, BASE),
-    'block':   ([(2, 2, False)] * 4, 190, BASE),
-    'ko':      ([(0, 2, False)] * 4, 76, BASE),
-    'win':     ([(2, 2, False)] * 4, 195, BASE),
+    'idle':    ([(0, 0, False)] * 4, 195, BASE),
+    'walk':    ([(0, 0, False)] * 4, 195, BASE),
+    'jump':    ([(0, 0, False)] * 4, 195, BASE),
+    'crouch':  ([(0, 0, False)] * 4, 195, BASE),
+    'punch':   ([(0, 0, False)] * 4, 195, BASE),
+    'kick':    ([(0, 0, False)] * 4, 195, BASE),
+    'cpunch':  ([(0, 0, False)] * 4, 195, BASE),
+    'ckick':   ([(0, 0, False)] * 4, 195, BASE),
+    'jpunch':  ([(0, 0, False)] * 4, 195, BASE),
+    'jkick':   ([(0, 0, False)] * 4, 195, BASE),
+    'special': ([(0, 0, False)] * 4, 195, BASE),
+    'hit':     ([(0, 1, False), (1, 1, False), (2, 1, False), (1, 1, False)], 195, BASE),
+    'block':   ([(0, 0, False)] * 4, 195, BASE),
+    'ko':      ([(0, 2, False)] * 4, 130, BASE),
+    'win':     ([(0, 0, False)] * 4, 195, BASE),
+}
+
+# Odette: folha1 (si=0: idle/andar/pulo/soco | agachar/chute/tiro/vitoria)
+# folha2 (si=1: idle/tiro/chute/pulo-ar | andar/KO/agachar/vitoria). Sem flips.
+ODETTE_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 0, 0, False), (0, 0, 0, False), (1, 0, 0, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False), (1, 0, 1, False), (0, 1, 0, False), (1, 0, 1, False)], 190, BASE),
+    'jump':    ([(0, 2, 0, False), (1, 3, 0, False), (0, 2, 0, False), (1, 3, 0, False)], 165, AIR),
+    'crouch':  ([(0, 0, 1, False), (1, 2, 1, False), (0, 0, 1, False), (1, 2, 1, False)], 125, BASE),
+    'punch':   ([(0, 3, 0, False)] * 4, 175, BASE),
+    'kick':    ([(0, 1, 1, False), (1, 2, 0, False), (0, 1, 1, False), (1, 2, 0, False)], 165, BASE),
+    'cpunch':  ([(0, 0, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 2, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 3, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 1, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, False), (1, 1, 0, False), (0, 2, 1, False), (1, 1, 0, False)], 195, BASE),
+    'hit':     ([(1, 2, 1, False)] * 4, 185, BASE),
+    'block':   ([(0, 0, 1, False)] * 4, 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 195, BASE),
 }
 
 FIGHTERS = {
+    'odette': {
+        'sheets': ['Odete sprite 1.jpg', 'Odete sprite 2.jpg'],
+        'abilities': 'Habilidades odete.jpg',
+        'poses': ODETTE_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
     'engenheira-prompt': {
         'sheets': ['engenheira de promt 1.jpg', 'prompt-engineer-sheet-b.png'],
         'abilities': 'prompt-engineer-ability-atlas.png',
@@ -365,15 +392,10 @@ FIGHTERS = {
         'ui_cell': (0, 0, 0, False),
     },
     'hana': {
-        'sheet': 'Hana sprites.jpg',
+        'sheets': ['Hana reformulada.jpg', 'hana rrefortmulada 2.jpg'],
         'abilities': 'hana abilidades.jpg',
-        # grid forcado da folha de habilidades (deteccao automatica perdia a linha da sakura)
-        'ab_rows': [(14, 168), (189, 327), (350, 477), (499, 649), (669, 876)],
-        'ab_cols': [(88, 221), (348, 502), (598, 802), (885, 1118)],
         'poses': HANA_POSES,
-        'ui_cell': (0, 1, False),
-        # primeira banda da projecao (11-269) sao DUAS linhas grudadas: split em 135
-        'row_bands': [(11, 135), (135, 269), (276, 388), (396, 507), (516, 627), (635, 750), (761, 879)],
+        'ui_cell': (0, 0, 0, False),
     },
     'cyber-psicopata': {
         'sheet': 'ciber-psicopata sprites.jpg',

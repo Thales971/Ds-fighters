@@ -78,7 +78,8 @@ const SPRITE_LAYOUT = {
     "grika": "assets/sprites/grika.png",
     "guarda-digital": "assets/sprites/guarda-digital.png",
     "engenheira-prompt": "assets/sprites/engenheira-prompt.png",
-    "boneco-treino": "assets/sprites/boneco-treino.png"
+    "boneco-treino": "assets/sprites/boneco-treino.png",
+    "odette": "assets/sprites/odette.png"
   }
 };
 
