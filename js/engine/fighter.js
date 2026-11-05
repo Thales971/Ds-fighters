@@ -665,6 +665,7 @@ class Fighter {
         this.aura = p;
         this.auraFid = fid;
         this.addStatus('aura', t);
+        if (p.heal) this.heal(p.heal);
         // Golpe de ativação: só alcança a área local; não persegue um alvo
         // que esteja do outro lado da arena durante a telemetria.
         const hitRadius = p.hitRadius || 260;

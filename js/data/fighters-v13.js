@@ -38,7 +38,7 @@
         name: 'Tiro de Sementes', type: 'projectile', cost: 25,
         proj: { row: 1, speed: 13, dmg: 7, w: 20, h: 16, color: '#7fe08a', shape: 'orb', visualSheet: 'hana', visualRow: 1 },
       },
-      super: { name: 'Árvore Sakura', type: 'aoe', dmg: 30, radius: 220, visualSheet: 'hana', visualRow: 4 },
+      super: { name: 'Árvore Sakura', type: 'buff-rush', heal: 40, buff: { invincible: 150, dmgMult: 2 }, visualSheet: 'hana', visualRow: 4 },
     },
   );
   Object.assign(POWERS, {
@@ -70,9 +70,9 @@
         }, visual('hana', 3, '#ff9ecb')),
         Object.assign({
           id: 'sakura-tree', name: 'Árvore Sakura', slot: 'ultimate', row: 4,
-          kind: 'blast', at: 'target', dmg: 30, stun: 40, launch: -9, radius: 220, cd: 128,
-          heal: 24, fx: { vuln: 60 }, sfx: 'ultimate',
-          desc: 'Árvore nasce no ponto marcado, cresce e explode em floração — dano em área devastador.',
+          kind: 'aura', time: 300, heal: 40, speedMult: 1.15, dmgMult: 1.15, defMult: 0.85, cd: 128,
+          sfx: 'ultimate',
+          desc: 'Árvore Sakura nasce no campo e floresce: cura Hana e a buffa com o poder do jardim.',
         }, visual('hana', 4, '#ff5f9e')),
       ],
     },
