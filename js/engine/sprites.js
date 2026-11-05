@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12n-devvet: buff+status no dev-veterano; hit/win compactos no dev-senior/dandara/winx (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12n-devvet';
+    // v12o-mis-meta: Mis/Meta/Gemini 100% na faixa do elenco + aereos com pe no ar (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12o-mis-meta';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
