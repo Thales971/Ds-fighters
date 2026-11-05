@@ -202,7 +202,86 @@ CIBER_POSES = {
 
 SHAKE_DEFAULT = [0, 3, 0, -3]
 
+# Winx reformulada: 4x5 (r0 idle/andar/pulo/soco | r1 agachar/andar/soco/block
+# r2 chute/tiro/tiro-ar/tiro | r3 tiro/tiro/pulo/hit | r4 KO/vitoria/andar/idle)
+WINX_POSES = {
+    'idle':    ([(0, 0, False), (3, 4, False), (0, 0, False), (3, 4, False)], 195, BASE),
+    'walk':    ([(1, 0, False), (1, 1, False), (2, 4, False), (1, 0, False)], 190, BASE),
+    'jump':    ([(2, 0, False), (2, 3, False), (2, 0, False), (2, 3, False)], 165, AIR),
+    'crouch':  ([(0, 1, False)] * 4, 125, BASE),
+    'punch':   ([(3, 0, False), (2, 1, False), (3, 0, False), (2, 1, False)], 175, BASE),
+    'kick':    ([(0, 2, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(0, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(2, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, False)] * 4, 160, AIR),
+    'special': ([(1, 2, False), (3, 2, False), (0, 3, False), (1, 3, False)], 195, BASE),
+    'hit':     ([(3, 3, False)] * 4, 185, BASE),
+    'block':   ([(3, 1, False)] * 4, 190, BASE),
+    'ko':      ([(0, 4, False)] * 4, 76, BASE),
+    'win':     ([(1, 4, False)] * 4, 195, BASE),
+}
+
+# Grika reformulada: folha1 (si=0: idle/andar/pulo/agachar | garra-L/chute-L/tiro-L/hit-L)
+# folha2 (si=1: chute/idle/tiro/garra | agachar/KO/pulo-ar/vitoria). 4-tuplas (si,ci,ri,flip).
+GRIKA_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 1, 0, False), (0, 0, 0, False), (1, 1, 0, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 2, 0, False), (1, 2, 1, False), (0, 2, 0, False), (1, 2, 1, False)], 165, AIR),
+    'crouch':  ([(0, 3, 0, False), (1, 0, 1, False), (0, 3, 0, False), (1, 0, 1, False)], 125, BASE),
+    'punch':   ([(0, 0, 1, True), (1, 3, 0, False), (0, 0, 1, True), (1, 3, 0, False)], 175, BASE),
+    'kick':    ([(0, 1, 1, True), (1, 0, 0, False), (0, 1, 1, True), (1, 0, 0, False)], 165, BASE),
+    'cpunch':  ([(1, 0, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 0, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(1, 3, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(1, 0, 0, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, True), (1, 2, 0, False), (0, 2, 1, True), (1, 2, 0, False)], 195, BASE),
+    'hit':     ([(0, 3, 1, True)] * 4, 185, BASE),
+    'block':   ([(1, 0, 1, False)] * 4, 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
+# Guarda Digital: folha1 (si=0: idle-L/andar-L/pulo/pulo-L | agachar-L/tiro-L/tiro/tiro-L)
+# folha2 (si=1, 3x2: chute/rajada/corrida | agachar-energia-L/KO/parado). 4-tuplas.
+GUARDA_POSES = {
+    'idle':    ([(0, 0, 0, True), (1, 2, 1, False), (0, 0, 0, True), (1, 2, 1, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, True), (1, 2, 0, False), (0, 1, 0, True), (1, 2, 0, False)], 190, BASE),
+    'jump':    ([(0, 2, 0, False), (0, 3, 0, True), (0, 2, 0, False), (0, 3, 0, True)], 165, AIR),
+    'crouch':  ([(0, 0, 1, True), (1, 0, 1, True), (0, 0, 1, True), (1, 0, 1, True)], 125, BASE),
+    'punch':   ([(1, 1, 0, False)] * 4, 175, BASE),
+    'kick':    ([(1, 0, 0, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 0, 1, True)] * 4, 130, BASE),
+    'ckick':   ([(1, 0, 1, True)] * 4, 150, BASE),
+    'jpunch':  ([(1, 1, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(1, 0, 0, False)] * 4, 160, AIR),
+    'special': ([(0, 1, 1, True), (0, 2, 1, False), (0, 3, 1, True), (0, 1, 1, True)], 195, BASE),
+    'hit':     ([(1, 2, 1, False)] * 4, 185, BASE),
+    'block':   ([(0, 0, 1, True)] * 4, 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 2, 1, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'winx-exe': {
+        'sheet': 'winx.exe reformulada.jpg',
+        'abilities': 'habilidades-dev-veterano.png',
+        'abilities_keep': True,
+        'poses': WINX_POSES,
+        'ui_cell': (0, 0, False),
+    },
+    'grika': {
+        'sheets': ['Grika sprite.jpg', 'grika sprite 2.jpg'],
+        'abilities': 'grika-habilidades.jpg',
+        'poses': GRIKA_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
+    'guarda-digital': {
+        'sheets': ['Guarda digital.jpg', 'guarda digital 2.jpg'],
+        'abilities': 'habilidades da guarda digital.jpg',
+        'poses': GUARDA_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
     'hana': {
         'sheet': 'Hana sprites.jpg',
         'abilities': 'hana abilidades.jpg',
@@ -228,8 +307,12 @@ def build_sheet(cells, pose_map):
     for pose_i, pose in enumerate(POSES_ORDER):
         keys, target_h, foot_y = pose_map[pose]
         for frame in range(4):
-            ci, ri, flip = keys[frame]
-            crop, mask, bg = cells[(ci, ri)]
+            key = keys[frame]
+            if len(key) == 3:
+                si, ci, ri, flip = 0, key[0], key[1], key[2]
+            else:
+                si, ci, ri, flip = key
+            crop, mask, bg = cells[(si, ci, ri)]
             fig = figure_rgba(crop, mask, bg)
             shake = SHAKE_DEFAULT if len(set(map(tuple, keys))) == 1 else 0
             place(sheet, fig, target_h, foot_y, frame, pose_i,
@@ -253,7 +336,7 @@ def build_abilities(path, row_bands=None, col_bands=None):
 
 
 def build_ui(cells, ui_cell):
-    crop, mask, bg = cells[ui_cell[:2]]
+    crop, mask, bg = cells[tuple(ui_cell[:3]) if len(ui_cell) >= 3 else (0, ui_cell[0], ui_cell[1])]
     fig = figure_rgba(crop, mask, bg)
     port = Image.new('RGBA', (320, 360), (0, 0, 0, 0))
     f = fig.copy()
@@ -274,12 +357,18 @@ def main():
     ids = sys.argv[1:] or list(FIGHTERS)
     for fid in ids:
         cfg = FIGHTERS[fid]
-        cells = load_sheet(SRC / cfg['sheet'], row_bands=cfg.get('row_bands'))
+        sheets = cfg.get('sheets') or [cfg['sheet']]
+        cells = {}
+        for si, sh in enumerate(sheets):
+            sc = load_sheet(SRC / sh, row_bands=cfg.get('row_bands'))
+            for k, v in sc.items():
+                cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
         sheet = build_sheet(cells, cfg['poses'])
         sheet.save(ROOT / f'assets/sprites/{fid}.png')
-        atlas = build_abilities(SRC / cfg['abilities'], row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'))
-        atlas.save(ROOT / f'assets/abilities/{fid}.png')
+        if not cfg.get('abilities_keep'):
+            atlas = build_abilities(SRC / cfg['abilities'], row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'))
+            atlas.save(ROOT / f'assets/abilities/{fid}.png')
         face, port = build_ui(cells, cfg['ui_cell'])
         face.save(ROOT / f'assets/ui/face-{fid}.png')
         port.save(ROOT / f'assets/ui/portrait-{fid}.png')
