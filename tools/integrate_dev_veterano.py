@@ -41,7 +41,7 @@ MAGENTA = np.array([240, 3, 212])
 #   r2: chute, tiro, tiro, tiro       | r3: tiro, tomando hit, deitado, agachar
 #   r4: idle, idle, idle, vitoria
 POSES = [
-    ('idle',    [(0, 4), (1, 4), (2, 4), (1, 4)], 195, BASE),
+    ('idle',    [(0, 4), (1, 4), (0, 4), (1, 4)], 195, BASE),
     ('walk',    [(0, 0), (1, 0), (2, 0), (1, 0)], 190, BASE),
     ('jump',    [(3, 0), (3, 0), (3, 0), (3, 0)], 165, AIR_BASE),
     ('crouch',  [(0, 1), (3, 3), (0, 1), (3, 3)], 125, BASE),
