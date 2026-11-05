@@ -72,7 +72,9 @@ const SPRITE_LAYOUT = {
     "mis": "assets/sprites/mis.png",
     "dev-senior": "assets/sprites/dev-senior.png",
     "dev-senior-nano": "assets/sprites/dev-senior-nano.png",
-    "dev-veterano": "assets/sprites/dev-veterano.png"
+    "dev-veterano": "assets/sprites/dev-veterano.png",
+    "hana": "assets/sprites/hana.png",
+    "cyber-psicopata": "assets/sprites/cyber-psicopata.png"
   }
 };
 

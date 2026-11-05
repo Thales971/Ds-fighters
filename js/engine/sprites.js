@@ -26,8 +26,8 @@ const SpriteGen = {
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v12g-devvet-fix: grid real 4x5 da arte reformulada (corrige poses fatiadas) (grika/ash/rin/katya fora) + pulo no ar.
-    return src + '?v=v12g-devvet-fix';
+    // v12j-hana-fix: Hana sem sprite duplo (banda dupla separada) (grika/ash/rin/katya fora) + pulo no ar.
+    return src + '?v=v12j-hana-fix';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;
