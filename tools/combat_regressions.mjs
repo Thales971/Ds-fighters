@@ -216,7 +216,7 @@ assert.equal(api.POWERS.stack.powers.find((p) => p.id === 'driver').cd, 32, '115
 // 7) IALES AFO2: exige quatro stacks, cresce e só consome o estoque quando acerta.
 {
   const { game, a: iales, b: target } = pair('iales', 'qwen');
-  const afo2 = api.POWERS.iales.powers[7];
+  const afo2 = api.POWERS.iales.powers[9];
   iales.afo = 4;
   iales.castAfo = 4;
   const hpBefore = target.hp;
