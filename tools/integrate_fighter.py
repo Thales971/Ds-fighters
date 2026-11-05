@@ -272,8 +272,8 @@ GRIKA_POSES = {
 # Guarda Digital: folha1 (si=0: idle-L/andar-L/pulo/pulo-L | agachar-L/tiro-L/tiro/tiro-L)
 # folha2 (si=1, 3x2: chute/rajada/corrida | agachar-energia-L/KO/parado). 4-tuplas.
 GUARDA_POSES = {
-    'idle':    ([(0, 0, 0, True), (1, 2, 1, False), (0, 0, 0, True), (1, 2, 1, False)], 195, BASE),
-    'walk':    ([(0, 1, 0, True), (1, 2, 0, False), (0, 1, 0, True), (1, 2, 0, False)], 190, BASE),
+    'idle':    ([(1, 2, 1, False)] * 4, 195, BASE),
+    'walk':    ([(1, 2, 0, False)] * 4, 190, BASE),
     'jump':    ([(0, 2, 0, False), (0, 3, 0, True), (0, 2, 0, False), (0, 3, 0, True)], 165, AIR),
     'crouch':  ([(0, 0, 1, True), (1, 0, 1, True), (0, 0, 1, True), (1, 0, 1, True)], 125, BASE),
     'punch':   ([(1, 1, 0, False)] * 4, 175, BASE),
@@ -323,7 +323,7 @@ BONECO_POSES = {
     'jpunch':  ([(0, 0, False)] * 4, 195, BASE),
     'jkick':   ([(0, 0, False)] * 4, 195, BASE),
     'special': ([(0, 0, False)] * 4, 195, BASE),
-    'hit':     ([(0, 1, False), (1, 1, False), (2, 1, False), (1, 1, False)], 195, BASE),
+    'hit':     ([(0, 1, False)] * 4, 195, BASE),
     'block':   ([(0, 0, False)] * 4, 195, BASE),
     'ko':      ([(0, 2, False)] * 4, 130, BASE),
     'win':     ([(0, 0, False)] * 4, 195, BASE),
