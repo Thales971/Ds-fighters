@@ -734,6 +734,20 @@ const UI = {
 
   /* ---------- online ---------- */
   enter_online() {
+    const tuto = this.$('net-tuto');
+    if (tuto && !Profile.data.seenOnlineTuto) {
+      tuto.classList.remove('hidden');
+      const ok = this.$('net-tuto-ok');
+      if (ok && !ok.dataset.bound) {
+        ok.dataset.bound = '1';
+        ok.addEventListener('click', () => {
+          tuto.classList.add('hidden');
+          Profile.data.seenOnlineTuto = true;
+          Profile.save();
+          AudioSys.confirm();
+        });
+      }
+    }
     const url = Profile.setting('serverUrl') || Net.defaultUrl();
     this.$('net-url').value = url;
     this.$('net-name').value = Profile.data.name || 'Jogador';

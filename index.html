@@ -22,9 +22,9 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v16c-fix" />
-  <link rel="stylesheet" href="css/account.css?v=v16c-fix" />
-  <link rel="stylesheet" href="css/mobile.css?v=v16c-fix" />
+  <link rel="stylesheet" href="css/style.css?v=v17-iales" />
+  <link rel="stylesheet" href="css/account.css?v=v17-iales" />
+  <link rel="stylesheet" href="css/mobile.css?v=v17-iales" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -255,6 +255,18 @@
     <section class="screen" id="scr-online" data-screen="online">
       <div class="panel wide">
         <h2>ONLINE</h2>
+        <div id="net-tuto" class="panel sub hidden" style="text-align:left; line-height:1.5; max-width:640px; margin:0 auto 14px;">
+          <h3>COMO JOGAR ONLINE — rápido</h3>
+          <ol>
+            <li><b>Escolha a conexão:</b> <i>Direta P2P</i> é grátis e não precisa de nada; <i>Servidor dedicado</i> é mais estável (precisa de um endereço wss://).</li>
+            <li><b>Digite seu nome</b> e clique em <b>CRIAR SALA</b>.</li>
+            <li><b>Mande o código da sala</b> (ou o link) para o seu amigo — ele entra com <b>ENTRAR COM CÓDIGO</b>.</li>
+            <li><b>Os dois escolhem os lutadores.</b> Quando todo mundo confirmar, a luta começa sozinha.</li>
+            <li><b>No P2P</b>, quem cria a sala é o "anfitrião": a conexão depende dele estar na partida. Se fechar a aba, a sala acaba.</li>
+          </ol>
+          <p><b>Dica:</b> jogando por celular, deixe a tela ligada; o jogo roda em tempo real.</p>
+          <button class="nav btn primary" id="net-tuto-ok">ENTENDI — VAMOS JOGAR</button>
+        </div>
         <div class="net-status" id="net-status" role="status"></div>
         <div class="net-connect" id="net-connect">
           <div class="row">
@@ -367,7 +379,7 @@
     </div>
   </div>
 
-  <script src="assets/sprites/layout.js?v=v16c-fix"></script>
+  <script src="assets/sprites/layout.js?v=v17-iales"></script>
   <script>
     /* Blindagem contra layout.js velho em cache: os arquivos de dados
        (fighters-v7..v11) escrevem em SPRITE_LAYOUT.files / .perFighter,
@@ -391,54 +403,54 @@
       }
     })();
   </script>
-  <script src="assets/stages/sheets.js?v=v16c-fix"></script>
-  <script src="assets/maps/anim.js?v=v16c-fix"></script>
-  <script src="js/core/profile.js?v=v16c-fix"></script>
-  <script src="js/config/firebase-config.js?v=v16c-fix"></script>
-  <script src="js/core/cloud.js?v=v16c-fix"></script>
-  <script src="js/config/supabase-config.js?v=v16c-fix"></script>
+  <script src="assets/stages/sheets.js?v=v17-iales"></script>
+  <script src="assets/maps/anim.js?v=v17-iales"></script>
+  <script src="js/core/profile.js?v=v17-iales"></script>
+  <script src="js/config/firebase-config.js?v=v17-iales"></script>
+  <script src="js/core/cloud.js?v=v17-iales"></script>
+  <script src="js/config/supabase-config.js?v=v17-iales"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=v16c-fix"></script>
-  <script src="js/data/fighters.js?v=v16c-fix"></script>
-  <script src="js/data/fighters-v10.js?v=v16c-fix"></script>
-  <script src="js/data/fighters-v11.js?v=v16c-fix"></script>
-  <script src="js/data/powers.js?v=v16c-fix"></script>
-  <script src="js/data/powers-turbo.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v4.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v5.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v6.js?v=v16c-fix"></script>
-  <script src="js/data/powers-balance-v6.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v7.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v8.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v9.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v10.js?v=v16c-fix"></script>
-  <script src="js/data/powers-v11.js?v=v16c-fix"></script>
-    <script src="js/data/fighters-v12.js?v=v16c-fix"></script>
-    <script src="js/data/fighters-v13.js?v=v16c-fix"></script>
-    <script src="js/data/fighters-v14.js?v=v16c-fix"></script>
-    <script src="js/data/fighters-v15.js?v=v16c-fix"></script>
-    <script src="js/data/fighters-v16.js?v=v16c-fix"></script>
-  <script src="js/data/pets.js?v=v16c-fix"></script>
-  <script src="js/data/stages.js?v=v16c-fix"></script>
-  <script src="js/engine/sprites.js?v=v16c-fix"></script>
-  <script src="js/engine/fx.js?v=v16c-fix"></script>
-  <script src="js/engine/audio.js?v=v16c-fix"></script>
-  <script src="js/engine/input.js?v=v16c-fix"></script>
-  <script src="js/ui/viewport.js?v=v16c-fix"></script>
-  <script src="js/engine/projectile.js?v=v16c-fix"></script>
-  <script src="js/engine/fighter.js?v=v16c-fix"></script>
-  <script src="js/engine/weather.js?v=v16c-fix"></script>
-  <script src="js/engine/mechanics.js?v=v16c-fix"></script>
-  <script src="js/engine/stage.js?v=v16c-fix"></script>
-  <script src="js/engine/ai.js?v=v16c-fix"></script>
-  <script src="js/engine/game.js?v=v16c-fix"></script>
+  <script src="js/core/supabase-cloud.js?v=v17-iales"></script>
+  <script src="js/data/fighters.js?v=v17-iales"></script>
+  <script src="js/data/fighters-v10.js?v=v17-iales"></script>
+  <script src="js/data/fighters-v11.js?v=v17-iales"></script>
+  <script src="js/data/powers.js?v=v17-iales"></script>
+  <script src="js/data/powers-turbo.js?v=v17-iales"></script>
+  <script src="js/data/powers-v4.js?v=v17-iales"></script>
+  <script src="js/data/powers-v5.js?v=v17-iales"></script>
+  <script src="js/data/powers-v6.js?v=v17-iales"></script>
+  <script src="js/data/powers-balance-v6.js?v=v17-iales"></script>
+  <script src="js/data/powers-v7.js?v=v17-iales"></script>
+  <script src="js/data/powers-v8.js?v=v17-iales"></script>
+  <script src="js/data/powers-v9.js?v=v17-iales"></script>
+  <script src="js/data/powers-v10.js?v=v17-iales"></script>
+  <script src="js/data/powers-v11.js?v=v17-iales"></script>
+    <script src="js/data/fighters-v12.js?v=v17-iales"></script>
+    <script src="js/data/fighters-v13.js?v=v17-iales"></script>
+    <script src="js/data/fighters-v14.js?v=v17-iales"></script>
+    <script src="js/data/fighters-v15.js?v=v17-iales"></script>
+    <script src="js/data/fighters-v16.js?v=v17-iales"></script>
+  <script src="js/data/pets.js?v=v17-iales"></script>
+  <script src="js/data/stages.js?v=v17-iales"></script>
+  <script src="js/engine/sprites.js?v=v17-iales"></script>
+  <script src="js/engine/fx.js?v=v17-iales"></script>
+  <script src="js/engine/audio.js?v=v17-iales"></script>
+  <script src="js/engine/input.js?v=v17-iales"></script>
+  <script src="js/ui/viewport.js?v=v17-iales"></script>
+  <script src="js/engine/projectile.js?v=v17-iales"></script>
+  <script src="js/engine/fighter.js?v=v17-iales"></script>
+  <script src="js/engine/weather.js?v=v17-iales"></script>
+  <script src="js/engine/mechanics.js?v=v17-iales"></script>
+  <script src="js/engine/stage.js?v=v17-iales"></script>
+  <script src="js/engine/ai.js?v=v17-iales"></script>
+  <script src="js/engine/game.js?v=v17-iales"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=v16c-fix"></script>
-  <script src="js/net/online.js?v=v16c-fix"></script>
-  <script src="js/ui/hud.js?v=v16c-fix"></script>
-  <script src="js/ui/ui.js?v=v16c-fix"></script>
-  <script src="js/ui/account.js?v=v16c-fix"></script>
-  <script src="js/main.js?v=v16c-fix"></script>
-  <script src="js/net/tournament.js?v=v16c-fix"></script>
+  <script src="js/net/room-core.js?v=v17-iales"></script>
+  <script src="js/net/online.js?v=v17-iales"></script>
+  <script src="js/ui/hud.js?v=v17-iales"></script>
+  <script src="js/ui/ui.js?v=v17-iales"></script>
+  <script src="js/ui/account.js?v=v17-iales"></script>
+  <script src="js/main.js?v=v17-iales"></script>
+  <script src="js/net/tournament.js?v=v17-iales"></script>
 </body>
 </html>
