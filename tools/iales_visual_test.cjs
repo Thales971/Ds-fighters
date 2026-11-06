@@ -113,11 +113,13 @@ setTimeout(() => {
         shots.push(path.join(outDir, `ab${idx}-${p.id}-${tag}.png`));
         fs.writeFileSync(shots[shots.length - 1], gameCanvas.toBuffer('image/png'));
       };
-      for (let t = 0; t < 90; t++) {
+      const total = idx === 9 ? 320 : 90;
+      for (let t = 0; t < total; t++) {
         g.tick();
+        if (idx === 9 && t % 20 === 0) console.log('   t=' + t, 'hpO=' + Math.round(o.hp), 'strikes=' + (g.strikes ? g.strikes.length : '-'), 'dummyState=' + o.state, 'xO=' + Math.round(o.x), 'yO=' + Math.round(o.y));
         if (t === 4) snap('start');
         if (t === 30) snap('mid');
-        if (t === 60) snap('impact');
+        if (t === 60 || (idx === 9 && t === 200)) snap('impact');
       }
       const fxCounts = {
         projectiles: g.projectiles ? g.projectiles.length : 'n/a',
@@ -125,6 +127,8 @@ setTimeout(() => {
         beams: g.beams ? g.beams.length : 'n/a',
       };
       const oStatus = Object.keys(o.status || {}).filter((k) => (o.status[k] || 0) > 0);
+      const kitAfter = f.currentKit();
+      if (idx === 2) console.log(`   [steal-check] kit apos roubo: ${kitAfter.length} poderes ->`, kitAfter.map(x=>x.id).join(','));
       results.push({ i: idx, id: p.id, name: p.name, castOk, dmgDealt: Math.round(o.maxHp - o.hp), statusesOnDummy: oStatus, fx: fxCounts, shots: shots.length, stateF: f.state });
       console.log(`[${idx}] ${p.name}: cast=${castOk} dmg=${Math.round(o.maxHp - o.hp)} status=[${oStatus.join(',')}]`);
     } catch (e) { console.error('erro abil', idx, String(e).slice(0, 200)); }
