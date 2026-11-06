@@ -602,6 +602,41 @@
     }, delay == null ? 2000 : delay);
   };
 
+  // ===== RESILIENCIA: o banco nunca morre =====
+  Cloud._retryDelays = [2000, 4000, 8000, 16000, 32000];
+  Cloud._retryCount = 0;
+  Cloud._scheduleRetry = function () {
+    if (!this._dirty || !this.user) return;
+    const delay = this._retryDelays[Math.min(this._retryCount, this._retryDelays.length - 1)];
+    this._retryCount += 1;
+    clearTimeout(this._retryTimer);
+    this._retryTimer = schedule(() => {
+      this._retryTimer = null;
+      if (this._dirty && this.user && this._isOnline()) void this._upload();
+    }, delay);
+  };
+  Cloud._startHealthCheck = function () {
+    if (this._healthTimer) return;
+    this._healthTimer = schedule(() => {
+      this._healthTimer = null;
+      if (this._dirty && this.user) {
+        if (this._isOnline()) { this._retryCount = 0; void this._upload(); }
+        this._startHealthCheck();
+      }
+    }, 15000);
+  };
+  Cloud._bindConnectivity = function () {
+    if (this._connectivityBound) return;
+    this._connectivityBound = true;
+    window.addEventListener('online', () => {
+      this._retryCount = 0;
+      if (this._dirty && this.user) void this._upload();
+    });
+    window.addEventListener('offline', () => {
+      this._setStatus('offline', 'Sem conexão. O progresso ficará salvo neste navegador.');
+    });
+  };
+
   Cloud._upload = async function () {
     const user = this.user;
     const uid = this._uid(user);
@@ -626,6 +661,9 @@
         if (this._saveRevision === revision) {
           this._dirty = false;
           this._dirtyUid = '';
+          this._retryCount = 0;
+          clearTimeout(this._retryTimer); this._retryTimer = null;
+          clearTimeout(this._healthTimer); this._healthTimer = null;
           this._setStatus('saved');
         } else {
           // A Profile.save() happened while the request was in flight. Keep
@@ -690,12 +728,15 @@
       if (!this._isCurrent(expectedSession, expectedUser, uid)) return false;
       const msg = this._friendlyError(error, 'sincronizar o progresso');
       this._setStatus(this._isOnline() ? 'error' : 'offline', msg);
+      this._dirty = true; this._dirtyUid = uid;
+      this._scheduleRetry(); this._startHealthCheck();
       return false;
     }
   };
 
   Cloud.queueSave = function () {
     if (this._suppressQueue) return;
+    if (typeof window !== 'undefined') this._bindConnectivity();
     const uid = this._uid(this.user);
     this._touchLocal(uid);
     if (!this.user || !this._supabaseClient || !this._ready) return;

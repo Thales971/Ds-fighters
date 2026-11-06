@@ -72,7 +72,7 @@
         }, visual('hana', 3, '#ff9ecb')),
         Object.assign({
           id: 'sakura-tree', name: 'Árvore Sakura', slot: 'ultimate', row: 4,
-          kind: 'aura', time: 300, heal: 45, speedMult: 1.2, dmgMult: 1.2, defMult: 0.8, cd: 120,
+          kind: 'aura', time: 300, heal: 65, regen: 0.05, speedMult: 1.2, dmgMult: 1.2, defMult: 0.8, cd: 110,
           sfx: 'ultimate',
           desc: 'Árvore Sakura nasce no campo e floresce: cura Hana e a buffa com o poder do jardim.',
         }, visual('hana', 4, '#ff5f9e')),
@@ -146,12 +146,12 @@
         }, visual('cyber-psicopata', 2, '#ffb02a')),
         Object.assign({
           id: 'overload', name: 'Sobrecarga', slot: 'charge', meter: 1, row: 3,
-          kind: 'aura', time: 320, speedMult: 1.35, dmgMult: 1.25, defMult: 0.8, cd: 86, sfx: 'shield',
+          kind: 'aura', time: 400, speedMult: 1.4, dmgMult: 1.3, defMult: 0.75, heal: 15, cd: 80, sfx: 'shield',
           desc: 'Circuitos sobrecarregados: +velocidade, +força e menos dano recebido por alguns segundos.',
         }, visual('cyber-psicopata', 3, '#ff2a4a')),
         Object.assign({
           id: 'cyberneurosis', name: 'Ciberneurose', slot: 'ultimate', row: 4,
-          kind: 'aura', time: 600, grant: 'overclock', speedMult: 1.3, dmgMult: 1.35, defMult: 0.85, cd: 132, sfx: 'ultimate',
+          kind: 'aura', time: 720, grant: 'overclock', speedMult: 1.35, dmgMult: 1.4, defMult: 0.8, heal: 20, regen: 0.04, cd: 120, sfx: 'ultimate',
           desc: 'Por 10 segundos: esquiva de habilidades, +soco e chute, +agilidade e +força. A hora do show.',
         }, visual('cyber-psicopata', 4, '#ff2035')),
       ],
