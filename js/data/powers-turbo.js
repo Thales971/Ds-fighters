@@ -84,7 +84,7 @@ Object.assign(ELEMENT_FX, {
    chainBonus = cadeias de combo maiores; lowHpRage = dano com pouca vida. */
 const SIGNATURES = {
   du: { trait: 'MAGMA VIVO (queima + explosão + stun)', desc: 'Todo acerto queima forte, explode e enche a barra de tontura. Com pouca vida, +25% de dano.', ability: { burn: 120, explode: 3, stun: 8 }, lowHpRage: 1.25, stunMult: 1.2 },
-  iales: { trait: 'TODOS OS STATUS', desc: 'Auto aim + roubo de kit + drena vida; golpes aplicam cegueira, choque, veneno, gelo, sangramento, lentidão, travamento e queimadura.', ability: { drain: 0.1, vuln: 80, shock: 40, blind: 40 } },
+  iales: { trait: 'TODOS OS STATUS', desc: 'Auto aim + roubo de kit + drena vida; golpes aplicam cegueira, choque, veneno, gelo, sangramento, lentidão, travamento e queimadura.', ability: { drain: 0.14, vuln: 120, shock: 60, blind: 60, bleed: 60 } },
   felipinho: { trait: 'ÁGUA', desc: 'Habilidades deixam o rival lento e roubam vida.', ability: { slow: 90, drain: 0.1 } },
   stack: { trait: 'OVERCLOCK SECO', desc: 'Chip 1155, chave de fenda e pasta térmica. O clock sobe — e queima se passar do ponto.', ability: { burn: 30 } },
   gitmaster: { trait: 'CEGUEIRA', desc: 'Sombras embaçam a tela do rival.', ability: { blind: 120 } },
