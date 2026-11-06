@@ -369,21 +369,24 @@ JOHN_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
 }
 
-# Nimbo: folha1 (si=0: idle/andar/pulo/agachar | soco-L/chute-L/tiro-L/hit-L)
-# folha2 (si=1: pulo-ar/pulo-ar/pulo-ar/pulo-ar | andar/agachar/KO/vitoria). r1 da folha1 = flip.
+# Nimbo: folha1 (si=0: idle/andar/pulo/agachar | soco/chute/tiro/hit — TODOS virados
+# pra DIREITA nativamente, SEM flip) folha2 (si=1: pulo-ar x4 | andar/agachar/KO/vitoria).
+# BUG CORRIGIDO: a analise anterior dizia que r1 da folha 1 olhava pra esquerda —
+# era ERRADO (confirmação por inspeção: olham pra DIREITA). O flip=True virava
+# o personagem pra tras ao castar habilidades.
 NIMBO_POSES = {
     'idle':    ([(0, 0, 0, False)] * 4, 195, BASE),
-    'walk':    ([(0, 1, 0, False), (0, 1, 0, False), (0, 1, 0, False), (0, 1, 0, False)], 190, BASE),
+    'walk':    ([(0, 1, 0, False)] * 4, 190, BASE),
     'jump':    ([(0, 2, 0, False), (1, 0, 0, False), (1, 1, 0, False), (1, 2, 0, False)], 165, AIR),
     'crouch':  ([(0, 3, 0, False), (1, 1, 1, False), (0, 3, 0, False), (1, 1, 1, False)], 125, BASE),
-    'punch':   ([(0, 0, 1, True)] * 4, 175, BASE),
-    'kick':    ([(0, 1, 1, True)] * 4, 165, BASE),
+    'punch':   ([(0, 0, 1, False)] * 4, 175, BASE),
+    'kick':    ([(0, 1, 1, False)] * 4, 165, BASE),
     'cpunch':  ([(1, 1, 1, False)] * 4, 130, BASE),
     'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
-    'jpunch':  ([(0, 0, 1, True)] * 4, 170, AIR),
-    'jkick':   ([(0, 1, 1, True)] * 4, 160, AIR),
-    'special': ([(0, 2, 1, True)] * 4, 195, BASE),
-    'hit':     ([(0, 3, 1, True)] * 4, 185, BASE),
+    'jpunch':  ([(0, 0, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 1, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, False)] * 4, 195, BASE),
+    'hit':     ([(0, 3, 1, False)] * 4, 185, BASE),
     'block':   ([(1, 1, 1, False)] * 4, 190, BASE),
     'ko':      ([(1, 2, 1, False)] * 4, 76, BASE),
     'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
