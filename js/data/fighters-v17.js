@@ -115,7 +115,7 @@
       bio: 'Discípulo de Thales, o Arquiteto. Recebeu uma cópia fraca da Colheita do Ruído — o corpo racha a cada habilidade roubada, veias cinza de energia que se espalham. O prognóstico era apodrecer. O Arquiteto o recolheu não pra curar, mas pra ensinar: o poder de roubar pode devolver o que foi tirado.',
       colors: { skin: '#d8c4b4', hair: '#e8e8e8', shirt: '#1a1a22', pants: '#121218', shoes: '#0c0c10', accent: '#a0a0c0' },
       traits: { crackedVeins: true, longHair: true, tatteredCape: true, harvestCopy: true },
-      stats: { power: 1.38, speed: 1.12, weight: 0.96, hp: 134, meterRate: 1.20 },
+      stats: { power: 1.44, speed: 1.16, weight: 0.96, hp: 142, meterRate: 1.28 },
       secret: false,
       quotes: {
         intro: ['O Ruído me deu isso. Eu não pedi.', 'A deterioração é a minha barra de vida.'],
@@ -142,31 +142,31 @@
       powers: [
         Object.assign({
           id: 'crack-shot', name: 'Rachadura', slot: 'simple', row: 0,
-          kind: 'shot', dmg: 11, speed: 10, seek: true, stun: 16, cd: 40,
+          kind: 'shot', dmg: 14, speed: 12, seek: true, stun: 18, cd: 36,
           fx: { slow: 40 }, sfx: 'magic',
           desc: 'Projétil de energia cinza AUTO-AIM que desacelera o rival.',
         }, visual(0, '#a0a0c0')),
         Object.assign({
           id: 'internal-storm', name: 'Tempestade Interna', slot: 'simple', row: 1,
-          kind: 'dash', dmg: 15, speed: 14, stun: 24, cd: 46,
+          kind: 'dash', dmg: 18, speed: 15, stun: 26, cd: 42,
           fx: { shock: 60, vuln: 60 }, sfx: 'dash',
           desc: 'A tempestade dentro dele explode: avanço que ELETRIZA e deixa VULNERÁVEL.',
         }, visual(1, '#c0c0e0')),
         Object.assign({
           id: 'weak-harvest', name: 'Colheita Fraca', slot: 'charge', meter: 0, row: 2,
-          kind: 'steal', time: 480, dmg: 10, cd: 80,
+          kind: 'steal', time: 540, dmg: 14, cd: 72,
           fx: { blind: 100, lock: 60 }, sfx: 'steal',
           desc: 'Cópia fraca da Colheita: rouba 5 poderes por 8s mas CEGA e TRAVA o próprio uso.',
         }, visual(2, '#8080a0')),
         Object.assign({
           id: 'give-back', name: 'Devolver', slot: 'charge', meter: 1, row: 3,
-          kind: 'aura', time: 300, heal: 25, dmgMult: 1.2, speedMult: 1.15, defMult: 0.8, cd: 90,
+          kind: 'aura', time: 360, heal: 35, regen: 0.05, dmgMult: 1.3, speedMult: 1.2, defMult: 0.75, cd: 80,
           sfx: 'shield',
           desc: 'O poder ao contrário: DEVOLVE vida e buffa — a tempestade responde a controle.',
         }, visual(3, '#e0e0ff')),
         Object.assign({
           id: 'redirected-storm', name: 'Tempestade Desviada', slot: 'ultimate', row: 4,
-          kind: 'blast', at: 'target', dmg: 32, stun: 36, launch: -9, radius: 220, cd: 126,
+          kind: 'blast', at: 'target', dmg: 38, stun: 40, launch: -10, radius: 240, cd: 116,
           fx: { paralyze: 30, shock: 120, slow: 80 }, sfx: 'ultimate',
           desc: 'A tempestade é desviada para o alvo: dano massivo + paralisia curta + choque + lentidão.',
         }, visual(4, '#c0c0e0')),
