@@ -79,7 +79,8 @@ const SPRITE_LAYOUT = {
     "guarda-digital": "assets/sprites/guarda-digital.png",
     "engenheira-prompt": "assets/sprites/engenheira-prompt.png",
     "boneco-treino": "assets/sprites/boneco-treino.png",
-    "odette": "assets/sprites/odette.png"
+    "odette": "assets/sprites/odette.png",
+    "john-vibe": "assets/sprites/john-vibe.png"
   }
 };
 

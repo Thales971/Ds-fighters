@@ -349,7 +349,33 @@ ODETTE_POSES = {
     'win':     ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 195, BASE),
 }
 
+# John the Vibe Coder: folha1 (si=0: soco/soco/pulo/chute | soco-L/soco-L/pulo-L/chute-L)
+# folha2 (si=1: soco/pulo-ar/tiro/chute | hit/KO/agachar/vitoria). 4-tuplas (si,ci,ri,flip).
+JOHN_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 1, 0, False), (0, 0, 0, False), (0, 1, 0, False)], 195, BASE),
+    'walk':    ([(0, 0, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 2, 0, False), (1, 1, 0, False), (0, 2, 0, False), (1, 1, 0, False)], 165, AIR),
+    'crouch':  ([(1, 2, 1, False)] * 4, 125, BASE),
+    'punch':   ([(0, 0, 0, False), (1, 0, 0, False), (0, 0, 0, False), (1, 0, 0, False)], 175, BASE),
+    'kick':    ([(0, 3, 0, False), (1, 3, 0, False), (0, 3, 0, False), (1, 3, 0, False)], 165, BASE),
+    'cpunch':  ([(1, 2, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 2, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 3, 0, False)] * 4, 160, AIR),
+    'special': ([(1, 2, 0, False)] * 4, 195, BASE),
+    'hit':     ([(1, 0, 1, False)] * 4, 185, BASE),
+    'block':   ([(0, 0, 1, True), (0, 1, 1, True), (0, 0, 1, True), (0, 1, 1, True)], 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'john-vibe': {
+        'sheets': ['John The Vibe coder.jpg', 'Jonh the vibe coder 2.jpg'],
+        'abilities': 'jonh the vibe coder habilidades.jpg',
+        'poses': JOHN_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
     'odette': {
         'sheets': ['Odete sprite 1.jpg', 'Odete sprite 2.jpg'],
         'abilities': 'Habilidades odete.jpg',
