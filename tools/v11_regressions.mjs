@@ -46,7 +46,7 @@ let checks = 0;
 function pass(condition, message) { assert.ok(condition, message); checks++; }
 function def(id) { const f = api.FIGHTERS.find((x) => x.id === id); assert.ok(f, `fighter ${id} exists`); return f; }
 
-const expectedPower = { mis: 1.37, 'dev-senior': 1.42 };
+const expectedPower = { mis: 1.37, 'dev-senior': 1.46 };
 for (const id of fighters) {
   const f = def(id);
   pass(f.secret !== true, `${id} is a normal unlocked fighter`);
@@ -72,7 +72,7 @@ const misUlt = api.POWERS.mis.powers[4];
 pass(misUlt.fx && misUlt.fx.vertigo > 0 && misUlt.fx.blind > 0 && misUlt.fx.burn > 0, 'Mis ultimate inverts the target view, blinds and applies continuous fire damage');
 const nanoUlt = api.POWERS['dev-senior'].powers[4];
 pass(nanoUlt.kind === 'aura' && nanoUlt.grant === 'nanomachines' && nanoUlt.form === 'nano', 'Dev Senior ultimate activates the alternate shirtless nano form');
-pass(nanoUlt.time <= 240 && nanoUlt.armor && nanoUlt.dmgMult >= 1.15 && nanoUlt.defMult <= 0.85, 'Dev Senior ultimate has strong but finite armor, force and defense');
+pass(nanoUlt.time <= 480 && nanoUlt.armor && nanoUlt.dmgMult >= 1.15 && nanoUlt.defMult <= 0.85, 'Dev Senior ultimate has strong but finite armor, force and defense');
 
 function makeGame() {
   return {

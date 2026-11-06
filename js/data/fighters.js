@@ -71,7 +71,7 @@ const FIGHTERS = [
     bio: 'Jovem de boné para trás, meia barba e corrente dourada. Domina a água como componentes React: cada onda é um re-render.',
     colors: { skin: '#c98e5f', hair: '#2b1c10', shirt: '#3fae5a', pants: '#3a6ea8', shoes: '#f2f2f2', accent: '#ffe14d' },
     traits: { nerd: true, glasses: 'round', cap: 'backwards', chain: true },
-    stats: { power: 1.4, speed: 1.22, weight: 1.0, hp: 136, meterRate: 1.5 },
+    stats: { power: 1.44, speed: 1.24, weight: 1.0, hp: 142, meterRate: 1.55},
     secret: true,
     quotes: {
       intro: ['Teu estado vai mudar agora, doido.', 'useEffect: afogar o adversário.'],
@@ -393,7 +393,7 @@ const FIGHTERS = [
     bio: 'Pardo, cabelo raspado, jaqueta amarela. Implante neural que desacelera o tempo e desvia de tudo.',
     colors: { skin: '#8d5a3b', hair: '#111', shirt: '#f7e600', pants: '#15161c', shoes: '#111', accent: '#00f0ff' },
     traits: { jacket: true },
-    stats: { power: 0.98, speed: 1.3, weight: 0.9, hp: 102 },
+    stats: {power: 1.30, speed: 1.14, weight: 1.0, hp: 132, meterRate: 1.16},
     quotes: {
       intro: ['Contrato aceito. Você é o alvo.', 'Tempo é dinheiro. O seu acabou.'],
       win: ['Pagamento recebido.', 'Rápido demais pra você.'],
@@ -414,7 +414,7 @@ const FIGHTERS = [
     bio: 'Cabelo preto raspado nas laterais, moletom verde, jeans baggy e tênis. Raios azuis e sombras do submundo.',
     colors: { skin: '#e9c3a5', hair: '#1a1410', shirt: '#6b7d4a', pants: '#8fb3d9', shoes: '#eee', accent: '#4da3ff' },
     traits: { hoodie: true },
-    stats: { power: 1.34, speed: 1.16, weight: 1.02, hp: 136, meterRate: 1.24 },
+    stats: {power: 1.32, speed: 1.10, weight: 1.05, hp: 138, meterRate: 1.25},
     quotes: {
       intro: ['Vai chover raio.', 'Minha sombra já tá atrás de você.'],
       win: ['Relampejou e acabou.', 'Volta pras sombras.'],
