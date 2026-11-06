@@ -777,21 +777,34 @@ class Fighter {
         break;
       }
       case 'afo2': {
-        /* All For One: Ação Final — meteoro de braço colossal de IAs.
-           Diferente da 1a ult (barrage): golpe único massivo em área, drena
-           medidor, cura por acúmulo e aplica vários status conforme o acúmulo. */
+        /* All For One: Ação Final — TODAS as ultimates do jogo de uma vez.
+           Cada lutador do roster dispara sua ultimate no alvo em sequência
+           rápida, mostrando o sprite de cada uma; o total fecha em ~250. */
         const stacks = this.castAfo || 0;
-        const dmg = p.dmg + stacks * (p.perAfo || 6);
+        const allIds = (typeof FIGHTERS !== 'undefined' ? FIGHTERS.map((x) => x.id) : Object.keys(POWERS)).filter((id) => id !== 'boneco-treino');
+        const ults = allIds.map((id) => {
+          const kit = POWERS[id];
+          const ult = kit && kit.powers.find((x) => x.slot === 'ultimate');
+          return ult ? { fid: id, row: ult.row == null ? 4 : ult.row } : null;
+        }).filter(Boolean);
+        const n = Math.max(1, ults.length);
+        const per = Math.max(2, Math.round(200 / n / (this.dmgMult(p) || 1)));
         if (tgt && tgt.alive) {
           this.dir = tgt.x >= this.x ? 1 : -1;
-          // visual novo: meteoro de braço colossal (linha nova da folha) + caos + raio
-          for (let k = 0; k < 4; k++) game.spawnBurst(key, 6, tgt.x + (k - 1.5) * 60, -200 - k * 60, this.dir, 2.2 + k * 0.6);
-          game.spawnBurst('chaos', 2, tgt.x, -160, this.dir, 3.6);
-          game.spawnBurst('lightning', 3, tgt.x, -180, this.dir, 3);
-          game.spawnImgFx('grabfx', 'grab', tgt.x, tgt.y - 140, { scale: 4, life: 30, dir: this.dir });
-          game.addCrack(tgt.x, -130, 3.2, this.dir);
+          game.spawnBurst('chaos', 2, this.x, this.y - 120, this.dir, 3.2);
           game.flashScreen && game.flashScreen('#c77dff', 12);
-          const landed = tgt.takeHit(dmg, { attacker: this, height: 'unblockable', kx: 26, dirSign: this.dir, launch: -15, stun: 60 + stacks * 4, ability: true, power: p, element: el, heavy: true, fx: { vuln: 200, lock: 120, blind: 140, shock: 160, slow: 120 } });
+          let landedAny = false;
+          ults.forEach((u, k) => {
+            game.strikes.push(new Strike(this, {
+              x: tgt.x, delay: 6 + k * 4, w: 220, h: 320, dmg: per, stun: 12, launch: k === ults.length - 1 ? -12 : 0, kx: 0,
+              unblockable: true,
+              sheet: { key: 'abil:' + u.fid, row: u.row, frames: 4 }, scale: 2, dir: this.dir,
+              sound: k % 4 === 0 ? 'explosion' : null, shake: k % 4 === 0 ? 5 : 2, follow: tgt,
+              power: p, element: (POWERS[u.fid] || {}).element || 'arcano',
+            }));
+            if (k % 4 === 0) game.spawnBurst('abil:' + u.fid, u.row, tgt.x, tgt.y - 110, this.dir, 1.6);
+          });
+          const landed = tgt.takeHit(Math.round(50 + stacks * 5), { attacker: this, height: 'unblockable', kx: 26, dirSign: this.dir, launch: -15, stun: 60 + stacks * 4, ability: true, power: p, element: el, heavy: true, fx: { vuln: 200, lock: 120, blind: 140, shock: 160, slow: 120 } });
           if (landed) {
             tgt.ultimate = Math.max(0, tgt.ultimate - 70);
             tgt.charge[0] = Math.max(0, tgt.charge[0] - 70);
@@ -800,7 +813,7 @@ class Fighter {
             this.afo = 0;
           }
         }
-        this.flashText(`ALL FOR ONE: AÇÃO FINAL x${stacks}`, '#ff3b6b');
+        this.flashText(`ALL FOR ONE: AÇÃO FINAL x${stacks} — ${ults.length} ULTS!`, '#ff3b6b');
         game.shake(30);
         break;
       }
@@ -922,6 +935,8 @@ class Fighter {
     const game = this.game;
     if (!f.kit) return;
     const powers = f.ownKit().slice(0, 5).map((p) => Object.assign({}, p, { _fid: f.def.id }));
+    /* IALES mantém as próprias habilidades 6 a 10 mesmo com kit roubado. */
+    if (this.def.id === 'iales') powers.push(...this.ownKit().slice(5).map((p) => Object.assign({}, p)));
     this.stolen = { powers, from: f.def.id, fromName: f.def.name, until: this.now + time, total: time };
     this.addStatus('stolen', time);
     f.addStatus('locked', time);
@@ -1735,7 +1750,9 @@ class Fighter {
     this.status = s[12] || {};
     if (s[13]) {
       const f = POWERS[s[13].from];
-      this.stolen = { powers: f ? f.powers.map((p) => Object.assign({}, p, { _fid: s[13].from })) : [], from: s[13].from, until: s[13].until, total: s[13].total, fromName: (FIGHTERS.find((x) => x.id === s[13].from) || {}).name };
+      const stolenPowers = f ? f.powers.map((p) => Object.assign({}, p, { _fid: s[13].from })) : [];
+      if (this.def.id === 'iales') stolenPowers.push(...this.ownKit().slice(5).map((p) => Object.assign({}, p)));
+      this.stolen = { powers: stolenPowers, from: s[13].from, until: s[13].until, total: s[13].total, fromName: (FIGHTERS.find((x) => x.id === s[13].from) || {}).name };
     } else this.stolen = null;
     this.cd = s[14] || this.cd;
     this.afo = s[15] || 0;
