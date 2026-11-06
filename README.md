@@ -1,389 +1,90 @@
-# DS FIGHTERS — Edição V12
+# DS FIGHTERS
 
-Jogo de luta 2D lateral no navegador, com visual arcade retrô do começo dos anos 90. Arte, efeitos sonoros e código próprios; músicas comerciais de batalha fornecidas pelo proprietário, identificadas em [FAIXAS.md](assets/music/FAIXAS.md). Menus, seleção, HUD, mascotes, resgate e salas são feitos em HTML/CSS; o Canvas fica só para a arena.
+Jogo de luta 2D arcade no navegador — pixel art retrô, JS/HTML/CSS puro, sem engine.
 
-![DS Fighters — Edição Turbo](assets/ui/logo.png)
-
-**36 lutadores · 46 arenas · 5 habilidades por lutador (+ segunda ultimate do IALES) · CPU com 4 dificuldades · online até 4 jogadores · chave de torneio até 32 (Redis Vercel ainda precisa ser conectado) · modo personalizado · 38 músicas enviadas**
-
-## Novidades da V11
-
-- **Mis** (power 1.37) estreia com fogo/queimadura; a ultimate combina dano contínuo, cegueira breve e inversão temporária somente da viewport do alvo.
-- **Grika** (power 1.37) luta com trevas e pesadelos; sua ultimate abre um buraco negro de chão que causa dano contínuo e paralisia curta com intervalo de recuperação.
-- **Dev Senior** (power 1.38, patamar THL) usa nanomáquinas; a ultimate ativa por tempo limitado uma forma sem camisa de tons metálicos cinza, veias/circuitos e núcleo cardíaco estilizado, com superarmadura, força e defesa elevadas e pulsos de raio vermelho sincronizados ao cliente online.
-- As três personagens têm spritesheets de combate e cinco efeitos de habilidade exclusivos cada, com atlases próprios no HUD e no Canvas; seus IDs estão disponíveis na seleção e nas salas online.
-
-## Torneio online V12 — código pronto, ativação Redis pendente
-
-- A API `api/tournaments.js` cria/ingressa por código, monta chave single-elimination para 2–32 jogadores (incluindo byes), só libera resultado depois de host e convidado receberem `Net.startMatch` e executarem `Game.start`, avança com confirmação dupla e encaminha disputas ao organizador.
-- O painel Vercel conecta cada confronto às salas P2P 1×1 existentes e permite reabrir a sala com outro anfitrião se o navegador cair; lutas não são retransmitidas pela API.
-- Para ativar em produção, o proprietário precisa conectar Upstash Redis pela Vercel Marketplace e fazer redeploy. Sem as variáveis Redis, a API retorna 503 e desativa criar/entrar; não há credenciais no repositório. Veja [HOSPEDAGEM.md](HOSPEDAGEM.md).
-- Auditoria runtime de efeitos (`python3 tools/roster_visual_audit.py`) confirma cinco rows próprios em Winx/Nina (V8) e nas oito personagens adicionadas em V9–V11, 10 no total; identifica 26 kits mais antigos sem mapeamento explícito de atlas por lutador, cuja migração visual continua pendente em `TODO.md`.
-
-## Novidades da V10
-
-- **Gemini Twinbyte e Meta** entram como lutadores normais com força equivalente ao Stack/ET 1155, spritesheets de combate próprios e cinco efeitos exclusivos cada; Meta usa a referência de anime kawaii enviada pelo usuário.
-- **Resonância e Véu** adicionam marca de próximo acerto e proteção leve, com duração absoluta limitada e sem travar controles.
-- **Aurora Boreal e Onda de Calor** acrescentam efeitos de clima selecionáveis e bônus elementais moderados; os efeitos de calor também valem para zonas persistentes.
-- Kimi passa a lutar com eletricidade; Kimi, DeepSeek e Dandara Query têm atlas próprio de cinco habilidades no HUD e nos impactos de combate.
-
-## Destaques da V8 (histórico)
-
-- **Winx.EXE corrigida**: folha original 4×15 com 15 poses reais sem linhas duplicadas; cinco ataques reformulados e atlas próprios de habilidade/impacto, em vez dos FX genéricos do elenco.
-- **Nina Vector** entra como personagem normal: piloto de cabelo curto e óculos ligada ao mecha original Kestrel-09, com folha 4×15, ataques e atlas autorais.
-- Arena **Pós-Codigocalipse**, cidade arruinada ao pôr do sol com glitches discretos e loop ambiental de 24 quadros.
-- O mecha e os efeitos da Winx/Kestrel são assets de combate reais no Canvas, e Nina está autorizada também no protocolo online.
-
-Veja [EXPANSAO-V8.md](EXPANSAO-V8.md) para a arte, os testes e os detalhes de compatibilidade.
-
-## Novidades da V7
-
-- **Winx.EXE** é a personagem secreta de código: `WINX` ou `WINX.EXE`. Sua força-base é igual à de DU (1,38); o código Batata mantém os quatro desbloqueios antigos.
-- **Kimi**, **DeepSeek** (com cauda de baleia) e **Dandara Query**, especialista em banco de dados do interior do RJ, entram como personagens normais, disponíveis sem código.
-- A Winx introduz **TRAVAMENTO**: interferência visual em scanlines ciano/magenta, leve redução de movimento e três quadros de atraso de comandos em pulsos curtos. O efeito expira e tem limite de renovação; a simulação não congela.
-- Três arenas novas com arte própria: **Área de Trabalho** (desktop Windows-inspired, sem logotipo copiado), **Abismo das Baleias** e **Vale do Cache**. Cada uma tem folha de ambiente animada de 24 quadros.
-- Kimi, DeepSeek e Dandara Query usam folhas 4×8; Winx foi migrada para 4×15 na V8. Os quadros antigos do roster permanecem intactos.
-
-Veja [EXPANSAO-V7.md](EXPANSAO-V7.md) para os detalhes, testes e limitações.
-
-## Novidades da V5
-
-THL, vigilante tático normal com vários debuffs e quarto poder permanente do elenco, e Dolynho, seu amiguinho de guaraná com bolhas e stun. Qwen continua terceira, desbloqueada por Batata. Novas arenas Jardim do Sol Nascente e Distrito Neon 2077; SENAI e SESI preservados. Vida global 2,00 × a base (78,6% a mais que na V4), rounds padrão 180 segundos e personalizados/online até 300. Resistência progressiva contra controle em sequência e reforços específicos de Caça-Bugs e Kairo Sprint.
-
-As 38 músicas recebidas são sorteadas sem repetição consecutiva, com volume moderado e redução automática durante a narração. Google continua adiado. Veja [EXPANSAO-V5.md](EXPANSAO-V5.md) para arte, balanceamento, testes e limitações.
-
-## Novidades da Edição Turbo
-
-- **Lutadores novos nesta leva**: KATYA QUEUE, RIN SHADER e ASH VAULT, mais as arenas Oficina das Latas, Terminal Fósforo, Metrô de Pacotes e Catedral SQL.
-- **ET 1155** (antes Stack Overflow) e **ROOT PHANTOM** (antes RootKit) refeitos: chip 1155 / overclock seco, e rootkit com fantasma, backdoor, malware e Kernel Panic.
-- **5 lutadores da Edição Turbo**: Yumi Lambda, Root Phantom, Kael JVM, Cromo VX e BHM Noir.
-- **DU e Felipinho Maprim redesenhados**: DU careca, de óculos e barba grisalha; Maprim de boné e meia barba.
-- **Combos muito mais fluidos**: buffer de entrada (inclusive no hitstop), cadeias automáticas e cancelamentos em habilidades.
-- **Efeitos de status por lutador**: explosão, dano contínuo, stun, cegueira (tela embaçada), elétrico (teclas se mexem sozinhas), gelo (lentidão), vulnerável e sem poderes.
-- **Balanceamento** feito com torneios automáticos CPU × CPU; o trio secreto continua acima, IALES no topo.
-- **CPU com 4 níveis reais**: Fácil, Normal, Difícil e Pesadelo.
-- **120+ FPS** com imagem interpolada (simulação fixa em 60 Hz).
-- **Nova logo** estilo arcade e **4 arenas novas** com mecânicas próprias.
-- **Online P2P sem servidor**, 2 × 2 com 4 jogadores, troca e assist, chat, link de convite e ping.
-
-![Elenco](assets/sprites/elenco.png)
-
-## Como rodar
-
-Sirva a pasta (os navegadores bloqueiam `fetch` em `file://`):
-
-```bash
-python3 -m http.server 8080
-# abra http://localhost:8080
-```
-
-O online já funciona assim, sem servidor próprio (P2P). O servidor dedicado é **opcional** (veja [HOSPEDAGEM.md](HOSPEDAGEM.md)):
-
-```bash
-cd online-server && npm install && npm start   # ws://localhost:8787 (opcional)
-```
-
-## Jogar online (grátis)
-
-1. Abra o jogo pelo endereço publicado e vá em **Online**. A conexão padrão é **P2P** (não precisa de servidor).
-2. Escolha o modo (**1 × 1**, **2 × 2 — duplas, 2 jogadores** ou **2 × 2 — 4 jogadores**) e clique em **CRIAR SALA**.
-3. Mande o **código de 6 letras** ou o **link de convite** para os amigos; eles digitam o código e clicam em **ENTRAR NA SALA** (pelo link, o código já vem preenchido).
-4. No lobby, cada um escolhe lutador (e equipe, no 2 × 2), a arena é definida pelo anfitrião e a luta começa quando **todos marcam PRONTO**.
-
-Quem cria a sala é o anfitrião: o navegador dele simula a luta, então ele não pode fechar a aba. Quem cair tem 30 s para voltar. Se alguma rede bloquear a conexão direta (redes de empresa, alguns 4G), use o servidor dedicado opcional.
-
-## Publicar para todo mundo jogar
-
-O jogo é só arquivos estáticos, então qualquer hospedagem estática gratuita serve:
-
-- **Vercel**: importe o repositório, preset **Other**, sem comando de build, diretório = raiz. O `vercel.json` e o `.vercelignore` já estão prontos; é a única dessas opções que hospeda a Function do torneio V12.
-- **Netlify / Cloudflare Pages / GitHub Pages**: podem hospedar o jogo estático e o P2P normal; o torneio ficará indisponível porque `/api/tournaments` é uma Vercel Function. GitHub Pages: *Settings → Pages → `main` / `(root)`* → `https://thales971.github.io/Ds-fighters/`.
-
-Passo a passo completo, servidor dedicado (Render, Fly.io, VPS, Docker) e checklist em [HOSPEDAGEM.md](HOSPEDAGEM.md).
-
-## Modos
-
-| Modo | O que é |
-|---|---|
-| **Arcade** | Escada de 7 lutas contra a CPU na dificuldade escolhida (as duas últimas sobem um nível) e chefe final (IALES, se liberado). Perdeu? Continue. |
-| **Versus** | 1 × 1 contra a CPU ou contra outro jogador no mesmo PC. Na seleção, o Jogador 2 aperta `J` para entrar. |
-| **CPU (4 níveis)** | **Fácil** (reage devagar, quase não defende), **Normal** (defende e faz combos curtos), **Difícil** (pune erros, antiaéreo, combos longos) e **Pesadelo** (leitura quase perfeita). Em teste automático o Pesadelo vence o Fácil 15 × 1. |
-| **2 × 2 Equipes** | Cada lado escolhe 2 lutadores. **Troca** = tecla de troca; **Assist** = baixo + troca (o parceiro entra, solta a H1 e volta). O parceiro no banco recupera vida. Perde quem ficar sem os dois. |
-| **Treino** | Boneco parado/defendendo/pulando/CPU, medidores infinitos opcionais, sem tempo. |
-| **Online** | Salas com código e **link de convite**, chat, ping, placar da sala. Modos **1 × 1**, **2 × 2 com 2 jogadores** e **2 × 2 com 4 jogadores** (cada um controla 1 lutador; quem está na reserva entra com TROCA ou chama ASSIST com SOCO). Conexão **P2P grátis** ou servidor dedicado. |
-
-## Controles
-
-| Ação | Jogador 1 | Jogador 2 | Controle (PS4) |
-|---|---|---|---|
-| Mover | `A` `D` | Setas ← → | Analógico / D-pad |
-| Pular / agachar | `W` / `S` | ↑ / ↓ | D-pad |
-| Soco · Chute | mouse esquerdo · direito | `J` · `K` | □ · ✕ |
-| Poderes 1 a 5 | `1` `2` `3` `4` `5` | numpad `1`–`5` | ○ · △ · L1 · R1 · R2 |
-| Poderes 6 a 10 | `6` `7` `8` `9` `0` | numpad `6`–`9` e `0` | L3 · R3 · touchpad |
-| Troca (2 × 2) | `R` | `L` | L2 |
-| Pausa | `Esc` / `P` | | Options |
-
-O jogador 1 não usa mais `Q` nem `E` para golpear. A tecla `0` é o 10º poder (reservada); o IALES tem uma segunda ultimate na tecla `6`, que exige quatro acúmulos de All For One. O botão direito do mouse não abre o menu do navegador em cima do jogo. Na seleção, o jogador 2 entra com `J`.
-
-A tecla de cada habilidade aparece **embaixo do ícone** na HUD. Defender: segure para trás (agachado defende golpes baixos). Dash: toque duas vezes. Agarrão: perto do rival, frente/trás + soco. Combos: soco → soco → chute encadeiam sozinhos; qualquer golpe que acertar pode ser cancelado em habilidade, e habilidades simples podem ser canceladas em carga/ultimate. As entradas ficam guardadas por ~10 quadros (inclusive durante o hitstop), então dá para apertar o próximo golpe antes do atual terminar. Há controles de toque em telas sensíveis ao toque e a opção "movimento reduzido" nas Opções.
-
-## Sistemas de luta
-
-Combos fluidos com buffer de entrada, cadeias automáticas (soco → soco → chute), cancelamento de golpe em habilidade e de habilidade simples em carga/ultimate, contador de hits e dano reduzido progressivamente, hitstop, knockback por peso, golpes altos/baixos, contra-ataque, barra de tontura, dano vermelho recuperável, câmera com zoom e tremor, cut-in de ultimate, KO em câmera lenta e "PERFEITO".
-
-**Efeitos de status** (cada lutador tem uma assinatura — veja a tabela abaixo):
-
-| Efeito | O que faz |
-|---|---|
-| Explosão | Dano extra em área no acerto |
-| Dano contínuo | Queimadura, veneno ou sangramento tiram vida com o tempo |
-| Stun | Enche a barra de tontura; cheia = rival TONTO |
-| **Cegueira** | A **tela do rival fica embaçada** (no online e contra a CPU) |
-| **Elétrico** | **As teclas do rival começam a se mexer sozinhas** (direções trocadas e golpes fantasmas) e os ícones da HUD tremem |
-| **Gelo** | Lentidão: anda, pula e ataca mais devagar |
-| Vulnerável | Recebe +20 % de dano |
-| Sem poderes | Habilidades bloqueadas por alguns segundos |
-
-**120+ FPS**: a simulação roda em passo fixo de 60 Hz (justo e igual para todos, inclusive online) e a imagem é **interpolada** na taxa do monitor (120/144/240 Hz). Em *Opções*: limite de FPS, movimento suavizado e contador de FPS.
-
-Cada lutador tem **5 habilidades animadas**: 2 simples (recarga), 2 de carga (barras A e B) e 1 ultimate. As sprite sheets ficam em `assets/abilities/<id>.png` (4 quadros × 5 linhas de 128 px). Os dados ficam em `js/data/powers.js` e `js/data/powers-turbo.js`.
+**40 lutadores · 46 arenas · online até 4 jogadores · modo treino com dojo próprio**
 
 ## Lutadores
 
-O Senpai foi removido. **DU, IALES, Felipinho Maprim e Qwen** são secretos: resgate o código **`Batata`** em *Resgatar código* para liberar os quatro juntos (fica salvo no navegador). Eles são propositalmente mais fortes; **IALES é o mais apelão**.
+| # | Nome | Power | Tema |
+|---|---|---|---|
+| 1 | DU MAGMA | 1.38 | Magma vivo |
+| 2 | IALES OMEGA | 1.55 | Todas as IAs, 10 habilidades |
+| 3 | FELIPINHO HYDRO | 1.44 | Água e React |
+| 4 | ET 1155 (stack) | 1.16 | Soquete 1155 |
+| 5 | KAGE COMMIT (gitmaster) | 1.10 | Git |
+| 6 | LYRA TRACE (bughunter) | 1.04 | Bug report |
+| 7 | MIRA PIXEL (frontend) | 1.08 | CSS |
+| 8 | TITAN 500 (backend) | 1.12 | Erro 500 |
+| 9 | CID PIPE (devops) | 1.06 | Pipeline |
+| 10 | ADA ASSERT (qa) | 1.02 | Testes |
+| 11 | KAIRO SPRINT (scrum) | 1.08 | Gelo |
+| 12 | OMNI STACK (fullstack) | 1.12 | Combos |
+| 13 | YUMI LAMBDA (kotlin) | 1.06 | Rapidez |
+| 14 | ROOT PHANTOM (hacker) | 1.10 | Rootkit |
+| 15 | KAEL JVM (java) | 1.10 | Tanque |
+| 16 | CROMO VX (merc) | 1.30 | 20% esquiva base |
+| 17 | BHM NOIR | 1.32 | Raio + sombra |
+| 18 | VIGILANTE (thl) | 1.10 | Lockdown tático |
+| 19 | URBANO TREMOR | 1.20 | Terremoto |
+| 20 | XEON | 1.10 | Performance |
+| 21 | QWEN ASTRA | 1.39 | Forma alternativa |
+| 22 | DOLYNHO | 1.08 | Simplicidade |
+| 23 | LOBÃO | 1.40 | Wrestling selvagem |
+| 24 | WINX.EXE | 1.38 | Desktop |
+| 25 | GEMINI TWINBYTE | 1.35 | Duas frequências |
+| 26 | META | 1.24 | Comunidade |
+| 27 | MIS, A BRASA MISTRAL | 1.37 | Fogo |
+| 28 | DEV SENIOR | 1.46 | Nanomáquinas |
+| 29 | DANDARA QUERY | 1.15 | Banco de dados |
+| 30 | NINA VECTOR | 1.15 | Kestrel-09 |
+| 31 | DEV VETERANO | 1.36 | Duas pistolas |
+| 32 | HANA | 1.24 | Jardim de código |
+| 33 | CYBER-PSICOPATA | 1.48 | Tank de pressão |
+| 34 | GRIKA | 1.30 | Pesadelos |
+| 35 | GUARDA DIGITAL | 1.22 | Perímetro |
+| 36 | ENGENHEIRA DE PROMPT | 1.24 | Instruções |
+| 37 | ODETTE | 1.26 | Elegância |
+| 38 | JOHN THE VIBE CODER | 1.36 | Herdeiro do fuzil |
+| 39 | NIMBO | 1.38 | Portador rachado |
+| 40 | BONECO DE TREINO | 0.80 | Sparring de madeira |
 
-| Lutador | Assinatura | Estilo |
-|---|---|---|
-| **IALES** (secreto) | AUTO AIM + ROUBO | *Todos* os ataques têm auto aim, IAs atrás dele ao conjurar, acúmulo estilo All For One. **Ctrl+C dos Poderes** acerta sempre e rouba as 5 habilidades do rival por 10 s. Dragão de Fogo Rust. Ultimate **All For One: Merge Total**. |
-| **DU** (secreto) | EXPLOSÃO + FÚRIA | Careca, óculos e barba grisalha. Machado de magma, PHP, Fúria do Guerreiro; com pouca vida causa +25 % de dano. |
-| **Felipinho Maprim** (secreto) | ÁGUA | Boné e meia barba. Água + React: deixa lento e rouba vida. |
-| **Yumi** (Kotlin) | RAPIDEZ + GELO | Baixinha, cabelo claro e óculos; a mais rápida do jogo. Ataques violeta/laranja/azul do Kotlin; corrotinas teleguiadas e cristais Null-Safe que congelam. |
-| **ROOT PHANTOM** (hacker) | ROOTKIT | Aproximação quase invisível, backdoor pelas costas, malware que atrasa o medidor, escalada de privilégio e ultimate **Kernel Panic**. |
-| **Mestre Java** | TANQUE + EXPLOSÃO | Mestre do back-end de jaqueta: armadura da JVM, Garbage Collector que puxa, StackOverflowError que explode e Meteoro de Beans. |
-| **CROMO VX** (mercenário) | ESQUIVA | Esquiva para a frente e para trás, atravessa o rival, intangível no meio do passo e ganha medidor num desvio limpo. |
-| **BHM NOIR** | RAIO + SOMBRA | Portal no chão: afunda na sombra e reaparece atrás ou por cima, com soco ou chute na saída. |
-| **KATYA QUEUE** | FILAS | Russa de trança platinada e casaco com forro vermelho. Tópicos, consumer lag e entrega exactly-once. |
-| **RIN SHADER** | SHADER | Japonesa de rabo de cavalo preto e fita vermelha. Cortes de vértice, fragmentos de shader e raster. |
-| **ASH VAULT** | CIFRA | Cabelo prateado e casaco longo. Hash, troca de chave e conhecimento zero. |
-| **ET 1155** | OVERCLOCK SECO | Alien das latas velhas: chip 1155, chave de fenda, overclock que superaquece se durar até o fim, pasta térmica e ultimate Debloat Total. |
-| Git Master | CEGUEIRA | Sombras embaçam a tela do rival. |
-| Bug Hunter | DANO CONTÍNUO | Todo acerto de habilidade envenena. |
-| Front Dev | ELÉTRICO | Neon eletriza os controles do rival. |
-| Back Dev | STUN | Barra de tontura enche 50 % mais rápido. |
-| DevOps | EXPLOSÃO | Explosões extras. |
-| QA Tester | CORROSÃO | Ácido: vulnerável e envenenado. |
-| Scrum Master | GELO / LENTIDÃO | Habilidades deixam lento. |
-| Fullstack | COMBOS | Cadeias com 2 golpes a mais. |
+## Modos
 
-**Balanceamento**: torneio CPU × CPU (`python3 tools/balance_sim.py`), dificuldade normal, sem clima e sem mecânica de arena, 2 partidas em cada sentido. Amostra curta (varia cerca de 10 pontos). Meta dos normais: cerca de 40–60 %. O trio secreto continua de propósito acima disso.
-
-Antes desta leva (1 partida por sentido, elenco antigo):
-
-| Lutador | Vitórias |
+| Modo | Descrição |
 |---|---|
-| QA | 11 % |
-| BHM | 31 % |
-| Yumi | 39 % |
-| Front, Bug, Full | 46 % |
-| Stack, Rootkit | 50 % |
-| Git | 54 % |
-| Scrum | 58 % |
-| DevOps, Cromo | 65 % |
-| Back, Java | 69 % |
+| Arcade | Escada de 7 lutas contra a CPU |
+| Versus | 1×1 local ou CPU |
+| 2×2 Equipes | Duplas com troca |
+| Survival | Lute até cair |
+| Treino | Dojo próprio, boneco configurável, cura automática |
+| Online | P2P ou servidor, até 4 jogadores |
+| Personalizado | Regras customizáveis |
 
-Depois (nomes novos; ROOT PHANTOM no topo da faixa normal, não mais entre os fracos):
-
-| Lutador | Vitórias |
-|---|---|
-| KATYA QUEUE | ~40 % |
-| BHM NOIR | ~40 % |
-| ASH VAULT | ~40–60 % |
-| MIRA PIXEL | ~40 % |
-| KAGE COMMIT | ~40–60 % |
-| LYRA TRACE, CROMO VX, YUMI LAMBDA | ~45–55 % |
-| ET 1155, CID PIPE, ADA ASSERT, OMNI STACK, KAEL JVM | ~50–60 % |
-| TITAN 500, KAIRO SPRINT, RIN SHADER | ~55–60 % |
-| ROOT PHANTOM | ~55–65 % |
-
-Segredos (DU MAGMA, IALES OMEGA, FELIPINHO HYDRO) não entram nessa tabela: continuam apelões.
-
-## Arenas (46)
-
-O catálogo atual contém **46 arenas selecionáveis**: preserva os dez cenários animados originais, dez do pacote retrô e seis de tecnologia (**Floresta Spring Boot**, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python), além dos mapas Turbo, SENAI/SESI, V5, V7 e V8. Abaixo estão as quatro arenas de tecnologia da Edição Turbo:
-
-| Arena | Mecânica |
-|---|---|
-| **Ilha Kotlin** | MARÉ ALTA: ondas empurram todo mundo para um lado |
-| **Covil do Kali** | INVASÃO: um lutador é hackeado e fica com os controles eletrizados |
-| **Torrefação JVM** | GARBAGE COLLECTOR: apaga projéteis e zonas e puxa todos ao centro |
-| **Cidade Cromada** | DRONES: disparos do céu miram um lutador |
-
-Todas as arenas têm **mecânica exclusiva** (lava, esteira, glitch que troca lugares, git revert, holofote, gelo escorregadio, enxame de abelhas, mel que gruda, containers que caem, serpente, gongo, baixa gravidade…) e **clima aleatório** com efeito real:
-
-| Clima | Efeito |
-|---|---|
-| Chuva | Água e raio +15 %, fogo −15 %, chão escorrega |
-| Ventania | Rajadas empurram lutadores e projéteis |
-| Tempestade | Chuva + vento + raios que caem com aviso; raio +25 % |
-| Nevasca | Movimento 8 % mais lento; gelo +20 % |
-
-Pássaros, abelhas, borboletas, morcegos e peixes aparecem onde fazem sentido. **Power-ups** caem durante a luta (Ataque, Defesa, Velocidade e Energia), com tempo visível na HUD.
-
-## Mascotes
-
-Em *Mascotes*, cada jogador equipa um companheiro que aparece na arena e dá bônus real (salvo no perfil): Pinguim do Linux (+12 % defesa e regeneração), Baleia Container (escudo), Caranguejo Seguro, Cobra Script, Elefante Legado, Gopher Concorrente, Espírito da Primavera e Polvo do Commit.
-
-## Música: seus rocks pesados
-
-A cada batalha uma faixa é sorteada. Para usar as suas:
-
-1. Envie os arquivos (`.mp3` ou `.ogg`) para `assets/music/rock/`.
-2. Liste-os em `assets/music/playlist.json`:
-
-```json
-{
-  "tracks": [
-    { "title": "Minha Faixa 1", "file": "assets/music/rock/faixa1.mp3" },
-    { "title": "Minha Faixa 2", "file": "assets/music/rock/faixa2.mp3" }
-  ]
-}
-```
-
-Enquanto `tracks` estiver vazio, tocam as faixas originais de `fallback`. Se uma faixa listada não existir, o jogo pula para outra. Volumes separados (geral, música, efeitos, narrador) e mudo ficam em *Opções*. O áudio só começa após o primeiro clique/tecla (regra dos navegadores).
-
-## Estrutura
-
-```
-js/core/profile.js      perfil, desbloqueio por código, mascotes, opções
-js/data/                fighters, powers (5 habilidades), stages, pets
-js/engine/              game (rounds, 2x2, câmera, rede), fighter (combate),
-                        projectile, fx, weather, mechanics, stage, ai, audio, input
-js/ui/                  hud.js (HUD em HTML), ui.js (telas e navegação)
-js/net/room-core.js     núcleo das salas (mesmo código no servidor e no anfitrião P2P)
-js/net/online.js        cliente online (P2P via PeerJS/WebRTC ou WebSocket)
-api/tournaments.js     Vercel Function HTTP para torneio e estado Redis
-js/vendor/peerjs.min.js PeerJS 1.5.4 (MIT)
-online-server/          servidor dedicado opcional (Node + ws) e testes
-assets/abilities        sprite sheets das habilidades
-assets/art-pack         pacote retrô (impactos, fogo, água, raio, caos, símbolos de IAs, pássaros, chão, 10 fundos)
-tools/                  scripts de build de assets e testes automáticos
-```
-
-Testes:
-
-- `python3 tools/smoke.py` — catálogo atual de 46 arenas, 36 lutadores e habilidades no Chromium.
-- `python3 tools/abilities_check.py` — as 5 habilidades dos lutadores novos e os efeitos de tela (cegueira/choque).
-- `python3 tools/ai_levels.py` — confirma que os 4 níveis de CPU são diferentes.
-- `python3 tools/online_e2e.py ws 2`, `ws 4`, `p2p 2`, `p2p 4` — partidas online reais entre 2 e 4 navegadores (P2P precisa de internet).
-- `cd online-server && npm test` — 38 verificações do servidor (salas, isolamento, 4 jogadores, reconexão, limites e escolhas V8).
-- `node tools/tournament_api_tests.mjs` — 110 assertivas: até 32 participantes, CAS concorrente, retries idempotentes, health-check, TTL absoluto, handshake P2P, confirmação/disputa e recuperação.
-- `python3 tools/tournament_ui_check.py` — smoke Playwright com API mockada (host/guest, dois `Net.startMatch`, bracket, rehost, confirmação, polling, teclado/foco, mobile e modo sem Redis). Não testa uma conta Redis de produção.
-- `python3 tools/roster_visual_audit.py` — conta a cobertura de atlas exclusivo por lutador; `--strict` falha até que todo o elenco tenha cinco rows próprios.
-
-Fonte: Press Start 2P (SIL Open Font License).
-
-## Cenários animados originais (técnico)
-
-São os 10 fundos animados do dono, em `assets/stages/`. Cada PNG é uma folha de 6 colunas por 4 linhas, 24 frames de 960×540, a 10 fps. O jogo só blita o frame da vez. O chão em perspectiva foi pintado por cima da arte original, e silhuetas escuras de gente que apareciam no piso foram apagadas.
-
-1. Centro de Dados
-2. Chuva de Código
-3. Laboratório 95
-4. Neon City.exe
-5. Fight.exe
-6. Fábrica de Bugs
-7. Placa-Mãe
-8. Startup 3am
-9. Deploy nas Nuvens
-10. Arena Git
-
-Os GIFs de origem estão em `assets/stages/source/`. Para reprocessar:
+## Testes
 
 ```bash
-node tools/process-stages.mjs
+node tools/combat_regressions.mjs
+node tools/modes_test.js
+node tools/hitbox_test.js
+node tools/championship.js
+python3 tools/sprite_audit.py
+npm test --prefix online-server
 ```
 
-## Sprites dos lutadores
+## Deploy
 
-As folhas ficam em `assets/sprites/`. Cada frame tem 320×260 (folha 1280×3900 = 4 colunas × 15 poses). A ordem das linhas está em `assets/sprites/layout.js`: idle, andar, pulo, agachar, soco, chute, soco agachado, chute agachado, soco no ar, chute no ar, especial, hit, bloqueio, KO e vitória. O jogo alinha o pé na linha `baseline` (246).
+Vercel automático a cada push para `main`. Ver [HOSPEDAGEM.md](HOSPEDAGEM.md).
 
-### Bug dos "bonecos gigantes" (causa e blindagem)
+## Nuvem
 
-O PNG era atualizado, mas `assets/sprites/layout.js?v=expansion-v8b` **nunca mudava de versão** — e é ele quem diz `frameW`, `frameH`, `baseline` e `drawScale`. Um aparelho com esse arquivo velho em cache (já existiu versão `96×128` com `drawScale 2`) desenhava a folha nova com a geometria antiga: boneco gigante, pé dentro do chão e corpo fatiado/duplicado. O deploy estava verde porque o arquivo servido era o novo; o navegador de quem jogava usava o velho.
+Supabase com retry exponencial (2s→32s), health check a cada 15s, auto-sync ao voltar a conexão e backup local. Ver [SUPABASE.md](SUPABASE.md).
 
-Blindagem em três camadas (não confie no cache de ninguém):
+## Códigos
 
-1. **Geometria derivada da imagem** — `SpriteGen.reconcile()` lê `naturalWidth/naturalHeight` da folha carregada e corrige `frameW/frameH/baseline/drawScale/cols/poses` se o layout discordar. Layout velho não deforma mais nada.
-2. **Token único de cache** — todas as tags `?v=` do `index.html` usam o mesmo token (`spritefix-4x15b`), inclusive `layout.js`. `tools/audit_sprites.mjs` falha se voltarem a divergir.
-3. **Selo de build na tela** — o canto inferior esquerdo mostra `build <token>` vindo do próprio motor. Se o selo estiver com token velho, o aparelho está com arquivo antigo (Ctrl+F5 resolve).
+- `adm` — desbloqueia Iales, Du e Felipinho
+- `batata` — desbloqueia secretos antigos
+- Winx.exe e Qwen são **padrão** (sem código)
 
-O `index.html` também garante `SPRITE_LAYOUT.files/perFighter` antes dos arquivos de dados rodarem: sem isso um layout antigo lançava exceção e o lutador novo nem era registrado.
-
-### Ferramentas de sprite (Node puro, sem numpy/Pillow)
-
-```bash
-node tools/audit_sprites.mjs            # auditoria completa (falha se o bug voltar)
-node tools/png_probe.mjs                # medidas de cada célula de cada folha
-node tools/png_probe.mjs grika --json   # dados crus de um lutador
-node tools/fix_sprite_cells.mjs         # conserta pé no chão / frame pulsando / membro cortado
-node tools/split_doubles.mjs            # acha células com mais de um corpo (sprite duplo)
-```
-
-Para ver o jogo rodando de verdade (headless), sem abrir navegador na mão:
-
-```bash
-node tools/lab.mjs --a grika --b winx-exe --act kick --out /tmp/x.png
-node tools/lab.mjs --a grika --b winx-exe --override assets/sprites/layout.js=tools/fixtures/layout-legado-96x128.js
-node tools/measure.mjs grika winx-exe --out /tmp/med.json   # mede o desenho real por pose/frame
-```
-
-`DIAG-SPRITES.html` (abre direto, sem servidor) mostra as 15 poses × 4 frames de cada lutador, a geometria que o motor está usando e um comparativo arquivo × motor — é a página para pedir print quando alguém relatar bug visual.
-
-
-## Atualização V4
-- **Novos lutadores:** Urbano Tremor (soco que racha o ar, trava e arremessa), Xeon (gelo e fogo: lentidão e queimadura) e **Qwen** (secreta, código `Batata`), cuja ultimate a transforma na **Qwen Astra** adulta por 12 s (+30% dano, +15% velocidade).
-- **IALES:** 2ª ultimate **All For One: Ação Final** (tecla 6), liberada com 4 acúmulos; o dano cresce a cada poder acumulado.
-- **Arena nova:** Quadra SESI Valinhos, onde a torcida chuta bolas e o sinal do intervalo enche a energia.
-- **Mapas:** 25 mapas estáticos viraram loops animados de 24 quadros (`tools/animate-maps.py`), e os mapas 11–14 deixaram de cintilar.
-- **Sprites:** os quadros duplicados das folhas foram corrigidos (`tools/fix-doubles.py`) e as animações ganharam movimento procedural.
-- **Login com Google (Firebase):** salva o progresso e os personagens. Configure-o em `js/config/firebase-config.js` (veja `FIREBASE.md`).
-- **Balanceamento:** refeito com um torneio de todos contra todos.
-
-## Refinamento da V4
-
-Novas folhas transparentes de **Urbano**, **1155** e **Qwen**, efeitos distintos de gelo/fogo da **Xeon**, **+12% de vida** em todo o elenco e correções do soco sísmico e da segunda ultimate do IALES. O **Pátio SESI Valinhos** foi adicionado sem remover a quadra. Mapas novos ganharam maior resolução e animação menos agressiva.
-
-O menu **PERSONALIZADO** oferece vida/medidores infinitos, escolha CPU/P2 e até **9 vitórias / 17 rounds**. Vida infinita não causa KO; o tempo desempata pelo dano do round. No online, as regras são sincronizadas pelo anfitrião e a lista de salas ao vivo contém somente salas reais do servidor dedicado.
-
-**Atenção:** o Supabase está integrado; login Google real ainda depende de configuração OAuth em [SUPABASE.md](SUPABASE.md). Firebase permanece alternativa opcional. A lista global de salas depende de [HOSPEDAGEM.md](HOSPEDAGEM.md); os testes dedicados foram locais. Veja [REFINAMENTO-V4.md](REFINAMENTO-V4.md) para o histórico das mudanças.
-
-## SENAI Valinhos e Qwen
-
-**Oficina SENAI Valinhos** adicionada com base nas fotos da oficina de usinagem e dos painéis elétricos fornecidas pelo proprietário. Fundo animado com 24 quadros e pulso elétrico com aviso. **As artes da quadra e do pátio SESI foram preservadas byte a byte.**
-
-Qwen agora é a **terceira no poder permanente**: IALES 1,50, Felipinho 1,40, Qwen 1,39. Batata, cinco habilidades e Astra foram mantidos; HP e ganho de medidor receberam reforço moderado. O resultado de uma luta continua dependente de transformação, matchup e jogador.
-
-O projeto `supabase-aero-ball` foi reativado com autorização. `ds_fighters_profiles` tem RLS própria e não altera tabelas antigas. Cliente Supabase com chave publicável, SDK local fixo e perfis/sessões separados. Testes de merge, autosave, offline, troca de conta e fallback passaram; a API real bloqueou leitura anônima. **Google ainda aguarda Client ID/Secret e redirect autorizado**. Detalhes em [SUPABASE.md](SUPABASE.md).
-
-**Segurança do projeto compartilhado:** 20 tabelas anteriores estão sem RLS. Não foram alteradas para evitar bloquear outro aplicativo; devem ser revisadas separadamente antes de armazenar dados privados.
-
-## Mobile e contas por email
-
-Menus e formulários agora se adaptam a retrato/paisagem; só a arena recebe escala 16:9. Toque multitouch de 44px, pausa, tela cheia e até dez habilidades. Email/senha permitem cadastro e login sem Google; confirmação de email real continua necessária. Online P2P testado com 2/4 navegadores e reconexão; diretório global ainda precisa de WSS permanente. Resultados e limites em [MOBILE-ONLINE-CONTAS.md](MOBILE-ONLINE-CONTAS.md).
-
-## Correção focada do Lobão
-
-Lobão agora usa rosto humano/cabelo das referências e visual de wrestling verde/branco, gola de pele e cadeira vermelha: 60 quadros e retratos novos. Aura de ativação com alcance local e sem perseguição; dano x1,5, esquiva 10% e sem armadura permanente. Chuva de cadeiras reduzida de 26 para 8 por cadeira. BHM preservado; catálogo do servidor sincronizado. Checagens: `python3 tools/lobao_render_check.py` e `node tools/lobao_combat_test.mjs`. O `tools/paint-lobao.py` é o gerador visual antigo; não o use para sobrescrever esta folha nova.
-
-**Ajuste posterior solicitado:** Modo Selvagem do Lobão mantém 10% de esquiva e recupera o escudo/armadura temporário durante seus 12 segundos. Permanecem o dano x1,5, a correção de alcance local e a chuva de cadeiras reduzida.
-
-## Hotfix: skins EM BREVE, pets e roubos do IALES
-
-Skins temporariamente desativadas, com preferências antigas preservadas. Cinco pets novos receberam sprites limpos; escala da seleção corrigida e oito clássicos preservados. Corrigidos inputs/relógio dos replays, término da investida de roubo, bloqueio/alcance do roubo remoto e ícones/retratos do Lobão, sem retirar escudo/esquiva da ultimate. URLs versionadas evitam arte antiga em cache. Testes e limites em [HOTFIX-PETS-IALES.md](HOTFIX-PETS-IALES.md).
-
-## Estabilidade — replay removido
-
-Replay foi excluído completamente (menu, gravação e reprodução). Corrigido o travamento reproduzido em iframe: a permissão negada de gamepad não encerra mais o loop; teclado/toque continuam. Gato Mistral atualizado com a animação oficial, música um pouco mais alta com narração protegida, dez clássicos refinados e mais leves. Versão: `stable-loop-mistral-v1`. Detalhes e limites em [ESTABILIDADE-SEM-REPLAY.md](ESTABILIDADE-SEM-REPLAY.md).
-
-**Versão atual: `stable-loop-mistral-v2`** — [abrir o jogo atualizado](https://online-server-one.vercel.app/?v=stable-loop-mistral-v2). Também corrigidos RNG ausente em power-ups e escopo incorreto nos eventos das arenas. Validação pública: 43 casos de eventos e partidas até o fim no mobile/iframe sem exceções. Veja [registro final](ESTABILIDADE-SEM-REPLAY.md).
+---
+Arte, código e efeitos originais. Músicas do proprietário. Jogo gratuito.
