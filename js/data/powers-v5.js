@@ -125,7 +125,7 @@ FIGHTERS.push(
   },
   {
     id: 'thl',
-    name: 'THL TACTICAL VIGILANTE',
+    name: 'VIGILANTE',
     title: 'O Vigilante de Lockdown',
     bio: 'Vigilante tático com insígnia de caveira e colete preto e cinza. Lê o campo, expõe a ameaça e não deixa brechas.',
     colors: { skin: '#c48f70', hair: '#1b1b1f', shirt: '#25282e', pants: '#15171b', shoes: '#111217', accent: '#d6d9df' },
