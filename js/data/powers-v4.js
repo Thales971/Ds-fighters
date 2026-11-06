@@ -44,13 +44,13 @@ Object.assign(POWERS, {
 
 /* 2ª ultimate do IALES (tecla 6): só com 4+ poderes acumulados no All For One. */
 POWERS.iales.powers.push({
-  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 7, kind: 'afo2', needAfo: 4, dmg: 40, perAfo: 6,
+  id: 'afo2', name: 'All For One: Ação Final', slot: 'ultimate', row: 7, kind: 'afo2', needAfo: 4, dmg: 58, perAfo: 9,
   sfx: 'ultimate', desc: 'Precisa de 4+ poderes acumulados: braço colossal de IAs, acerto garantido, cura e drena energia. Mais forte a cada acúmulo.',
 });
 POWERS.iales.powers.forEach((p) => {
-  if (p.id === 'prompt') { p.dmg = 8; p.cd = 34; }
-  if (p.id === 'dragon') { p.dmg = 21; p.cd = 80; }
-  if (p.id === 'afo') { p.dmg = 7; p.count = 12; p.finisher = 30; }
+  if (p.id === 'prompt') { p.dmg = 11; p.cd = 28; }
+  if (p.id === 'dragon') { p.dmg = 27; p.cd = 64; }
+  if (p.id === 'afo') { p.dmg = 9; p.count = 16; p.finisher = 42; }
 });
 /* ET 1155 mais forte */
 POWERS.stack.powers.forEach((p) => {
@@ -148,7 +148,7 @@ FIGHTERS.push(
 
 /* reforços de atributos */
 FIGHTERS.forEach((f) => {
-  if (f.id === 'iales') { f.stats.power = 1.55; f.stats.hp = 150; f.stats.meterRate = 1.65; f.bio += ' Agora com uma 2ª ultimate: All For One: Ação Final (tecla 6).'; }
+  if (f.id === 'iales') { f.stats.power = 1.9; f.stats.hp = 175; f.stats.meterRate = 2.1; f.stats.speed = Math.max(f.stats.speed || 1, 1.12); f.bio += ' Agora com uma 2ª ultimate: All For One: Ação Final (tecla 6).'; }
   if (f.id === 'stack') { f.stats.power = Math.max(f.stats.power || 1, 1.16); f.stats.hp = Math.max(f.stats.hp || 100, 118); f.stats.speed = Math.max(f.stats.speed || 1, 1.08); }
 });
 
