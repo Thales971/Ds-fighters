@@ -369,7 +369,33 @@ JOHN_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
 }
 
+# Nimbo: folha1 (si=0: idle/andar/pulo/agachar | soco-L/chute-L/tiro-L/hit-L)
+# folha2 (si=1: pulo-ar/pulo-ar/pulo-ar/pulo-ar | andar/agachar/KO/vitoria). r1 da folha1 = flip.
+NIMBO_POSES = {
+    'idle':    ([(0, 0, 0, False)] * 4, 195, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 1, 0, False), (0, 1, 0, False), (0, 1, 0, False)], 190, BASE),
+    'jump':    ([(0, 2, 0, False), (1, 0, 0, False), (1, 1, 0, False), (1, 2, 0, False)], 165, AIR),
+    'crouch':  ([(0, 3, 0, False), (1, 1, 1, False), (0, 3, 0, False), (1, 1, 1, False)], 125, BASE),
+    'punch':   ([(0, 0, 1, True)] * 4, 175, BASE),
+    'kick':    ([(0, 1, 1, True)] * 4, 165, BASE),
+    'cpunch':  ([(1, 1, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 1, True)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 1, True)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, True)] * 4, 195, BASE),
+    'hit':     ([(0, 3, 1, True)] * 4, 185, BASE),
+    'block':   ([(1, 1, 1, False)] * 4, 190, BASE),
+    'ko':      ([(1, 2, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'nimbo': {
+        'sheets': ['Nimbo sprite 1.jpg', 'Nimbo sprite 2.jpg'],
+        'abilities': 'Nimbo habilidades.jpg',
+        'poses': NIMBO_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
     'john-vibe': {
         'sheets': ['John The Vibe coder.jpg', 'Jonh the vibe coder 2.jpg'],
         'abilities': 'jonh the vibe coder habilidades.jpg',

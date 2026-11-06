@@ -94,3 +94,97 @@
     },
   });
 })();
+
+/* ================== NIMBO — o Portador Rachado ================== */
+(() => {
+  const id = 'nimbo';
+  SPRITE_LAYOUT.files[id] = `assets/sprites/${id}.png`;
+  SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
+    frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, special: 0.8, win: 0.75 },
+  });
+  const visual = (row, color) => ({
+    visualSheet: id, visualRow: row, impactSheets: [], impactColor: color,
+  });
+
+  FIGHTERS.push(
+    {
+      id,
+      name: 'NIMBO',
+      title: 'O Portador Rachado',
+      bio: 'Discípulo de Thales, o Arquiteto. Recebeu uma cópia fraca da Colheita do Ruído — o corpo racha a cada habilidade roubada, veias cinza de energia que se espalham. O prognóstico era apodrecer. O Arquiteto o recolheu não pra curar, mas pra ensinar: o poder de roubar pode devolver o que foi tirado.',
+      colors: { skin: '#d8c4b4', hair: '#e8e8e8', shirt: '#1a1a22', pants: '#121218', shoes: '#0c0c10', accent: '#a0a0c0' },
+      traits: { crackedVeins: true, longHair: true, tatteredCape: true, harvestCopy: true },
+      stats: { power: 1.38, speed: 1.12, weight: 0.96, hp: 134, meterRate: 1.20 },
+      secret: false,
+      quotes: {
+        intro: ['O Ruído me deu isso. Eu não pedi.', 'A deterioração é a minha barra de vida.'],
+        win: ['Isso foi devolvido, não roubado.', 'A tempestade responde a controle.'],
+        special: [' Rachadura!', 'TEMPESTADE INTERNA!', 'COLHEITA FRACA!'],
+        super: ['TEMPESTADE DEVIADA!!'],
+      },
+      moves: {
+        punch: { dmg: 6, range: 52, startup: 4, active: 4, recovery: 9 },
+        kick: { dmg: 9, range: 66, startup: 6, active: 4, recovery: 11 },
+      },
+      special: {
+        name: 'Rachadura', type: 'projectile', cost: 25,
+        proj: { row: 0, speed: 10, dmg: 11, w: 24, h: 20, color: '#a0a0c0', shape: 'orb', visualSheet: id, visualRow: 0 },
+      },
+      super: { name: 'Tempestade Desviada', type: 'aoe', dmg: 32, radius: 220, visualSheet: id, visualRow: 4 },
+    },
+  );
+
+  Object.assign(POWERS, {
+    [id]: {
+      element: 'ruido',
+      theme: 'rachaduras de energia cinza, tempestade interna e a Colheita fraca',
+      powers: [
+        Object.assign({
+          id: 'crack-shot', name: 'Rachadura', slot: 'simple', row: 0,
+          kind: 'shot', dmg: 11, speed: 10, seek: true, stun: 16, cd: 40,
+          fx: { slow: 40 }, sfx: 'magic',
+          desc: 'Projétil de energia cinza AUTO-AIM que desacelera o rival.',
+        }, visual(0, '#a0a0c0')),
+        Object.assign({
+          id: 'internal-storm', name: 'Tempestade Interna', slot: 'simple', row: 1,
+          kind: 'dash', dmg: 15, speed: 14, stun: 24, cd: 46,
+          fx: { shock: 60, vuln: 60 }, sfx: 'dash',
+          desc: 'A tempestade dentro dele explode: avanço que ELETRIZA e deixa VULNERÁVEL.',
+        }, visual(1, '#c0c0e0')),
+        Object.assign({
+          id: 'weak-harvest', name: 'Colheita Fraca', slot: 'charge', meter: 0, row: 2,
+          kind: 'steal', time: 480, dmg: 10, cd: 80,
+          fx: { blind: 100, lock: 60 }, sfx: 'steal',
+          desc: 'Cópia fraca da Colheita: rouba 5 poderes por 8s mas CEGA e TRAVA o próprio uso.',
+        }, visual(2, '#8080a0')),
+        Object.assign({
+          id: 'give-back', name: 'Devolver', slot: 'charge', meter: 1, row: 3,
+          kind: 'aura', time: 300, heal: 25, dmgMult: 1.2, speedMult: 1.15, defMult: 0.8, cd: 90,
+          sfx: 'shield',
+          desc: 'O poder ao contrário: DEVOLVE vida e buffa — a tempestade responde a controle.',
+        }, visual(3, '#e0e0ff')),
+        Object.assign({
+          id: 'redirected-storm', name: 'Tempestade Desviada', slot: 'ultimate', row: 4,
+          kind: 'blast', at: 'target', dmg: 32, stun: 36, launch: -9, radius: 220, cd: 126,
+          fx: { paralyze: 30, shock: 120, slow: 80 }, sfx: 'ultimate',
+          desc: 'A tempestade é desviada para o alvo: dano massivo + paralisia curta + choque + lentidão.',
+        }, visual(4, '#c0c0e0')),
+      ],
+    },
+  });
+
+  Object.assign(ELEMENT_FX, {
+    ruido: { sheet: id, color: '#a0a0c0' },
+    [id]: { sheet: id, color: '#a0a0c0' },
+  });
+
+  Object.assign(SIGNATURES, {
+    [id]: {
+      trait: 'PORTADOR RACHADO',
+      desc: 'Cópia fraca da Colheita que rouba poderes ao custo do próprio corpo — mas aprendeu a devolver.',
+      basic: {},
+      ability: {},
+    },
+  });
+})();

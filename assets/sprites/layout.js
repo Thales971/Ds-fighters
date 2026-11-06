@@ -80,7 +80,8 @@ const SPRITE_LAYOUT = {
     "engenheira-prompt": "assets/sprites/engenheira-prompt.png",
     "boneco-treino": "assets/sprites/boneco-treino.png",
     "odette": "assets/sprites/odette.png",
-    "john-vibe": "assets/sprites/john-vibe.png"
+    "john-vibe": "assets/sprites/john-vibe.png",
+    "nimbo": "assets/sprites/nimbo.png"
   }
 };
 
