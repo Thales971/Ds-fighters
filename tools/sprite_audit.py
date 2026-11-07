@@ -37,7 +37,7 @@ POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
 
 SUSPECTS = ['gemini', 'meta', 'mis',
             'dev-senior', 'dev-senior-nano', 'nina-vector', 'kimi', 'deepseek',
-            'dandara-query', 'winx-exe']
+            'dandara-query', 'winx-exe', 'emilio', 'emilio-trans']
 
 
 SPRITE_LAYOUT_FRAMES = {}
@@ -53,7 +53,7 @@ def layout_info():
 
 def fighter_ids_and_moves():
     ids = {}
-    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js']:
+    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js']:
         txt = (ROOT / p).read_text(encoding='utf-8')
         # bloco de cada id: do "id: 'x'" ate o proximo "id: '"
         marks = [(m.start(), m.group(1)) for m in re.finditer(r"id:\s*'([a-z0-9-]+)'", txt)]
@@ -73,6 +73,24 @@ def fighter_ids_and_moves():
                             break
             else:
                 ids.setdefault(fid, '')
+        # formato novo (v12+): const id = 'x'; ... FIGHTERS.push({ id, moves: {...} })
+        for m2 in re.finditer(r"const id = '([a-z0-9-]+)';", txt):
+            fid2 = m2.group(1)
+            if fid2 in ids and ids[fid2]:
+                continue
+            end2 = txt.find('Object.assign(POWERS', m2.end())
+            bloco2 = txt[m2.start():end2 if end2 > 0 else len(txt)]
+            mi2 = bloco2.find('moves:')
+            if mi2 >= 0:
+                start2 = bloco2.find('{', mi2)
+                depth2 = 0
+                for j2 in range(start2, len(bloco2)):
+                    if bloco2[j2] == '{': depth2 += 1
+                    elif bloco2[j2] == '}':
+                        depth2 -= 1
+                        if depth2 == 0:
+                            ids[fid2] = bloco2[start2 + 1:j2]
+                            break
         # variavel compartilhada (const moves = {...}) — aplica pra quem nao tem inline
         mi = txt.find('moves = {')
         if mi < 0:
@@ -101,7 +119,7 @@ def room_ids():
     return set(re.findall(r"'([a-z0-9-]+)'", m.group(1))) if m else set()
 
 
-FORMS_ONLY = {'dev-senior-nano', 'qwen-astra'}  # sprites de transformacao, nao lutadores proprios
+FORMS_ONLY = {'dev-senior-nano', 'qwen-astra', 'emilio-trans', 'boneco-treino'}  # formas e nao-lutadores  # sprites de transformacao, nao lutadores proprios
 
 def audit(fid, problems):
     if fid in FORMS_ONLY:
@@ -228,7 +246,7 @@ def fighter_ids_only():
     _, room = room_ids(), None
     files, _ = layout_info()
     txt = (ROOT / 'js/data/fighters.js').read_text(encoding='utf-8')
-    for extra in ['js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js']:
+    for extra in ['js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js']:
         txt += (ROOT / extra).read_text(encoding='utf-8')
     allids = set(re.findall(r"id:\s*'([a-z0-9-]+)'", txt))
     return sorted(i for i in allids if i in files or i in room_ids())

@@ -81,7 +81,9 @@ const SPRITE_LAYOUT = {
     "boneco-treino": "assets/sprites/boneco-treino.png",
     "odette": "assets/sprites/odette.png",
     "john-vibe": "assets/sprites/john-vibe.png",
-    "nimbo": "assets/sprites/nimbo.png"
+    "nimbo": "assets/sprites/nimbo.png",
+    "emilio": "assets/sprites/emilio.png",
+    "emilio-trans": "assets/sprites/emilio-trans.png"
   }
 };
 
