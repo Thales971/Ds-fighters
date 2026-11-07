@@ -8,7 +8,7 @@
       emilio:     { power: 1.62, speed: 1.16, weight: 1.00, hp: 150, meterRate: 1.34 },
       nunes:      { power: 1.66, speed: 1.16, weight: 1.04, hp: 156, meterRate: 1.38 },
       urbano:     { power: 1.52, speed: 1.08, weight: 1.20, hp: 152, meterRate: 1.34 },
-      bhm:        { power: 1.56, speed: 1.28, weight: 1.00, hp: 164, meterRate: 1.44 },
+      bhm:        { power: 1.38, speed: 1.22, weight: 1.00, hp: 144, meterRate: 1.28 },
       thl:        { power: 1.54, speed: 1.10, weight: 1.10, hp: 154, meterRate: 1.44 },
       du:         { power: 1.58, speed: 1.10, weight: 1.22, hp: 154, meterRate: 1.48 },
       felipinho:  { power: 1.62, speed: 1.26, weight: 1.00, hp: 154, meterRate: 1.58 },
@@ -45,11 +45,12 @@
     if (p.cd) p.cd = Math.max(20, Math.round(p.cd * 0.85));
   });
 
-  /* BHM: sombras mais pesadas */
+  /* BHM: nerfado apos ficar em 2o no campeonato (pedido do dono) — sombras
+     mais leves que o v8 original, um pouco acima do v7 */
   tone('bhm', (p) => {
-    up(p, 1.15);
-    if (p.id === 'storm') { p.count = 13; p.dmg = 60; }
-    if (p.id === 'portal') p.burstDmg = 28;
+    up(p, 1.0);
+    if (p.id === 'storm') { p.count = 10; p.dmg = 50; }
+    if (p.id === 'portal') p.burstDmg = 20;
   });
 
   /* VIGILANTE (THL): tático mais letal */

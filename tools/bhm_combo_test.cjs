@@ -28,12 +28,12 @@ const check = (name, cond, extra) => { console.log((cond ? 'OK   ' : 'FALHA') + 
 
 // stats v7
 const def = FIGHTERS.find((x) => x.id === 'bhm');
-check('BHM power 1.56 (v8)', def.stats.power === 1.56, 'power=' + def.stats.power);
-check('BHM hp 164 (v8)', def.stats.hp === 164);
+check('BHM power 1.38 (nerf)', def.stats.power === 1.38, 'power=' + def.stats.power);
+check('BHM hp 144 (nerf)', def.stats.hp === 144);
 
 // kit v7: dano +20% (plasma 14 -> 16.8 ~ arredondado)
 const plasma = POWERS.bhm.powers.find((p) => p.id === 'plasma');
-check('Bola Sombria buffada (v8)', plasma.dmg >= 19, 'dmg=' + plasma.dmg);
+check('Bola Sombria no nivel v7 (nerf)', plasma.dmg >= 16, 'dmg=' + plasma.dmg);
 
 // combo automatico: casta o Portal Sombrio (indice 3, charge meter 1) colado no rival
 f.x = 500; o.x = 560; o.y = 0; f.y = 0;
