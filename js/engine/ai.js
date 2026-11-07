@@ -149,16 +149,23 @@ const AI = {
     const ps = me.currentKit().map((_, i) => me.powerState(i));
     const cast = (i) => { input['a' + i] = true; m.cd = 18 + (3 - lvl) * 14; return input; };
     const auto = me.autoAim();
-    if (ps[5] && ps[5].ready && Math.random() < L.ult) return cast(5);
-    if (ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);
-    for (const i of [3, 2, 1, 0]) {
+    /* 2a ultimate (IALES: Acao Final, indice 9) — a mais forte do jogo, a IA
+       prioriza assim que ela fica pronta. */
+    if (ps[9] && ps[9].ready && ps[9].p.slot === 'ultimate') return cast(9);
+    if (ps[5] && ps[5].ready && ps[5].p.slot !== 'ultimate' && Math.random() < L.ult) return cast(5);
+    if (ps[4] && ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);
+    /* IALES tem 10 habilidades (0-9); a IA antes ignorava as 6-9 (Vírus,
+       Format C:, Agarrão) — metade do kit do campeão ficava parada.
+       Agora a IA considera TODOS os slots extras, na ordem 8..6 (as ultimates
+       seguem pelo galho do ps[4]/ps[5] acima). */
+    for (const i of [8, 7, 6, 3, 2, 1, 0]) {
       const st = ps[i];
-      if (!st.ready || Math.random() > L.ability) continue;
+      if (!st || !st.ready || st.p.slot === 'ultimate' || Math.random() > L.ability) continue;
       const k = st.p.kind;
       if (k === 'aura') { if (me.hp < me.maxHp * 0.75 || Math.random() < 0.3) return cast(i); continue; }
       if (k === 'steal') return cast(i);
       if ((k === 'pull' || k === 'beam') && dist < (st.p.range || 280)) return cast(i);
-      if (k === 'dash' && dist > 90 && dist < 300) return cast(i);
+      if ((k === 'dash' || k === 'grabsteal') && dist > 90 && dist < 320) return cast(i);
       if (k === 'shadowport' && dist < 380) return cast(i);
       if (['shot', 'pillar', 'zone', 'wall', 'blast', 'rain', 'barrage'].includes(k) && (dist > 150 || auto)) return cast(i);
       if (k === 'rush' && dist < 200) return cast(i);

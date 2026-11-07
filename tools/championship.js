@@ -13,8 +13,8 @@ const ctx={console, Image: class { set src(v){} }, Math, Date,
 };
 ctx.globalThis=ctx;
 vm.createContext(ctx);
-const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
-for (const f of files) { try { vm.runInContext(fs.readFileSync(f,'utf8'), ctx, {filename:f}); } catch(e){} }
+const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-balance-v7.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/fighters-v17.js','js/data/fighters-v18.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
+for (const f of files) { try { vm.runInContext(fs.readFileSync(f,'utf8'), ctx, {filename:f}); } catch(e){ console.log('ERRO CARGA', f, String(e).slice(0,60)); } }
 const api=vm.runInContext('({FIGHTERS,Fighter,POWERS})',ctx);
 
 function mkGame(){
@@ -32,16 +32,29 @@ function fight(aId, bId){
   a.charge=[100,100]; a.ultimate=100; a.cd=[0,0,0,0,0,0,0,0,0,0,0]; a.afo=6;
   b.charge=[100,100]; b.ultimate=100; b.cd=[0,0,0,0,0,0,0,0,0,0,0]; b.afo=6;
   const aHp0=a.hp, bHp0=b.hp;
-  // simula 300 ticks com ambas castando habilidades
-  for(let t=0;t<300;t++){
+  let aDeath=-1, bDeath=-1;
+  // simula 500 ticks com ambas castando o KIT COMPLETO em ciclo (o Iales tem 10).
+  // Habilidades de ROUBO sao taticas, nao de dano — numa corrida de dano so
+  // atrapalham (roubado, o lutador casta o kit do RIVAL, mais fraco pra ele).
+  const castList = (f) => f.currentKit().map((p, i) => ({ p, i })).filter((x) => x.p.kind !== 'steal' && x.p.kind !== 'shadowport').map((x) => x.i);
+  const aList = castList(a), bList = castList(b);
+  for(let t=0;t<500;t++){
     game.time=t;
-    if(t%50===0 && t>0){ a.tryCast(Math.floor(t/50)%5); b.tryCast(Math.floor(t/50)%5); }
+    if(t%40===0 && t>0){ const k=Math.floor(t/40)-1; a.tryCast(aList[k%aList.length]); b.tryCast(bList[k%bList.length]); }
     a.update(game); b.update(game);
+    if (aDeath<0 && a.hp<=0) aDeath=t;
+    if (bDeath<0 && b.hp<=0) bDeath=t;
     for(const z of game.zones) z.update && z.update(game);
     for(const s of game.strikes) s.update && s.update(game);
     for(const p of game.projectiles) p.update && p.update(game);
   }
   const aDmg=bHp0-b.hp, bDmg=aHp0-a.hp;
+  /* K.O. vale mais que dano acumulado: nocauteou primeiro, venceu.
+     (Antes, quando os dois caiam, quem tinha MAIS vida perdia a corrida
+     de dano — um artefato que punia o lutador mais tanque.) */
+  if (aDeath>=0 && bDeath>=0) return aDeath===bDeath ? null : (aDeath<bDeath ? bId : aId);
+  if (b.hp<=0) return aId;
+  if (a.hp<=0) return bId;
   if(aDmg>bDmg) return aId;
   if(bDmg>aDmg) return bId;
   return null;

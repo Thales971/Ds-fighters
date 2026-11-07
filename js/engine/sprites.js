@@ -27,7 +27,7 @@ const SpriteGen = {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
     // v18-balance: rebalanceamento geral + cromo buff
-    return src + '?v=v23-rebalance';
+    return src + '?v=v24-balance';
   },
   faceUrl(id) {
     return `assets/ui/face-${id}.png?v=spritefix-4x15b`;

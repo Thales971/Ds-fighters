@@ -10,10 +10,14 @@ const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 3.00;
-/* Anti-spam: todas as habilidades recarregam 40% mais devagar em qualquer modo. */
-const ABILITY_CD_MULT = 1.4;
+/* Anti-spam: todas as habilidades recarregam o DOBRO em qualquer modo
+   (o 1.4x ainda deixava spam — pedido do dono). */
+const ABILITY_CD_MULT = 2.0;
 const QUAKE_HOLD_MAX = 28;
 const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
+/* IALES OMEGA, o campeao indiscutivel: as IAs nao sao afetadas por status
+   negativos — veneno, gelo, cegueira, trava de poderes, nada cola nele. */
+const IALES_IMMUNE = Object.freeze(new Set(['burn', 'poison', 'freeze', 'chill', 'bleed', 'vuln', 'slow', 'trap', 'blind', 'shock', 'vertigo', 'glitch', 'paralyze', 'dizzy', 'meterSlow', 'locked', 'stolen', 'weaken']));
 const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
 
 function boxesOverlap(a, b) {
@@ -134,6 +138,7 @@ class Fighter {
     return scale;
   }
   addStatus(s, frames, source = null) {
+    if (this.def && this.def.id === 'iales' && IALES_IMMUNE.has(s)) return;
     this.syncControlMemory();
     if (s === 'resonance' || s === 'veil') {
       let window = this.statusCapWindows[s];
@@ -224,6 +229,15 @@ class Fighter {
   ownKit() { return (this.kit && this.kit.powers) || []; }
   currentKit() { return this.stolen ? this.stolen.powers : this.ownKit(); }
   kitOwnerId(p) { return (p && p._fid) || this.def.id; }
+  /* EMILIO: nome e atlas de habilidade da forma RAPOSA quando transformado. */
+  powerLabel(p) {
+    if (this.def.id === 'emilio' && this.has('trans') && p.transName) return p.transName;
+    return p.name;
+  }
+  powerSheetId(p) {
+    if (this.def.id === 'emilio' && this.has('trans')) return 'emilio-trans';
+    return this.kitOwnerId(p);
+  }
   elementOf(p) { const f = this.kitOwnerId(p); return (POWERS[f] && POWERS[f].element) || this.element; }
   autoAim() { return !!(this.kit && this.kit.autoAim); }
 
@@ -625,7 +639,7 @@ class Fighter {
     }
     if (this.def.id === 'iales' && p.kind !== 'afo2') this.afo = Math.min(10, this.afo + 1);
     const ult = p.slot === 'ultimate';
-    this.flashText(p.name.toUpperCase(), this.def.colors.accent);
+    this.flashText(this.powerLabel(p).toUpperCase(), this.def.colors.accent);
     game.audio.sfx(p.sfx || 'magic');
     const q = ult ? this.def.quotes.super : this.def.quotes.special;
     if (q && q.length && (ult || (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4)) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
@@ -633,7 +647,7 @@ class Fighter {
       game.superFreeze(this, p);
       game.audio.voice('ultimate');
     }
-    game.events.push({ t: 'cast', who: this.slot, name: p.name });
+    game.events.push({ t: 'cast', who: this.slot, name: this.powerLabel(p) });
   }
   fire(p) {
     const game = this.game;
@@ -1366,6 +1380,15 @@ class Fighter {
       this.cast = null;
       this.state = 'idle';
       this.stateTime = 0;
+      /* BHM: ao sair do portal, solta uma SEQUENCIA AUTOMATICA de socos e
+         chutes no rival — combo de 5 golpes se ele estiver perto. */
+      if (this.def.id === 'bhm') {
+        const t = this.enemy();
+        if (t && t.alive && Math.abs(t.x - this.x) < 260) {
+          this.autoCombo = ['punch', 'kick', 'punch', 'ckick', 'kick'];
+          this.flashText('COMBO DAS SOMBRAS!', '#4da3ff');
+        }
+      }
     }
   }
   stepCast() {
@@ -1452,6 +1475,22 @@ class Fighter {
     let spd = WALK_SPEED * this.speedMult();
     const rightEdge = input.right && !this.prev.right;
     const leftEdge = input.left && !this.prev.left;
+    /* Combo automatico (BHM pos-teleporte): encadeia socos e chutes sem
+       entrada do jogador; entre um golpe e outro da um PASSO SOMBRO pra
+       perto do rival, estilo Noob Saibot. */
+    if (this.autoCombo && this.autoCombo.length && this.state === 'idle' && this.canAct() && this.onGround) {
+      const t = this.enemy();
+      if (t && t.alive && Math.abs(t.x - this.x) < 260) {
+        this.dir = t.x >= this.x ? 1 : -1;
+        if (Math.abs(t.x - this.x) > 96) {
+          this.x = t.x - this.dir * 88;
+          game.spawnImgFx('portal', 'projectile', this.x, -6, { scale: 1.4, life: 10 });
+        }
+        this.startAttack(this.autoCombo.shift());
+        return;
+      }
+      this.autoCombo = null;
+    }
     if (this.tryAbilities()) return;
     if (!this.onGround) {
       if (!this.airAction && (this.buf.punch || this.buf.kick)) {

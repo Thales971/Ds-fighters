@@ -684,7 +684,7 @@ const UI = {
     const fighter = this.game.activeOf(team);
     if (!fighter) return;
     const kit = fighter.currentKit();
-    const key = fighter.def.id + ':' + kit.map((p) => p.id).join(',');
+    const key = fighter.def.id + ':' + kit.map((p) => p.id).join(',') + (fighter.has('trans') ? ':trans' : '');
     if (key === this._touchKitKey) return;
     this._touchKitKey = key;
     this.$('touch-controls').querySelectorAll('[data-power]').forEach((button) => {
@@ -694,7 +694,7 @@ const UI = {
       button.setAttribute('aria-label', power ? `${index + 1}: ${power.name}` : 'Habilidade indisponível');
       button.classList.toggle('ult', !!power && power.slot === 'ultimate');
       button.innerHTML = `<span class="touch-key">${index === 9 ? '0' : index + 1}</span>`;
-      button.style.cssText = power ? Art.css('abil:' + fighter.kitOwnerId(power), power.row, 0, 44) : '';
+      button.style.cssText = power ? Art.css('abil:' + (fighter.powerSheetId ? fighter.powerSheetId(power) : fighter.kitOwnerId(power)), power.row, 0, 44) : '';
     });
     if (typeof AppViewport !== 'undefined' && AppViewport.ready) AppViewport.fit();
   },

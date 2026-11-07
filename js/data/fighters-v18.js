@@ -54,31 +54,31 @@
       theme: 'energia solar amarela, espirais e a raposa espiritual verde/azul',
       powers: [
         Object.assign({
-          id: 'solar-arrow', name: 'Flecha Solar', slot: 'simple', row: 0,
+          id: 'solar-arrow', name: 'Flecha Solar', transName: 'Flecha Espiritual', slot: 'simple', row: 0,
           kind: 'shot', dmg: 10, speed: 11, seek: true, cd: 36,
           fx: { burn: 80 }, sfx: 'magic',
           desc: 'Flecha de energia solar AUTO-AIM que queima o rival.',
         }, visual(0, '#ffd54a')),
         Object.assign({
-          id: 'double-spiral', name: 'Espiral Dupla', slot: 'simple', row: 1,
+          id: 'double-spiral', name: 'Espiral Dupla', transName: 'Espiral da Raposa', slot: 'simple', row: 1,
           kind: 'shot', dmg: 13, speed: 8, pierce: true, multiHit: 2, cd: 58,
           fx: { slow: 90 }, sfx: 'magic',
           desc: 'Espiral dupla que ATRAVESSA o alvo e desacelera.',
         }, visual(1, '#ffb84a')),
         Object.assign({
-          id: 'energy-dome', name: 'Cúpula de Energia', slot: 'charge', meter: 0, row: 2,
+          id: 'energy-dome', name: 'Cúpula de Energia', transName: 'Cúpula Ancestral', slot: 'charge', meter: 0, row: 2,
           kind: 'aura', time: 380, defMult: 0.5, reflect: true, heal: 12, regen: 0.04, cd: 80,
           sfx: 'shield',
           desc: 'Cúpula que REFLETE projéteis, reduz dano pela metade e regenera.',
         }, visual(2, '#ffe14d')),
         Object.assign({
-          id: 'solar-meteor', name: 'Meteoro Solar', slot: 'charge', meter: 1, row: 3,
+          id: 'solar-meteor', name: 'Meteoro Solar', transName: 'Cometa Ancestral', slot: 'charge', meter: 1, row: 3,
           kind: 'pillar', at: 'target', delay: 10, dmg: 20, stun: 40, launch: -8, burn: 140, seek: true, cd: 90,
           sfx: 'thunder_cast',
           desc: 'Meteoro solar AUTO-AIM: dano em área, queimadura longa e stun.',
         }, visual(3, '#ff9a2a')),
         Object.assign({
-          id: 'supreme-transformation', name: 'Transformação Suprema', slot: 'ultimate', row: 4,
+          id: 'supreme-transformation', name: 'Transformação Suprema', transName: 'Despertar da Raposa', slot: 'ultimate', row: 4,
           kind: 'aura', time: 760, transform: 'trans', heal: 32, armor: true, hitDmg: 36, hitRadius: 260,
           dmgMult: 1.5, speedMult: 1.25, invuln: 60, teleportBehind: true, cleanse: true, regen: 0.03,
           cd: 120, sfx: 'ultimate',
