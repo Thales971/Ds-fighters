@@ -1043,7 +1043,9 @@ class Fighter {
   /* ---------- entrada ---------- */
   /** Buffer de 12 quadros: apertos durante hitstop/recuperação saem no 1º quadro livre. */
   press(input) {
-    ['punch', 'kick'].concat(Array.from({ length: 10 }, (_, i) => 'a' + i)).forEach((k) => { if (input[k]) this.buf[k] = 12; });
+    /* Buffer de 16 quadros (era 12): apertos durante hitstop/recuperacao saem
+   no 1o quadro livre — combos mais fluidos e inputs perdidos viram golpes. */
+    ['punch', 'kick'].concat(Array.from({ length: 10 }, (_, i) => 'a' + i)).forEach((k) => { if (input[k]) this.buf[k] = 16; });
     this.held = input;
   }
   tryAbilities(except = -1) {
@@ -1129,7 +1131,7 @@ class Fighter {
             game.shake(4);
             game.spawnBurst('impact', 2, this.x, -16, 1, 1.4);
           }
-          this.landT = 9;
+          this.landT = 6; /* aterrissagem fluida: menos lag de pouso */
           this.landHard = Math.min(1, Math.abs(this.lastVy || 8) / 16);
           this.launched = false;
           game.audio.land();
@@ -1313,7 +1315,7 @@ class Fighter {
     if (this.hasHit && this.stateTime >= mv.startup) {
       if (this.tryAbilities()) { this.chain = 0; return; }
       // cancelamento em pulo (air combo) a partir de chute em pé ou soco agachado
-      if (input.up && this.onGround && (mv.kind === 'kick' || mv.kind === 'cpunch') && this.chain < 4) {
+      if (input.up && this.onGround && (mv.kind === 'kick' || mv.kind === 'cpunch' || mv.kind === 'punch') && this.chain < 5) {
         this.attack = null;
         this.state = 'idle';
         this.chain++;
@@ -1338,11 +1340,11 @@ class Fighter {
     const P = this.buf.punch > 0;
     const K = this.buf.kick > 0;
     if (!P && !K) return null;
-    const cap = 5 + (this.sig.chainBonus || 0);
+    const cap = 6 + (this.sig.chainBonus || 0); /* +1 de fluidez: combos-alvo mais longos */
     if (this.chain >= cap) return null;
     let n = null;
     if (!this.onGround) {
-      if (this.airChain >= 3) return null;
+      if (this.airChain >= 4) return null; /* air combo fluido: ate 4 golpes no ar */
       if (kind === 'jpunch' && K) n = 'jkick';
       else if (kind === 'jpunch' && P) n = 'jpunch';
       else if (kind === 'jkick' && P) n = 'jpunch';

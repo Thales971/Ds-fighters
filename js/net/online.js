@@ -546,7 +546,7 @@ const Net = {
       case 'snap':
         if (UI.game && UI.game.netRole === 'guest' && UI.game.running && m.s && Number.isInteger(m.s.t)
           && Array.isArray(m.s.teams) && m.s.teams.length === 2
-          && m.s.teams.every((t) => t && !Array.isArray(t) && Array.isArray(t.m))) UI.game.applySnapshot(m.s);
+          && m.s.teams.every((t) => t && !Array.isArray(t) && Array.isArray(t.m))) UI.game.onHostSnapshot(m.s);
         break;
       case 'pong':
         this.lastPongAt = performance.now();

@@ -753,11 +753,53 @@ class Game {
     }
   }
   guestTick() {
+    /* ROLLBACK-LITE (predicao client-side): o convidado SIMULA a partida
+       localmente — os inputs dele respondem NA HORA, sem esperar o ping do
+       anfitriao. Quando chega o snapshot autoritativo (onHostSnapshot), ele
+       compara com o estado local: se a previsao acertou, nada muda (zero
+       jitter); se divergiu, rola BACK para o estado do anfitriao e a
+       simulacao continua de la. */
+    if (!this._rbReady) { this._rbReady = true; this.rollbackLog = { confirmed: 0, corrected: 0 }; }
     this.stage.update(this.weather);
     this.weather.updateParticles();
     if (this.weather.flash > 0) this.weather.flash--;
-    this.allFighters().forEach((f) => { f.now = this.hostTime || 0; });
-    this.tickFxOnly();
+    this.step();
+  }
+  /** Snapshot autoritativo do anfitriao: confirma a previsao ou corrige. */
+  onHostSnapshot(s) {
+    if (!this.running || !s || !Array.isArray(s.teams)) return;
+    this.hostTime = s.t;
+    // estado de round/transicao sempre obedece ao anfitriao
+    const roundDiverged = s.rs !== this.roundState || s.rnd !== this.round || s.tw[0] !== this.teamWins[0] || s.tw[1] !== this.teamWins[1];
+    // divergencia de lutadores: posicao e vida
+    let diverged = roundDiverged;
+    if (!diverged) {
+      s.teams.forEach((ts, ti) => {
+        const t = this.teams[ti];
+        if (!t || diverged) return;
+        ts.m.forEach((ms, k) => {
+          const m = t.members[k];
+          if (!m) return;
+          const sx = ms[0], shp = ms[5];
+          if (Math.abs((m.x - sx)) > 48 || Math.abs(m.hp - shp) > 4) diverged = true;
+        });
+      });
+    }
+    if (!diverged) {
+      // previsao confirmada: so sincroniza o que a previsao nao sabe (timer, fx)
+      this.rollbackLog.confirmed++;
+      this.roundTimer = s.tm * 60;
+      if (s.fx && s.fx.length) { for (const fx of s.fx) this.replayNetFx(fx); }
+      return;
+    }
+    // BACK para o estado autoritativo e segue simulando dali
+    this.rollbackLog.corrected++;
+    this.applySnapshot(s);
+  }
+  replayNetFx(fx) {
+    if (!Array.isArray(fx) || !fx.length) return;
+    const [kind, a, b, c] = fx;
+    if (kind === 'n') this.announce(a, b, c || '');
   }
 
   /* ---------- desenho ---------- */
