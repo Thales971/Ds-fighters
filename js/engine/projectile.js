@@ -120,12 +120,14 @@ class Projectile {
     });
     if (p.heal) this.owner.heal(p.heal);
     game.spawnAbilityImpact(this.owner, p, this.x, this.y);
-    if (this.hitsLeft <= 0) this.dead = true;
+    if (this.hitsLeft <= 0) { this.dead = true; if (p.zone) this.explode(game); }
     else this.rehit = 9;
   }
   explode(game) {
     this.dead = true;
-    game.zones.push(new Zone(this.owner, { fid: this.fid, key: this.key, row: this.row, x: this.x, w: 120, time: 150, dmg: 0.1, poison: this.p.poison, slow: 20 }));
+    /* NUNES: o impacto pode deixar uma zona de fogo persistente (p.zone). */
+    const z = Object.assign({ fid: this.fid, key: this.key, row: this.row, x: this.x, w: 140, time: 150, dmg: 0.1, poison: this.p.poison, slow: 20 }, this.p.zone || {});
+    game.zones.push(new Zone(this.owner, z));
     game.spawnAbilityImpact(this.owner, this.p, this.x, -20);
   }
   draw(ctx, game) {
@@ -286,9 +288,19 @@ class Wall {
     this.age = 0;
     this.dead = false;
   }
-  update() {
+  update(game) {
     this.age++;
     if (this.age > this.time) this.dead = true;
+    /* NUNES — Muralha de Chamas: queima e desacelera quem atravessa. */
+    if (this.burn && game) {
+      for (const f of game.fighters()) {
+        if (!f.alive || (this.owner && f.team === this.owner.team)) continue;
+        if (Math.abs(f.x - this.x) < 42) {
+          f.addStatus('burn', this.burn, this.owner);
+          if (this.slow) f.addStatus('slow', this.slow);
+        }
+      }
+    }
   }
   draw(ctx) {
     const f = this.age < 12 ? Math.floor(this.age / 4) : 3;

@@ -27,7 +27,7 @@ function boxesOverlap(a, b) {
 const STATUS_LABEL = {
   atk: { t: 'ATQ+', c: '#ff4b4b' }, def: { t: 'DEF+', c: '#4ba3ff' }, spd: { t: 'VEL+', c: '#ffd84b' },
   rage: { t: 'FÚRIA', c: '#ff6a1c' }, armor: { t: 'ARMADURA', c: '#ffd27d' }, reflect: { t: 'REFLEXO', c: '#7de0ff' },
-  invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, trans: { t: 'TRANSFORMADO', c: '#7dff5e' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
+  invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, trans: { t: 'TRANSFORMADO', c: '#7dff5e' }, phoenix: { t: 'FÊNIX', c: '#FF7A1A' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
   burn: { t: 'QUEIMANDO', c: '#ff7b1c' }, poison: { t: 'VENENO', c: '#9dff4a' }, slow: { t: 'LENTO', c: '#7db8ff' },
   locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' }, glitch: { t: 'TRAVAMENTO', c: '#48dfff' },
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
@@ -283,6 +283,7 @@ class Fighter {
     if (this.has('spot')) m *= 1.25;
     if (this.has('astra')) m *= 1.35;
     if (this.has('trans')) m *= 1.5;
+    if (this.has('phoenix')) m *= 1.1; /* NUNES: Renascer das Cinzas */
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
@@ -442,6 +443,8 @@ class Fighter {
     }
     this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(0, this.hp - d);
     if (atk) { atk.stats.dmg += d; atk.stats.hits++; }
+    /* NUNES — vampirismo da Fênix: cura 25% do dano causado. */
+    if (atk && atk.has && atk.has('phoenix') && atk.alive) atk.heal(d * 0.25);
     const armored = this.has('armor') && !o.heavy && d < 16 && this.hp > 0;
     if (counter) game.floatText(this.x, this.y - 230, 'CONTRA-ATAQUE!', '#ff4b4b');
     if (o.burn && !this.pfx.immune) this.addStatus('burn', o.burn, atk);
@@ -556,6 +559,26 @@ class Fighter {
     }
   }
   defeat(sign) {
+    /* NUNES — Renascer das Cinzas: se morrer com a FÊNIX ativa, revive no
+       clone de fogo com 40% de vida em vez de cair. */
+    if (this.def.id === 'nunes' && this.has('phoenix') && this.phoenixClone) {
+      this.hp = Math.max(1, Math.round(this.maxHp * 0.4));
+      /* alive é um getter (hp > 0 + estado sadio) — basta vida e estado. */
+      this.x = Math.max(60, Math.min(this.game.W - 60, this.phoenixClone.x));
+      this.y = 0; this.vx = 0; this.vy = 0;
+      this.state = 'idle'; this.stateTime = 0;
+      this.hitstun = 0; this.stunGauge = 0;
+      this.cast = null; this.rush = null; this.attack = null;
+      this.status = {};
+      this.phoenixClone = null;
+      this.addStatus('invuln', 70);
+      this.game.spawnBurst('fire', 3, this.x, this.y - 100, 1, 3.2);
+      this.game.spawnBurst('fire', 1, this.x, this.y - 140, 1, 2.4);
+      this.game.announce('RENASCEU DAS CINZAS!', '#FF7A1A', 'A Fênix de Nexo City não cai!');
+      this.game.audio.play('explosion', { vol: 0.6 });
+      this.game.shake(10);
+      return;
+    }
     this.state = 'ko';
     this.stateTime = 0;
     this.vy = -6;
@@ -619,7 +642,7 @@ class Fighter {
     if (this.def.id === 'emilio' && (this.has('trans') || p.transform === 'trans') && p.visualSheet === 'emilio') {
       p = Object.assign({}, p, { visualSheet: 'emilio-trans' });
     }
-    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = (p.cd || 50) * ABILITY_CD_MULT;
+    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1); /* Fênix: -10% de recarga */
     else if (p.slot === 'charge') this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
     else this.ultimate = 0;
     this.cast = { p, i, t: 0, fired: false };
@@ -683,6 +706,11 @@ class Fighter {
         if (seek && tgt) this.dir = tgt.x >= this.x ? 1 : -1;
         this.vx = this.dir * sp;
         this.dashHit = { p, t: p.phase ? 18 : 16 };
+        /* NUNES — Avanço Flamejante: o rastro de chamas fica no chão. */
+        if (p.fireTrail) {
+          game.zones.push(new Zone(this, { fid, key, row: Number.isInteger(p.visualRow) ? p.visualRow : p.row, x: this.x, w: 150, time: p.fireTrail, dmg: 0.1, burn: 140, slow: 50, power: p }));
+          game.zones.push(new Zone(this, { fid, key, row: Number.isInteger(p.visualRow) ? p.visualRow : p.row, x: this.x + this.dir * 120, w: 150, time: p.fireTrail, dmg: 0.1, burn: 140, slow: 50, power: p }));
+        }
         if (p.phase || p.cloak) {
           this.addStatus('invuln', p.iFrames || 12);
           if (p.cloak) this.addStatus('cloak', p.cloak);
@@ -714,6 +742,8 @@ class Fighter {
         if (p.dmgMult && p.id === 'rage') { this.addStatus('rage', t); this.status.rageMult = p.dmgMult; }
         if (p.invuln) this.addStatus('invuln', p.invuln);
         if (p.grant) this.addStatus(p.grant, t);
+        /* NUNES — Renascer das Cinzas: guarda a posição do clone de fogo. */
+        if (p.grant === 'phoenix') this.phoenixClone = { x: this.x };
         if (p.regen) this.addStatus('regen', t);
         if (p.heal) this.heal(p.heal);
         if (p.meterGain) { this.charge[0] = Math.min(100, this.charge[0] + p.meterGain); this.charge[1] = Math.min(100, this.charge[1] + p.meterGain); }
@@ -916,7 +946,7 @@ class Fighter {
       }
       case 'wall': {
         game.walls = game.walls.filter((w) => w.owner !== this);
-        game.walls.push(new Wall(this, { x: this.x + this.dir * 96, time: p.time || 360, row: p.row, fid }));
+        game.walls.push(new Wall(this, { x: this.x + this.dir * 96, time: p.time || 360, row: p.row, fid, burn: p.burn || 0, slow: p.slow || 0 }));
         if (tgt && Math.abs(tgt.x - (this.x + this.dir * 96)) < 70) tgt.takeHit(p.dmg || 10, { attacker: this, kx: 8, dirSign: this.dir, launch: -7, ability: true, power: p });
         game.shake(6);
         break;
@@ -1094,6 +1124,13 @@ class Fighter {
   update(input, ctxFlags = {}) {
     const game = this.game;
     this.now = game.time;
+    /* NUNES — Passiva Fagulha Viva: dentro do próprio fogo ele regenera vida
+       (desativada no modo MORTE SÚBITA, onde a arena já é um incêndio). */
+    if (this.def.id === 'nunes' && this.alive && this.onGround && this.hp > 0
+        && game.mode !== 'morte-subita' && this.now % 10 === 0
+        && game.zones && game.zones.some((z) => z.owner === this && Math.abs(this.x - z.x) < z.w / 2)) {
+      this.hp = Math.min(this.maxHp, this.hp + 1.4);
+    }
     this.syncControlMemory();
     this.frame++;
     this.stateTime++;

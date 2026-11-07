@@ -37,7 +37,7 @@ POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
 
 SUSPECTS = ['gemini', 'meta', 'mis',
             'dev-senior', 'dev-senior-nano', 'nina-vector', 'kimi', 'deepseek',
-            'dandara-query', 'winx-exe', 'emilio', 'emilio-trans']
+            'dandara-query', 'winx-exe', 'emilio', 'emilio-trans', 'nunes']
 
 
 SPRITE_LAYOUT_FRAMES = {}
@@ -53,7 +53,7 @@ def layout_info():
 
 def fighter_ids_and_moves():
     ids = {}
-    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js']:
+    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js']:
         txt = (ROOT / p).read_text(encoding='utf-8')
         # bloco de cada id: do "id: 'x'" ate o proximo "id: '"
         marks = [(m.start(), m.group(1)) for m in re.finditer(r"id:\s*'([a-z0-9-]+)'", txt)]
@@ -246,7 +246,7 @@ def fighter_ids_only():
     _, room = room_ids(), None
     files, _ = layout_info()
     txt = (ROOT / 'js/data/fighters.js').read_text(encoding='utf-8')
-    for extra in ['js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js']:
+    for extra in ['js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js']:
         txt += (ROOT / extra).read_text(encoding='utf-8')
     allids = set(re.findall(r"id:\s*'([a-z0-9-]+)'", txt))
     return sorted(i for i in allids if i in files or i in room_ids())
