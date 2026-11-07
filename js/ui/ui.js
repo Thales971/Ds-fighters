@@ -44,6 +44,10 @@ const UI = {
     document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('nav')) AudioSys.cursor(); });
     this.buildMenuSide();
     this.show('title');
+    /* TREINO GUIADO so aparece pra quem e novo no jogo. */
+    const isNew = !Profile.setting('tutorialDone');
+    const bt = this.$('btn-tutorial');
+    if (bt) bt.hidden = !isNew;
     if (/sala=/i.test(location.hash)) setTimeout(() => { Net.bindUi(); Net.checkInvite(); }, 50);
     this.updateTouch();
   },
@@ -151,8 +155,108 @@ const UI = {
   },
   menuGo(go) {
     AudioSys.select();
+    if (go === 'tutorial') return this.startTutorial();
     if (['arcade', 'versus', 'tag', 'training', 'survival', 'morte-subita'].includes(go)) return this.startFlow(go);
     this.show(go, false);
+  },
+
+  /* ---------- TREINO GUIADO (so para jogadores novos) ---------- */
+  startTutorial() {
+    AudioSys.select();
+    if (this.game.running) this.game.stop();
+    HUD.hide();
+    this.flow = Object.assign({
+      mode: 'training',
+      need: 1,
+      picks: [[], []],
+      cursor: [0, 1],
+      done: [false, false],
+      p2Human: false,
+      picking: 0,
+      stage: 'treino-dojo',
+      arcadeStep: 0,
+      tutorial: true,
+    }, {});
+    this.$('stage-wrap').classList.remove('on');
+    this.show('select');
+    AudioSys.voice('choose');
+  },
+  tutorial: null,
+  tutorialBegin() {
+    /* Passos guiados: cada um tem objetivo + detector. Concluiu tudo = jogador
+       deixa de ser novo (Profile tutorialDone) e o botao some do menu. */
+    const T = this;
+    this.tutorial = {
+      step: 0,
+      moved: 0, lastX: null, jumps: 0, crouches: 0, punches: 0, kicks: 0,
+      chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0,
+      steps: [
+        { title: 'ANDE', sub: 'A / D (ou setas) para mover', done: () => T.tutorial.moved > 260 },
+        { title: 'PULE', sub: 'W para pular', done: () => T.tutorial.jumps > 0 },
+        { title: 'AGACHE', sub: 'S para agachar', done: () => T.tutorial.crouches > 20 },
+        { title: 'SOCOS', sub: 'Botao esquerdo do mouse (ou J) — de 3 socos', done: () => T.tutorial.punches >= 3 },
+        { title: 'CHUTES', sub: 'Botao direito do mouse (ou K) — de 3 chutes', done: () => T.tutorial.kicks >= 3 },
+        { title: 'COMBO', sub: 'No acerto, encadeie soco-soco-chute (combo-alvo)', done: () => T.tutorial.chains >= 2 },
+        { title: 'HABILIDADE', sub: 'Teclas 1 e 2 — solte duas habilidades', done: () => T.tutorial.casts >= 2 },
+        { title: 'ULTIMATE', sub: 'Tecla 5 — solte a ultimate', done: () => T.tutorial.ults >= 1 },
+        { title: 'BLOQUEIO', sub: 'Segure para tras perto do boneco para bloquear', done: () => T.tutorial.blocks > 30 },
+        { title: 'JUMP-CANCEL', sub: 'Acerte um soco e aperte W na hora do hit', done: () => T.tutorial.jumpCancels >= 1 },
+      ],
+    };
+    this.tutorialBanner();
+  },
+  tutorialBanner() {
+    const t = this.tutorial;
+    if (!t) return;
+    const st = t.steps[t.step];
+    if (!st) { this.tutorialFinish(); return; }
+    UI.banner('TREINO ' + (t.step + 1) + '/' + t.steps.length + ': ' + st.title, '#7dff9a', st.sub);
+  },
+  tutorialFinish() {
+    this.tutorial = null;
+    Profile.setting('tutorialDone', true);
+    const bt = this.$('btn-tutorial');
+    if (bt) bt.hidden = true;
+    UI.banner('TREINO CONCLUÍDO!', '#ffd27d', 'Voce ja sabe jogar — boa sorte nas lutas!');
+    AudioSys.voice('win');
+  },
+  tutorialTick() {
+    const t = this.tutorial;
+    const g = this.game;
+    if (!t || !g || !g.running || g.mode !== 'training' || this.screen !== 'fight') return;
+    const f = g.activeOf(0);
+    if (!f) return;
+    // detectores
+    if (t.lastX != null) t.moved += Math.abs(f.x - t.lastX);
+    t.lastX = f.x;
+    if (!f.onGround && f.vy < -6) t.jumps++;
+    if (f.crouching || f.state === 'crouch') t.crouches++;
+    /* Conta cada golpe no INICIO dele (transicao de kind) — robusto contra
+       golpes sobrepostos e hitstop. */
+    if (f.attack) {
+      const k = f.attack.kind;
+      if (k !== t._lastAtk) {
+        t._lastAtk = k;
+        if (k === 'punch' || k === 'cpunch' || k === 'jpunch') t.punches++;
+        if (k === 'kick' || k === 'ckick' || k === 'jkick') t.kicks++;
+      }
+    } else t._lastAtk = null;
+    if (f.chain > t._lastChain) t.chains = Math.max(t.chains, f.chain);
+    t._lastChain = f.chain;
+    const ev = g.events;
+    if (ev.length > (t._evLen || 0)) {
+      for (let i = t._evLen || 0; i < ev.length; i++) {
+        const e = ev[i];
+        if (e.t === 'cast') { t.casts++; if (e.who === 0 && g.activeOf(0).currentKit()[4] && e.name === g.activeOf(0).currentKit()[4].name) t.ults++; }
+      }
+    }
+    t._evLen = ev.length;
+    if (f.blocking) t.blocks++;
+    if (!f.onGround && t._wasAttacking) t.jumpCancels++;
+    t._wasAttacking = !!(f.attack && f.hasHit);
+    // avanca o passo
+    const st = t.steps[t.step];
+    if (st && st.done()) { t.step++; AudioSys.select(); this.tutorialBanner(); }
   },
 
   /* ---------- fluxo de seleção ---------- */
@@ -450,6 +554,7 @@ const UI = {
       this.$('stage-wrap').classList.add('on');
       this.show('fight');
       this.game.start(cfg);
+      if (this.flow && this.flow.tutorial) this.tutorialBegin();
       if (cfg && cfg.mode === 'online' && typeof Net !== 'undefined' && Net.room && window.TournamentUI && typeof window.TournamentUI.matchStarted === 'function') {
         window.TournamentUI.matchStarted(Net.room.code).catch(() => {});
       }
@@ -799,6 +904,7 @@ const UI = {
     if (this.screen === 'fight') {
       if (m.start) this.pause();
       if ((this._touchTick = (this._touchTick || 0) + 1) % 15 === 0) this.updateTouchPowers();
+      if (this.tutorial) this.tutorialTick();
       return;
     }
     if (this.screen === 'vs') return;

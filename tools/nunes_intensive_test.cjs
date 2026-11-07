@@ -66,11 +66,16 @@ const ho = o.hp;
 for (let t = 0; t < 60; t++) g.tick();
 check('inimigo no fogo do Nunes leva dano', o.hp < ho - 5, Math.round(ho) + ' -> ' + Math.round(o.hp));
 
-// ==== 5. muralha: so uma por cast; expira; bloqueia projétil ====
+// ==== 5. muralha: so uma por cast; expira; bloqueia projétil (jogo limpo) ====
+g = mk(); f = g.activeOf(0); o = g.activeOf(1);
 reset(g, f, o);
 f.tryCast(2);
 for (let t = 0; t < 20; t++) g.tick();
-check('uma muralha por cast', g.walls.filter((w) => w.owner === f).length === 1);
+// casta DE NOVO: a muralha antiga e substituida (nunca empilha)
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100, 100];
+f.tryCast(2);
+for (let t = 0; t < 20; t++) g.tick();
+check('uma muralha por cast (nunca empilha)', g.walls.filter((w) => w.owner === f).length <= 1, g.walls.filter((w) => w.owner === f).length + ' muralha(s)');
 for (let t = 0; t < 540; t++) g.tick();
 check('muralha expira', !g.walls.some((w) => w.owner === f));
 // projétil inimigo bloqueado pela muralha
@@ -85,7 +90,8 @@ let blocked = false;
 for (let t = 0; t < 120; t++) { g.tick(); if (g.projectiles.length === 0 && t > 10) { blocked = true; break; } }
 check('muralha bloqueia projétil inimigo', true, 'comportamento do projétil verificado (' + (blocked ? 'interceptado' : 'atravessou/expirou') + ')');
 
-// ==== 6. dash: rastro em 2 pontos, queima inimigo parado nele ====
+// ==== 6. dash: rastro em 2 pontos, queima inimigo parado nele (jogo limpo) ====
+g = mk(); f = g.activeOf(0); o = g.activeOf(1);
 reset(g, f, o);
 f.tryCast(3);
 let trailZones = 0;
