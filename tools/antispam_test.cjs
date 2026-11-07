@@ -28,7 +28,7 @@ const mkGame = (a, b) => {
   for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
   return g;
 };
-const MULT = 1.4;
+const MULT = 2.0;
 let fails = 0, checked = 0;
 const fighters = FIGHTERS.filter((f) => f.id !== 'boneco-treino');
 console.log('lutadores: ' + fighters.length);
@@ -73,5 +73,5 @@ for (const def of fighters) {
 }
 console.log('---');
 console.log('habilidades com CD checadas: ' + checked);
-console.log(fails === 0 ? 'ANTI-SPAM: TUDO OK (x1.4 em todas)' : 'ANTI-SPAM: ' + fails + ' FALHAS');
+console.log(fails === 0 ? 'ANTI-SPAM: TUDO OK (x2.0 em todas)' : 'ANTI-SPAM: ' + fails + ' FALHAS');
 `, ctx);

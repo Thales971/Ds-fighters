@@ -10,8 +10,9 @@ const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 3.00;
-/* Anti-spam: todas as habilidades recarregam 40% mais devagar em qualquer modo. */
-const ABILITY_CD_MULT = 1.4;
+/* Anti-spam: todas as habilidades recarregam o DOBRO em qualquer modo
+   (o 1.4x ainda deixava spam — pedido do dono). */
+const ABILITY_CD_MULT = 2.0;
 const QUAKE_HOLD_MAX = 28;
 const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
 const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
@@ -1366,6 +1367,15 @@ class Fighter {
       this.cast = null;
       this.state = 'idle';
       this.stateTime = 0;
+      /* BHM: ao sair do portal, solta uma SEQUENCIA AUTOMATICA de socos e
+         chutes no rival — combo de 5 golpes se ele estiver perto. */
+      if (this.def.id === 'bhm') {
+        const t = this.enemy();
+        if (t && t.alive && Math.abs(t.x - this.x) < 260) {
+          this.autoCombo = ['punch', 'kick', 'punch', 'ckick', 'kick'];
+          this.flashText('COMBO DAS SOMBRAS!', '#4da3ff');
+        }
+      }
     }
   }
   stepCast() {
@@ -1452,6 +1462,22 @@ class Fighter {
     let spd = WALK_SPEED * this.speedMult();
     const rightEdge = input.right && !this.prev.right;
     const leftEdge = input.left && !this.prev.left;
+    /* Combo automatico (BHM pos-teleporte): encadeia socos e chutes sem
+       entrada do jogador; entre um golpe e outro da um PASSO SOMBRO pra
+       perto do rival, estilo Noob Saibot. */
+    if (this.autoCombo && this.autoCombo.length && this.state === 'idle' && this.canAct() && this.onGround) {
+      const t = this.enemy();
+      if (t && t.alive && Math.abs(t.x - this.x) < 260) {
+        this.dir = t.x >= this.x ? 1 : -1;
+        if (Math.abs(t.x - this.x) > 96) {
+          this.x = t.x - this.dir * 88;
+          game.spawnImgFx('portal', 'projectile', this.x, -6, { scale: 1.4, life: 10 });
+        }
+        this.startAttack(this.autoCombo.shift());
+        return;
+      }
+      this.autoCombo = null;
+    }
     if (this.tryAbilities()) return;
     if (!this.onGround) {
       if (!this.airAction && (this.buf.punch || this.buf.kick)) {

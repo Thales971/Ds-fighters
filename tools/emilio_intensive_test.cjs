@@ -71,7 +71,7 @@ f.cd = [0,0,0,0,0,0,0,0,0,0]; f.state = 'idle'; f.cast = null;
 f.tryCast(0);
 check('H1 transformada usa emilio-trans', f.cast && f.cast.p.visualSheet === 'emilio-trans', 'visualSheet=' + (f.cast && f.cast.p.visualSheet));
 const cdH1 = f.cd[0];
-check('CD da Flecha Solar 36x1.4', Math.abs(cdH1 - 50.4) < 0.01, 'cd=' + cdH1);
+check('CD da Flecha Solar 36x1.4', Math.abs(cdH1 - 72) < 0.01, 'cd=' + cdH1);
 for (let t = 0; t < 60; t++) { g.tick(); keepAlive(); }
 f.cd = [0,0,0,0,0,0,0,0,0,0]; f.state = 'idle'; f.cast = null;
 f.tryCast(1);
