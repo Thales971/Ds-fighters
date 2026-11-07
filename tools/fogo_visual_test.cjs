@@ -87,6 +87,11 @@ setTimeout(() => {
   for (let k = 0; k < 700 && g.roundState !== 'fight'; k++) g.tick();
 
   const [f, o] = g.activePair();
+  // fogo so no round final: pula pro round 3
+  console.log('round 1 inferno:', g.inferno);
+  g.round = 3; g.teamWins = [1, 1]; g.beginRound();
+  for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
+  console.log('round 3 inferno:', JSON.stringify(g.inferno));
   console.log('Fx.images keys:', Object.keys(vm.runInContext('typeof Fx !== "undefined" ? Fx.images : {}', vmc)).join(','));
   let drawCalls = 0;
   const origDraw = g.drawInferno.bind(g);

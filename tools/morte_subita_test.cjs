@@ -25,18 +25,19 @@ const g = new api.Game(canvas);
 g.start({ mode: 'morte-subita', teams: [['du'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
 const [a, b] = g.activePair();
-console.log('inferno init:', JSON.stringify(g.inferno));
+console.log('round 1 -> inferno:', g.inferno === null ? 'NULL (OK — fogo so no round final)' : 'FALHOU (fogo no round 1)');
+// pula pro round final (3)
+g.round = 3; g.teamWins = [1, 1]; g.beginRound();
+for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
+console.log('round 3 -> inferno:', JSON.stringify(g.inferno));
 
-// 1) aviso aos 360 ticks de luta
-let warned = false;
-for (let t = 0; t < 360; t++) { g.tick(); if (g.inferno.t === 360) { warned = true; } }
-console.log('aviso "O FOGO ESTÁ VINDO!":', warned ? 'OK' : 'FALHOU');
+// 1) aviso aos 360 ticks de luta (ainda inativo)
+for (let t = 0; t < 400 && g.inferno.t < 360; t++) g.tick();
+console.log('aviso aos 360 ticks (ainda inativo):', g.inferno.t >= 360 && !g.inferno.active ? 'OK' : 'FALHOU');
 
 // 2) ativa aos 720
-for (let t = g.inferno.t; t < 719; t++) g.tick();
-console.log('antes de ativar: active =', g.inferno.active);
-g.tick();
-console.log('apos t=720: active =', g.inferno.active, g.inferno.active ? 'OK' : 'FALHOU');
+for (let t = 0; t < 400 && !g.inferno.active; t++) g.tick();
+console.log('ativa apos t=720: active =', g.inferno.active, g.inferno.active ? 'OK' : 'FALHOU');
 
 // 3) paredes avançam
 const l0 = g.inferno.left, r0 = g.inferno.right;

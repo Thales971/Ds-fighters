@@ -41,8 +41,9 @@ class Game {
   }
   resetWorld() {
     /* MORTE SÚBITA: paredes de fogo que avançam dos dois lados (sprites do dono,
-       assets/fx/fogo.png — linha 0, 8 quadros de chama). */
-    this.inferno = this.mode === 'morte-subita'
+       assets/fx/fogo.png — linha 0, 8 quadros de chama). O fogo SÓ EXISTE no
+       round final (3º round ou mais) — nos rounds 1 e 2 é luta normal. */
+    this.inferno = this.mode === 'morte-subita' && this.round >= 3
       ? { left: -40, right: W + 40, t: 0, active: false }
       : null;
     this.imgFx = [];
@@ -501,7 +502,9 @@ class Game {
     if (this.roundState === 'intro') {
       if (this.roundStateTime === 1) {
         const wi = WEATHER_INFO[this.weather.kind];
-        this.announce('ROUND ' + this.round, '#ffd27d', this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name);
+        let sub = this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name;
+        if (this.mode === 'morte-subita') sub += this.round >= 3 ? ' · O FOGO VEM FECHAR A ARENA!' : ' · MORTE SÚBITA só no round final';
+        this.announce('ROUND ' + this.round, '#ffd27d', sub);
         this.audio.voice('round' + Math.min(3, this.round));
         if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]); });
       }
