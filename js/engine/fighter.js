@@ -209,6 +209,8 @@ class Fighter {
     let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0));
     if (this.has('meterSlow')) m *= 0.4;
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
+    /* MORTE SÚBITA: a arena em chamas acelera o medidor de todo mundo. */
+    if (this.game && this.game.mode === 'morte-subita' && this.game.inferno && this.game.inferno.active) m *= 1.6;
     return m;
   }
   gain(dealt, amount = 1) {

@@ -13,7 +13,7 @@ const ctx={console, Image: class { set src(v){} }, Math, Date,
 };
 ctx.globalThis=ctx;
 vm.createContext(ctx);
-const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/pets.js','js/data/stages.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/fx.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
+const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/fighters-v17.js','js/data/fighters-v18.js','js/data/pets.js','js/data/stages.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/fx.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f,'utf8'), ctx, {filename:f}); } catch(e){ console.log('ERRO ao carregar', f, e.message.slice(0,60)); } }
 const api=vm.runInContext('({Game,FIGHTERS})',ctx);
 const fake2d=()=>({canvas:null,save(){},restore(){},clearRect(){},fillRect(){},drawImage(){},translate(){},scale(){},rotate(){},beginPath(){},ellipse(){},fill(){},fillText(){},measureText:()=>({width:10}),createLinearGradient:()=>({addColorStop(){}}),set imageSmoothingEnabled(v){},getBoundingClientRect:()=>({left:0,top:0,width:960,height:540})});
@@ -22,7 +22,8 @@ const modes=[['arcade',{mode:'arcade',teams:[['du'],['stack']],cpu:[false,true],
              ['versus',{mode:'versus',teams:[['du'],['stack']],cpu:[false,false],roundsToWin:2,timer:99}],
              ['training',{mode:'training',teams:[['du'],['boneco-treino']],stage:'treino-dojo',cpu:[false,false],roundsToWin:99,timer:999,dummy:'stand',autoHeal:true}],
              ['tag',{mode:'tag',teams:[['du','iales'],['stack','qa']],cpu:[false,true],roundsToWin:2,timer:99}],
-             ['survival',{mode:'survival',teams:[['du'],['stack']],cpu:[false,true],roundsToWin:99,timer:99}]];
+             ['survival',{mode:'survival',teams:[['du'],['stack']],cpu:[false,true],roundsToWin:99,timer:99}],
+             ['morte-subita',{mode:'morte-subita',teams:[['du'],['stack']],cpu:[false,true],roundsToWin:2,timer:99}]];
 let fails=0;
 for (const [name,cfg] of modes){
   try {

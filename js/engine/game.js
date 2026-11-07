@@ -40,6 +40,12 @@ class Game {
     this.resetWorld();
   }
   resetWorld() {
+    /* MORTE SÚBITA: paredes de fogo que avançam dos dois lados (sprites do dono,
+       assets/fx/fogo.png — linha 0, 8 quadros de chama). O fogo SÓ EXISTE no
+       round final (3º round ou mais) — nos rounds 1 e 2 é luta normal. */
+    this.inferno = this.mode === 'morte-subita' && this.round >= 3
+      ? { left: -40, right: W + 40, t: 0, active: false }
+      : null;
     this.imgFx = [];
     this.cracks = [];
     this.projectiles = [];
@@ -496,7 +502,9 @@ class Game {
     if (this.roundState === 'intro') {
       if (this.roundStateTime === 1) {
         const wi = WEATHER_INFO[this.weather.kind];
-        this.announce('ROUND ' + this.round, '#ffd27d', this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name);
+        let sub = this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name;
+        if (this.mode === 'morte-subita') sub += this.round >= 3 ? ' · O FOGO VEM FECHAR A ARENA!' : ' · MORTE SÚBITA só no round final';
+        this.announce('ROUND ' + this.round, '#ffd27d', sub);
         this.audio.voice('round' + Math.min(3, this.round));
         if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]); });
       }
@@ -508,6 +516,7 @@ class Game {
     }
     if (fighting) {
       if (this.roundTimer !== Infinity) this.roundTimer--;
+      this.tickInferno();
       for (const ti of [0, 1]) {
         const t = this.teams[ti];
         if (t.tagCd > 0) t.tagCd--;
@@ -827,6 +836,7 @@ class Game {
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
     this.drawBeams(ctx);
+    this.drawInferno(ctx);
     for (const fx of this.imgFx || []) {
       Fx.blit(ctx, fx.sheet, fx.clip, fx.frame, fx.x, fx.y, { scale: fx.scale, dir: fx.dir, alpha: fx.alpha * Math.max(0.15, fx.life / fx.max) });
     }
@@ -844,6 +854,18 @@ class Game {
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
+    /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
+    if (this.inferno && this.inferno.active) {
+      const closed = 1 - (this.inferno.right - this.inferno.left) / W;
+      const pulse = 0.5 + 0.5 * Math.sin(this.time * 0.08);
+      const hot = ctx.createRadialGradient(W / 2, GROUND_Y - 40, W * 0.25, W / 2, GROUND_Y - 40, W * 0.75);
+      hot.addColorStop(0, 'rgba(255,40,0,0)');
+      hot.addColorStop(1, `rgba(200,20,0,${(0.18 + closed * 0.3 + pulse * 0.06).toFixed(3)})`);
+      ctx.fillStyle = hot;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = `rgba(255,60,10,${(0.05 + closed * 0.08).toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
     this.weather.drawOverlay(ctx, W, H);
     if (this.bsod > 0) {
       ctx.fillStyle = `rgba(20,60,200,${Math.min(0.55, this.bsod / 60)})`;
@@ -876,6 +898,107 @@ class Game {
     ctx.restore();
     ctx.restore();
     UI.hud.update(this);
+  }
+  /* ---------- MORTE SÚBITA: o fogo fecha a arena ---------- */
+  tickInferno() {
+    const inf = this.inferno;
+    if (!inf) return;
+    inf.t++;
+    if (!inf.active) {
+      if (inf.t === 360) this.announce('O FOGO ESTÁ VINDO!', '#ff9a2a', 'A arena vai fechar em 6 segundos');
+      if (inf.t >= 720) {
+        inf.active = true;
+        this.announce('MORTE SÚBITA!', '#ff3b30', 'As paredes de fogo avançam — quem ficar queima!');
+        this.audio.play('explosion', { vol: 0.7 });
+        this.shake(10);
+        this.events.push({ t: 'sudden', at: this.time });
+      }
+      return;
+    }
+    // acelera com o tempo: começa lenta e fecha a arena
+    const spd = Math.min(0.85, 0.14 + (inf.t - 720) * 0.00045);
+    inf.left += spd;
+    inf.right -= spd;
+    const minGap = 230;
+    if (inf.right - inf.left < minGap) { inf.left = (W - minGap) / 2; inf.right = (W + minGap) / 2; }
+    /* CALOR DA ARENA: com o fogo ativo, OS DOIS lutadores queimam sem parar —
+       quanto mais fechada a arena, mais forte. O medidor também sobe 1.6x
+       (ver Fighter.gain). */
+    const closed = 1 - (inf.right - inf.left) / W;
+    if (inf.t % 30 === 0) {
+      for (const f of this.fighters()) {
+        if (!f.alive) continue;
+        f.chip(0.5 + closed * 2.2, null);
+        f.addStatus('burn', 60);
+      }
+      if (this.round % 1 === 0) this.floatText(W / 2, -300, 'A ARENA QUEIMA!', '#ff6a2a');
+    }
+    for (const f of this.fighters()) {
+      if (!f.alive) continue;
+      const d = Math.min(f.x - inf.left, inf.right - f.x);
+      if (d < 26) {
+        // dentro do fogo: empurrão pro centro + dano contínuo + queimadura
+        f.x = Math.max(inf.left + 26, Math.min(inf.right - 26, f.x));
+        f.vx = (f.x - inf.left < inf.right - f.x) ? 4 : -4;
+        if (inf.t % 4 === 0) f.chip(2.2, null);
+        f.addStatus('burn', 90);
+        if (inf.t % 30 === 0) {
+          this.floatText(f.x, f.y - 210, 'FOGO!', '#ff6a2a');
+          this.spawnBurst('fire', 1, f.x, f.y - 80, 1, 1.8);
+          this.audio.play('fire', { vol: 0.35 });
+        }
+      } else if (d < 90 && inf.t % 90 === 0 && f.onGround) {
+        f.chip(0.8, null); // calor perto da parede
+      }
+    }
+  }
+  drawInferno(ctx) {
+    const inf = this.inferno;
+    if (!inf) return;
+    const img = Fx.images.fogo;
+    if (!img || !img.naturalWidth) return;
+    const fw = 96, fh = 96;
+    const frame = Math.floor(this.time / 5) % 8;
+    const wall = (x0, x1, growDir) => {
+      if (x1 - x0 <= 4) return;
+      const edge = growDir > 0 ? x1 : x0; // borda interna da parede
+      // corpo do incêndio (gradiente escuro de brasas atrás das chamas)
+      const g = ctx.createLinearGradient(edge, 0, edge - growDir * 300, 0);
+      g.addColorStop(0, 'rgba(180,45,5,0.92)');
+      g.addColorStop(0.5, 'rgba(120,25,5,0.95)');
+      g.addColorStop(1, 'rgba(45,8,2,0.98)');
+      ctx.fillStyle = g;
+      ctx.fillRect(Math.min(x0, x1), -GROUND_Y - 40, x1 - x0, GROUND_Y + 70);
+      // chamas animadas na borda (fogo.png linha 0, 8 quadros de chama):
+      // a fileira da frente usa composição normal (contrastando com o fundo
+      // de brasas), as de trás brilham por cima (lighter).
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      const step = 100;
+      for (let k = 0, x = edge - 50; k < 4; k++, x -= growDir * step) {
+        ctx.globalCompositeOperation = k === 0 ? 'source-over' : 'lighter';
+        for (let y = -GROUND_Y - 30; y < 80; y += fh * 1.35) {
+          const f2 = (frame + ((y / (fh * 1.35)) | 0) + k) % 8;
+          ctx.globalAlpha = k === 0 ? 1 : 0.55 - k * 0.12;
+          ctx.drawImage(img, f2 * fw, 0, fw, fh, x - 75, y - 14 - k * 8, 150, fh * 1.35 + 24);
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    };
+    if (inf.active) {
+      wall(-90, inf.left, 1);
+      wall(inf.right, W + 90, -1);
+    } else if (inf.t > 360) {
+      // aviso: brasas nas bordas da arena antes do fogo começar
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.25 + 0.2 * Math.sin(inf.t * 0.15);
+      const f2 = frame % 8;
+      ctx.drawImage(img, f2 * fw, 0, fw, fh, -40, -140, 140, 200);
+      ctx.drawImage(img, f2 * fw, 0, fw, fh, W - 100, -140, 140, 200);
+      ctx.restore();
+    }
   }
   drawBeams(ctx) {
     for (const b of this.beams) {
