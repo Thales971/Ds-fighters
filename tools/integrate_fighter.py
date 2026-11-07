@@ -435,7 +435,42 @@ EMILIO_TRANS_POSES = {
     'win':     ([(2, 3, False), (3, 4, False), (2, 3, False), (3, 4, False)], 195, BASE),
 }
 
+# NUNES, a Fenix de Nexo City (4 folhas, todas viradas pra DIREITA):
+# folha1 (si=0: idle/soco/cast/block | andar/soco/soco/chute | agachar/agachar-soco/
+# soco-ar/chute-ar | hit/KO/vitoria/taunt | pulo)
+# folha2 (si=1: socos/casts/idles variados | hit/KO/agachar/vitoria | idle/hit/agachar/taunt)
+# folha3 (si=2: socos | socos/idle | casts | hit/KO | agachar/agachar-soco)
+# folha4 (si=3: idle/soco/andar/cast | agachar/agachar-soco/soco/soco-ar | chute/
+# agachar-chute/andar/KO | pulo/hit/agachar/vitoria | block/taunt)
+NUNES_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 3, 0, False), (0, 0, 0, False), (1, 3, 0, False)], 195, BASE),
+    'walk':    ([(3, 2, 0, False), (0, 0, 0, False), (3, 2, 0, False), (1, 3, 0, False)], 190, BASE),
+    'jump':    ([(0, 0, 2, False)] * 4, 165, AIR),
+    'crouch':  ([(0, 0, 1, False), (3, 0, 1, False), (0, 0, 1, False), (3, 0, 1, False)], 125, BASE),
+    'punch':   ([(0, 1, 0, False), (1, 0, 0, False), (1, 1, 0, False), (2, 1, 0, False)], 175, BASE),
+    'kick':    ([(0, 2, 0, False), (1, 1, 1, False), (0, 2, 0, False), (1, 1, 1, False)], 165, BASE),
+    'cpunch':  ([(0, 1, 1, False), (3, 0, 2, False), (0, 1, 1, False), (3, 0, 2, False)], 130, BASE),
+    'ckick':   ([(0, 2, 1, False), (3, 1, 2, False), (0, 2, 1, False), (3, 1, 2, False)], 150, BASE),
+    'jpunch':  ([(0, 1, 2, True), (3, 3, 1, True), (0, 1, 2, True), (3, 3, 1, True)], 170, AIR),
+    'jkick':   ([(0, 2, 2, False)] * 4, 160, AIR),
+    'special': ([(0, 3, 0, False), (1, 2, 0, False), (1, 0, 1, False), (2, 2, 1, False)], 195, BASE),
+    'hit':     ([(0, 3, 2, False), (3, 2, 2, False), (0, 3, 2, False), (1, 1, 2, False)], 185, BASE),
+    'block':   ([(0, 3, 1, False), (3, 1, 1, False), (0, 3, 1, False), (3, 1, 1, False)], 190, BASE),
+    'ko':      ([(3, 1, 2, False)] * 4, 76, BASE),
+    'win':     ([(3, 3, 2, False), (3, 0, 0, False), (3, 3, 2, False), (3, 0, 0, False)], 195, BASE),
+}
+
 FIGHTERS = {
+    'nunes': {
+        'sheets': ['nunes-sprite-1.jpg', 'nunes-sprite-2.jpg', 'nunes-sprite-3.jpg', 'nunes-sprite-4.jpg'],
+        'abilities': 'nunes-abilities-1.jpg',
+        'poses': NUNES_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 299), (299, 597), (597, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 299), (299, 597), (597, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+    },
     'emilio': {
         'sheets': ['emilio-sprite-1.jpg', 'emilio-sprite-2.jpg', 'emilio-sprite-3.jpg', 'emilio-sprite-4.jpg'],
         'abilities': 'emilio-abilities.jpg',
