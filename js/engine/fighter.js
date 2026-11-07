@@ -577,6 +577,15 @@ class Fighter {
       this.game.announce('RENASCEU DAS CINZAS!', '#FF7A1A', 'A Fênix de Nexo City não cai!');
       this.game.audio.play('explosion', { vol: 0.6 });
       this.game.shake(10);
+      /* EXPLOSÃO INCENDIÁRIA no renascimento: quem estiver perto do clone
+         toma dano explosivo de fogo + queimadura + lentidão. */
+      const foe = this.enemy();
+      if (foe && foe.alive && Math.abs(foe.x - this.x) < 230) {
+        foe.takeHit(30, { attacker: this, height: 'unblockable', kx: 13, dirSign: Math.sign(foe.x - this.x) || 1, launch: -11, stun: 34, ability: true, heavy: true, fx: { burn: 220, slow: 110 } });
+        this.game.spawnBurst('abil:nunes', 4, this.x, this.y - 110, 1, 2.6);
+        this.game.spawnBurst('fire', 2, foe.x, foe.y - 90, 1, 2.2);
+        this.game.shake(12);
+      }
       return;
     }
     this.state = 'ko';

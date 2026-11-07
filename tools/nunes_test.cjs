@@ -125,7 +125,7 @@ check('Fagulha Viva DESATIVA em morte súbita', f2.hp <= hpB + 2, 'hp ' + Math.r
   check('clone de fogo guardado', f8.phoenixClone && Math.abs(clone8 - 400) < 60, 'x=' + clone8.toFixed(1));
   // +10% de forca (mede imediatamente, estado limpo)
   const dmg8 = f8.dmgMult(null);
-  check('+10% de forca', Math.abs(dmg8 / 1.42 - 1.1) < 0.01, (dmg8 / 1.42).toFixed(3) + 'x');
+  check('+10% de forca', Math.abs(dmg8 / 1.60 - 1.1) < 0.01, (dmg8 / 1.60).toFixed(3) + 'x');
   // vampirismo 25%: soco direto no rival, vida pela metade
   f8.hp = f8.maxHp * 0.5;
   o8.hp = o8.maxHp; o8.status = {}; o8.state = 'idle';
@@ -137,13 +137,31 @@ check('Fagulha Viva DESATIVA em morte súbita', f2.hp <= hpB + 2, 'hp ' + Math.r
   // revive: morte DIRETA (sem knockback de melee) — posicao exata do clone
   // (NAO limpa o status: a Fenix precisa estar ativa pra reviver)
   f8.x = clone8; f8.state = 'idle'; f8.cast = null;
+  // inimigo PERTO do clone: deve tomar a explosao incendiaria
+  o8.x = clone8 + 90; o8.hp = o8.maxHp; o8.status = {}; o8.state = 'idle';
+  const hpO8 = o8.hp;
   f8.takeHit(99999, { attacker: o8, height: 'unblockable' });
   check('RENASCEU DAS CINZAS (nao cai com a Fenix)', f8.alive === true && f8.state !== 'ko', 'alive=' + f8.alive + ' hp=' + Math.round(f8.hp) + ' state=' + f8.state);
   check('revive no clone', Math.abs(f8.x - clone8) < 1, 'x=' + f8.x.toFixed(1) + ' (clone em ' + clone8.toFixed(1) + ')');
+  check('EXPLOSAO incendiaria no renascimento (inimigo perto)', o8.hp < hpO8 - 25 && o8.has('burn'), 'hp inimigo ' + Math.round(hpO8) + ' -> ' + Math.round(o8.hp) + ' burn=' + o8.has('burn'));
   check('Fenix consumida apos renascer', !f8.has('phoenix'));
   // morrer de novo = KO de verdade
   f8.takeHit(99999, { attacker: o8, height: 'unblockable' });
   check('morrer depois do renascimento = KO', f8.alive === false, 'hp=' + f8.hp);
+  // caso negativo: inimigo LONGE do clone nao toma a explosao
+  {
+    const g9 = mk();
+    const f9 = g9.activeOf(0), o9 = g9.activeOf(1);
+    f9.x = 400; o9.x = 620; f9.charge = [100, 100]; f9.ultimate = 100;
+    f9.tryCast(4);
+    for (let t = 0; t < 90; t++) { g9.tick(); o9.hp = o9.maxHp; }
+    const clone9 = f9.phoenixClone.x;
+    o9.x = clone9 + 400; o9.hp = o9.maxHp; o9.status = {}; o9.state = 'idle';
+    const hpFar = o9.hp;
+    f9.x = clone9; f9.state = 'idle'; f9.cast = null;
+    f9.takeHit(99999, { attacker: o9, height: 'unblockable' });
+    check('inimigo LONGE do clone NAO toma a explosao', f9.alive && o9.hp >= hpFar - 2, 'hp inimigo ' + Math.round(hpFar) + ' -> ' + Math.round(o9.hp));
+  }
 }
 
 // 9) sem a ult, morre normal

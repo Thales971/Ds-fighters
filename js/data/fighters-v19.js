@@ -22,7 +22,7 @@
       bio: 'Bombeiro aposentado que sobreviveu a um incêndio que não devia ter sobrevivido — 60% do corpo em cicatrizes de queimadura. Descobriu que o fogo reconhece quem ele não queima: as chamas dele obedecem. Agora luta ouvindo música no fone branco, calmo demais pra quem faz a arena pegar fogo.',
       colors: { skin: '#c8956b', hair: '#2a1a12', shirt: '#1A1216', pants: '#241a20', shoes: '#101014', accent: '#FF7A1A' },
       traits: { headphones: true, fireJacket: true, firefighter: true, scars: true },
-      stats: { power: 1.42, speed: 1.10, weight: 1.04, hp: 146, meterRate: 1.30 },
+      stats: { power: 1.60, speed: 1.14, weight: 1.04, hp: 150, meterRate: 1.34 },
       secret: false,
       quotes: {
         intro: ['O fogo não me queima. Você não é o fogo.', 'Relaxa. Vai doer só o tempo todo.'],
