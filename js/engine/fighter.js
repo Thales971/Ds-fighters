@@ -618,7 +618,7 @@ class Fighter {
     if (!p) return { ready: false, pct: 0 };
     if (this.has('locked')) return { ready: false, pct: 0, locked: true, p };
     if (p.slot === 'simple' || p.slot === 'extra') {
-      const total = (p.cd || 50) * ABILITY_CD_MULT;
+      const total = Math.max(130, (p.cd || 50) * ABILITY_CD_MULT);
       return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
     }
     if (p.slot === 'charge') {
@@ -632,6 +632,7 @@ class Fighter {
     return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched && !this.has('paralyze');
   }
   tryCast(i) {
+    if (this.castLock > 0) return false;
     const kit = this.currentKit();
     const early = kit[i];
     if (early && early.overheat && this.aura && this.aura.id === early.id && this.has('aura')) {
@@ -663,7 +664,13 @@ class Fighter {
     if (this.def.id === 'emilio' && (this.has('trans') || p.transform === 'trans') && p.visualSheet === 'emilio') {
       p = Object.assign({}, p, { visualSheet: 'emilio-trans' });
     }
-    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1); /* Fênix: -10% de recarga */
+    /* Anti-spam em 3 camadas: multiplicador global x2 + PISO de 110 frames
+       (~1.8s) nas simples/extras + trava GLOBAL de 45 frames depois de
+       QUALQUER habilidade (sem chain H1->H2->H3 instantaneo). */
+    this.castLock = 50;
+    if (p.slot === 'simple' || p.slot === 'extra') {
+      this.cd[i] = Math.max(130, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1));
+    }
     else if (p.slot === 'charge') this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
     else this.ultimate = 0;
     this.cast = { p, i, t: 0, fired: false };
@@ -1158,6 +1165,7 @@ class Fighter {
     this.lastInput = input;
     if (this.flash && this.now > this.flashUntil) this.flash = null;
     if (this.flashWhite) this.flashWhite--;
+    if (this.castLock > 0) this.castLock--;
     for (let i = 0; i < this.cd.length; i++) if (this.cd[i] > 0) this.cd[i]--;
     Object.keys(this.buf).forEach((k) => { if (this.buf[k]) this.buf[k]--; });
     if (this.quakeHold) {

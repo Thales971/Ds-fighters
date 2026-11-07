@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/powers-balance-v7.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO', f, e.message.slice(0, 80)); } }
 
 vm.runInContext(`
@@ -34,7 +34,7 @@ const reset = (gg) => {
   f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.vx = 0; o.vx = 0; f.vy = 0; o.vy = 0;
   o.hp = o.maxHp; f.hp = f.maxHp; f.state = 'idle'; o.state = 'idle';
   f.cast = null; f.stolen = null; f.status = {}; o.status = {};
-  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null;
+  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null;
 };
 
 let g = mk();
@@ -125,7 +125,7 @@ check('Fagulha Viva DESATIVA em morte súbita', f2.hp <= hpB + 2, 'hp ' + Math.r
   check('clone de fogo guardado', f8.phoenixClone && Math.abs(clone8 - 400) < 60, 'x=' + clone8.toFixed(1));
   // +10% de forca (mede imediatamente, estado limpo)
   const dmg8 = f8.dmgMult(null);
-  check('+10% de forca', Math.abs(dmg8 / 1.60 - 1.1) < 0.01, (dmg8 / 1.60).toFixed(3) + 'x');
+  check('+10% de forca', Math.abs(dmg8 / 1.66 - 1.1) < 0.01, (dmg8 / 1.66).toFixed(3) + 'x');
   // vampirismo 25%: soco direto no rival, vida pela metade
   f8.hp = f8.maxHp * 0.5;
   o8.hp = o8.maxHp; o8.status = {}; o8.state = 'idle';

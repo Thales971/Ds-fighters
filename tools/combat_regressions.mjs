@@ -121,7 +121,8 @@ for (const id of ['urbano', 'xeon', 'qwen', 'dolynho', 'thl']) {
 assert.ok(api.POWERS.iales.powers[9] && api.POWERS.iales.powers[9].id === 'afo2', 'IALES AFO2 is the eighth hotkey contract');
 assert.ok(api.POWERS.iales.powers[5] && api.POWERS.iales.powers[5].id === 'remotesteal', 'IALES second steal (remote copy) is hotkey 6');
 assert.ok(api.POWERS.iales.powers[6] && api.POWERS.iales.powers[6].id === 'grabsteal' && api.POWERS.iales.powers[6].kind === 'grabsteal', 'IALES grab-steal is hotkey 7');
-assert.ok(api.Profile.SECRET_IDS.includes('qwen'), 'Batata unlock includes Qwen');
+assert.deepEqual(api.Profile.SECRET_IDS.slice().sort(), ['du', 'felipinho', 'iales'], 'Secretos = Du, Iales e Felipinho (codigo ADM)');
+assert.ok(!api.Profile.SECRET_IDS.includes('qwen') && !api.Profile.SECRET_IDS.includes('winx-exe'), 'Qwen e Winx sao personagens normais');
 assert.ok(!api.Profile.SECRET_IDS.includes('dolynho') && !api.Profile.SECRET_IDS.includes('thl'), 'Dolynho and THL are normal unlocked fighters');
 assert.equal(def('dolynho').stats.power, 1.08, 'Dolynho permanent power');
 assert.equal(def('dolynho').stats.hp, 126, 'Dolynho catalog HP');

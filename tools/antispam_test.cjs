@@ -43,12 +43,12 @@ for (const def of fighters) {
     checked++;
     // 1) CD aplicado = base x 1.4
     f.state = 'idle'; f.cast = null; f.stolen = null; f.status = {};
-    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6;
+    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6;
     const base = p.cd || 50;
     const okCast = f.tryCast(i);
     if (!okCast) { console.log('CAST FALHOU: ' + def.id + ' #' + i + ' (' + p.id + ')'); fails++; continue; }
     const applied = f.cd[i];
-    const expected = base * MULT;
+    const expected = Math.max(130, base * MULT); /* piso anti-spam de 130 frames */
     if (Math.abs(applied - expected) > 0.01) { console.log('CD ERRADO: ' + def.id + '/' + p.id + ' aplicado=' + applied + ' esperado=' + expected.toFixed(1)); fails++; }
     // 2) pct do HUD coerente (0 <= pct <= 1)
     const ps = f.powerState(i);
@@ -56,11 +56,11 @@ for (const def of fighters) {
     // 3) impossivel recastar antes de expirar
     const keepAlive = () => { const a = g.activeOf(0), b = g.activeOf(1); if (a) { a.hp = a.maxHp; a.alive = true; } if (b) { b.hp = b.maxHp; b.alive = true; } };
     for (let t = 0; t < Math.floor(expected) - 2; t++) { g.tick(); keepAlive(); }
-    f.state = 'idle'; f.cast = null;
+    f.state = 'idle'; f.cast = null; f.castLock = 0;
     if (f.tryCast(i)) { console.log('SPAM POSSIVEL: ' + def.id + '/' + p.id + ' recastou antes do CD (' + Math.floor(expected) + ' frames)'); fails++; }
     // 4) recarga conta 1/frame e libera no fim
     let ticks = 0;
-    while (f.cd[i] > 0 && ticks < 2000) { g.tick(); keepAlive(); ticks++; }
+    while ((f.cd[i] > 0 || f.castLock > 0) && ticks < 2000) { g.tick(); keepAlive(); ticks++; }
     if (f.cd[i] > 0) { console.log('CD NAO ZEROU: ' + def.id + '/' + p.id); fails++; }
     f.state = 'idle'; f.cast = null;
     if (!f.tryCast(i)) {

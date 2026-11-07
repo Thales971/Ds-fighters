@@ -130,7 +130,7 @@ FIGHTERS.push(
     // não uma promessa de vitória universal em toda matchup/arena.
     // V6: kit mais apelão (mais dano, drain, lock, cegueira) mantendo o ranking.
     stats: { power: 1.39, speed: 1.24, weight: 0.98, hp: 140, meterRate: 1.5 },
-    secret: true,
+    secret: false, /* QWEN agora e personagem normal */
     quotes: {
       intro: ['Já processei todos os seus movimentos.', 'Contexto carregado. Você perdeu.'],
       win: ['Resposta gerada.', 'Pensei antes. Você não.'],
@@ -152,4 +152,4 @@ FIGHTERS.forEach((f) => {
   if (f.id === 'stack') { f.stats.power = Math.max(f.stats.power || 1, 1.16); f.stats.hp = Math.max(f.stats.hp || 100, 118); f.stats.speed = Math.max(f.stats.speed || 1, 1.08); }
 });
 
-if (typeof Profile !== 'undefined' && !Profile.SECRET_IDS.includes('qwen')) Profile.SECRET_IDS.push('qwen');
+/* QWEN agora e personagem normal — sem codigo. */
