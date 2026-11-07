@@ -14,7 +14,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/powers-balance-v7.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO', f, e.message.slice(0, 80)); } }
 
 vm.runInContext(`
@@ -28,12 +28,12 @@ const check = (name, cond, extra) => { console.log((cond ? 'OK   ' : 'FALHA') + 
 
 // stats v7
 const def = FIGHTERS.find((x) => x.id === 'bhm');
-check('BHM power 1.48', def.stats.power === 1.48, 'power=' + def.stats.power);
-check('BHM hp 158', def.stats.hp === 158);
+check('BHM power 1.56 (v8)', def.stats.power === 1.56, 'power=' + def.stats.power);
+check('BHM hp 164 (v8)', def.stats.hp === 164);
 
 // kit v7: dano +20% (plasma 14 -> 16.8 ~ arredondado)
 const plasma = POWERS.bhm.powers.find((p) => p.id === 'plasma');
-check('Bola Sombria +20% de dano', plasma.dmg >= 16, 'dmg=' + plasma.dmg);
+check('Bola Sombria buffada (v8)', plasma.dmg >= 19, 'dmg=' + plasma.dmg);
 
 // combo automatico: casta o Portal Sombrio (indice 3, charge meter 1) colado no rival
 f.x = 500; o.x = 560; o.y = 0; f.y = 0;
@@ -68,10 +68,10 @@ check('assinatura Qwen reduzida', sig.ability.drain <= 0.05 && sig.ability.lock 
 // Du e Felipinho
 const du = FIGHTERS.find((x) => x.id === 'du');
 const feli = FIGHTERS.find((x) => x.id === 'felipinho');
-check('Du power 1.50', du.stats.power === 1.50, 'power=' + du.stats.power);
-check('Felipinho power 1.55', feli.stats.power === 1.55, 'power=' + feli.stats.power);
+check('Du power 1.58 (v8)', du.stats.power === 1.58, 'power=' + du.stats.power);
+check('Felipinho power 1.62 (v8)', feli.stats.power === 1.62, 'power=' + feli.stats.power);
 const apoc = POWERS.du.powers.find((p) => p.id === 'apoc');
-check('Du apoc 60 de dano / 7 hits', apoc.dmg === 60 && apoc.hits === 7, 'dmg=' + apoc.dmg + ' hits=' + apoc.hits);
+check('Du apoc 66 de dano / 8 hits (v8)', apoc.dmg === 66 && apoc.hits === 8, 'dmg=' + apoc.dmg + ' hits=' + apoc.hits);
 
 // fracos buffados
 ['stack', 'gemini', 'meta', 'mis', 'grika', 'engenheira-prompt', 'odette', 'thl', 'dev-senior'].forEach((id) => {
