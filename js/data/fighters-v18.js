@@ -28,7 +28,7 @@
       bio: 'Garoto do bairro novo de Nexo City. Descobriu cedo que a energia que corria nas linhas da cidade respondia a ele — treino de rua, caderno de sketches e um segredo: quando o peito esquenta demais, ele vira outra coisa. Uma raposa espiritual verde e azul que não pede licença.',
       colors: { skin: '#e8c39e', hair: '#6a4a28', shirt: '#1a1a20', pants: '#2a4a7a', shoes: '#101014', accent: '#ffd54a' },
       traits: { glowingFist: true, hairStyle: 'short' },
-      stats: { power: 1.38, speed: 1.12, weight: 1.0, hp: 138, meterRate: 1.25 },
+      stats: { power: 1.56, speed: 1.14, weight: 1.0, hp: 142, meterRate: 1.3 },
       secret: false,
       quotes: {
         intro: ['Esquenta, coração.', 'Se eu perder o controle... desvia.'],
@@ -79,9 +79,10 @@
         }, visual(3, '#ff9a2a')),
         Object.assign({
           id: 'supreme-transformation', name: 'Transformação Suprema', slot: 'ultimate', row: 4,
-          kind: 'aura', time: 620, transform: 'trans', heal: 24, armor: true, hitDmg: 26, hitRadius: 240,
-          dmgMult: 1.4, speedMult: 1.15, cd: 120, sfx: 'ultimate',
-          desc: 'Vira a RAPOSA ESPIRITUAL por 10s: +40% de dano, +15% de velocidade, armadura, cura e explosão de ativação. Só ele pode fazer isso.',
+          kind: 'aura', time: 760, transform: 'trans', heal: 32, armor: true, hitDmg: 36, hitRadius: 260,
+          dmgMult: 1.5, speedMult: 1.25, invuln: 60, teleportBehind: true, cleanse: true, regen: 0.03,
+          cd: 120, sfx: 'ultimate',
+          desc: 'TELEPORTE atrás do rival + invulnerabilidade na ativação. Vira a RAPOSA ESPIRITUAL por 12s: +50% de dano, +25% de velocidade, armadura, cura, regeneração e habilidades com a arte transformada. Só ele pode fazer isso.',
         }, visual(4, '#7dff5e')),
       ],
     },

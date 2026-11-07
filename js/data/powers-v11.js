@@ -64,9 +64,9 @@
       }),
       withVisual('dev-senior', 4, '#ffbd59', {
         id: 'nano-overdrive', name: 'Nano Overdrive', slot: 'ultimate', row: 4,
-        kind: 'aura', time: 420, grant: 'nanomachines', form: 'nano', armor: true, heal: 30, regen: 0.06,
-        dmgMult: 1.30, defMult: 0.70, speedMult: 1.15, cd: 120, sfx: 'ultimate',
-        desc: 'Dev Senior fica sem camisa e ativa nanomáquinas: superarmadura, +20% de força e 20% menos dano recebido por 3,5 segundos.',
+        kind: 'aura', time: 760, grant: 'nanomachines', form: 'nano', armor: true, heal: 42, regen: 0.06,
+        dmgMult: 1.45, defMult: 0.65, speedMult: 1.18, hitDmg: 30, cd: 120, sfx: 'ultimate',
+        desc: 'Dev Senior fica sem camisa e ativa nanomáquinas: superarmadura, +45% de força, 35% menos dano recebido e explosão de ativação por 12 segundos.',
       }),
     ]),
   });

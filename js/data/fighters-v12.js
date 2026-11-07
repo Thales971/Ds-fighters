@@ -75,7 +75,7 @@
         }, visual(3, '#7fe08a')),
         Object.assign({
           id: 'punch-turbine', name: 'Turbina de Socos', slot: 'ultimate', row: 4,
-          kind: 'rush', dmg: 38, hits: 9, cd: 110,
+          kind: 'rush', dmg: 54, hits: 12, cd: 110,
           fx: { lock: 40, bleed: 100 }, sfx: 'ultimate',
           desc: 'Avança e descarrega uma turbina de socos de perto — dano alto, só à queima-roupa.',
         }, visual(4, '#6fd0ff')),
