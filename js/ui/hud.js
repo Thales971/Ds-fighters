@@ -125,7 +125,7 @@ const HUD = {
       }
       // habilidades
       const sk = this.$('skills-' + ti);
-      const kitKey = (f.stolen ? 'S:' + f.stolen.from : 'O:' + f.def.id);
+      const kitKey = (f.stolen ? 'S:' + f.stolen.from : 'O:' + f.def.id) + (f.has('trans') ? ':trans' : '');
       if (sk.dataset.kit !== kitKey) {
         sk.dataset.kit = kitKey;
         const kit = f.currentKit();
@@ -133,10 +133,11 @@ const HUD = {
         sk.querySelectorAll('.skill').forEach((el, i) => {
           const p = kit[i];
           if (!p) return;
-          const fid = f.kitOwnerId(p);
+          const fid = f.powerSheetId ? f.powerSheetId(p) : f.kitOwnerId(p);
           el.querySelector('.ico').style.cssText = Art.css('abil:' + fid, p.row, 1, 54);
-          el.title = p.name + ': ' + (p.desc || '');
-          el.dataset.name = p.name;
+          const label = f.powerLabel ? f.powerLabel(p) : p.name;
+          el.title = label + ': ' + (p.desc || '');
+          el.dataset.name = label;
         });
       }
       sk.querySelectorAll('.skill').forEach((el, i) => {

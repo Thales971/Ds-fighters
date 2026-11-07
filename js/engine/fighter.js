@@ -229,6 +229,15 @@ class Fighter {
   ownKit() { return (this.kit && this.kit.powers) || []; }
   currentKit() { return this.stolen ? this.stolen.powers : this.ownKit(); }
   kitOwnerId(p) { return (p && p._fid) || this.def.id; }
+  /* EMILIO: nome e atlas de habilidade da forma RAPOSA quando transformado. */
+  powerLabel(p) {
+    if (this.def.id === 'emilio' && this.has('trans') && p.transName) return p.transName;
+    return p.name;
+  }
+  powerSheetId(p) {
+    if (this.def.id === 'emilio' && this.has('trans')) return 'emilio-trans';
+    return this.kitOwnerId(p);
+  }
   elementOf(p) { const f = this.kitOwnerId(p); return (POWERS[f] && POWERS[f].element) || this.element; }
   autoAim() { return !!(this.kit && this.kit.autoAim); }
 
@@ -630,7 +639,7 @@ class Fighter {
     }
     if (this.def.id === 'iales' && p.kind !== 'afo2') this.afo = Math.min(10, this.afo + 1);
     const ult = p.slot === 'ultimate';
-    this.flashText(p.name.toUpperCase(), this.def.colors.accent);
+    this.flashText(this.powerLabel(p).toUpperCase(), this.def.colors.accent);
     game.audio.sfx(p.sfx || 'magic');
     const q = ult ? this.def.quotes.super : this.def.quotes.special;
     if (q && q.length && (ult || (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4)) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
@@ -638,7 +647,7 @@ class Fighter {
       game.superFreeze(this, p);
       game.audio.voice('ultimate');
     }
-    game.events.push({ t: 'cast', who: this.slot, name: p.name });
+    game.events.push({ t: 'cast', who: this.slot, name: this.powerLabel(p) });
   }
   fire(p) {
     const game = this.game;
