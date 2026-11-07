@@ -101,8 +101,19 @@ setTimeout(() => {
   fs.writeFileSync(path.join(outDir, 'transformado.png'), gameCanvas.toBuffer('image/png'));
 
   // espera expirar (620 frames)
-  for (let k = 0; k < 700; k++) g.tick();
-  console.log('apos expirar -> has trans:', f.has('trans'), '| spriteKey:', f.spriteKey());
+  for (let k = 0; k < 900; k++) g.tick();
+  console.log('apos expirar -> has trans:', f.has('trans'), '| spriteKey:', f.spriteKey(), !f.has('trans') ? '(OK)' : '(FALHOU: nao expirou)');
+
+  // habilidades transformadas usam o atlas emilio-trans
+  f.ultimate = 100; f.state = 'idle'; f.cast = null; f.stolen = null;
+  f.tryCast(4);
+  for (let k = 0; k < 40; k++) g.tick();
+  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100,100]; f.ultimate = 100;
+  f.state = 'idle'; f.cast = null;
+  f.tryCast(0);
+  console.log('H1 transformado -> visualSheet:', f.cast && f.cast.p.visualSheet, f.cast && f.cast.p.visualSheet === 'emilio-trans' ? '(OK: arte da raposa)' : '(FALHOU)');
+  for (let k = 0; k < 900; k++) g.tick();
+  f.has('trans') && console.log('aviso: trans ainda ativa apos 900 ticks');
 
   // H1-H4 tambem castam
   f.stolen = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100,100]; f.ultimate = 100;

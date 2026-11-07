@@ -10,6 +10,8 @@ const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 3.00;
+/* Anti-spam: todas as habilidades recarregam 40% mais devagar em qualquer modo. */
+const ABILITY_CD_MULT = 1.4;
 const QUAKE_HOLD_MAX = 28;
 const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
 const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
@@ -266,7 +268,7 @@ class Fighter {
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
     if (this.has('spot')) m *= 1.25;
     if (this.has('astra')) m *= 1.35;
-    if (this.has('trans')) m *= 1.4;
+    if (this.has('trans')) m *= 1.5;
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
@@ -284,7 +286,7 @@ class Fighter {
   }
   speedMult() {
     if (this.has('astra')) return this._speedBase() * 1.18;
-    if (this.has('trans')) return this._speedBase() * 1.15;
+    if (this.has('trans')) return this._speedBase() * 1.25;
     return this._speedBase();
   }
   _speedBase() {
@@ -338,12 +340,15 @@ class Fighter {
     return { x: this.x - w / 2, y: this.y - h, w, h };
   }
   hitbox(mv) {
+    /* Hitboxes mais generosas em toda a arena: mais alcance à frente,
+       janela vertical maior e largura mínima maior — socos e chutes
+       conectam de verdade em todos os lutadores. */
     const low = this.state === 'cpunch' || this.state === 'ckick';
     const air = this.state === 'jpunch' || this.state === 'jkick';
-    const h = low ? 44 : 68;
-    const top = this.y - (low ? 56 : air ? 124 : 136);
-    const w = Math.max(34, mv.range * 0.8);
-    const x = this.dir === 1 ? this.x + 4 : this.x - 4 - w;
+    const h = low ? 54 : 80;
+    const top = this.y - (low ? 62 : air ? 132 : 144);
+    const w = Math.max(42, mv.range * 0.92);
+    const x = this.dir === 1 ? this.x + 10 : this.x - 10 - w;
     return { x, y: top, w, h };
   }
 
@@ -555,7 +560,7 @@ class Fighter {
     if (!p) return { ready: false, pct: 0 };
     if (this.has('locked')) return { ready: false, pct: 0, locked: true, p };
     if (p.slot === 'simple' || p.slot === 'extra') {
-      const total = p.cd || 50;
+      const total = (p.cd || 50) * ABILITY_CD_MULT;
       return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
     }
     if (p.slot === 'charge') {
@@ -594,7 +599,13 @@ class Fighter {
   }
   startCast(i, p) {
     const game = this.game;
-    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = p.cd || 50;
+    /* EMILIO TRANSFORMADO: usa o atlas de habilidades da RAPOSA ESPIRITUAL
+       (assets/abilities/emilio-trans.png) em todas as habilidades — inclusive
+       na própria ultimate, que já ativa a forma antes de disparar. */
+    if (this.def.id === 'emilio' && (this.has('trans') || p.transform === 'trans') && p.visualSheet === 'emilio') {
+      p = Object.assign({}, p, { visualSheet: 'emilio-trans' });
+    }
+    if (p.slot === 'simple' || p.slot === 'extra') this.cd[i] = (p.cd || 50) * ABILITY_CD_MULT;
     else if (p.slot === 'charge') this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
     else this.ultimate = 0;
     this.cast = { p, i, t: 0, fired: false };
@@ -948,7 +959,10 @@ class Fighter {
     f.cast = null;
     this.charge[0] = Math.min(100, this.charge[0] + 50);
     this.charge[1] = Math.min(100, this.charge[1] + 50);
-    this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    /* Roubo zera a recarga das 5 habilidades ROUBADAS (slots 0-4) para elas
+       saírem prontas — mas as próprias extras do IALES (6-10) continuam no CD
+       anti-spam: sem isso o Agarrão Ctrl+C resetava a si mesmo em loop. */
+    this.cd = (this.cd || []).map((c, k) => (k < 5 ? 0 : c));
     game.audio.voice('stolen');
     game.announce('PODERES ROUBADOS!', '#c77dff', this.def.name + ' copiou o kit de ' + f.def.name);
     game.events.push({ t: 'steal', who: this.slot, from: f.slot });
