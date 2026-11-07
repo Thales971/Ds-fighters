@@ -29,8 +29,25 @@
     if (patch) Object.assign(f.stats, patch);
   });
 
+  /* assinatura do IALES: dreno de vida pesado — o campeao se cura em todo acerto */
+  if (SIGNATURES.iales) Object.assign(SIGNATURES.iales, { ability: { drain: 0.25, vuln: 150, shock: 90, blind: 90, bleed: 90 } });
+
   /* ---------- kits menos apeloes (Qwen/Winx) ---------- */
   const tone = (id, fn) => { const k = POWERS[id]; if (k && k.powers) k.powers.forEach(fn); };
+  /* ---------- IALES: o campeao indiscutivel ---------- */
+  FIGHTERS.forEach((f) => {
+    if (f.id !== 'iales') return;
+    Object.assign(f.stats, { power: 2.60, speed: 1.36, weight: 1.05, hp: 230, meterRate: 2.7 });
+  });
+  tone('iales', (p) => {
+    if (p.dmg) p.dmg = Math.round(p.dmg * 1.5 * 10) / 10;
+    if (p.cd) p.cd = Math.max(12, Math.round(p.cd * 0.65));
+    if (p.id === 'virus') { p.multiHit = 3; p.fx.freeze = 160; }
+    if (p.id === 'format') { p.dmg = 58; p.radius = 300; }
+    if (p.id === 'afo') { p.count = 18; p.finisher = 50; }
+    if (p.id === 'afo2') { p.dmg = 250; p.perAfo = 12; }
+  });
+
   /* Qwen: menos dreno, trava e medidor queimado em TODAS as habilidades. */
   tone('qwen', (p) => {
     if (p.fx) {
