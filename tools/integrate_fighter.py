@@ -392,7 +392,62 @@ NIMBO_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
 }
 
+# Emilio (forma normal): folha1 (si=0: soco x4 | andar x4 | agachar/agachar-soco/
+# agachar-chute/pulo/soco-ar | chute/chute-ar/cast/hit/block) folha2 (si=1: idle/
+# agachar/pulo/casts | hit/KO/vitoria) folha3 (si=2: idle). TODOS virados pra
+# DIREITA nativamente, sem flip.
+EMILIO_POSES = {
+    'idle':    ([(0, 0, 0, False), (2, 0, 2, False), (0, 0, 0, False), (2, 1, 2, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 0, 1, False), (2, 0, 0, False), (2, 3, 0, False)], 190, BASE),
+    'jump':    ([(0, 2, 0, False), (3, 1, 1, False), (0, 2, 0, False), (3, 1, 1, False)], 165, AIR),
+    'crouch':  ([(0, 0, 2, False), (1, 1, 0, False), (0, 0, 2, False), (1, 1, 0, False)], 125, BASE),
+    'punch':   ([(0, 3, 0, False), (0, 2, 1, False), (3, 0, 0, False), (3, 2, 1, False)], 175, BASE),
+    'kick':    ([(0, 3, 1, False), (0, 2, 4, False), (2, 0, 3, False), (2, 1, 3, False)], 165, BASE),
+    'cpunch':  ([(0, 1, 2, False)] * 4, 130, BASE),
+    'ckick':   ([(0, 2, 2, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 3, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 3, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 3, False), (3, 1, 0, False), (0, 2, 3, False), (3, 2, 0, False)], 195, BASE),
+    'hit':     ([(0, 3, 3, False)] * 4, 185, BASE),
+    'block':   ([(0, 3, 2, False)] * 4, 190, BASE),
+    'ko':      ([(0, 0, 4, True)] * 4, 76, BASE),
+    'win':     ([(0, 1, 4, False), (1, 0, 4, False), (0, 1, 4, False), (1, 1, 4, False)], 195, BASE),
+}
+
+# Emilio TRANSFORMADO (raposa verde/azul): folha unica com as 15 poses na ordem
+# exata do contrato (idle/andar/pulo/soco/chute/agachar/agachar-soco/agachar-chute/
+# soco-ar/chute-ar/cast/hit/block/KO/vitoria). Virado pra DIREITA, sem flip.
+EMILIO_TRANS_POSES = {
+    'idle':    ([(0, 0, False), (0, 4, False), (0, 0, False), (0, 4, False)], 195, BASE),
+    'walk':    ([(1, 0, False)] * 4, 190, BASE),
+    'jump':    ([(2, 0, False)] * 4, 165, AIR),
+    'crouch':  ([(1, 1, False)] * 4, 125, BASE),
+    'punch':   ([(3, 0, False), (1, 4, False), (3, 0, False), (1, 4, False)], 175, BASE),
+    'kick':    ([(0, 1, False)] * 4, 165, BASE),
+    'cpunch':  ([(2, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(3, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 2, False)] * 4, 170, AIR),
+    'jkick':   ([(1, 2, False)] * 4, 160, AIR),
+    'special': ([(2, 2, False), (2, 4, False), (3, 3, False), (2, 2, False)], 195, BASE),
+    'hit':     ([(3, 2, False)] * 4, 185, BASE),
+    'block':   ([(0, 3, False)] * 4, 190, BASE),
+    'ko':      ([(1, 3, False)] * 4, 76, BASE),
+    'win':     ([(2, 3, False), (3, 4, False), (2, 3, False), (3, 4, False)], 195, BASE),
+}
+
 FIGHTERS = {
+    'emilio': {
+        'sheets': ['emilio-sprite-1.jpg', 'emilio-sprite-2.jpg', 'emilio-sprite-3.jpg', 'emilio-sprite-4.jpg'],
+        'abilities': 'emilio-abilities.jpg',
+        'poses': EMILIO_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
+    'emilio-trans': {
+        'sheets': ['emilio-trans-1.jpg'],
+        'abilities': 'emilio-abilities-trans.jpg',
+        'poses': EMILIO_TRANS_POSES,
+        'ui_cell': (0, 0, False),
+    },
     'nimbo': {
         'sheets': ['Nimbo sprite 1.jpg', 'Nimbo sprite 2.jpg'],
         'abilities': 'Nimbo habilidades.jpg',

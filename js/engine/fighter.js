@@ -21,7 +21,7 @@ function boxesOverlap(a, b) {
 const STATUS_LABEL = {
   atk: { t: 'ATQ+', c: '#ff4b4b' }, def: { t: 'DEF+', c: '#4ba3ff' }, spd: { t: 'VEL+', c: '#ffd84b' },
   rage: { t: 'FÚRIA', c: '#ff6a1c' }, armor: { t: 'ARMADURA', c: '#ffd27d' }, reflect: { t: 'REFLEXO', c: '#7de0ff' },
-  invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
+  invuln: { t: 'INVULN.', c: '#ffffff' }, astra: { t: 'ASTRA', c: '#a78bff' }, trans: { t: 'TRANSFORMADO', c: '#7dff5e' }, aura: { t: 'AURA', c: '#c77dff' }, spot: { t: 'HOLOFOTE', c: '#fff36b' },
   burn: { t: 'QUEIMANDO', c: '#ff7b1c' }, poison: { t: 'VENENO', c: '#9dff4a' }, slow: { t: 'LENTO', c: '#7db8ff' },
   locked: { t: 'SEM PODERES', c: '#ff3b5c' }, blind: { t: 'CEGO', c: '#b9b9b9' }, shock: { t: 'ELETRIZADO', c: '#7df9ff' }, glitch: { t: 'TRAVAMENTO', c: '#48dfff' },
   meterSlow: { t: 'MEDIDOR LENTO', c: '#39ff6a' }, cloak: { t: 'FANTASMA', c: '#9dffb0' },
@@ -227,6 +227,7 @@ class Fighter {
   spriteKey() {
     if (this.def.id === 'qwen' && this.has('astra')) return 'qwen-astra';
     if (this.def.id === 'dev-senior' && this.has('nanomachines')) return 'dev-senior-nano';
+    if (this.def.id === 'emilio' && this.has('trans')) return 'emilio-trans';
     return this.def.id;
   }
   nanoElectricPulse() {
@@ -263,6 +264,7 @@ class Fighter {
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
     if (this.has('spot')) m *= 1.25;
     if (this.has('astra')) m *= 1.35;
+    if (this.has('trans')) m *= 1.4;
     m *= 1 + (this.pfx.dmg || 0);
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
@@ -280,6 +282,7 @@ class Fighter {
   }
   speedMult() {
     if (this.has('astra')) return this._speedBase() * 1.18;
+    if (this.has('trans')) return this._speedBase() * 1.15;
     return this._speedBase();
   }
   _speedBase() {
