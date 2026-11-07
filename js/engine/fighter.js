@@ -15,6 +15,9 @@ const HEALTH_MULTIPLIER = 3.00;
 const ABILITY_CD_MULT = 2.0;
 const QUAKE_HOLD_MAX = 28;
 const STATUS_WINDOW_CAPS = Object.freeze({ paralyze: 72, vertigo: 120, nanomachines: 240 });
+/* IALES OMEGA, o campeao indiscutivel: as IAs nao sao afetadas por status
+   negativos — veneno, gelo, cegueira, trava de poderes, nada cola nele. */
+const IALES_IMMUNE = Object.freeze(new Set(['burn', 'poison', 'freeze', 'chill', 'bleed', 'vuln', 'slow', 'trap', 'blind', 'shock', 'vertigo', 'glitch', 'paralyze', 'dizzy', 'meterSlow', 'locked', 'stolen', 'weaken']));
 const STATUS_WINDOW_GAPS = Object.freeze({ paralyze: 30, vertigo: 24 });
 
 function boxesOverlap(a, b) {
@@ -135,6 +138,7 @@ class Fighter {
     return scale;
   }
   addStatus(s, frames, source = null) {
+    if (this.def && this.def.id === 'iales' && IALES_IMMUNE.has(s)) return;
     this.syncControlMemory();
     if (s === 'resonance' || s === 'veil') {
       let window = this.statusCapWindows[s];
