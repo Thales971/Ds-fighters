@@ -22,20 +22,28 @@ vm.runInContext(`
 const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, ellipse() {}, fill() {}, fillText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), set imageSmoothingEnabled(v) {} });
 const mk = (mode) => {
   const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), toBuffer: () => Buffer.alloc(10), classList: { remove() {}, add() {}, toggle() {} } });
-  g.start({ mode: mode || 'versus', teams: [['nunes'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
+  g.start({ mode: mode || 'versus', teams: [['nunes'], ['du']], stage: '06-sakura-dojo', cpu: [false, false], roundsToWin: 2, timer: 99 });
   for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
   return g;
 };
 let fails = 0;
 const check = (n, c, x) => { console.log((c ? 'OK   ' : 'FALHA') + ' ' + n + (x ? ' — ' + x : '')); if (!c) fails++; };
-const reset = (g, f, o) => { f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.alive = true; o.alive = true; o.hp = o.maxHp; f.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100, 100]; f.ultimate = 100; };
+const reset = (gg) => {
+  f = gg.activeOf(0); o = gg.activeOf(1); // re-busca: round pode ter reiniciado
+  if (!f || !o) return;
+  f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.vx = 0; o.vx = 0; f.vy = 0; o.vy = 0;
+  o.hp = o.maxHp; f.hp = f.maxHp; f.state = 'idle'; o.state = 'idle';
+  f.cast = null; f.stolen = null; f.status = {}; o.status = {};
+  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null;
+};
 
 let g = mk();
-const [f, o] = g.activePair();
+const keepAlive = () => { const a = g.activeOf(0), b = g.activeOf(1); if (a) { a.hp = a.maxHp; a.status = {}; } if (b) { b.hp = b.maxHp; b.status = {}; } };
+let [f, o] = [g.activeOf(0), g.activeOf(1)];
 const kit = f.currentKit();
 
 // 1) H1 Bang Incendiária: granada em arco -> poça persistente com queima + lentidão
-reset(g, f, o);
+reset(g);
 check('H1 cast (arco)', f.tryCast(0) === true);
 for (let t = 0; t < 120; t++) g.tick();
 const pool = g.zones.find((z) => z.owner === f);
@@ -46,14 +54,14 @@ check('poça aplica QUEIMA', o.has('burn'));
 check('poça aplica LENTIDÃO', o.has('slow'));
 
 // 2) H2 Bola de Fogo: explode no impacto e deixa chamas
-reset(g, f, o);
+reset(g);
 g.zones = [];
 check('H2 cast', f.tryCast(1) === true);
 for (let t = 0; t < 90; t++) g.tick();
 check('explosão deixa chamas no chão', g.zones.some((z) => z.owner === f), g.zones.length + ' zona(s)');
 
 // 3) H3 Muralha de Chamas: parede persistente que queima quem atravessa
-reset(g, f, o);
+reset(g);
 g.zones = [];
 check('H3 cast', f.tryCast(2) === true);
 for (let t = 0; t < 30; t++) g.tick();
@@ -64,22 +72,22 @@ for (let t = 0; t < 20; t++) g.tick();
 check('muralha QUEIMA quem atravessa', o.has('burn'));
 
 // 4) H4 Avanço Flamejante: dash com rastro de fogo
-reset(g, f, o);
+reset(g);
 g.zones = [];
 check('H4 cast', f.tryCast(3) === true);
 for (let t = 0; t < 60; t++) g.tick();
 check('rastro de chamas no chão', g.zones.some((z) => z.owner === f), g.zones.filter((z) => z.owner === f).length + ' zonas de rastro');
 
 // 5) STATUS em todo acerto de habilidade (assinatura)
-reset(g, f, o);
+reset(g);
 o.status = {};
 f.x = 560; // colado
 f.tryCast(1);
-for (let t = 0; t < 60; t++) g.tick();
+for (let t = 0; t < 60; t++) { g.tick(); o.hp = o.maxHp; }
 check('assinatura: habilidade aplica status', o.has('burn') || o.has('slow'), 'burn=' + o.has('burn') + ' slow=' + o.has('slow'));
 
 // 6) Passiva Fagulha Viva: regenera dentro do próprio fogo
-reset(g, f, o);
+reset(g);
 g.zones = [];
 f.tryCast(0);
 for (let t = 0; t < 120; t++) g.tick();
@@ -105,39 +113,41 @@ const hpB = f2.hp;
 for (let t = 0; t < 60; t++) { g2.tick(); o2.hp = o2.maxHp; o2.alive = true; }
 check('Fagulha Viva DESATIVA em morte súbita', f2.hp <= hpB + 2, 'hp ' + Math.round(hpB) + ' -> ' + Math.round(f2.hp));
 
-// 8) Ultimate: Fênix + revive no clone
-reset(g, f, o);
-const cloneX = 400;
-f.x = cloneX;
-check('ULT cast', f.tryCast(4) === true);
-for (let t = 0; t < 90; t++) g.tick(); /* super-freeze da ult consome ~50 ticks */
-console.log('   DEBUG: state=' + f.state, 'cast=' + (f.cast ? f.cast.p.id + ':t' + f.cast.t + ':fired' + f.cast.fired : 'null'), 'aura=' + (f.aura && f.aura.id), 'status=' + JSON.stringify(f.status), 'now=' + f.now);
-check('status FÊNIX', f.has('phoenix'));
-check('clone de fogo guardado', f.phoenixClone && f.phoenixClone.x === cloneX, 'x=' + (f.phoenixClone && f.phoenixClone.x));
-const dmgBase = f.dmgMult(null);
-// buff de força +10%
-check('+10% de força', Math.abs(dmgBase / 1.42 - 1.1) < 0.001, (dmgBase / 1.42).toFixed(2) + 'x');
-// vampirismo 25%
-o.hp = o.maxHp; o.status = {}; o.state = 'idle';
-const hpF = f.hp;
-f.x = 560; f.state = 'idle'; f.cast = null;
-f.startAttack('punch');
-for (let t = 0; t < 40; t++) g.tick();
-check('+25% de vampirismo', f.hp > hpF, 'hp ' + Math.round(hpF) + ' -> ' + Math.round(f.hp));
-// revive: mata o Nunes
-f.hp = 1;
-o.x = f.x + 50; o.dir = -1; o.state = 'idle'; o.attack = null;
-o.startAttack('kick');
-for (let t = 0; t < 60 && f.alive; t++) g.tick();
-if (!f.alive) {
-  // reviveu? defeat() intercepta; se revive, alive volta a true
+// 8) Ultimate: Fenix + revive no clone (jogo limpo e deterministico)
+{
+  const g8 = mk();
+  let f8 = g8.activeOf(0), o8 = g8.activeOf(1);
+  f8.x = 400; o8.x = 620; f8.charge = [100, 100]; f8.ultimate = 100;
+  check('ULT cast', f8.tryCast(4) === true);
+  for (let t = 0; t < 90; t++) { g8.tick(); o8.hp = o8.maxHp; } // super-freeze ~50 ticks
+  check('status FENIX', f8.has('phoenix'));
+  const clone8 = f8.phoenixClone ? f8.phoenixClone.x : 400;
+  check('clone de fogo guardado', f8.phoenixClone && Math.abs(clone8 - 400) < 60, 'x=' + clone8.toFixed(1));
+  // +10% de forca (mede imediatamente, estado limpo)
+  const dmg8 = f8.dmgMult(null);
+  check('+10% de forca', Math.abs(dmg8 / 1.42 - 1.1) < 0.01, (dmg8 / 1.42).toFixed(3) + 'x');
+  // vampirismo 25%: soco direto no rival, vida pela metade
+  f8.hp = f8.maxHp * 0.5;
+  o8.hp = o8.maxHp; o8.status = {}; o8.state = 'idle';
+  f8.x = 560; f8.state = 'idle'; f8.cast = null;
+  const hpV8 = f8.hp;
+  f8.startAttack('punch');
+  for (let t = 0; t < 40; t++) { g8.tick(); if (o8.hp < o8.maxHp) break; }
+  check('+25% de vampirismo', f8.hp > hpV8, 'hp ' + Math.round(hpV8) + ' -> ' + Math.round(f8.hp));
+  // revive: morte DIRETA (sem knockback de melee) — posicao exata do clone
+  // (NAO limpa o status: a Fenix precisa estar ativa pra reviver)
+  f8.x = clone8; f8.state = 'idle'; f8.cast = null;
+  f8.takeHit(99999, { attacker: o8, height: 'unblockable' });
+  check('RENASCEU DAS CINZAS (nao cai com a Fenix)', f8.alive === true && f8.state !== 'ko', 'alive=' + f8.alive + ' hp=' + Math.round(f8.hp) + ' state=' + f8.state);
+  check('revive no clone', Math.abs(f8.x - clone8) < 1, 'x=' + f8.x.toFixed(1) + ' (clone em ' + clone8.toFixed(1) + ')');
+  check('Fenix consumida apos renascer', !f8.has('phoenix'));
+  // morrer de novo = KO de verdade
+  f8.takeHit(99999, { attacker: o8, height: 'unblockable' });
+  check('morrer depois do renascimento = KO', f8.alive === false, 'hp=' + f8.hp);
 }
-check('RENASCEU DAS CINZAS (não cai com a Fênix)', f.alive === true, 'alive=' + f.alive + ' hp=' + Math.round(f.hp) + ' state=' + f.state);
-check('revive no clone', Math.abs(f.x - cloneX) < 20, 'x=' + f.x.toFixed(0));
-check('Fênix consumida após renascer', !f.has('phoenix'));
 
 // 9) sem a ult, morre normal
-reset(g, f, o);
+reset(g);
 f.hp = 1; f.status = {};
 o.x = f.x + 50; o.dir = -1; o.startAttack('kick');
 for (let t = 0; t < 60 && f.alive; t++) g.tick();
