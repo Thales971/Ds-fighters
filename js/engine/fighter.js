@@ -572,11 +572,32 @@ class Fighter {
       this.status = {};
       this.phoenixClone = null;
       this.addStatus('invuln', 70);
-      this.game.spawnBurst('fire', 3, this.x, this.y - 100, 1, 3.2);
-      this.game.spawnBurst('fire', 1, this.x, this.y - 140, 1, 2.4);
+      /* ANIMAÇÃO DE RENASCIMENTO: a Fênix desce do céu através de uma coluna
+         de fogo — flash laranja, chamas em vários andares, asas de explosão
+         e anel de aura, tudo com a arte de fogo do jogo. */
+      this.y = -110; this.vy = 2; /* desce pelo pilar de chamas */
+      const gx = this.x;
+      if (this.game.flashScreen) this.game.flashScreen('#FF7A1A', 14);
+      for (let k = 0; k < 5; k++) {
+        this.game.spawnImgFx('fogo', 'projectile', gx + (k % 2 ? 14 : -14), -20 - k * 95, { scale: 2.6 + k * 0.35, life: 26 });
+      }
+      this.game.spawnImgFx('fogo', 'ultimate', gx, -170, { scale: 5.5, life: 22 });
+      this.game.spawnImgFx('fogo', 'aura', gx, -95, { scale: 3.4, life: 30 });
+      this.game.spawnBurst('fire', 3, gx, -100, 1, 3.2);
+      this.game.spawnBurst('fire', 1, gx, -180, 1, 2.6);
+      this.game.spawnBurst('fire', 2, gx, -40, 1, 2.2);
       this.game.announce('RENASCEU DAS CINZAS!', '#FF7A1A', 'A Fênix de Nexo City não cai!');
       this.game.audio.play('explosion', { vol: 0.6 });
-      this.game.shake(10);
+      this.game.shake(14);
+      /* EXPLOSÃO INCENDIÁRIA no renascimento: quem estiver perto do clone
+         toma dano explosivo de fogo + queimadura + lentidão. */
+      const foe = this.enemy();
+      if (foe && foe.alive && Math.abs(foe.x - this.x) < 230) {
+        foe.takeHit(30, { attacker: this, height: 'unblockable', kx: 13, dirSign: Math.sign(foe.x - this.x) || 1, launch: -11, stun: 34, ability: true, heavy: true, fx: { burn: 220, slow: 110 } });
+        this.game.spawnBurst('abil:nunes', 4, this.x, this.y - 110, 1, 2.6);
+        this.game.spawnBurst('fire', 2, foe.x, foe.y - 90, 1, 2.2);
+        this.game.shake(12);
+      }
       return;
     }
     this.state = 'ko';
