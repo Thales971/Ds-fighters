@@ -34,7 +34,7 @@ const reset = (gg) => {
   f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.vx = 0; o.vx = 0; f.vy = 0; o.vy = 0;
   o.hp = o.maxHp; f.hp = f.maxHp; f.state = 'idle'; o.state = 'idle';
   f.cast = null; f.stolen = null; f.status = {}; o.status = {};
-  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null;
+  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null;
 };
 
 let g = mk();

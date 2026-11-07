@@ -27,7 +27,7 @@ const mk = (mode, teams) => {
 };
 let fails = 0, n = 0;
 const check = (name, cond, extra) => { n++; console.log((cond ? 'OK   ' : 'FALHA') + ' ' + name + (extra ? ' — ' + extra : '')); if (!cond) fails++; };
-const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.alive; o.alive; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null; };
+const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.alive; o.alive; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null; };
 
 // ==== 1. zona da granada fica ONDE CAI (perto do alvo), nao no caster ====
 let g = mk();
@@ -129,20 +129,20 @@ check('morrer DEPOIS do renascimento = KO de verdade', died2);
 
 // ==== 9. recarga -10% com fenix ativa ====
 reset(g, f, o);
-const cdBase = 46 * 2.0; // Bang Incendiaria 46 x anti-spam 2.0
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.state = 'idle'; f.cast = null;
+const cdBase = Math.max(130, 46 * 2.0); // Bang Incendiaria: piso anti-spam de 130
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
 f.tryCast(0);
 const cdNormal = f.cd[0];
 check('CD normal = 46x2.0=92', Math.abs(cdNormal - cdBase) < 0.01, 'cd=' + cdNormal);
 // ativa fenix e testa de novo
 for (let t = 0; t < 120; t++) g.tick();
-f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.state = 'idle'; f.cast = null;
+f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
 f.tryCast(4);
 for (let t = 0; t < 90; t++) g.tick();
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.state = 'idle'; f.cast = null; f.charge = [100,100];
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100];
 f.tryCast(0);
 const cdFenix = f.cd[0];
-check('CD com fenix = 92x0.9=82.8', Math.abs(cdFenix - cdBase * 0.9) < 0.01, 'cd=' + cdFenix);
+check('CD com fenix = piso x0.9', Math.abs(cdFenix - Math.max(130, 46 * 2.0 * 0.9)) < 0.01, 'cd=' + cdFenix);
 
 // ==== 10. IA joga com o Nunes (nenhum crash, usa as habilidades) ====
 g = mk('versus', [['nunes'], ['du']]);

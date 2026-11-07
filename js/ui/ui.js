@@ -185,9 +185,11 @@ const UI = {
       const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
       const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
       const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
-      const thumb = fullSprite ? SpriteGen.url(d.id) : SpriteGen.faceUrl(d.id);
+      /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
+         interrogacao, sem vazar nem a cara nem o sprite (pedido do dono). */
+      const thumb = lock ? null : (fullSprite ? SpriteGen.url(d.id) : SpriteGen.faceUrl(d.id));
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face ${spriteClass}" style="background-image:url(${thumb})" aria-hidden="true"></span>
+        <span class="face${lock ? ' q' : ''} ${spriteClass}" ${thumb ? `style="background-image:url(${thumb})"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
@@ -717,7 +719,10 @@ const UI = {
       </tbody></table>
       <p class="sub small">Carga A e B enchem batendo e apanhando; a ULT enche mais devagar. Defender demais enche a barra de tontura do rival… e a sua.</p>`;
     const pick = this.$('moves-pick');
-    pick.innerHTML = FIGHTERS.map((d) => `<button class="nav mp" data-id="${d.id}" style="background-image:url(${SpriteGen.faceUrl(d.id)})" aria-label="${d.name}"></button>`).join('');
+    pick.innerHTML = FIGHTERS.map((d) => {
+      const lk = !Profile.isUnlocked(d.id);
+      return `<button class="nav mp${lk ? ' locked' : ''}" data-id="${d.id}" ${lk ? '' : `style="background-image:url(${SpriteGen.faceUrl(d.id)})"`} aria-label="${lk ? 'Bloqueado' : d.name}">${lk ? '?' : ''}</button>`;
+    }).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);
       const kit = POWERS[id];

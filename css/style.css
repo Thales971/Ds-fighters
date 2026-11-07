@@ -139,6 +139,8 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 @keyframes rosterIdle { from { background-position-x: 2.941176%; } to { background-position-x: 128.431373%; } }
 body.reduced .cell .face.roster-sprite { animation: none; }
 .cell .face.q { display: grid; place-items: center; font-size: 24px; color: var(--gold); }
+/* Lutador travado: NENHUMA foto aparece — so o misterio (pedido do dono). */
+.nav.mp.locked { background-image: none !important; display: grid; place-items: center; font-size: 20px; color: var(--gold); filter: grayscale(1) brightness(0.6); }
 .cell .nm { display: block; font-size: 5px; padding-top: 4px; white-space: nowrap; overflow: hidden; }
 .cell.secret { border-color: #7a5a1a; background: linear-gradient(#4a2a0a, #1a0a04); }
 .cell.locked .face { filter: brightness(0) drop-shadow(0 0 2px #6b4fb3); }
