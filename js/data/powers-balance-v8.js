@@ -13,6 +13,8 @@
       du:         { power: 1.58, speed: 1.10, weight: 1.22, hp: 154, meterRate: 1.48 },
       felipinho:  { power: 1.62, speed: 1.26, weight: 1.00, hp: 154, meterRate: 1.58 },
       merc:       { power: 1.30, speed: 1.34, weight: 0.90, hp: 128, meterRate: 1.24 },
+      /* QWEN: nerfada apos ficar em 2o (pedido do dono) — equilibra a Deusa dos Tokens */
+      qwen:       { power: 1.46, speed: 1.14, weight: 0.98, hp: 138, meterRate: 1.28 },
     }[f.id];
     if (patch) Object.assign(f.stats, patch);
   });
@@ -72,6 +74,14 @@
     up(p, 1.12);
     if (p.id === 'vdom' && p.heal) p.heal = 22;
   });
+
+  /* QWEN: equilibrio — menos dano e astra mais curta */
+  tone('qwen', (p) => {
+    up(p, 0.88);
+    if (p.id === 'thinking') { p.time = 640; p.dmg = 48; p.heal = 20; }
+    if (p.id === 'moe') { p.count = 8; }
+  });
+  if (SIGNATURES.qwen) Object.assign(SIGNATURES.qwen, { ability: { vuln: 50, drain: 0.03, meterSlow: 30, lock: 12 } });
 
   /* CROMO VX (merc): cibernético mais afiado */
   tone('merc', (p) => {

@@ -58,7 +58,7 @@ check('dano no rival', o.hp < o.maxHp, Math.round(o.maxHp - o.hp) + ' de dano');
 // Qwen/Winx: power na faixa 1.50-1.70 e kit menos apelao
 const qwen = FIGHTERS.find((x) => x.id === 'qwen');
 const winx = FIGHTERS.find((x) => x.id === 'winx-exe');
-check('Qwen power 1.56 (entre 1.50 e 1.70)', qwen.stats.power >= 1.50 && qwen.stats.power <= 1.70, 'power=' + qwen.stats.power);
+check('Qwen power 1.46 (nerf de equilibrio)', qwen.stats.power === 1.46, 'power=' + qwen.stats.power);
 check('Winx power 1.52 (entre 1.50 e 1.70)', winx.stats.power >= 1.50 && winx.stats.power <= 1.70, 'power=' + winx.stats.power);
 const qwenUlt = POWERS.qwen.powers.find((p) => p.slot === 'ultimate');
 check('Qwen ult menos apelao (transform mais curto)', (qwenUlt.time || 0) <= 780, 'time=' + qwenUlt.time);
