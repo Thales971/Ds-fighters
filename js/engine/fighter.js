@@ -959,7 +959,10 @@ class Fighter {
     f.cast = null;
     this.charge[0] = Math.min(100, this.charge[0] + 50);
     this.charge[1] = Math.min(100, this.charge[1] + 50);
-    this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    /* Roubo zera a recarga das 5 habilidades ROUBADAS (slots 0-4) para elas
+       saírem prontas — mas as próprias extras do IALES (6-10) continuam no CD
+       anti-spam: sem isso o Agarrão Ctrl+C resetava a si mesmo em loop. */
+    this.cd = (this.cd || []).map((c, k) => (k < 5 ? 0 : c));
     game.audio.voice('stolen');
     game.announce('PODERES ROUBADOS!', '#c77dff', this.def.name + ' copiou o kit de ' + f.def.name);
     game.events.push({ t: 'steal', who: this.slot, from: f.slot });
