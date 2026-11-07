@@ -101,11 +101,15 @@ setTimeout(() => {
   f.tryCast(4); // ult fenix
   for (let t = 0; t < 100; t++) g.tick();
   snap('fenix-ativa');
-  // revive
-  f.hp = 1; o.x = f.x + 50; o.dir = -1; o.state = 'idle';
-  o.startAttack('kick');
-  for (let t = 0; t < 80; t++) g.tick();
-  snap('renasceu');
+  // revive com a animacao: morte direta no clone + screenshots em 3 momentos
+  f.x = 400; f.state = 'idle'; f.cast = null;
+  o.x = 480; o.hp = o.maxHp; o.status = {}; o.state = 'idle';
+  f.takeHit(99999, { attacker: o, height: 'unblockable' });
+  snap('renasceu-t0');
+  for (let t = 0; t < 8; t++) g.tick();
+  snap('renasceu-t8');
+  for (let t = 0; t < 18; t++) g.tick();
+  snap('renasceu-t26');
   console.log('alive:', f.alive, 'hp:', Math.round(f.hp), 'state:', f.state);
   process.exit(0);
 }, 3000);
