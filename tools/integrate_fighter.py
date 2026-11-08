@@ -468,7 +468,9 @@ FIGHTERS = {
         'ui_cell': (0, 0, 0, False),
         'row_bands': [(0, 299), (299, 597), (597, 896)],
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
-        'ab_rows': [(0, 299), (299, 597), (597, 896)],
+        # a folha de HABILIDADES do Nunes e 4x6 (24 celulas): linha 3 = dash,
+        # linha 4 = fenix - o atlas pega as 5 primeiras linhas (H1-H5)
+        'ab_rows': [(0, 150), (150, 299), (299, 448), (448, 597), (597, 746), (746, 896)],
         'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
     },
     'emilio': {
