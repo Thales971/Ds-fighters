@@ -239,6 +239,7 @@ class Zone {
         if (this.poison && this.age % 30 === 0) f.addStatus('poison', this.poison, this.owner);
         if (this.fx) {
           if (this.fx.chill) f.addStatus('chill', this.fx.chill);
+          if (this.fx.freeze && this.age % 8 === 0) f.addStatus('freeze', this.fx.freeze, this.owner); /* PONTEIRO: Ampulheta */
           if (this.fx.bleed) f.addStatus('bleed', this.fx.bleed, this.owner);
           if (this.fx.vuln) f.addStatus('vuln', this.fx.vuln);
           if (this.fx.lock) f.addStatus('locked', this.fx.lock);

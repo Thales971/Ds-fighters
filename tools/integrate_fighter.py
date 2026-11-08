@@ -460,7 +460,37 @@ NUNES_POSES = {
     'win':     ([(3, 3, 2, False), (3, 0, 0, False), (3, 3, 2, False), (3, 0, 0, False)], 195, BASE),
 }
 
+# PONTEIRO, o Relojoeiro Quebrado (2 folhas 4x5, virado pra DIREITA):
+# folha1 (si=0: idle/andar x3 | andar x2/pulo/soco-ar | agachar/agachar-soco/
+# cast x2 | hit/agachar-chute/chute-ar/KO | vitoria/taunt)
+# folha2 (si=1: casts | idle/cast/andar/cast | agachar x2/block/cast |
+# idle/agachar/soco/cast)
+PONTEIRO_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 0, 2, False), (0, 0, 0, False), (1, 0, 4, False)], 200, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 2, 0, False), (0, 3, 0, False), (0, 0, 1, False)], 195, BASE),
+    'jump':    ([(0, 2, 1, False)] * 4, 170, AIR),
+    'crouch':  ([(0, 0, 2, False), (1, 0, 3, False), (0, 0, 2, False), (1, 1, 3, False)], 130, BASE),
+    'punch':   ([(1, 2, 4, False)] * 4, 180, BASE),
+    'kick':    ([(0, 1, 3, False)] * 4, 170, BASE),
+    'cpunch':  ([(0, 1, 2, False)] * 4, 135, BASE),
+    'ckick':   ([(0, 1, 3, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 3, 1, False)] * 4, 175, AIR),
+    'jkick':   ([(0, 3, 1, False)] * 4, 165, AIR),
+    'special': ([(0, 2, 2, False), (1, 0, 0, False), (0, 3, 2, False), (1, 1, 1, False)], 200, BASE),
+    'hit':     ([(0, 0, 3, False)] * 4, 190, BASE),
+    'block':   ([(1, 2, 3, False)] * 4, 195, BASE),
+    'ko':      ([(0, 3, 3, False)] * 4, 76, BASE),
+    'win':     ([(0, 0, 4, False), (0, 1, 4, False), (0, 0, 4, False), (0, 1, 4, False)], 200, BASE),
+}
+
 FIGHTERS = {
+    'ponteiro': {
+        'sheets': ['ponteiro-sprite-1.jpg', 'ponteiro-sprite-2.jpg'],
+        'abilities': 'ponteiro-abilities-2.jpg',
+        'poses': PONTEIRO_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
+
     'nunes': {
         'sheets': ['nunes-sprite-1.jpg', 'nunes-sprite-2.jpg', 'nunes-sprite-3.jpg', 'nunes-sprite-4.jpg'],
         'abilities': 'nunes-abilities-1.jpg',

@@ -498,7 +498,9 @@ class Fighter {
       this.addStatus('trap', trap);
       this.hitstun = Math.max(this.hitstun, trap);
     }
-    if (o.freeze) this.addStatus('freeze', Math.max(1, Math.round((o.stun || 60) * controlScale)));
+    /* Congelamento grande (>100f) e TIME-STOP intencional (Parar o Relógio):
+       duração cheia, sem cap. Pequeno = gelo normal (usa o stun). */
+    if (o.freeze) this.addStatus('freeze', o.freeze > 100 ? o.freeze : Math.max(1, Math.round((o.stun || 60) * controlScale)));
     this.blocking = false;
     this.attack = null;
     this.cast = null;
@@ -531,6 +533,8 @@ class Fighter {
     if (fx.blind) this.addStatus('blind', fx.blind);
     if (fx.vertigo) this.addStatus('vertigo', fx.vertigo, atk);
     if (fx.paralyze) this.addStatus('paralyze', fx.paralyze, atk);
+    /* PONTEIRO: fx.freeze grande (>100f) = TIME-STOP com duração cheia. */
+    if (fx.freeze) this.addStatus('freeze', fx.freeze > 100 ? fx.freeze : Math.max(1, Math.round(fx.freeze * 0.6)), atk);
     if (fx.shock) this.addStatus('shock', fx.shock);
     if (fx.glitch) this.addStatus('glitch', fx.glitch, atk);
     if (fx.chill) this.addStatus('chill', fx.chill);
@@ -1154,6 +1158,13 @@ class Fighter {
   update(input, ctxFlags = {}) {
     const game = this.game;
     this.now = game.time;
+    /* PONTEIRO — Passiva Campo Lento: oponentes perto dele sofrem 15% de
+       lentidão SEMPRE (o tempo obedece ao Relojoeiro). */
+    if (this.def.id === 'ponteiro' && this.alive && game.time % 8 === 0) {
+      for (const foe of game.opponentsOf(this)) {
+        if (foe.alive && Math.abs(foe.x - this.x) < 190) foe.addStatus('slow', 14);
+      }
+    }
     /* NUNES — Passiva Fagulha Viva: dentro do próprio fogo ele regenera vida
        (desativada no modo MORTE SÚBITA, onde a arena já é um incêndio). */
     if (this.def.id === 'nunes' && this.alive && this.onGround && this.hp > 0
