@@ -13,7 +13,7 @@ const ctx={console, Image: class { set src(v){} }, Math, Date,
 };
 ctx.globalThis=ctx;
 vm.createContext(ctx);
-const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/fighters-v17.js','js/data/fighters-v18.js','js/data/fighters-v19.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
+const files=['assets/sprites/layout.js','js/engine/sprites.js','js/data/fighters.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-balance-v9.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/fighters-v17.js','js/data/fighters-v18.js','js/data/fighters-v19.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/stage.js','js/engine/mechanics.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js','js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f,'utf8'), ctx, {filename:f}); } catch(e){ console.log('ERRO CARGA', f, String(e).slice(0,60)); } }
 const api=vm.runInContext('({FIGHTERS,Fighter,POWERS})',ctx);
 
@@ -40,7 +40,21 @@ function fight(aId, bId){
   const aList = castList(a), bList = castList(b);
   for(let t=0;t<500;t++){
     game.time=t;
+    /* MOVIMENTO basico: quem esta longe anda na direcao do rival — sem isso
+       dashes/rushes/melee sao subestimados e zoners superestimados. */
+    const dist0 = Math.abs(b.x - a.x);
+    if (dist0 > 130) { a.x += Math.sign(b.x - a.x) * 3.2; b.x += Math.sign(a.x - b.x) * 3.2; }
     if(t%40===0 && t>0){ const k=Math.floor(t/40)-1; a.tryCast(aList[k%aList.length]); b.tryCast(bList[k%bList.length]); }
+    /* ANTI-STUNLOCK: jogador real escapa do hitstun (rolamento/burst) — o sim
+       tambem: 80 ticks preso em hit/blockstun = escape. Sem isso, quem entra
+       em melee primeiro ganha a luta inteira por stunlock (artefato). */
+    for (const [ff, oo] of [[a, b], [b, a]]) {
+      const preso = ['hit', 'blockstun', 'down', 'thrown', 'throw', 'cast', 'rush'].includes(ff.state);
+      if (preso && ff.alive) {
+        ff._stunT = (ff._stunT || 0) + 1;
+        if (ff._stunT > 70) { ff.state = 'idle'; ff.stateTime = 0; ff.hitstun = 0; ff.cast = null; ff.rush = null; ff.attack = null; ff._stunT = 0; ff.x += (ff.x < oo.x ? -70 : 70); }
+      } else ff._stunT = 0;
+    }
     a.update(game); b.update(game);
     if (aDeath<0 && a.hp<=0) aDeath=t;
     if (bDeath<0 && b.hp<=0) bDeath=t;
