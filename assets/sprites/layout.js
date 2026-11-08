@@ -84,7 +84,8 @@ const SPRITE_LAYOUT = {
     "nimbo": "assets/sprites/nimbo.png",
     "emilio": "assets/sprites/emilio.png",
     "emilio-trans": "assets/sprites/emilio-trans.png",
-    "nunes": "assets/sprites/nunes.png"
+    "nunes": "assets/sprites/nunes.png",
+    "ponteiro": "assets/sprites/ponteiro.png"
   }
 };
 
