@@ -738,6 +738,17 @@ class Fighter {
         if (seek && tgt) this.dir = tgt.x >= this.x ? 1 : -1;
         this.vx = this.dir * sp;
         this.dashHit = { p, t: p.phase ? 18 : 16 };
+        /* Dash com arte própria (PONTEIRO — Fenda Temporal): rastro com a
+           arte da habilidade + afterimages ciano ao longo do blink. */
+        if (p.visualSheet) {
+          const dkey = 'fx2:' + p.visualSheet;
+          const drow = Number.isInteger(p.visualRow) ? p.visualRow : p.row;
+          for (let k = 0; k < 3; k++) {
+            game.spawnImgFx('arcano', 'projectile', this.x + this.dir * (30 + k * 46), this.y - 100 - k * 10, { scale: 1.6 + k * 0.4, life: 14 });
+          }
+          game.spawnBurst(dkey.replace('fx2:', 'abil:'), drow, this.x, this.y - 100, this.dir, 2.2);
+          game.floatText(this.x, this.y - 230, 'FENDA TEMPORAL', '#00FFFF');
+        }
         /* NUNES — Avanço Flamejante: o rastro de chamas fica no chão. */
         if (p.fireTrail) {
           game.zones.push(new Zone(this, { fid, key, row: Number.isInteger(p.visualRow) ? p.visualRow : p.row, x: this.x, w: 150, time: p.fireTrail, dmg: 0.1, burn: 140, slow: 50, power: p }));

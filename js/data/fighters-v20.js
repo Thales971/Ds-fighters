@@ -64,7 +64,7 @@
         }, visual(2, '#00FFFF')),
         Object.assign({
           id: 'ampulheta', name: 'Ampulheta', slot: 'charge', meter: 1, row: 3,
-          kind: 'zone', at: 'target', time: 600, w: 170, dmg: 0.06, slow: 40, cd: 300, sfx: 'magic',
+          kind: 'zone', at: 'target', time: 600, w: 210, dmg: 0.08, slow: 60, cd: 300, sfx: 'magic',
           fx: { freeze: 90 },
           desc: 'Armadilha no chão: CONGELA quem pisar por 1,5 segundos.',
         }, visual(3, '#E8E4D8')),
