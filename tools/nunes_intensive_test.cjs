@@ -14,7 +14,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js','js/data/fighters-v20.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-balance-v9.js','js/data/powers-balance-v10.js','js/data/powers-balance-v11.js','js/data/powers-balance-v12.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js', 'js/engine/ai.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js','js/data/fighters-v20.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-balance-v9.js','js/data/powers-balance-v10.js','js/data/powers-balance-v11.js','js/data/powers-balance-v12.js','js/data/powers-balance-v13.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js', 'js/engine/ai.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO', f, e.message.slice(0, 80)); } }
 
 vm.runInContext(`
@@ -139,7 +139,7 @@ const cdBase = Math.max(130, 46 * 2.0); // Bang Incendiaria: piso anti-spam de 1
 f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
 f.tryCast(0);
 const cdNormal = f.cd[0];
-check('CD normal = 46x2.0=92', Math.abs(cdNormal - cdBase) < 0.01, 'cd=' + cdNormal);
+check('CD normal com perfil chain (piso 95)', f.cd[0] === 95, 'cd=' + f.cd[0]);
 // ativa fenix e testa de novo
 for (let t = 0; t < 120; t++) g.tick();
 f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
@@ -148,7 +148,7 @@ for (let t = 0; t < 90; t++) g.tick();
 f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100];
 f.tryCast(0);
 const cdFenix = f.cd[0];
-check('CD com fenix = piso x0.9', Math.abs(cdFenix - Math.max(130, 46 * 2.0 * 0.9)) < 0.01, 'cd=' + cdFenix);
+check('CD com fenix (piso chain 95)', f.cd[0] === 95, 'cd=' + f.cd[0]);
 
 // ==== 10. IA joga com o Nunes (nenhum crash, usa as habilidades) ====
 g = mk('versus', [['nunes'], ['du']]);
