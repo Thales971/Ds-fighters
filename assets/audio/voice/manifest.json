@@ -1,0 +1,733 @@
+{
+  "_como_trocar": "Substitua o mp3 pelo mesmo caminho e o mesmo nome. A legenda usa o texto daqui. Se só o áudio mudar, não precisa editar este arquivo.",
+  "announcer": {
+    "round1": {
+      "file": "assets/audio/voice/round1.mp3",
+      "text": "Round um."
+    },
+    "round2": {
+      "file": "assets/audio/voice/round2.mp3",
+      "text": "Round dois."
+    },
+    "round3": {
+      "file": "assets/audio/voice/round3.mp3",
+      "text": "Round três."
+    },
+    "final": {
+      "file": "assets/audio/voice/final.mp3",
+      "text": "Round final."
+    },
+    "fight": {
+      "file": "assets/audio/voice/fight.mp3",
+      "text": "Lutem!"
+    },
+    "ko": {
+      "file": "assets/audio/voice/ko.mp3",
+      "text": "Ká ô!"
+    },
+    "combo": {
+      "file": "assets/audio/voice/combo.mp3",
+      "text": "Combo perfeito!"
+    },
+    "perfect": {
+      "file": "assets/audio/voice/perfect.mp3",
+      "text": "Vitória perfeita!"
+    },
+    "timeup": {
+      "file": "assets/audio/voice/timeup.mp3",
+      "text": "Tempo esgotado."
+    },
+    "youwin": {
+      "file": "assets/audio/voice/youwin.mp3",
+      "text": "Você venceu!"
+    },
+    "youlose": {
+      "file": "assets/audio/voice/youlose.mp3",
+      "text": "Você perdeu."
+    },
+    "draw": {
+      "file": "assets/audio/voice/draw.mp3",
+      "text": "Empate."
+    },
+    "title": {
+      "file": "assets/audio/voice/title.mp3",
+      "text": "Dê esse Fighters."
+    },
+    "ultimate": {
+      "file": "assets/audio/voice/ultimate.mp3",
+      "text": "Ultimate!"
+    },
+    "choose": {
+      "file": "assets/audio/voice/choose.mp3",
+      "text": "Escolha seu lutador."
+    },
+    "stolen": {
+      "file": "assets/audio/voice/stolen.mp3",
+      "text": "Poder roubado."
+    },
+    "storm": {
+      "file": "assets/audio/voice/storm.mp3",
+      "text": "Tempestade!"
+    },
+    "powerup": {
+      "file": "assets/audio/voice/powerup.mp3",
+      "text": "Poder!"
+    },
+    "unlocked": {
+      "file": "assets/audio/voice/unlocked.mp3",
+      "text": "Desbloqueado."
+    }
+  },
+  "fighters": {
+    "du": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/du-intro.mp3",
+        "text": "Garoto,  o build vai quebrar. Em você."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/du-ultimate.mp3",
+        "text": "FATAL ERROR: APOCALIPSE PHP!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/du-win.mp3",
+        "text": "Meu código é impecável, garoto."
+      }
+    },
+    "iales": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/iales-intro.mp3",
+        "text": "Todos os seus poderes,  são meus agora."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/iales-ultimate.mp3",
+        "text": "ALL FOR ONE: MERGE TOTAL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/iales-win.mp3",
+        "text": "Mais um poder para a minha coleção."
+      }
+    },
+    "felipinho": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/felipinho-intro.mp3",
+        "text": "Teu estado vai mudar agora, doido."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/felipinho-ultimate.mp3",
+        "text": "TSUNAMI REACT 19!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/felipinho-win.mp3",
+        "text": "Re-render concluído. Você foi desmontado."
+      }
+    },
+    "stack": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/stack-intro.mp3",
+        "text": "Essa lata ainda liga."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/stack-ultimate.mp3",
+        "text": "DEBLOAT TOTAL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/stack-win.mp3",
+        "text": "Ficou seco."
+      }
+    },
+    "gitmaster": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/gitmaster-intro.mp3",
+        "text": "Você não me viu chegar."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/gitmaster-ultimate.mp3",
+        "text": "REBASE INTERATIVO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/gitmaster-win.mp3",
+        "text": "Commitado: vitória. Push na sua cara."
+      }
+    },
+    "bughunter": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/bughunter-intro.mp3",
+        "text": "Achamos o bug. E o bug é você."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/bughunter-ultimate.mp3",
+        "text": "HOTFIX EM ÁREA!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/bughunter-win.mp3",
+        "text": "Bug corrigido: você. Status: derrotado."
+      }
+    },
+    "frontend": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/frontend-intro.mp3",
+        "text": "Essa luta vai ficar LINDA. Like e share!"
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/frontend-ultimate.mp3",
+        "text": "CSS ULTRA INSTINCT!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/frontend-win.mp3",
+        "text": "#vitória { display: block; }"
+      }
+    },
+    "backend": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/backend-intro.mp3",
+        "text": "Bem-vindo ao servidor. Check-in: agora. Check-out: nunca."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/backend-ultimate.mp3",
+        "text": "DDoS DE SOCOS!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/backend-win.mp3",
+        "text": "HTTP 200: você foi processado."
+      }
+    },
+    "devops": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/devops-intro.mp3",
+        "text": "Pipeline iniciado: build, test, deploy,  de soco."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/devops-ultimate.mp3",
+        "text": "DEPLOY CONTÍNUO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/devops-win.mp3",
+        "text": "Deploy em produção: vitória. Zero downtime."
+      }
+    },
+    "qa": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/qa-intro.mp3",
+        "text": "Vou rodar o teste,  em você."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/qa-ultimate.mp3",
+        "text": "SUÍTE DE TESTES COMPLETA!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/qa-win.mp3",
+        "text": "Teste aprovado: minha vitória. Bug seu: derrota."
+      }
+    },
+    "scrum": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/scrum-intro.mp3",
+        "text": "Daily rápido: 3 rounds. Impedimentos? Nenhum."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/scrum-ultimate.mp3",
+        "text": "PLANNING POKER!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/scrum-win.mp3",
+        "text": "Sprint completa. Retrospectiva: você perdeu feio."
+      }
+    },
+    "fullstack": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/fullstack-intro.mp3",
+        "text": "Eu faço o front, o back,  e o KO."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/fullstack-ultimate.mp3",
+        "text": "MONOLITO PERFEITO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/fullstack-win.mp3",
+        "text": "Deploy completo: frontend, backend e vitória."
+      }
+    },
+    "kotlin": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/kotlin-intro.mp3",
+        "text": "Null pointer? Não comigo."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/kotlin-ultimate.mp3",
+        "text": "CHUVA DE LAMBDAS!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/kotlin-win.mp3",
+        "text": "Null-safe e invicta."
+      }
+    },
+    "hacker": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/hacker-intro.mp3",
+        "text": "Já estou dentro."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/hacker-ultimate.mp3",
+        "text": "KERNEL PANIC!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/hacker-win.mp3",
+        "text": "Kernel em pânico."
+      }
+    },
+    "java": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/java-intro.mp3",
+        "text": "Write once. Bate everywhere."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/java-ultimate.mp3",
+        "text": "METEORO DE BEANS!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/java-win.mp3",
+        "text": "Garbage collected."
+      }
+    },
+    "merc": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/merc-intro.mp3",
+        "text": "Contrato aceito. Você é o alvo."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/merc-ultimate.mp3",
+        "text": "CIBERPSICOSE!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/merc-win.mp3",
+        "text": "Pagamento recebido."
+      }
+    },
+    "bhm": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/bhm-intro.mp3",
+        "text": "Vai chover raio."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/bhm-ultimate.mp3",
+        "text": "TEMPESTADE DO SUBMUNDO!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/bhm-win.mp3",
+        "text": "Relampejou e acabou."
+      }
+    },
+    "gemini": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/gemini-intro.mp3",
+        "text": "Duas ideias. Um só golpe."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/gemini-ultimate.mp3",
+        "text": "ECLIPSE GEMINADO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/gemini-win.mp3",
+        "text": "As duas frequências concordam."
+      }
+    },
+    "meta": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/meta-intro.mp3",
+        "text": "Todo mundo conectado?"
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/meta-ultimate.mp3",
+        "text": "PULSO COLETIVO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/meta-win.mp3",
+        "text": "A comunidade brilhou."
+      }
+    },
+    "mis": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/mis-intro.mp3",
+        "text": "Anote: combustão controlada."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/mis-ultimate.mp3",
+        "text": "VÓRTICE DE CABEÇA PARA BAIXO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/mis-win.mp3",
+        "text": "Hipótese confirmada."
+      }
+    },
+    "dev-senior": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/dev-senior-intro.mp3",
+        "text": "Já vi esse bug antes."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/dev-senior-ultimate.mp3",
+        "text": "NANOMACHINES, RELEASE TOTAL!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/dev-senior-win.mp3",
+        "text": "Patch aplicado."
+      }
+    },
+    "urbano": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/urbano-intro.mp3",
+        "text": "Esse mundo vai tremer."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/urbano-ultimate.mp3",
+        "text": "TERREMOTO TOTAL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/urbano-win.mp3",
+        "text": "Rachou, né?"
+      }
+    },
+    "xeon": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/xeon-intro.mp3",
+        "text": "Gelo ou fogo? Os dois."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/xeon-ultimate.mp3",
+        "text": "CHOQUE TÉRMICO!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/xeon-win.mp3",
+        "text": "Choque térmico, querido."
+      }
+    },
+    "qwen": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/qwen-intro.mp3",
+        "text": "Já processei todos os seus movimentos."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/qwen-ultimate.mp3",
+        "text": "MODO PENSAMENTO!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/qwen-win.mp3",
+        "text": "Resposta gerada."
+      }
+    },
+    "dolynho": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/dolynho-intro.mp3",
+        "text": "Oi pessoal, eu sou o Dolynho, seu amiguinho!"
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/dolynho-ultimate.mp3",
+        "text": "AMIZADE EXPLOSIVA!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/dolynho-win.mp3",
+        "text": "Amizade que dá stun!"
+      }
+    },
+    "thl": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/thl-intro.mp3",
+        "text": "A área está sob controle."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/thl-ultimate.mp3",
+        "text": "BARRAGE LOCKDOWN!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/thl-win.mp3",
+        "text": "Ameaça neutralizada."
+      }
+    },
+    "lobao": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/lobao-intro.mp3",
+        "text": "Auuu! O lobo chegou!"
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/lobao-ultimate.mp3",
+        "text": "MODO SELVAGEM!! AUUUU!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/lobao-win.mp3",
+        "text": "Auuuu! Vitória selvagem!"
+      }
+    },
+    "winx-exe": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/winx-exe-intro.mp3",
+        "text": "Desktop carregado."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/winx-exe-ultimate.mp3",
+        "text": "TASK MANAGER!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/winx-exe-win.mp3",
+        "text": "Sistema estável: vitória."
+      }
+    },
+    "dandara-query": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/dandara-query-intro.mp3",
+        "text": "Consulta preparada."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/dandara-query-ultimate.mp3",
+        "text": "BACKUP TOTAL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/dandara-query-win.mp3",
+        "text": "Dados íntegros."
+      }
+    },
+    "nina-vector": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/nina-vector-intro.mp3",
+        "text": "Kestrel, em formação."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/nina-vector-ultimate.mp3",
+        "text": "FULL SYNCHRONY!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/nina-vector-win.mp3",
+        "text": "Vínculo estável."
+      }
+    },
+    "dev-veterano": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/dev-veterano-intro.mp3",
+        "text": "Já apaguei incidente pior que você."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/dev-veterano-ultimate.mp3",
+        "text": "TURBINA DE SOCOS!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/dev-veterano-win.mp3",
+        "text": "Incidente resolvido."
+      }
+    },
+    "hana": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/hana-intro.mp3",
+        "text": "Reguei o jardim pra você."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/hana-ultimate.mp3",
+        "text": "ÁRVORE SAKURA!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/hana-win.mp3",
+        "text": "Colheita completa."
+      }
+    },
+    "cyber-psicopata": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/cyber-psicopata-intro.mp3",
+        "text": "Contrato assinado. Bônus garantido."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/cyber-psicopata-ultimate.mp3",
+        "text": "CIBERNEUROSE!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/cyber-psicopata-win.mp3",
+        "text": "SLA cumprido."
+      }
+    },
+    "grika": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/grika-intro.mp3",
+        "text": "Apague a luz. O sonho começa."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/grika-ultimate.mp3",
+        "text": "SINGULARIDADE DO PESADELO!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/grika-win.mp3",
+        "text": "O pesadelo era seu."
+      }
+    },
+    "guarda-digital": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/guarda-digital-intro.mp3",
+        "text": "Perímetro protegido."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/guarda-digital-ultimate.mp3",
+        "text": "LOCKDOWN TOTAL!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/guarda-digital-win.mp3",
+        "text": "Invasor contido."
+      }
+    },
+    "engenheira-prompt": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/engenheira-prompt-intro.mp3",
+        "text": "Deixa que eu escrevo o final."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/engenheira-prompt-ultimate.mp3",
+        "text": "PROMPT SUPREMO!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/engenheira-prompt-win.mp3",
+        "text": "Resposta gerada."
+      }
+    },
+    "odette": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/odette-intro.mp3",
+        "text": "Postura primeiro."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/odette-ultimate.mp3",
+        "text": "DEFILE FINAL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/odette-win.mp3",
+        "text": "Desfile encerrado."
+      }
+    },
+    "john-vibe": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/john-vibe-intro.mp3",
+        "text": "Treino é a única coisa que ninguém te rouba."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/john-vibe-ultimate.mp3",
+        "text": "HERANÇA DO FUZIL!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/john-vibe-win.mp3",
+        "text": "Isso foi construído, não herdado."
+      }
+    },
+    "nimbo": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/nimbo-intro.mp3",
+        "text": "O Ruído me deu isso. Eu não pedi."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/nimbo-ultimate.mp3",
+        "text": "TEMPESTADE DEVIADA!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/nimbo-win.mp3",
+        "text": "Isso foi devolvido, não roubado."
+      }
+    },
+    "emilio": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/emilio-intro.mp3",
+        "text": "Esquenta, coração."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/emilio-ultimate.mp3",
+        "text": "TRANSFORMAÇÃO SUPREMA!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/emilio-win.mp3",
+        "text": "Ainda tô aprendendo."
+      }
+    },
+    "nunes": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/nunes-intro.mp3",
+        "text": "O fogo não me queima. Você não é o fogo."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/nunes-ultimate.mp3",
+        "text": "RENASCE, FÊNIX!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/nunes-win.mp3",
+        "text": "Acendeu mais rápido do que apagou."
+      }
+    },
+    "ponteiro": {
+      "intro": {
+        "file": "assets/audio/voice/fighters/ponteiro-intro.mp3",
+        "text": "O tempo é meu cliente mais fiel."
+      },
+      "ultimate": {
+        "file": "assets/audio/voice/fighters/ponteiro-ultimate.mp3",
+        "text": "PARE O RELÓGIO!!"
+      },
+      "win": {
+        "file": "assets/audio/voice/fighters/ponteiro-win.mp3",
+        "text": "O relógio nunca mentiu pra mim."
+      }
+    }
+  },
+  "rivalries": [
+    {
+      "a": "emilio",
+      "b": "odette",
+      "file": "assets/audio/voice/rivalries/emilio__odette.mp3",
+      "text": "Odette, a prancheta não ganha de quem overclocka o SESI."
+    },
+    {
+      "a": "emilio",
+      "b": "ponteiro",
+      "file": "assets/audio/voice/rivalries/emilio__ponteiro.mp3",
+      "text": "Ponteiro, o relógio não salva quem chega atrasado."
+    },
+    {
+      "a": "nunes",
+      "b": "ponteiro",
+      "file": "assets/audio/voice/rivalries/nunes__ponteiro.mp3",
+      "text": "Ponteiro, a fênix não espera a hora certa."
+    },
+    {
+      "a": "iales",
+      "b": "du",
+      "file": "assets/audio/voice/rivalries/iales__du.mp3",
+      "text": "Du, o seu PHP é só mais um poder na minha coleção."
+    },
+    {
+      "a": "qwen",
+      "b": "gemini",
+      "file": "assets/audio/voice/rivalries/qwen__gemini.mp3",
+      "text": "Gemini, dois modelos na arena. Só um responde."
+    },
+    {
+      "a": "urbano",
+      "b": "xeon",
+      "file": "assets/audio/voice/rivalries/urbano__xeon.mp3",
+      "text": "Xeon, o cais não esquece quem largou o convés."
+    },
+    {
+      "a": "stack",
+      "b": "gitmaster",
+      "file": "assets/audio/voice/rivalries/stack__gitmaster.mp3",
+      "text": "Git, esse merge não entra sem revisão."
+    },
+    {
+      "a": "frontend",
+      "b": "backend",
+      "file": "assets/audio/voice/rivalries/frontend__backend.mp3",
+      "text": "Backend, a tela chegou antes da sua API."
+    },
+    {
+      "a": "hacker",
+      "b": "guarda-digital",
+      "file": "assets/audio/voice/rivalries/hacker__guarda-digital.mp3",
+      "text": "Guarda, o firewall nem me viu entrar."
+    },
+    {
+      "a": "winx-exe",
+      "b": "nina-vector",
+      "file": "assets/audio/voice/rivalries/winx-exe__nina-vector.mp3",
+      "text": "Nina, fecha as janelas. O processo vai acabar."
+    }
+  ]
+}

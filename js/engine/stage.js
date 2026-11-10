@@ -7,6 +7,44 @@
    ============================================================ */
 const FAUNA_ROW = { bee: 0, butterfly: 1, bat: 2, fish: 3 };
 
+/* Som de fundo por palco. `ambient` no palco usa o próprio arquivo. */
+function stageAmbient(def) {
+  if (!def) return null;
+  if (def.ambient) return def.ambient;
+  const id = def.id || '';
+  if (id.indexOf('sesi') >= 0 || id === 'circo') return 'amb_gym';
+  if (id.indexOf('senai') >= 0 || id === 'rust' || id === '02-volcanic-forge' || id === 'java') return 'amb_workshop';
+  if (id === 'docker' || id === 'chrome' || id === '01-neon-rooftop' || id === 'cyberpunk') return 'amb_metro';
+  if (id === 'kernel' || id === '04-storm-temple' || id === '07-sky-islands' || id === 'kotlin') return 'amb_rain';
+  if (id === 'spring' || id === 'python' || id === '10-digital-forest' || id === 'japan' || id === '06-sakura-dojo') return 'amb_park';
+  if (id === 'hive' || id === 'pizzaria') return 'amb_cafe';
+  if (id === '09-orbital-core' || id === 'area-de-trabalho' || id === 'kali' || id === 'pos-codigocalipse') return 'amb_server';
+  if (id === '03-underwater-lab' || id === 'abismo-das-baleias' || id === '08-crystal-cavern') return 'amb_rain';
+  if (id === '05-chaos-citadel' || id === 'vale-do-cache') return 'amb_market';
+  return 'amb_night';
+}
+
+function defaultStageProps(id) {
+  let h = 0;
+  const s = String(id || 'stage');
+  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+  const pick = (n) => { h = (h * 1664525 + 1013904223) >>> 0; return h % n; };
+  const spots = [
+    { cell: 0, x: 46, y: 148, flash: true },
+    { cell: 4, x: 914, y: 136, flash: true },
+    { cell: 2, x: 118, y: 196 },
+    { cell: 1, x: 842, y: 188 },
+    { cell: 5, x: 64, y: 286, fall: true },
+  ];
+  return spots.map((p) => ({
+    cell: p.cell,
+    x: p.x + pick(18) - 9,
+    y: p.y + pick(12) - 6,
+    fall: !!p.fall,
+    flash: !!p.flash,
+  }));
+}
+
 class StageRenderer {
   constructor(def, W, H, groundY) {
     this.def = def;
@@ -56,6 +94,25 @@ class StageRenderer {
         });
       }
     });
+    this.layers = [];
+    this.props = [];
+    this.hitFlash = 0;
+    this.propShake = 0;
+    this.drama = 0;
+    this.propSheet = new Image();
+    this.propSheet.src = 'assets/fx/stage-props.png?v=v36-amb1';
+    this.rainSheet = new Image();
+    this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
+    const specs = this.def.layers || [];
+    for (const spec of specs) {
+      const img = new Image();
+      const layer = { img, speed: spec.speed == null ? 0.4 : spec.speed, y: spec.y || 0, ready: false };
+      img.onload = () => { layer.ready = true; };
+      img.src = spec.src + (String(spec.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1');
+      this.layers.push(layer);
+    }
+    const propList = this.def.props || defaultStageProps(this.def.id);
+    this.props = propList.map((p) => ({ cell: p.cell || 0, x: p.x, y: p.y, baseY: p.y, fall: !!p.fall, flash: !!p.flash, vy: 0, rot: 0, falling: false }));
   }
   frameRect() {
     const d = this.def;
@@ -108,6 +165,30 @@ class StageRenderer {
       if (f.x < -60) f.x = this.W + 50;
       if (f.x > this.W + 60) f.x = -50;
     }
+    if (this.propShake > 0) this.propShake *= 0.84;
+    if (this.hitFlash > 0) this.hitFlash--;
+    for (const p of this.props) {
+      if (!p.falling) continue;
+      p.vy += 0.42;
+      p.y += p.vy;
+      p.rot += 0.12;
+    }
+  }
+  react(power) {
+    this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
+    this.propShake = Math.max(this.propShake, power);
+    if (power < 11) return;
+    for (const p of this.props) {
+      if (p.fall && !p.falling && Math.random() < 0.6) {
+        p.falling = true;
+        p.vy = -1.4;
+      }
+    }
+  }
+  /* Desenha um recorte mais largo que a tela e desloca pela câmera. */
+  blitWide(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh, camX, speed) {
+    const shift = -camX * speed * 78;
+    ctx.drawImage(img, sx, sy, sw, sh, dx + shift, dy, dw, dh);
   }
   /* camX: deslocamento da câmera (−1..1) para parallax */
   drawBack(ctx, camX, zoomPulse) {
@@ -118,17 +199,36 @@ class StageRenderer {
     // ao exibir folhas de 768x432 no canvas de combate.
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'medium';
-    if (this.ready) {
-      const [sx, sy, sw, sh] = this.frameRect();
-      // Antes havia zoom-base de 1.06, que cortava as bordas dos masters.
-      // Mantemos apenas uma respiração quase imperceptível e o zoom de impacto.
+    if (this.layers.length && this.layers.every((l) => l.ready)) {
+      if (this.def.pixel) ctx.imageSmoothingEnabled = false;
       const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.002;
-      const z = 1 + breathe + (zoomPulse || 0) * 0.01;
+      const z = 1.08 + breathe + (zoomPulse || 0) * 0.01;
+      for (const layer of this.layers) {
+        const dw = W * z;
+        const dh = H * z;
+        this.blitWide(ctx, layer.img, 0, 0, layer.img.naturalWidth || W, layer.img.naturalHeight || H, (W - dw) / 2, (H - dh) * 0.85 + (layer.y || 0), dw, dh, camX, layer.speed);
+      }
+    } else if (this.ready) {
+      const [sx, sy, sw, sh] = this.frameRect();
+      const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.002;
+      const z = 1.08 + breathe + (zoomPulse || 0) * 0.01;
       const dw = W * z;
       const dh = H * z;
-      const ox = (W - dw) / 2 - camX * (dw - W) * 0.5;
+      const ox = (W - dw) / 2;
       const oy = (H - dh) * 0.85;
-      ctx.drawImage(this.img, sx, sy, sw, sh, ox, oy, dw, dh);
+      ctx.save();
+      this.blitWide(ctx, this.img, sx, sy, sw, sh, ox, oy, dw, dh, camX, 0.16);
+      ctx.beginPath();
+      ctx.rect(0, H * 0.18, W, H * 0.64);
+      ctx.clip();
+      this.blitWide(ctx, this.img, sx, sy, sw, sh, ox, oy, dw, dh, camX, 0.46);
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, H * 0.74, W, H * 0.26);
+      ctx.clip();
+      this.blitWide(ctx, this.img, sx, sy, sw, sh, ox, oy, dw, dh, camX, 0.82);
+      ctx.restore();
     } else {
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#120a24');
@@ -150,6 +250,14 @@ class StageRenderer {
       ctx.fillRect(0, 0, W, Math.min(H, this.groundY + 8));
       ctx.globalAlpha = 1;
     }
+    this.drawProps(ctx, camX);
+    if (this.drama) this.drawDrama(ctx);
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = this.hitFlash / 18;
+      ctx.fillStyle = '#fff6d0';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
     const gy = this.groundY;
     // Escurecimento curto e moderado, só no piso de combate; a versão antiga
     // cobria 30 px acima dele e chegava a 55% de opacidade.
@@ -159,6 +267,36 @@ class StageRenderer {
     fg.addColorStop(1, 'rgba(0,0,0,0.28)');
     ctx.fillStyle = fg;
     ctx.fillRect(0, gy, W, H - gy);
+    ctx.restore();
+  }
+  drawProps(ctx, camX) {
+    const sheet = this.propSheet;
+    if (!sheet || !sheet.complete || !sheet.naturalWidth) return;
+    const shake = this.propShake || 0;
+    for (const p of this.props) {
+      const jx = shake ? Math.sin(this.t * 1.7 + p.x) * Math.min(6, shake * 0.35) : 0;
+      const jy = shake ? Math.cos(this.t * 1.3 + p.y) * Math.min(3, shake * 0.18) : 0;
+      const flash = p.flash && this.hitFlash > 0;
+      ctx.save();
+      ctx.translate(p.x + jx - camX * 18, p.y + jy);
+      if (p.rot) ctx.rotate(p.rot);
+      if (flash) ctx.globalAlpha = 0.55 + (this.hitFlash % 2) * 0.45;
+      ctx.drawImage(sheet, (p.cell % 8) * 48, 0, 48, 64, -24, -56, 48, 64);
+      ctx.restore();
+    }
+  }
+  drawDrama(ctx) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(6, 8, 22, 0.38)';
+    ctx.fillRect(0, 0, this.W, this.H);
+    const rain = this.rainSheet;
+    if (rain && rain.complete && rain.naturalWidth) {
+      const scroll = (this.t * 14) % this.H;
+      ctx.globalAlpha = 0.55;
+      ctx.drawImage(rain, 0, scroll - this.H, this.W, this.H);
+      ctx.drawImage(rain, 0, scroll, this.W, this.H);
+      ctx.globalAlpha = 1;
+    }
     ctx.restore();
   }
   drawAmbient(ctx) {

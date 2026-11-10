@@ -186,6 +186,39 @@ class Game {
     this.roundStateTime = 0;
     UI.hud.reset(this);
     UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[this.weather.kind]);
+    this.startAmbience();
+  }
+  startAmbience() {
+    const name = typeof stageAmbient === 'function' ? stageAmbient(this.stageDef) : null;
+    if (this._ambient && this._ambient !== name) AudioSys.loop(this._ambient, false);
+    this._ambient = name;
+    if (name) AudioSys.loop(name, true, 0.22);
+    AudioSys.setTension(false);
+    AudioSys._hitMarks = [];
+    AudioSys._ultUntil = 0;
+    this._hitPulse = false;
+    this._ultPulse = false;
+    this._drama = false;
+  }
+  updateMusicIntensity() {
+    if (typeof AudioSys === 'undefined' || !AudioSys.driveIntensity) return;
+    let low = 0;
+    for (const f of this.fighters()) {
+      if (!f || !f.maxHp) continue;
+      const ratio = Math.max(0, f.hp) / f.maxHp;
+      if (ratio <= 0.3) low = Math.max(low, (0.3 - ratio) / 0.3);
+    }
+    const live = this.roundState && this.roundState !== 'intro';
+    const comboLive = this.combo && this.combo.owner && this.time < this.combo.until ? this.combo.count : 0;
+    AudioSys.driveIntensity({
+      finalRound: !!(live && this.round >= ((this.cfg && this.cfg.roundsToWin) || 2)),
+      low: live ? low : 0,
+      combo: live ? comboLive : 0,
+      ult: !!this._ultPulse,
+      hit: !!this._hitPulse,
+    });
+    this._hitPulse = false;
+    this._ultPulse = false;
   }
   onWeather(kind) { if (this.stageDef) UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[kind]); }
   team(ti) { return this.teams[ti]; }
@@ -275,8 +308,45 @@ class Game {
     if (this.texts.length > 18) this.texts.shift();
     if (this.netRole === 'host') this.netFx.push(['t', Math.round(x), Math.round(y), text, color || '#fff']);
   }
-  shake(n) { if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n); }
-  say(f, text) { UI.hud.say(f.team, text); if (this.netRole === 'host') this.netFx.push(['s', f.team, text]); }
+  shake(n) {
+    if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n);
+    if (n >= 8 && this.stage && this.stage.react) this.stage.react(n);
+  }
+  say(f, text, file) {
+    UI.hud.say(f.team, text);
+    if (file && this.audio && this.audio.playVoiceFile) this.audio.playVoiceFile(file);
+    if (this.netRole === 'host') this.netFx.push(['s', f.team, text]);
+  }
+  voiceEntry(id, kind) {
+    const book = typeof VOICE_BOOK !== 'undefined' ? VOICE_BOOK : null;
+    const row = book && book.fighters && book.fighters[id];
+    return row && row[kind] ? row[kind] : null;
+  }
+  rivalry(a, b) {
+    const book = typeof VOICE_BOOK !== 'undefined' ? VOICE_BOOK : null;
+    const list = book && book.rivalries;
+    if (!a || !b || !list) return null;
+    return list.find((row) => (row.a === a && row.b === b) || (row.a === b && row.b === a)) || null;
+  }
+  voicedLine(f, kind) {
+    if (!f) return;
+    const line = this.voiceEntry(f.def.id, kind);
+    if (line && line.text) { this.say(f, line.text, line.file); return; }
+    const key = kind === 'ultimate' ? 'super' : kind;
+    const q = f.def.quotes && f.def.quotes[key];
+    if (q && q.length) this.say(f, q[0]);
+  }
+  openingLines() {
+    const [a, b] = this.fighters();
+    const rival = a && b ? this.rivalry(a.def.id, b.def.id) : null;
+    if (rival) { this.say(a, rival.text, rival.file); return; }
+    this.voicedLine(a, 'intro');
+    if (b) {
+      const line = this.voiceEntry(b.def.id, 'intro');
+      const text = line && line.text ? line.text : ((b.def.quotes && b.def.quotes.intro && b.def.quotes.intro[0]) || '');
+      if (text) this.say(b, text);
+    }
+  }
   announce(text, color, sub) { UI.banner(text, color, sub); if (this.netRole === 'host') this.netFx.push(['n', text, color, sub || '']); }
   drawWarnLabel(ctx, x, label) {
     ctx.save();
@@ -296,6 +366,7 @@ class Game {
   }
   spawnPickup(kind) { if (this.pickups.length < 3) this.pickups.push(new Pickup(this, kind)); }
   superFreeze(f, p) {
+    this._ultPulse = true;
     this.freeze = this.reduced ? 26 : 46;
     this.freezeOwner = f;
     UI.cutIn(f, p);
@@ -305,6 +376,7 @@ class Game {
     this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
     if (!blocked) {
       if (victim.redHp < victim.hp) victim.redHp = victim.hp;
+      this._hitPulse = true;
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
@@ -339,7 +411,7 @@ class Game {
     if (winner) {
       winner.state = 'win';
       const q = winner.def.quotes.win;
-      if (q) this.say(winner, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]);
+      this.voicedLine(winner, 'win');
     }
     const perfect = winner && winner.hp >= winner.maxHp - 0.5;
     this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
@@ -451,17 +523,21 @@ class Game {
     if (!this.running || this.paused) return;
     this.time++;
     this.fightFrames = (this.fightFrames || 0) + 1;
-    if (this.netRole === 'guest') { this.guestTick(); return; }
-    if (this.freeze > 0) {
-      this.freeze--;
-      if (this.freeze === 0) this.freezeOwner = null;
-      this.bufferDuringPause();
-      this.tickFxOnly();
-      return;
+    try {
+      if (this.netRole === 'guest') { this.guestTick(); return; }
+      if (this.freeze > 0) {
+        this.freeze--;
+        if (this.freeze === 0) this.freezeOwner = null;
+        this.bufferDuringPause();
+        this.tickFxOnly();
+        return;
+      }
+      if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
+      if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
+      this.step();
+    } finally {
+      this.updateMusicIntensity();
     }
-    if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
-    if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
-    this.step();
   }
   /** Durante hitstop/super-freeze as entradas continuam indo para o buffer (combos fluidos). */
   bufferDuringPause() {
@@ -507,8 +583,9 @@ class Game {
         let sub = this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name;
         if (this.mode === 'morte-subita') sub += this.round >= 3 ? ' · O FOGO VEM FECHAR A ARENA!' : ' · MORTE SÚBITA só no round final';
         this.announce('ROUND ' + this.round, '#ffd27d', sub);
-        this.audio.voice('round' + Math.min(3, this.round));
-        if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]); });
+        const finalRound = this.round >= (this.cfg.roundsToWin || 2);
+        this.audio.voice(finalRound ? 'final' : ('round' + Math.min(3, this.round)));
+        if (this.round === 1) this.openingLines();
       }
       if (this.roundStateTime === 70) { this.announce('LUTA!', '#7dff5e'); this.audio.voice('fight'); }
       if (this.roundStateTime > 100) { this.roundState = 'fight'; this.roundStateTime = 0; }
@@ -659,6 +736,8 @@ class Game {
     this._vertigoOn = false;
     this.weather.stop();
     this.mech.stop();
+    AudioSys.setTension(false);
+    this._ambient = null;
     AudioSys.stopLoops();
     const winner = this.teamWins[0] === this.teamWins[1] ? -1 : this.teamWins[0] > this.teamWins[1] ? 0 : 1;
     const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
@@ -856,6 +935,14 @@ class Game {
     else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) {
       const age = Math.max(0, 108 - this.slowmo);
       zoom = 1.18 - Math.min(0.12, age / 220);
+    }
+    const low = this.fighters().some((f) => f.alive && f.hp > 0 && f.hp / f.maxHp <= 0.3);
+    const finalRound = this.round >= (this.cfg.roundsToWin || 2);
+    const drama = !!(low || finalRound) && this.roundState !== 'intro';
+    if (this.stage) this.stage.drama = drama ? 1 : 0;
+    if (this._drama !== drama) {
+      this._drama = drama;
+      AudioSys.setTension(drama);
     }
     const sx = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
     const sy = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
