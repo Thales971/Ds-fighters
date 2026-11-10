@@ -788,6 +788,24 @@ class Fighter {
         }));
         break;
       }
+      case 'rewind': {
+        /* REBOBINAR: volta 3 segundos no tempo — vida e posicao restauradas. */
+        const hist = this._rewindHist || [];
+        const snap = hist.length ? hist[0] : null;
+        if (snap) {
+          const heal = Math.max(0, snap.hp - this.hp);
+          this.hp = Math.min(this.maxHp, snap.hp);
+          this.x = snap.x; this.y = snap.y; this.vy = 0;
+          this.status = {}; this.hitstun = 0; this.state = 'idle'; this.stateTime = 0;
+          game.floatText(this.x, this.y - 250, '⌛ REBOBINADO!', '#ffd27d');
+          if (heal > 0) game.floatText(this.x, this.y - 210, '+' + Math.round(heal) + ' VIDA', '#7dff9a');
+          game.spawnBurst('abil:maximilian', 4, this.x, this.y - 100, this.dir, 2.4);
+          game.shake(8);
+        } else {
+          game.floatText(this.x, this.y - 250, 'NADA PRA REBOBINAR', '#9adcff');
+        }
+        break;
+      }
       case 'dash': {
         let sp = p.speed || 13;
         if (seek && tgt) this.dir = tgt.x >= this.x ? 1 : -1;
@@ -1226,6 +1244,13 @@ class Fighter {
   update(input, ctxFlags = {}) {
     const game = this.game;
     this.now = game.time;
+    /* MAXIMILIAN — REBOBINAR: guarda a propria historia a cada 30 ticks.
+       A ultimate 'rewind' restaura vida e posicao de 3 segundos atras. */
+    if (this.def.id === 'maximilian' && this.alive && game.time % 30 === 0) {
+      if (!this._rewindHist) this._rewindHist = [];
+      this._rewindHist.push({ hp: this.hp, x: this.x, y: this.y, t: game.time });
+      if (this._rewindHist.length > 7) this._rewindHist.shift();
+    }
     /* PONTEIRO — Passiva Campo Lento: oponentes perto dele sofrem 15% de
        lentidão SEMPRE (o tempo obedece ao Relojoeiro). */
     if (this.def.id === 'ponteiro' && this.alive && game.time % 8 === 0) {

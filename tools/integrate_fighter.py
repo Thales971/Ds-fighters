@@ -483,7 +483,38 @@ PONTEIRO_POSES = {
     'win':     ([(0, 0, 4, False), (0, 1, 4, False), (0, 0, 4, False), (0, 1, 4, False)], 200, BASE),
 }
 
+# HENRICO, o Campeao da Quadra (2 folhas 4x5, virado pra DIREITA):
+# folha1 (si=0): idle/andar/pulo/pulo | andar/idle/soco-ar/chute-ar |
+# soco/soco/cast x2 | chute/chute/agachar/agachar-soco |
+# agachar-chute/hit/KO/vitoria
+# folha2 (si=1): idle/pulo/andar/agachar | soco/cast/chute/agachar-soco |
+# soco-ar/hit/bloqueio/chute-ar | KO/vitoria/taunt
+HENRICO_POSES = {
+    'idle':    ([(0, 0, 0, False), (1, 0, 1, False), (0, 0, 0, False), (1, 1, 2, False)], 200, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 2, 0, False), (0, 0, 1, False), (0, 3, 0, False)], 198, BASE),
+    'jump':    ([(0, 2, 0, False)] * 4, 180, AIR),
+    'crouch':  ([(0, 2, 3, False)] * 4, 140, BASE),
+    'punch':   ([(0, 0, 2, False), (0, 1, 2, False), (0, 0, 2, False), (0, 1, 2, False)], 195, BASE),
+    'kick':    ([(0, 0, 3, False), (0, 1, 3, False), (0, 0, 3, False), (0, 1, 3, False)], 190, BASE),
+    'cpunch':  ([(0, 3, 3, False)] * 4, 145, BASE),
+    'ckick':   ([(0, 0, 4, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 2, 1, False)] * 4, 185, AIR),
+    'jkick':   ([(0, 3, 1, False)] * 4, 180, AIR),
+    'special': ([(0, 2, 2, False), (0, 3, 2, False), (1, 1, 1, False), (0, 2, 2, False)], 200, BASE),
+    'hit':     ([(1, 1, 2, False)] * 4, 195, BASE),
+    'block':   ([(1, 2, 2, False)] * 4, 198, BASE),
+    'ko':      ([(1, 0, 3, False)] * 4, 80, BASE),
+    'win':     ([(0, 3, 4, False), (1, 1, 3, False), (0, 3, 4, False), (1, 1, 3, False)], 200, BASE),
+}
+
 FIGHTERS = {
+    'henrico': {
+        'sheets': ['henrico-sprite-1.jpg', 'henrico-sprite-2.jpg'],
+        'abilities': 'henrico-abilities-2.jpg',
+        'poses': HENRICO_POSES,
+        'ui_cell': (0, 0, 0, False),
+    },
+
     'ponteiro': {
         'sheets': ['ponteiro-sprite-1.jpg', 'ponteiro-sprite-2.jpg'],
         'abilities': 'ponteiro-abilities-2.jpg',

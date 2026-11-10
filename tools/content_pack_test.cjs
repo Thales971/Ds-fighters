@@ -18,7 +18,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/fighters-v20.js', 'js/data/fighters-pack.js', 'js/data/powers-balance-v7.js', 'js/data/powers-balance-v8.js', 'js/data/powers-balance-v9.js', 'js/data/powers-balance-v10.js', 'js/data/powers-balance-v11.js', 'js/data/powers-balance-v12.js', 'js/data/powers-balance-v13.js', 'js/data/pets.js', 'js/data/stages.js', 'js/data/stages-v21.js', 'js/data/voice-book.js', 'js/data/roster-portraits.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js', 'js/engine/ai.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/fighters-v20.js', 'js/data/fighters-pack.js','js/data/fighters-henrico.js', 'js/data/powers-balance-v7.js', 'js/data/powers-balance-v8.js', 'js/data/powers-balance-v9.js', 'js/data/powers-balance-v10.js', 'js/data/powers-balance-v11.js', 'js/data/powers-balance-v12.js', 'js/data/powers-balance-v13.js', 'js/data/pets.js', 'js/data/stages.js', 'js/data/stages-v21.js', 'js/data/voice-book.js', 'js/data/roster-portraits.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js', 'js/engine/ai.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO CARGA', f, e.message.slice(0, 80)); } }
 
 vm.runInContext(`
@@ -34,7 +34,7 @@ const mk = (id) => {
   for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
   return g;
 };
-for (const id of ['lia', 'nexo', 'maximilian']) {
+for (const id of ['lia', 'nexo', 'maximilian', 'henrico']) {
   const g = mk(id);
   const f = g.activeOf(0), o = g.activeOf(1);
   check(id + ' entra na luta', g.roundState === 'fight');
@@ -72,10 +72,13 @@ check('Maximilian e SECRETO', mx.secret === true, 'secret=' + mx.secret);
 check('Ponteiro e normal', pt.secret !== true);
 
 // ==== 3. sprites e atlas dos novos ====
-for (const id of ['lia', 'nexo', 'maximilian']) {
+for (const id of ['lia', 'nexo', 'maximilian', 'henrico']) {
   check('sprite de ' + id + ' existe', SPRITE_LAYOUT.files[id] === 'assets/sprites/' + id + '.png' && fs.existsSync('assets/sprites/' + id + '.png'));
   check('atlas de ' + id + ' existe', fs.existsSync('assets/abilities/' + id + '.png'));
-  check('atlas de ' + id + ' no fx (abil + fx2:-fx)', !!ART_SHEETS['abil:' + id] && !!ART_SHEETS['fx2:' + id + '-fx'] && fs.existsSync('assets/fx/' + id + '.png'));
+  /* dois padroes de folha de FX: pack (-fx em assets/fx/) e classico (abilities/) */
+  const padraoPack = !!ART_SHEETS['abil:' + id] && !!ART_SHEETS['fx2:' + id + '-fx'] && fs.existsSync('assets/fx/' + id + '.png');
+  const padraoClassico = !!ART_SHEETS['abil:' + id] && !!ART_SHEETS['fx2:' + id] && fs.existsSync('assets/abilities/' + id + '.png');
+  check('atlas de ' + id + ' no fx (pack ou classico)', padraoPack || padraoClassico, padraoPack ? 'pack' : 'classico');
 }
 
 // ==== 4. os 20 palcos do v21 carregam e renderizam ====
