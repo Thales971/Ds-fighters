@@ -95,6 +95,7 @@
   }
 
   Cloud.provider = 'supabase';
+  Cloud.authReachable = null;
   Cloud.googleEnabled = null;
   Cloud.emailEnabled = null;
   Cloud.emailSignupEnabled = null;
@@ -208,10 +209,18 @@
     }
     const task = (async () => {
       try {
-        const response = await fetchFn(this._settingsUrl(), {
-          method: 'GET',
-          headers: { apikey: config.publishableKey },
-        });
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
+        let response;
+        try {
+          response = await fetchFn(this._settingsUrl(), {
+            method: 'GET',
+            headers: { apikey: config.publishableKey },
+            signal: controller ? controller.signal : undefined,
+          });
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
         if (!response || response.ok === false) throw errorWithStatus('settings request failed', response && response.status);
         const body = await response.json();
         this.authSettings = {
@@ -224,6 +233,7 @@
         this.emailEnabled = this.authSettings.emailEnabled;
         this.emailSignupEnabled = this.authSettings.emailSignupEnabled;
         this.emailConfirmationRequired = this.authSettings.emailConfirmationRequired;
+        this.authReachable = true;
         this._emit();
         return this.authSettings;
       } catch (error) {
@@ -234,6 +244,8 @@
         this.emailEnabled = null;
         this.emailSignupEnabled = null;
         this.emailConfirmationRequired = null;
+        this.authReachable = false;
+        this._emit();
         return null;
       } finally {
         this._supabaseSettingsPromise = null;
@@ -346,6 +358,7 @@
         return true;
       } catch (error) {
         this._cleanupSupabase();
+        this.authReachable = false;
         this._setStatus('error', this._friendlyError(error, 'carregar o Supabase'));
         return false;
       }
@@ -356,13 +369,43 @@
     return result;
   };
 
+  Cloud.retryAuth = async function () {
+    this.authSettings = null;
+    this._supabaseSettingsPromise = null;
+    this.googleEnabled = null;
+    this.emailEnabled = null;
+    this.emailSignupEnabled = null;
+    this.authReachable = null;
+    this.error = '';
+    if (!this._ready || !this._auth) {
+      this._initPromise = null;
+      const ok = await this.init();
+      return !!(ok && this.authReachable !== false);
+    }
+    await this._checkAuthSettings();
+    if (this.authReachable !== false && (this.status === 'error' || this.status === 'loading')) {
+      this._setStatus(this.user ? 'saved' : 'ready');
+    } else {
+      this._emit();
+    }
+    return this.authReachable !== false;
+  };
+
   Cloud.signIn = async function () {
     const initialized = await this.init();
     if (!initialized || !this._auth || !this._supabaseClient) {
       if (this.status !== 'error') this._setStatus('error', this._friendlyError(null, 'carregar o Supabase'));
       return false;
     }
+    if (this.authReachable === false) {
+      await this.retryAuth();
+    }
     const googleEnabled = await this._checkGoogleSettings();
+    if (this.authReachable === false) {
+      this.error = '';
+      if (this.status === 'error' || this.status === 'signing') this._setStatus('ready');
+      return false;
+    }
     if (googleEnabled === false) {
       this._setStatus('error', this._friendlyError({ code: 'providerdisabled' }, 'entrar com Google'));
       return false;

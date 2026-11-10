@@ -3,7 +3,7 @@
   const API = window.DS_TOURNAMENT_API || '/api/tournaments';
   const STORAGE_KEY = 'dsf.tournament.v1.';
   const LAST_KEY = 'dsf.tournament.last.v1';
-  const state = { ready: false, code: '', credentials: null, tournament: null, busy: false, timer: null, renderedSignature: '', activeMatchId: '', activeRoomCode: '', refreshInFlight: false, healthInFlight: false, pendingRequests: Object.create(null) };
+  const state = { ready: false, offlinePermanent: false, code: '', credentials: null, tournament: null, busy: false, timer: null, renderedSignature: '', activeMatchId: '', activeRoomCode: '', refreshInFlight: false, healthInFlight: false, pendingRequests: Object.create(null) };
   const $ = (id) => document.getElementById(id);
 
   function setStatus(message, tone = 'info') {
@@ -27,7 +27,34 @@
       if (button) button.disabled = !state.ready;
     });
     document.querySelectorAll('[data-tourney-action], [data-tourney-winner]').forEach((control) => { control.disabled = !state.ready; });
+    const panel = $('tourney-panel');
+    if (panel) panel.classList.toggle('is-offline', !state.ready);
+    const retry = $('tourney-retry');
+    if (retry) retry.hidden = !!state.ready;
     render();
+  }
+
+  function outageCopy(error) {
+    const status = Number(error && error.status) || 0;
+    const code = String((error && error.code) || '');
+    const message = String((error && error.message) || '');
+    if (status === 404) {
+      return 'Torneio online indisponível neste servidor. O resto do jogo segue normal. Para ligar, publique na Vercel e conecte Upstash Redis pela Marketplace (UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN), depois faça redeploy.';
+    }
+    if (code === 'storage_not_configured' || /upstash/i.test(message)) {
+      return message || 'Torneios indisponíveis: conecte Upstash Redis pela Vercel Marketplace e faça redeploy.';
+    }
+    if (status === 503) return message || 'Armazenamento do torneio temporariamente indisponível.';
+    if (/fetch|failed|network|abort/i.test(message)) {
+      return 'Não foi possível falar com a API de torneio. O jogo local continua. Na Vercel, conecte Upstash Redis pela Marketplace.';
+    }
+    return message || 'Serviço de torneio indisponível.';
+  }
+
+  function permanentOutage(error) {
+    const status = Number(error && error.status) || 0;
+    const code = String((error && error.code) || '');
+    return status === 404 || code === 'storage_not_configured';
   }
 
   function markUnavailable(error) {
@@ -131,16 +158,14 @@
     try {
       const data = await request('GET', null, '?health=1');
       if (!data.ok) throw new Error('O armazenamento persistente ainda não está disponível.');
+      state.offlinePermanent = false;
       setAvailability(true);
       setStatus('Torneio online pronto · dados persistidos no Redis da Vercel · partidas P2P.', 'ok');
     } catch (error) {
       setAvailability(false);
-      const detail = error.message.includes('fetch') || error.message.includes('Failed')
-        ? 'A API Vercel ainda não está disponível.'
-        : error.message;
-      const setup = detail.toLowerCase().includes('upstash') ? '' : ' Conecte Upstash Redis pela Vercel Marketplace e faça redeploy para ativar torneios.';
+      state.offlinePermanent = permanentOutage(error);
       const saved = state.code ? ` Código salvo: ${state.code}.` : '';
-      setStatus(`${detail}${setup}${saved}`, 'warn');
+      setStatus(`${outageCopy(error)}${saved}`, 'warn');
     } finally { state.healthInFlight = false; }
   }
 
@@ -525,6 +550,11 @@
   }
 
   function bind() {
+    $('tourney-retry')?.addEventListener('click', async () => {
+      state.offlinePermanent = false;
+      await checkHealth();
+      if (state.ready) ensurePoll();
+    });
     $('tourney-create')?.addEventListener('click', create);
     $('tourney-join')?.addEventListener('click', join);
     $('tourney-start')?.addEventListener('click', () => mutate('start'));
@@ -540,18 +570,24 @@
     $('tourney-join-code')?.addEventListener('input', (event) => { event.target.value = cleanCode(event.target.value); });
   }
 
+  function ensurePoll() {
+    clearInterval(state.timer);
+    if (state.offlinePermanent) { state.timer = null; return; }
+    state.timer = setInterval(() => {
+      if (document.hidden) return;
+      if (state.offlinePermanent) return;
+      if (!state.ready) { checkHealth(); return; }
+      if (state.code && !state.busy && !state.refreshInFlight) refresh(true);
+    }, 15000);
+  }
+
   async function init() {
     bind();
     restore();
     render();
     await checkHealth();
     if (state.code && state.ready) await refresh(true);
-    clearInterval(state.timer);
-    state.timer = setInterval(() => {
-      if (document.hidden) return;
-      if (!state.ready) { checkHealth(); return; }
-      if (state.code && !state.busy && !state.refreshInFlight) refresh(true);
-    }, 15000);
+    ensurePoll();
   }
 
   window.TournamentUI = { init, refresh, matchStarted, getState: () => ({ code: state.code, tournament: state.tournament, ready: state.ready }) };

@@ -38,9 +38,18 @@ O `vercel.json` do repositório já define o cache dos assets, e o `.vercelignor
 
 ### Torneios online V12 (até 32 participantes)
 
-O front-end e a API HTTP do torneio ficam no projeto Vercel. A API grava inscrições, chave e resultados em Redis persistente; não usa memória de uma Function. Para ativar em produção, conecte Upstash Redis ao projeto pela [integração Vercel](https://vercel.com/integrations/upstash) ou [guia oficial](https://upstash.com/docs/redis/howto/vercelintegration), confirme que `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` estão disponíveis no ambiente de produção e faça um novo deploy. Nunca copie esses tokens para o JavaScript do navegador.
+O front-end e a API HTTP do torneio ficam no projeto Vercel. A API grava inscrições, chave e resultados em Redis persistente; não usa memória de uma Function. Sem o Redis, o jogo esconde o formulário de criar/entrar e mostra um aviso em português. As salas P2P normais continuam.
 
-Sem essas variáveis, `GET /api/tournaments?health=1` responde **503** e a interface desativa criar/entrar, em vez de fingir que o torneio foi salvo. O torneio usa chave de eliminação simples para 2–32 jogadores, códigos de inscrição, confrontos P2P 1 × 1 e dupla confirmação do resultado; disputas ficam para o organizador. O painel atualiza a chave em intervalo moderado, e também tem atualização manual, porque a REST do Redis cobra por comando/request conforme o [guia da API](https://upstash.com/docs/redis/features/restapi).
+Para ligar o torneio:
+
+1. No projeto da Vercel, abra **Integrations** (ou [Marketplace → Upstash](https://vercel.com/integrations/upstash)) e conecte **Upstash Redis** a este projeto. O guia da Upstash está em <https://upstash.com/docs/redis/howto/vercelintegration>.
+2. Confirme que o ambiente de **Production** recebeu as variáveis (a integração preenche sozinha; não cole o token no repositório nem no JavaScript):
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+   - A API também aceita os nomes antigos da Vercel KV: `KV_REST_API_URL` e `KV_REST_API_TOKEN`.
+3. Faça **Redeploy**. `GET /api/tournaments?health=1` deve responder `{ "ok": true }`. Aí o painel do jogo libera criar e entrar.
+
+Sem essas variáveis, `GET /api/tournaments?health=1` responde **503** com `storage_not_configured`. Num servidor estático local (`python3 -m http.server`) o mesmo endereço responde **404**, porque não existe a Function. Nos dois casos a interface esconde criar/entrar em vez de fingir que o torneio foi salvo. O torneio usa chave de eliminação simples para 2–32 jogadores, códigos de inscrição, confrontos P2P 1 × 1 e dupla confirmação do resultado; disputas ficam para o organizador. O painel atualiza a chave em intervalo moderado, e também tem atualização manual, porque a REST do Redis cobra por comando/request conforme o [guia da API](https://upstash.com/docs/redis/features/restapi).
 
 O gameplay continua usando o transporte P2P/WebRTC atual, com o broker público PeerJS para apresentação inicial dos navegadores. A hospedagem da Function não transforma o navegador do anfitrião em servidor dedicado; se ele fechar a aba, a sala pode cair e o organizador precisa reabrir o confronto. As partidas não são retransmitidas pela API do torneio.
 

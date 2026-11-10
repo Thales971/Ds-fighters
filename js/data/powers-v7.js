@@ -45,7 +45,9 @@ FIGHTERS.push(
     colors: { skin: '#e9bba2', hair: '#1765d9', shirt: '#12264d', pants: '#18264a', shoes: '#172d51', accent: '#48dfff' },
     traits: { desktopWindow: true, digital: true },
     stats: { power: 1.38, speed: 1.12, weight: 0.98, hp: 138, meterRate: 1.28 },
-    secret: true,
+    /* Normal, sem código. O selo SECRETO da seleção lê este flag;
+       Profile.SECRET_IDS também não inclui a Winx. */
+    secret: false,
     quotes: { intro: ['Desktop carregado!', 'Janela de batalha aberta.'], win: ['Sistema estável: vitória.', 'Você caiu fora da janela.'], special: ['KERNEL PING!', 'PIXEL SHIFT!', 'WINDOW STACK!'], super: ['TASK MANAGER!!'] },
     moves: { punch: { dmg: 6, range: 50, startup: 4, active: 4, recovery: 9 }, kick: { dmg: 9, range: 64, startup: 7, active: 4, recovery: 11 } },
     special: { name: 'Kernel Ping', type: 'projectile', cost: 25, proj: { speed: 11, dmg: 10, w: 24, h: 18, color: '#48dfff', shape: 'bolt' } },

@@ -267,10 +267,15 @@
 
     _renderSignedOut(cloud, status, emailAvailable, signupAvailable) {
       const busy = this._busy(cloud);
+      const unreachable = cloud.provider === 'supabase' && cloud.authReachable === false;
       const googleDisabled = cloud.provider === 'supabase' && cloud.googleEnabled === false;
-      const googleHelp = googleDisabled ?
+      const googleBlocked = googleDisabled || unreachable;
+      const googleHelp = unreachable
+        ? 'A nuvem não respondeu. O jogo continua salvo neste navegador. Quando o Supabase voltar, toque em tentar de novo.'
+        : googleDisabled ?
         (emailAvailable ? 'Google está desativado. Use email e senha para sincronizar seu progresso.' : 'Supabase conectado. Falta ativar o provedor Google no painel do projeto.') :
         'Salve desbloqueios e estatísticas em qualquer dispositivo.';
+      const googleLabel = busy ? 'CONECTANDO…' : unreachable ? 'NUVEM INDISPONÍVEL' : googleDisabled ? 'GOOGLE AGUARDANDO CONFIGURAÇÃO' : 'ENTRAR COM GOOGLE';
       const emailHelp = emailAvailable ?
         (signupAvailable ? 'Entre ou crie uma conta com email e senha.' : 'O cadastro está desativado; contas existentes ainda podem entrar.') : '';
       this.box.innerHTML = `
@@ -278,7 +283,8 @@
           <h3 id="account-title">CONTA</h3>
           <p class="account-state" id="account-state">${this._escape(status)}</p>
           ${cloud.error ? `<p class="account-error" role="alert">${this._escape(cloud.error)}</p>` : `<p class="account-help">${this._escape(googleHelp)}</p>`}
-          <button class="account-action account-signin" type="button" ${busy || googleDisabled ? 'disabled aria-disabled="true"' : ''}>${busy ? 'CONECTANDO…' : googleDisabled ? 'GOOGLE AGUARDANDO CONFIGURAÇÃO' : 'ENTRAR COM GOOGLE'}</button>
+          <button class="account-action account-signin" type="button" ${busy || googleBlocked ? 'disabled aria-disabled="true"' : ''}>${googleLabel}</button>
+          ${unreachable ? '<button class="account-action account-retry" type="button">TENTAR DE NOVO</button>' : ''}
           ${emailAvailable ? `<div class="account-email-actions" role="group" aria-label="Acesso por email">
             <p class="account-help">${this._escape(emailHelp)}</p>
             <button class="account-action account-email-signin" id="account-email-signin" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>ENTRAR</button>
@@ -288,6 +294,10 @@
 
       const googleButton = this.box.querySelector('.account-signin');
       if (googleButton) googleButton.addEventListener('click', () => { void global.Cloud.signIn(); });
+      const retryButton = this.box.querySelector('.account-retry');
+      if (retryButton && global.Cloud && typeof global.Cloud.retryAuth === 'function') {
+        retryButton.addEventListener('click', () => { void global.Cloud.retryAuth(); });
+      }
       const emailSignin = this.box.querySelector('#account-email-signin');
       if (emailSignin) emailSignin.addEventListener('click', () => this._openAuth('signin'));
       const emailSignup = this.box.querySelector('#account-email-signup');

@@ -5,8 +5,23 @@
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
-const ROSTER_FULL_SPRITES = new Set(['urbano', 'stack', 'qwen', 'xeon', 'qwen-astra', 'thl', 'dolynho', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo']);
 const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 — nenhuma usa mais o size 800%
+
+/* Busto do atlas gerado (tools/build_roster_portraits.py). A célula da
+   seleção tem 48px; cada retrato no atlas tem 96px. */
+function rosterPortraitStyle(id) {
+  const book = typeof ROSTER_PORTRAITS !== 'undefined' ? ROSTER_PORTRAITS : null;
+  const order = book && Array.isArray(book.order) ? book.order : null;
+  const idx = order ? order.indexOf(id) : -1;
+  if (!book || idx < 0) return '';
+  const cols = book.cols || 7;
+  const rows = Math.ceil(order.length / cols);
+  const col = idx % cols;
+  const row = (idx / cols) | 0;
+  const px = 48;
+  const src = `${book.file}?v=${book.version || 'v36-portraits1'}`;
+  return `background-image:url(${src});background-size:${cols * px}px ${rows * px}px;background-position:${-col * px}px ${-row * px}px;background-repeat:no-repeat`;
+}
 const UI = {
   hud: HUD,
   screen: null,
@@ -139,8 +154,33 @@ const UI = {
       <div><span>Arcade (melhor)</span><b>${s.bestArcade}/7</b></div>
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
+    this.applyRelease();
+  },
+  /* Edição = maior fighters-vN carregado. Contagens vêm dos dados. */
+  releaseStamp() {
+    let edition = 0;
+    let balance = 0;
+    document.querySelectorAll('script[src]').forEach((node) => {
+      const src = node.getAttribute('src') || '';
+      const fighter = src.match(/fighters-v(\d+)\.js/);
+      const bal = src.match(/powers-balance-v(\d+)\.js/);
+      if (fighter) edition = Math.max(edition, Number(fighter[1]));
+      if (bal) balance = Math.max(balance, Number(bal[1]));
+    });
+    const list = typeof FIGHTERS !== 'undefined' ? FIGHTERS : [];
+    const selectable = list.filter((f) => f && f.id !== 'boneco-treino').length;
+    const arenas = typeof STAGE_LIST !== 'undefined' && STAGE_LIST ? STAGE_LIST.length : 0;
+    return { edition, balance, selectable, arenas, total: list.length };
+  },
+  applyRelease() {
+    const r = this.releaseStamp();
+    const edition = r.edition ? `V${r.edition}` : 'V20';
     const tagline = document.querySelector('.tagline');
-    if (tagline) tagline.textContent = `EDIÇÃO V12 · ${FIGHTERS.length} LUTADORES · ${STAGE_LIST.length} ARENAS · TORNEIO VERCEL EM ATIVAÇÃO`;
+    if (tagline) tagline.textContent = `EDIÇÃO ${edition} · ${r.selectable} LUTADORES · ${r.arenas} ARENAS`;
+    document.title = `DS Fighters — Edição ${edition}`;
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', `DS Fighters: jogo de luta arcade retrô 2D com ${r.selectable} lutadores selecionáveis, 5 habilidades cada (IALES até 10), ${r.arenas} arenas, 2x2 e online.`);
+    return r;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -287,13 +327,12 @@ const UI = {
     grid.innerHTML = roster.map((d) => {
       const i = FIGHTERS.indexOf(d);
       const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
-      const fullSprite = ROSTER_FULL_SPRITES.has(d.id);
-      const spriteClass = fullSprite ? `roster-sprite${ROSTER_4X8_SPRITES.has(d.id) ? ' roster-sprite-4x8' : ''}` : '';
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
-         interrogacao, sem vazar nem a cara nem o sprite (pedido do dono). */
-      const thumb = lock ? null : (fullSprite ? SpriteGen.url(d.id) : SpriteGen.faceUrl(d.id));
+         interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
+         O busto vem do atlas gerado a partir do idle real, na mesma escala. */
+      const thumb = lock ? '' : rosterPortraitStyle(d.id);
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face${lock ? ' q' : ''} ${spriteClass}" ${thumb ? `style="background-image:url(${thumb})"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
+        <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
