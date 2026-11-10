@@ -25,7 +25,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v34-fogbhm';
+    return src + '?v=v35-ambience';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

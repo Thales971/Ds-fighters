@@ -27,6 +27,15 @@ class StageRenderer {
     };
     this.img.src = def.sheet || def.image;
     this.ambient = [];
+    /* sprites de ambiente (petalas, neon) — pixel art em assets/weather/ */
+    this.ambSprites = {};
+    for (const [k, src] of [['petals', 'assets/weather/petals.png'], ['neon', 'assets/weather/neon.png']]) {
+      try {
+        const img = new Image();
+        img.onload = () => { this.ambSprites[k] = img; };
+        img.src = src + '?v=v35-ambience';
+      } catch (e) { /* sem DOM: fallback vetorial */ }
+    }
     this.fauna = [];
     this.makeFauna();
     this.vignette = null;
@@ -57,22 +66,37 @@ class StageRenderer {
   update(weather) {
     this.t++;
     const d = this.def;
-    const want = this.reducedFlag ? 10 : 34;
+    const want = this.reducedFlag ? 12 : 46;
     const kinds = [];
     if (d.embers) kinds.push('ember');
     if (d.petals) kinds.push('petal');
     if (d.bubbles) kinds.push('bubble');
     if (d.fireflies) kinds.push('firefly');
+    /* AMBIENCIA v2: neon piscando, barras de glitch, chuva de codigo,
+       poeira de luz — cada mapa ganha vida propria. */
+    if (d.neon) kinds.push('neon');
+    if (d.glitch) kinds.push('glitch');
+    if (d.code) kinds.push('code');
+    if (d.motes) kinds.push('mote');
+    if (d.sparks) kinds.push('sparkd');
     if (kinds.length && this.ambient.length < want && this.t % 4 === 0) {
       const k = kinds[(Math.random() * kinds.length) | 0];
-      this.ambient.push({ k, x: Math.random() * this.W, y: k === 'ember' || k === 'bubble' ? this.H + 10 : k === 'petal' ? -10 : 120 + Math.random() * 300, life: 0, ph: Math.random() * 6, s: Math.random() });
+      const y0 = (k === 'ember' || k === 'bubble' || k === 'sparkd') ? this.H + 10
+        : (k === 'petal' || k === 'code') ? -10
+        : (k === 'glitch' ? Math.random() * this.H * 0.5 : 120 + Math.random() * 300);
+      this.ambient.push({ k, x: Math.random() * this.W, y: y0, life: 0, ph: Math.random() * 6, s: Math.random(), w: k === 'glitch' ? 40 + Math.random() * 160 : 0, h: k === 'glitch' ? 2 + Math.random() * 5 : 0 });
     }
     const wind = weather ? weather.wind : 0;
     this.ambient = this.ambient.filter((p) => {
       p.life++;
       if (p.k === 'ember') { p.y -= 1 + p.s; p.x += Math.sin(p.life * 0.05 + p.ph) * 0.6 + wind; }
       else if (p.k === 'bubble') { p.y -= 0.8 + p.s; p.x += Math.sin(p.life * 0.07 + p.ph) * 0.5; }
-      else if (p.k === 'petal') { p.y += 0.8 + p.s * 0.6; p.x += Math.sin(p.life * 0.04 + p.ph) * 1.1 + wind * 1.4; }
+      else if (p.k === 'petal') { p.y += 0.8 + p.s * 0.6; p.x += Math.sin(p.life * 0.04 + p.ph) * 1.1 + wind * 1.4; p.rot = (p.rot || p.ph) + 0.03 + p.s * 0.03; }
+      else if (p.k === 'neon') { p.y += 0.3 + p.s * 0.5; p.x += wind * 0.5; }
+      else if (p.k === 'glitch') { p.life += 2; }
+      else if (p.k === 'code') { p.y += 2.2 + p.s * 2.4; p.x += wind * 0.6; }
+      else if (p.k === 'mote') { p.x += Math.sin(p.life * 0.02 + p.ph) * 0.5; p.y += Math.cos(p.life * 0.03 + p.ph) * 0.4 - 0.15; }
+      else if (p.k === 'sparkd') { p.y -= 0.6 + p.s; p.x += Math.sin(p.life * 0.06 + p.ph) * 0.8; }
       else { p.x += Math.sin(p.life * 0.02 + p.ph) * 0.5; p.y += Math.cos(p.life * 0.03 + p.ph) * 0.4; }
       return p.life < 600 && p.y > -20 && p.y < this.H + 20;
     });
@@ -143,7 +167,57 @@ class StageRenderer {
       const a = Math.min(1, p.life / 30) * Math.min(1, (600 - p.life) / 60);
       if (p.k === 'ember') { ctx.fillStyle = `rgba(255,${120 + ((p.s * 100) | 0)},40,${0.85 * a})`; ctx.fillRect(p.x, p.y, 3, 3); }
       else if (p.k === 'bubble') { ctx.strokeStyle = `rgba(190,240,255,${0.7 * a})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 3 + p.s * 4, 0, 6.28); ctx.stroke(); }
-      else if (p.k === 'petal') { ctx.fillStyle = `rgba(255,180,210,${0.9 * a})`; ctx.fillRect(p.x, p.y, 4, 3); }
+      else if (p.k === 'petal') {
+        /* PETALA SPRITE girando (3 designs) — cai em espiral */
+        const sp = this.ambSprites.petals;
+        if (sp && sp.width) {
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot || p.ph);
+          const design = (Math.floor(p.ph * 3)) % 3;
+          ctx.drawImage(sp, design * 14, 0, 14, 14, -7, -7, 14, 14);
+          ctx.restore();
+        } else { ctx.fillStyle = `rgba(255,180,210,${0.9 * a})`; ctx.fillRect(p.x, p.y, 4, 3); }
+      }
+      else if (p.k === 'neon') {
+        /* NEON: brilho que pisca (sprite ciano/magenta) */
+        const sp = this.ambSprites.neon;
+        const flick = 0.4 + 0.6 * Math.abs(Math.sin(p.life * 0.12 + p.ph * 3));
+        ctx.globalAlpha = a * flick;
+        if (sp && sp.width) ctx.drawImage(sp, p.s > 0.5 ? 10 : 0, 0, 10, 10, p.x - 5, p.y - 5, 10, 10);
+        else { ctx.fillStyle = p.s > 0.5 ? '#c8fff8' : '#ffb0f5'; ctx.fillRect(p.x, p.y, 3, 3); }
+        ctx.globalAlpha = 1;
+      }
+      else if (p.k === 'glitch') {
+        /* BARRA DE GLITCH: risco horizontal deslocando (cyberpunk) */
+        ctx.globalAlpha = a * 0.35;
+        ctx.fillStyle = p.s > 0.5 ? 'rgba(255,60,120,0.5)' : 'rgba(60,255,220,0.5)';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.globalAlpha = 1;
+      }
+      else if (p.k === 'code') {
+        /* CHUVA DE CODIGO: risco vertical caindo (verde matriz) */
+        ctx.globalAlpha = a * 0.55;
+        ctx.fillStyle = p.s > 0.6 ? 'rgba(120,255,150,0.8)' : 'rgba(60,220,120,0.6)';
+        ctx.fillRect(p.x, p.y, 2, 8 + p.s * 10);
+        ctx.globalAlpha = 1;
+      }
+      else if (p.k === 'mote') {
+        /* POEIRA DE LUZ: pontinhos dourados flutuando (catedral) */
+        const gl = 0.4 + 0.6 * Math.abs(Math.sin(p.life * 0.05 + p.ph));
+        ctx.globalAlpha = a * gl;
+        ctx.fillStyle = '#ffe9b0';
+        ctx.fillRect(p.x, p.y, 2, 2);
+        ctx.globalAlpha = 1;
+      }
+      else if (p.k === 'sparkd') {
+        /* FAISCA: sobe e apaga */
+        ctx.globalAlpha = a * (0.4 + p.s * 0.6);
+        ctx.fillStyle = '#ffd27d';
+        ctx.fillRect(p.x, p.y, 2, 2);
+        ctx.globalAlpha = 1;
+      }
       else { const gl = 0.5 + Math.sin(p.life * 0.1 + p.ph) * 0.5; ctx.fillStyle = `rgba(210,255,120,${gl * a})`; ctx.fillRect(p.x, p.y, 3, 3); }
     }
     ctx.restore();
