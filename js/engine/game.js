@@ -168,7 +168,7 @@ class Game {
         f.overclockCut = false;
         f.overclockUntil = 0;
         f.queue = [];
-        f.cd = [0, 0, 0, 0, 0];
+        f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         f.afo = 0;
         f.stunGauge = 0;
         f.benched = k !== 0;
