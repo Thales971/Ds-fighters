@@ -37,7 +37,7 @@ POSES = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
 
 SUSPECTS = ['gemini', 'meta', 'mis',
             'dev-senior', 'dev-senior-nano', 'nina-vector',
-            'dandara-query', 'winx-exe', 'emilio', 'emilio-trans', 'nunes', 'ponteiro']
+            'dandara-query', 'winx-exe', 'emilio', 'emilio-trans', 'nunes', 'ponteiro', 'henrico']
 
 
 SPRITE_LAYOUT_FRAMES = {}

@@ -9,6 +9,9 @@ const ART_SHEETS = {
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'emilio-trans', 'nunes', 'ponteiro']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
+  ...Object.fromEntries(['henrico']
+    .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
+  'fx2:henrico': { src: 'assets/abilities/henrico.png', size: 128, cols: 4, rows: 5 },
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff

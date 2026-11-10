@@ -33,11 +33,11 @@
       element: 'vento',
       theme: 'skate: projétil, avanço e área no chão',
       powers: [
-        Object.assign({ id: 'ollie', name: 'Ollie', slot: 'simple', row: 0, kind: 'shot', dmg: 13, speed: 9, cd: 75, sfx: 'whoosh', desc: 'Manda o shape reto. Quem bloqueia ainda recua.' }, visual('lia', 0, '#f0c040')),
-        Object.assign({ id: 'manual', name: 'Manual', slot: 'simple', row: 1, kind: 'dash', dmg: 9, speed: 16, iFrames: 6, cd: 90, sfx: 'dash', desc: 'Avança por baixo e acerta na chegada.' }, visual('lia', 1, '#2a4a9a')),
-        Object.assign({ id: 'grind', name: 'Grind', slot: 'charge', meter: 0, row: 2, kind: 'zone', at: 'self', time: 240, w: 180, dmg: 0.4, cd: 200, sfx: 'metal', desc: 'Risca o chão. Quem pisa toma dano curto.' }, visual('lia', 2, '#ff7a2a')),
-        Object.assign({ id: 'kickflip', name: 'Kickflip', slot: 'charge', meter: 1, row: 3, kind: 'shot', dmg: 16, speed: 8, cd: 210, sfx: 'kick', desc: 'O shape gira e volta com mais peso.' }, visual('lia', 3, '#f0c040')),
-        Object.assign({ id: 'linha-do-trem', name: 'Linha do Trem', slot: 'ultimate', row: 4, kind: 'dash', dmg: 34, speed: 22, iFrames: 12, cd: 1100, sfx: 'ultimate', desc: 'Cruza a tela na linha do trem. Um hit só, bem no meio.' }, visual('lia', 4, '#ffd27d')),
+        Object.assign({ id: 'ollie', name: 'Ollie', slot: 'simple', row: 0, kind: 'shot', dmg: 13, speed: 9, cd: 75, sfx: 'whoosh', fx: { slow: 90 }, desc: 'Manda o shape reto. O vento do shape atrasa quem bloqueia.' }, visual('lia', 0, '#f0c040')),
+        Object.assign({ id: 'manual', name: 'Manual', slot: 'simple', row: 1, kind: 'dash', dmg: 9, speed: 16, iFrames: 6, cd: 90, sfx: 'dash', fx: { bleed: 120 }, desc: 'Avança por baixo — o asfalto risca quem encosta (sangramento).' }, visual('lia', 1, '#2a4a9a')),
+        Object.assign({ id: 'grind', name: 'Grind', slot: 'charge', meter: 0, row: 2, kind: 'zone', at: 'self', time: 240, w: 180, dmg: 0.4, cd: 200, sfx: 'metal', fx: { bleed: 100, slow: 80 }, desc: 'Risca o chão. Quem pisa sangra e fica lento.' }, visual('lia', 2, '#ff7a2a')),
+        Object.assign({ id: 'kickflip', name: 'Kickflip', slot: 'charge', meter: 1, row: 3, kind: 'shot', dmg: 16, speed: 8, seek: true, cd: 210, sfx: 'kick', fx: { slow: 100 }, desc: 'O shape gira, busca o alvo e volta com mais peso.' }, visual('lia', 3, '#f0c040')),
+        Object.assign({ id: 'linha-do-trem', name: 'Linha do Trem', slot: 'ultimate', row: 4, kind: 'dash', dmg: 34, speed: 22, iFrames: 12, cd: 1100, sfx: 'ultimate', fx: { dizzy: 60 }, desc: 'Cruza a tela na linha do trem. Um hit só — e tontia no impacto.' }, visual('lia', 4, '#ffd27d')),
       ],
     },
   });
@@ -67,11 +67,11 @@
       element: 'raio',
       theme: 'rádio: tiro que persegue, muralha e explosão de sinal',
       powers: [
-        Object.assign({ id: 'ping', name: 'Ping', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 9, cd: 90, sfx: 'magic', desc: 'Um pulso curto em linha reta.' }, visual('nexo', 0, '#5cffc0')),
-        Object.assign({ id: 'pacote', name: 'Pacote', slot: 'simple', row: 1, kind: 'shot', dmg: 11, speed: 7, cd: 100, sfx: 'whoosh', desc: 'Pacote pesado. Mais dano, menos pressa.' }, visual('nexo', 1, '#1f8a62')),
-        Object.assign({ id: 'firewall', name: 'Firewall', slot: 'charge', meter: 0, row: 2, kind: 'shot', dmg: 13, speed: 8, cd: 180, sfx: 'shield', desc: 'Rajada larga de sinal. Segura projétil no impacto.' }, visual('nexo', 2, '#7de0ff')),
-        Object.assign({ id: 'handshake', name: 'Handshake', slot: 'charge', meter: 1, row: 3, kind: 'dash', dmg: 14, speed: 14, cd: 200, sfx: 'dash', desc: 'Fecha a distância e confirma o hit.' }, visual('nexo', 3, '#5cffc0')),
-        Object.assign({ id: 'antena-cheia', name: 'Antena Cheia', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 30, stun: 24, radius: 190, cd: 1100, sfx: 'ultimate', desc: 'O morro responde. Estouro no alvo e um stun curto.' }, visual('nexo', 4, '#e8fff6')),
+        Object.assign({ id: 'ping', name: 'Ping', slot: 'simple', row: 0, kind: 'shot', dmg: 9, speed: 9, cd: 90, sfx: 'magic', fx: { shock: 90 }, desc: 'Um pulso curto em linha reta — estática que chicoteia (choque).' }, visual('nexo', 0, '#5cffc0')),
+        Object.assign({ id: 'pacote', name: 'Pacote', slot: 'simple', row: 1, kind: 'shot', dmg: 11, speed: 7, seek: true, cd: 100, sfx: 'whoosh', fx: { slow: 110 }, desc: 'Pacote pesado teleguiado. Entrega lenta = alvo lento.' }, visual('nexo', 1, '#1f8a62')),
+        Object.assign({ id: 'firewall', name: 'Firewall', slot: 'charge', meter: 0, row: 2, kind: 'shot', dmg: 13, speed: 8, cd: 180, sfx: 'shield', fx: { burn: 140 }, desc: 'Rajada larga de sinal quente. Queima quem atravessa.' }, visual('nexo', 2, '#7de0ff')),
+        Object.assign({ id: 'handshake', name: 'Handshake', slot: 'charge', meter: 1, row: 3, kind: 'dash', dmg: 14, speed: 14, cd: 200, sfx: 'dash', fx: { shock: 120, slow: 80 }, desc: 'Fecha a distância — o aperto dá choque e trava o passo.' }, visual('nexo', 3, '#5cffc0')),
+        Object.assign({ id: 'antena-cheia', name: 'Antena Cheia', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 30, stun: 24, radius: 190, cd: 1100, sfx: 'ultimate', fx: { vertigo: 100, shock: 140 }, desc: 'O morro responde: estouro, vertigem e estática no ar.' }, visual('nexo', 4, '#e8fff6')),
       ],
     },
   });
@@ -102,10 +102,10 @@
       theme: 'relogio: lentidão, portal e parada total',
       powers: [
         Object.assign({ id: 'relogio', name: 'Relógio', slot: 'simple', row: 0, kind: 'shot', dmg: 18, speed: 11, cd: 50, sfx: 'magic', fx: { slow: 90 }, desc: 'Ponteiro de luz. Aplica lentidão.' }, visual('maximilian', 0, '#3ee0ff')),
-        Object.assign({ id: 'engrenagem', name: 'Engrenagem', slot: 'simple', row: 1, kind: 'shot', dmg: 12, speed: 8, seek: true, cd: 80, sfx: 'metal', desc: 'Engrenagem que persegue.' }, visual('maximilian', 1, '#e0b050')),
-        Object.assign({ id: 'portal', name: 'Portal', slot: 'charge', meter: 0, row: 2, kind: 'dash', dmg: 18, speed: 20, phase: true, iFrames: 14, cd: 160, sfx: 'dash', desc: 'Atravessa o rival intangível e acerta na saída.' }, visual('maximilian', 2, '#3ee0ff')),
-        Object.assign({ id: 'estilhaco', name: 'Estilhaço', slot: 'charge', meter: 1, row: 3, kind: 'blast', at: 'target', dmg: 20, stun: 18, radius: 160, cd: 180, sfx: 'magic', desc: 'O cubo quebra em cima do alvo.' }, visual('maximilian', 3, '#ffffff')),
-        Object.assign({ id: 'meia-noite', name: 'Meia-noite', slot: 'ultimate', row: 4, kind: 'blast', at: 'target', dmg: 58, stun: 70, radius: 320, cd: 700, sfx: 'ultimate', fx: { freeze: 180 }, desc: 'Para o relógio do rival. Dano alto e congelamento.' }, visual('maximilian', 4, '#ffd27d')),
+        Object.assign({ id: 'engrenagem', name: 'Engrenagem', slot: 'simple', row: 1, kind: 'shot', dmg: 12, speed: 8, seek: true, cd: 80, sfx: 'metal', fx: { bleed: 110 }, desc: 'Engrenagem que persegue e risca (sangramento).' }, visual('maximilian', 1, '#e0b050')),
+        Object.assign({ id: 'portal', name: 'Portal', slot: 'charge', meter: 0, row: 2, kind: 'dash', dmg: 18, speed: 20, phase: true, iFrames: 14, cd: 160, sfx: 'dash', fx: { vertigo: 90 }, desc: 'Atravessa o rival intangível — a saída deixa vertigem.' }, visual('maximilian', 2, '#3ee0ff')),
+        Object.assign({ id: 'estilhaco', name: 'Estilhaço', slot: 'charge', meter: 1, row: 3, kind: 'blast', at: 'target', dmg: 20, stun: 18, radius: 160, cd: 180, sfx: 'magic', fx: { bleed: 140, slow: 100 }, desc: 'O cubo quebra em cima do alvo: vidro que risca e atrasa.' }, visual('maximilian', 3, '#ffffff')),
+        Object.assign({ id: 'rebobinar', name: 'Rebobinar', slot: 'ultimate', row: 4, kind: 'rewind', dmg: 0, cd: 700, sfx: 'ultimate', desc: 'O relógio anda PARA TRÁS: Maximilian volta 3 segundos no tempo — vida e posição restauradas.' }, visual('maximilian', 4, '#ffd27d')),
       ],
     },
   });
