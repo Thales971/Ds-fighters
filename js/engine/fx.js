@@ -9,10 +9,14 @@ const ART_SHEETS = {
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4 }])),
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'emilio-trans', 'nunes', 'ponteiro']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
+  ...Object.fromEntries(['lia', 'nexo', 'maximilian']
+    .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff
   ...Object.fromEntries(['impact', 'fire', 'water', 'lightning', 'chaos', 'arcane', 'birds', 'ai-symbols', 'platforms']
     .map((id) => ['fx2:' + id, { src: 'assets/fx2/' + id + '.png', size: 64, cols: 4 }])),
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'emilio-trans', 'nunes', 'ponteiro']
+    .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
+  ...Object.fromEntries(['lia', 'nexo', 'maximilian']
     .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   'abil:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
   'fx2:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },

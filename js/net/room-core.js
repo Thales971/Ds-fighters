@@ -20,7 +20,7 @@
 }(typeof self !== 'undefined' ? self : this, () => {
   const PROTOCOL = 2;
   const MAX_MSG = 96 * 1024;
-  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'nunes', 'ponteiro'];
+  const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'nunes', 'ponteiro', 'lia', 'nexo', 'maximilian'];
   const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo', 'mistral', 'slime', 'dragao', 'fenix', 'robot'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const RATE = { input: 160, snap: 90, default: 30 };

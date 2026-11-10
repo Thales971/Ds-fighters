@@ -4,7 +4,7 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v36-portraits1",
+  "version": "v36-pack1",
   "order": [
     "du",
     "iales",
@@ -47,7 +47,10 @@ const ROSTER_PORTRAITS = {
     "nimbo",
     "emilio",
     "nunes",
-    "ponteiro"
+    "ponteiro",
+    "lia",
+    "nexo",
+    "maximilian"
   ],
   "crops": {
     "du": {

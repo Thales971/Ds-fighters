@@ -7,7 +7,7 @@
      assets/music/rock/ e liste em "tracks". Sem faixas próprias, usa "fallback".
    - Nada toca antes do primeiro gesto do jogador (política dos navegadores).
    ============================================================ */
-const SFX_FILES = ['axe', 'bees_loop', 'block', 'crowd', 'dash', 'dragon', 'explosion', 'fire', 'hazard', 'heavy', 'jump', 'kick', 'ko', 'magic', 'menu_back', 'menu_move', 'menu_ok', 'pickup', 'punch', 'rain_loop', 'shield', 'steal', 'thunder', 'thunder_cast', 'ultimate', 'unlock', 'water', 'whoosh', 'wind_loop', 'amb_gym', 'amb_workshop', 'amb_metro', 'amb_rain', 'amb_park', 'amb_cafe', 'amb_server', 'amb_market', 'amb_night', 'amb_sesi'];
+const SFX_FILES = ['axe', 'bees_loop', 'block', 'crowd', 'dash', 'dragon', 'explosion', 'fire', 'hazard', 'heavy', 'jump', 'kick', 'ko', 'magic', 'menu_back', 'menu_move', 'menu_ok', 'pickup', 'punch', 'rain_loop', 'shield', 'steal', 'thunder', 'thunder_cast', 'ultimate', 'unlock', 'water', 'whoosh', 'wind_loop', 'amb_gym', 'amb_workshop', 'amb_metro', 'amb_rain', 'amb_park', 'amb_cafe', 'amb_server', 'amb_market', 'amb_night', 'amb_sesi', 'amb_estacao-valinhos', 'amb_feira-valinhos', 'amb_represa', 'amb_rua-centro-noite', 'amb_quadra-areia', 'amb_arquibancada', 'amb_oficina-senai', 'amb_terminal-onibus', 'amb_cafe-madrugada', 'amb_corredor-datacenter', 'amb_sala-deploy', 'amb_hackerspace', 'amb_telhado-escola', 'amb_ponte-rio', 'amb_parque-lago', 'amb_mercado-municipal', 'amb_estudio-pixel', 'amb_antena-morro', 'amb_biblioteca-noturna', 'amb_pista-skate'];
 const VOICE_FILES = ['choose', 'combo', 'draw', 'fight', 'final', 'ko', 'perfect', 'powerup', 'round1', 'round2', 'round3', 'stolen', 'storm', 'timeup', 'title', 'ultimate', 'unlocked', 'youlose', 'youwin'];
 
 const AudioSys = {
