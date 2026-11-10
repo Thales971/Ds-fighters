@@ -622,7 +622,8 @@ class Fighter {
     if (!p) return { ready: false, pct: 0 };
     if (this.has('locked')) return { ready: false, pct: 0, locked: true, p };
     if (p.slot === 'simple' || p.slot === 'extra') {
-      const total = Math.max(130, (p.cd || 50) * ABILITY_CD_MULT);
+      const prof = this.spamProfile();
+      const total = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT);
       return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
     }
     if (p.slot === 'charge') {
@@ -634,6 +635,20 @@ class Fighter {
   }
   canAct() {
     return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched && !this.has('paralyze');
+  }
+  /* Perfil de anti-spam: lutadores de CADEIA (combo-link, tipo o BHM)
+     precisam encadear habilidades no acerto — pisos menores. Zoners de
+     pressao (projeteis spam) mantem o piso cheio. */
+  spamProfile() {
+    if (this._spam == null) {
+      const prof = (POWERS[this.def.id] && POWERS[this.def.id].spamProfile) || 'standard';
+      this._spam = prof === 'chain'
+        ? { castLock: 34, floor: 95 }
+        : prof === 'heavy'
+          ? { castLock: 60, floor: 155 }
+          : { castLock: 50, floor: 130 };
+    }
+    return this._spam;
   }
   tryCast(i) {
     if (this.castLock > 0) return false;
@@ -671,9 +686,10 @@ class Fighter {
     /* Anti-spam em 3 camadas: multiplicador global x2 + PISO de 110 frames
        (~1.8s) nas simples/extras + trava GLOBAL de 45 frames depois de
        QUALQUER habilidade (sem chain H1->H2->H3 instantaneo). */
-    this.castLock = 50;
+    const prof = this.spamProfile();
+    this.castLock = prof.castLock;
     if (p.slot === 'simple' || p.slot === 'extra') {
-      this.cd[i] = Math.max(130, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1));
+      this.cd[i] = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1));
     }
     /* BUG FIX (anti-spam furado em certos modos): habilidades de CARGA e
        ULTIMATE dependiam só do medidor — no treino (medidores infinitos) e

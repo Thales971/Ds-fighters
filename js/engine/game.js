@@ -825,6 +825,9 @@ class Game {
     // com 2 humanos na mesma tela não dá para embaçar só um: o efeito fica no lutador (status CEGO)
     const blind = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('blind'); });
     if (blind !== this._blurOn) { this._blurOn = blind; this.canvas.classList.toggle('blinded', blind); }
+    /* NEBLINA: a tela fica meio embaçada para os dois (clima .fogged). */
+    const foggy = this.weather && this.weather.kind === 'fog' && this.roundState === 'fight';
+    if (foggy !== this._fogOn) { this._fogOn = foggy; this.canvas.classList.toggle('fogged', !!foggy); }
     // A vertigem altera só a viewport do jogador local atingido; HUD e controles ficam normais.
     const vertigo = !this.reduced && lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('vertigo'); });
     if (vertigo !== this._vertigoOn) { this._vertigoOn = vertigo; this.canvas.classList.toggle('vertigo', vertigo); }

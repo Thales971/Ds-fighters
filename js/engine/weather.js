@@ -51,6 +51,7 @@ class Weather {
     const a = this.game.audio;
     a.loop('rain_loop', kind === 'rain' || kind === 'storm', kind === 'storm' ? 0.5 : 0.32);
     a.loop('wind_loop', kind === 'wind' || kind === 'storm' || kind === 'snow', 0.3);
+    a.loop('wind_loop', kind === 'fog', 0.12);
     if (this.game.onWeather) this.game.onWeather(kind);
   }
   stop() {
@@ -116,7 +117,7 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 150 : this.kind === 'storm' ? 240 : this.kind === 'snow' ? 140 : this.kind === 'wind' ? 34 : this.kind === 'aurora' ? 70 : this.kind === 'heatwave' ? 26 : this.kind === 'clear' ? 14 : 0;
+    const want = this.kind === 'rain' ? 150 : this.kind === 'storm' ? 240 : this.kind === 'snow' ? 140 : this.kind === 'wind' ? 34 : this.kind === 'aurora' ? 70 : this.kind === 'heatwave' ? 26 : this.kind === 'fog' ? 16 : this.kind === 'clear' ? 14 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
@@ -161,6 +162,14 @@ class Weather {
           d.y = -40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 55;
           d.x = (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 120) - 60;
         }
+        continue;
+      }
+      if (this.kind === 'fog') {
+        /* NEBLINA: bancos grandes e macios derivando devagar. */
+        d.x += (this.wind || 0.4) * (0.14 + d.s * 0.22);
+        d.y = -80 - d.s * 120 + Math.sin((this.t + d.s * 200) * 0.006) * 26;
+        if (d.x > W + 240) d.x = -240;
+        if (d.x < -240) d.x = W + 200;
         continue;
       }
       if (this.kind === 'snow') {
@@ -246,6 +255,27 @@ class Weather {
           ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
         }
       }
+    } else if (this.kind === 'fog') {
+      /* NEBLINA: bancos macios em 2 camadas (blob radial em cache). O blur
+         de tela vem da classe .fogged no canvas (CSS). */
+      if (!this._fogBlob) {
+        const c = document.createElement('canvas');
+        c.width = 260; c.height = 160;
+        const x = c.getContext('2d');
+        const g = x.createRadialGradient(130, 80, 10, 130, 80, 128);
+        g.addColorStop(0, 'rgba(215,225,238,0.34)');
+        g.addColorStop(0.6, 'rgba(205,218,232,0.16)');
+        g.addColorStop(1, 'rgba(200,212,226,0)');
+        x.fillStyle = g;
+        x.fillRect(0, 0, 260, 160);
+        this._fogBlob = c;
+      }
+      for (const d of this.drops) {
+        const sc = d.s < 0.5 ? 2.2 : 3.4;
+        ctx.globalAlpha = d.s < 0.5 ? 0.55 : 0.8;
+        ctx.drawImage(this._fogBlob, d.x - 130 * sc / 2, d.y - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
+      }
+      ctx.globalAlpha = 1;
     } else if (this.kind === 'snow') {
       /* NEVE: flocos SPRITE com rotacao e 3 camadas de profundidade;
          fundo pequeno/transparente, frente grande/nitido. */
@@ -318,6 +348,10 @@ class Weather {
   drawOverlay(ctx, W, H) {
     if (this.kind === 'rain' || this.kind === 'storm') {
       ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.28)' : 'rgba(20,40,70,0.16)';
+      ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'fog') {
+      /* tinta leitada deixando a tela meio zoada */
+      ctx.fillStyle = 'rgba(206,216,228,0.13)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'snow') {
       /* frio azulado + neblina baixa no chao + vinheta gelada */

@@ -427,6 +427,8 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 /* ===== Expansão Turbo: status de tela, traços, lobby 4 jogadores, chat, FPS ===== */
 #game { transition: filter .25s; }
 #game.blinded { filter: blur(6px) brightness(.72) saturate(.55) contrast(1.15); }
+#game.fogged { filter: blur(1.4px) saturate(.80) brightness(1.05); }
+body.reduced #game.fogged { filter: blur(1px) saturate(.9); transition: none; }
 #game.vertigo { transform: rotate(180deg); transform-origin: center center; }
 body.reduced #game.vertigo { transform: none; transition: none; }
 body.reduced #game.blinded { filter: blur(4px) brightness(.8); transition: none; }

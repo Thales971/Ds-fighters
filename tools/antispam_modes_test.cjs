@@ -49,7 +49,7 @@ const testMode = (mode, extra) => {
     if (g.round !== lastRound) { lastRound = g.round; f.cd = f.cd.map(() => 0); f.castLock = 0; } // round novo = cds novos (design)
   }
   const minGap = gaps.length ? Math.min(...gaps) : -1;
-  const piso = SLOT === 'ultimate' ? 150 : (SLOT === 'charge' ? 90 : 130);
+  const piso = SLOT === 'ultimate' ? 150 : (SLOT === 'charge' ? 90 : 95); /* du e perfil chain */
   const ok = minGap >= piso - 10;
   return mode + ' [' + SLOT + ']: ' + casts + ' casts / intervalo min ' + minGap + 'f ' + (ok ? 'OK' : '<<< RECARGA FURADA (piso ' + piso + ')') + ' | cd base=' + baseCd;
 };
