@@ -2,7 +2,7 @@
 
 Jogo de luta 2D arcade no navegador — pixel art, JS/HTML/CSS puro, sem engine. Publicado em <https://ds-fighters.vercel.app>.
 
-**Edição V20 · 43 lutadores no código (42 selecionáveis + boneco de treino oculto) · 47 arenas**
+**Edição V20 · 46 lutadores no código (45 na grade, incluindo o secreto Maximilian, + boneco de treino oculto) · 67 arenas**
 
 O selo da tela de título e o `<title>` leem esses números dos dados (`FIGHTERS` e `STAGE_LIST`) e a edição do maior `fighters-vN.js` carregado. O cantinho `build …` repete o cache-buster das folhas (`v36-balance13` em `SpriteGen.url`). Assim a contagem não fica presa num texto antigo.
 
