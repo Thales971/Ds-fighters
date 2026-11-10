@@ -14,7 +14,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-balance-v9.js','js/data/powers-balance-v10.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/powers-balance-v7.js','js/data/powers-balance-v8.js','js/data/powers-balance-v9.js','js/data/powers-balance-v10.js','js/data/powers-balance-v11.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO', f, e.message.slice(0, 80)); } }
 
 vm.runInContext(`
@@ -28,8 +28,8 @@ const check = (name, cond, extra) => { console.log((cond ? 'OK   ' : 'FALHA') + 
 
 // stats v7
 const def = FIGHTERS.find((x) => x.id === 'bhm');
-check('BHM power 1.38 (nerf)', def.stats.power === 1.38, 'power=' + def.stats.power);
-check('BHM hp 144 (nerf)', def.stats.hp === 144);
+check('BHM power 1.50 (buff v11)', f.def.stats.power === 1.50);
+check('BHM hp 450 (buff v11)', f.maxHp === 450, 'maxHp=' + f.maxHp);
 
 // kit v7: dano +20% (plasma 14 -> 16.8 ~ arredondado)
 const plasma = POWERS.bhm.powers.find((p) => p.id === 'plasma');

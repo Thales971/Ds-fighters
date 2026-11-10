@@ -7,12 +7,12 @@
    gravidade/atrito e o tom de luz usado no pós-processamento.
    ============================================================ */
 const STAGE_EXTRA = {
-  '01-centro-de-dados': { weather: ['clear', 'storm'], fauna: [], mech: 'overheat', tint: '#3fd0ff' },
+  '01-centro-de-dados': { weather: ['clear', 'storm', 'fog'], fauna: [], mech: 'overheat', tint: '#3fd0ff' },
   '02-chuva-de-codigo': { weather: ['rain', 'storm'], fauna: [], mech: 'glyphs', tint: '#3dff7a' },
-  '03-laboratorio-95': { weather: ['clear', 'rain'], fauna: [], mech: 'bsod', tint: '#5fa8ff' },
+  '03-laboratorio-95': { weather: ['clear', 'rain', 'fog'], fauna: [], mech: 'bsod', tint: '#5fa8ff' },
   '04-neon-city-exe': { weather: ['rain', 'storm', 'wind'], fauna: ['bat'], mech: 'neonsign', tint: '#ff4fd8' },
   '05-fight-exe': { weather: ['clear', 'storm'], fauna: [], mech: 'glitch', tint: '#ff3b5c' },
-  '06-fabrica-de-bugs': { weather: ['clear', 'rain'], fauna: ['bee', 'butterfly'], mech: 'conveyor', tint: '#ffb03b' },
+  '06-fabrica-de-bugs': { weather: ['clear', 'rain', 'fog'], fauna: ['bee', 'butterfly'], mech: 'conveyor', tint: '#ffb03b' },
   '07-placa-mae': { weather: ['clear', 'storm'], fauna: [], mech: 'pulse', tint: '#39ffb0' },
   '08-startup-3am': { weather: ['rain', 'clear'], fauna: ['bat'], mech: 'coffee', tint: '#ffc36b' },
   '09-deploy-nas-nuvens': { weather: ['wind', 'storm'], fauna: ['bird'], mech: 'gusts', tint: '#a8e4ff' },
@@ -77,6 +77,7 @@ const WEATHER_INFO = {
   snow: { name: 'Nevasca', icon: '❄', desc: 'Movimento 8% mais lento. Gelo +20%.' },
   aurora: { name: 'Aurora Boreal', icon: '✧', desc: 'Faixas ciano e violeta no céu. Ganho de medidor +8% para ambos.' },
   heatwave: { name: 'Onda de Calor', icon: '♨', desc: 'Fogo/magma +8%; água/gelo −5%. Sem dano ambiental.' },
+  fog: { name: 'Neblina', icon: '☁', desc: 'Bancos de neblina na arena — a visão fica embaçada para todos.' },
 };
 
 const MECH_INFO = {
