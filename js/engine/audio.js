@@ -29,6 +29,15 @@ const AudioSys = {
   _speechSequence: 0,
   musicMixFactor: 0.7,
   musicDuckFactor: 0.25,
+  /* 0 = rock no fundo, ambiente inteiro. 1 = rock no teto do volume do jogador e ambiente abafado. */
+  intensity: 0,
+  intensityTarget: 0,
+  musicHot: null,
+  musicCross: 0,
+  hotWanted: false,
+  _hitMarks: [],
+  _mixFrame: 0,
+  _ultUntil: 0,
   init() {
     fetch('assets/music/playlist.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
@@ -77,10 +86,21 @@ const AudioSys = {
     const defaults = { music: 0.35, sfx: 0.8, voice: 0.9 };
     return this.safeVol(s[kind], defaults[kind] == null ? 0.8 : defaults[kind]);
   },
+  musicMixAt(intensity) {
+    const calm = this.safeVol(this.musicMixFactor, 0.7);
+    const hot = 1;
+    const t = this.safeVol(intensity, 0);
+    return calm + (hot - calm) * t;
+  },
   musicVolume() {
-    const mix = this.safeVol(this.musicMixFactor, 1);
+    const mix = this.musicMixAt(this.intensity || 0);
     const duck = this.voiceActive > 0 ? this.safeVol(this.musicDuckFactor, 0.25) : 1;
     return this.safeVol(this.vol('music') * mix * duck);
+  },
+  /* Ambiente (chuva, vento, público do palco) cede espaço ao rock. Não passa de 28% no auge. */
+  ambientGain(base) {
+    const duck = 1 - 0.72 * this.safeVol(this.intensity, 0);
+    return this.safeVol((base || 0) * duck);
   },
   _beginVoice(key) {
     this.voiceActive += 1;
@@ -99,8 +119,21 @@ const AudioSys = {
   applyVolumes() {
     if (this.buses.sfx) this.buses.sfx.gain.value = this.safeVol(this.vol('sfx'));
     if (this.buses.voice) this.buses.voice.gain.value = this.safeVol(this.vol('voice'));
-    if (this.music) this.music.volume = this.musicVolume();
-    Object.values(this.loops).forEach((l) => { if (l.g) l.g.gain.value = this.safeVol(l.base); });
+    this.applyMusicVolumes();
+    Object.values(this.loops).forEach((l) => { if (l.g) l.g.gain.value = this.ambientGain(l.base); });
+  },
+  applyMusicVolumes() {
+    const level = this.musicVolume();
+    const cross = this.safeVol(this.musicCross, 0);
+    const rate = 1 + 0.08 * this.safeVol(this.intensity, 0);
+    const setRate = (el) => {
+      if (!el) return;
+      try { el.playbackRate = rate; } catch (e) { /* o elemento recusou a taxa */ }
+    };
+    if (this.music) this.music.volume = this.safeVol(level * (1 - cross));
+    if (this.musicHot) this.musicHot.volume = this.safeVol(level * cross);
+    setRate(this.music);
+    setRate(this.musicHot);
   },
   play(name, opts = {}) {
     if (!this.enabled || !this.ctx || !this.unlocked) return false;
@@ -173,10 +206,11 @@ const AudioSys = {
       src.buffer = this.buffers[name];
       src.loop = true;
       const g = this.ctx.createGain();
-      g.gain.value = this.safeVol(vol, 0.5);
+      const base = this.safeVol(vol, 0.5);
+      g.gain.value = this.ambientGain(base);
       src.connect(g).connect(this.buses.sfx);
       src.start();
-      this.loops[name] = { src, g, base: this.safeVol(vol, 0.5) };
+      this.loops[name] = { src, g, base };
     } else if (!on && this.loops[name]) {
       try { this.loops[name].src.stop(); } catch (e) { /* já parado */ }
       delete this.loops[name];
@@ -264,13 +298,19 @@ const AudioSys = {
   playMusic(kind) {
     if (!this.unlocked) { this.pending = kind; return; }
     if (kind === 'menu' && this.musicKind === 'menu' && this.music && !this.music.paused) return;
+    if (kind === 'menu') {
+      this.intensity = 0;
+      this.intensityTarget = 0;
+      this._hitMarks = [];
+      this._ultUntil = 0;
+    }
     this.stopMusic();
     const track = kind === 'menu' ? this.playlist.menu : this.pickBattleTrack();
     this.musicKind = kind;
     if (!track || !track.file) return;
     const a = new Audio(track.file);
     a.loop = kind === 'menu';
-    a.volume = this.musicVolume();
+    a.volume = 0;
     a.onended = () => {
       if (kind !== 'menu' && this.music === a && this.musicKind === kind) this.playMusic(kind);
     };
@@ -283,6 +323,10 @@ const AudioSys = {
       }
     };
     this.music = a;
+    this.musicCross = 0;
+    this.hotWanted = false;
+    this._hotMiss = false;
+    this.applyMusicVolumes();
     this.nowPlaying = track.title || track.file.split('/').pop();
     try {
       const playback = a.play();
@@ -291,13 +335,89 @@ const AudioSys = {
     if (typeof UI !== 'undefined' && UI.toast && kind !== 'menu') UI.toast('♪ ' + this.nowPlaying, 2600);
   },
   stopMusic() {
+    this._stopHot();
+    this.musicCross = 0;
+    this.hotWanted = false;
     if (this.music) { this.music.pause(); this.music.removeAttribute('src'); this.music = null; }
     this.musicKind = null;
   },
+  _stopHot() {
+    if (!this.musicHot) return;
+    try { this.musicHot.pause(); this.musicHot.removeAttribute('src'); } catch (e) { /* já parado */ }
+    this.musicHot = null;
+  },
   flushPending() { if (this.pending) { const k = this.pending; this.pending = null; this.playMusic(k); } },
-  setTension(on) {
-    if (!this.music) return;
-    try { this.music.playbackRate = on ? 1.12 : 1; } catch (e) { /* o elemento recusou a taxa */ }
+  /* O drama visual ainda avisa o palco. O volume do rock sobe pelo intensity, sem salto de taxa. */
+  setTension(on) { this._tension = !!on; },
+  fightIntensityTarget(sig) {
+    const s = sig || {};
+    const parts = [];
+    if (s.finalRound) parts.push(0.58);
+    const low = this.safeVol(s.low, 0);
+    if (low > 0) parts.push(0.42 + low * 0.58);
+    const combo = Math.max(0, Number(s.combo) || 0);
+    if (combo >= 3) parts.push(Math.min(1, (combo - 2) / 7));
+    if (s.ultHold) parts.push(0.92);
+    const hits = Math.max(0, Number(s.hitRate) || 0);
+    if (hits >= 4) parts.push(Math.min(1, (hits - 3) / 5));
+    if (!parts.length) return 0;
+    const peak = Math.max.apply(null, parts);
+    const stack = parts.reduce((sum, v) => sum + v, 0) - peak;
+    return Math.min(1, peak + Math.min(0.22, stack * 0.18));
+  },
+  /* Um passo por quadro de luta. Sobe mais rápido do que desce, sempre aos poucos. */
+  driveIntensity(sig) {
+    this._mixFrame += 1;
+    if (sig && sig.hit) this._hitMarks.push(this._mixFrame);
+    const horizon = this._mixFrame - 180;
+    if (this._hitMarks.length) this._hitMarks = this._hitMarks.filter((frame) => frame >= horizon);
+    if (sig && sig.ult) this._ultUntil = this._mixFrame + 150;
+    const target = this.fightIntensityTarget({
+      finalRound: !!(sig && sig.finalRound),
+      low: sig && sig.low,
+      combo: sig && sig.combo,
+      ultHold: this._mixFrame < (this._ultUntil || 0),
+      hitRate: this._hitMarks.length,
+    });
+    this.intensityTarget = target;
+    const follow = target > this.intensity ? 0.035 : 0.018;
+    this.intensity += (target - this.intensity) * follow;
+    if (Math.abs(this.intensity - target) < 0.001) this.intensity = target;
+    this._advanceCrossfade();
+    this.applyVolumes();
+  },
+  _advanceCrossfade() {
+    if (this.musicKind !== 'battle') return;
+    if (this.intensity <= 0.32) this._hotMiss = false;
+    if (this.intensity >= 0.75 && !this.musicHot && !this._hotMiss) this._promoteHotTrack();
+    if (this.intensity <= 0.32) this.hotWanted = false;
+    else if (this.intensity >= 0.75 && this.musicHot) this.hotWanted = true;
+    const goal = this.hotWanted && this.musicHot ? 1 : 0;
+    const prev = this.musicCross || 0;
+    const step = 0.028;
+    const delta = Math.max(-step, Math.min(step, goal - prev));
+    this.musicCross = prev + delta;
+    if (!this.hotWanted && this.musicCross <= 0.001) {
+      this._stopHot();
+      this.musicCross = 0;
+    }
+  },
+  _promoteHotTrack() {
+    if (!this.music || this.musicKind !== 'battle') return;
+    const next = this.pickBattleTrack();
+    if (!next || !next.file || next.file === this.music.src) { this._hotMiss = true; return; }
+    const a = new Audio(next.file);
+    a.loop = false;
+    a.volume = 0;
+    a.onended = () => { if (this.musicHot === a) this._stopHot(); };
+    a.onerror = () => { if (this.musicHot === a) this._stopHot(); };
+    this.musicHot = a;
+    this.hotWanted = true;
+    this.nowPlaying = next.title || next.file.split('/').pop();
+    try {
+      const playback = a.play();
+      if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    } catch (e) { /* autoplay */ }
   },
 };
 AudioSys.init();

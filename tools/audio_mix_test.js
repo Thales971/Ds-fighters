@@ -308,6 +308,72 @@ function testEndOfTrackAdvancesWithoutStaleCallbacks() {
   assert.equal(audio.music, menu, 'stale music callback cannot replace the menu');
 }
 
+function testIntensityRisesAndEasesWithoutJumping() {
+  const { audio } = boot();
+  audio.playlist.fallback = [{ file: 'calm-a' }, { file: 'hot-b' }];
+  audio.buffers.amb_gym = { duration: 1 };
+  audio.buffers.v_a = { duration: 1 };
+  audio.playMusic('battle');
+  audio.loop('amb_gym', true, 0.22);
+  const calm = audio.music.volume;
+  closeTo(calm, 0.35 * audio.musicMixFactor, 'a calm fight keeps the moderate rock mix');
+  closeTo(audio.loops.amb_gym.g.gain.value, 0.22, 'ambient starts at its authored level');
+
+  const samples = [];
+  for (let i = 0; i < 8; i++) {
+    const before = audio.intensity;
+    audio.driveIntensity({ finalRound: true, low: 1, combo: 9, ult: i === 0, hit: true });
+    samples.push(audio.intensity);
+    assert.ok(audio.intensity >= before, 'intensity never steps backward while the fight stays hot');
+    assert.ok(audio.intensity - before <= 0.04, 'one frame cannot jump the mix');
+  }
+  assert.ok(samples[7] > samples[0], 'eight hot frames are louder than the first');
+  assert.ok(samples[7] < audio.intensityTarget, 'the smoothed value is still chasing the target');
+
+  const loudRock = audio.music.volume + (audio.musicHot ? audio.musicHot.volume : 0);
+  assert.ok(loudRock > calm, 'rock level follows the rising intensity');
+  assert.ok(audio.loops.amb_gym.g.gain.value < 0.22, 'ambient ducks as the rock comes forward');
+
+  for (let i = 0; i < 220; i++) audio.driveIntensity({ finalRound: true, low: 1, combo: 9 });
+  const topped = audio.music.volume + (audio.musicHot ? audio.musicHot.volume : 0);
+  closeTo(audio.intensity, 1, 'stacked danger settles at full intensity');
+  closeTo(topped, 0.35, 'full intensity uses the whole music slider and no more');
+  closeTo(audio.loops.amb_gym.g.gain.value, 0.22 * 0.28, 'ambient is down to 28% at full intensity');
+  assert.ok(audio.musicHot, 'a second rock track is selected once the fight stays hot');
+  assert.notEqual(audio.musicHot.src, audio.music.src, 'the hot track is a different file');
+  assert.ok(audio.musicCross > 0.5, 'the crossfade has moved toward the hotter track');
+  const crossSum = audio.music.volume + audio.musicHot.volume;
+  closeTo(crossSum, topped, 'crossfade keeps the same total rock level');
+
+  audio.voice('a');
+  const ducked = audio.music.volume + (audio.musicHot ? audio.musicHot.volume : 0);
+  closeTo(ducked, 0.35 * 0.25, 'narrator ducks both rock layers to a quarter');
+  const voiceSrc = audio.ctx.sources.find((src) => src.buffer === audio.buffers.v_a);
+  voiceSrc.emitEnded();
+
+  const beforeEase = audio.intensity;
+  for (let i = 0; i < 10; i++) audio.driveIntensity({});
+  assert.ok(audio.intensity < beforeEase, 'a calm stretch eases the intensity down');
+  assert.ok(beforeEase - audio.intensity < 0.2, 'the ease-down is not a jump');
+  assert.ok(audio.intensity > 0.5, 'ten calm frames do not dump a hot mix');
+}
+
+function testIntensityRespectsMuteAndSlider() {
+  const { audio, profile } = boot();
+  audio.playlist.fallback = [{ file: 'only-one' }];
+  audio.playMusic('battle');
+  profile.data.settings.music = 0.5;
+  for (let i = 0; i < 200; i++) audio.driveIntensity({ ult: true, combo: 8, low: 1 });
+  const sum = audio.music.volume + (audio.musicHot ? audio.musicHot.volume : 0);
+  closeTo(sum, 0.5, 'intensity cannot pass the user music setting');
+  assert.equal(audio.musicHot, null, 'a single rock file is raised in place instead of crossfading to itself');
+  profile.data.settings.mute = true;
+  audio.applyVolumes();
+  assert.equal(audio.music.volume, 0, 'mute silences an intense mix');
+}
+
+testIntensityRisesAndEasesWithoutJumping();
+testIntensityRespectsMuteAndSlider();
 testDefaultBaseAndPlayContract();
 testOverlappingVoicesDuckAndResume();
 testMuteAndSafeVolumeClamping();
@@ -315,4 +381,4 @@ testMissingVoiceAndMusicReplacement();
 testDeterministicSelectionAndFallback();
 testVoicePlayGapIsForced();
 testEndOfTrackAdvancesWithoutStaleCallbacks();
-console.log('audio_mix_test: PASS (base, ducking, overlap, mute, clamps, replacement, selection, fallback, track end)');
+console.log('audio_mix_test: PASS (base, ducking, overlap, mute, clamps, replacement, selection, fallback, track end, intensity)');

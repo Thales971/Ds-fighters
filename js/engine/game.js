@@ -194,7 +194,31 @@ class Game {
     this._ambient = name;
     if (name) AudioSys.loop(name, true, 0.22);
     AudioSys.setTension(false);
+    AudioSys._hitMarks = [];
+    AudioSys._ultUntil = 0;
+    this._hitPulse = false;
+    this._ultPulse = false;
     this._drama = false;
+  }
+  updateMusicIntensity() {
+    if (typeof AudioSys === 'undefined' || !AudioSys.driveIntensity) return;
+    let low = 0;
+    for (const f of this.fighters()) {
+      if (!f || !f.maxHp) continue;
+      const ratio = Math.max(0, f.hp) / f.maxHp;
+      if (ratio <= 0.3) low = Math.max(low, (0.3 - ratio) / 0.3);
+    }
+    const live = this.roundState && this.roundState !== 'intro';
+    const comboLive = this.combo && this.combo.owner && this.time < this.combo.until ? this.combo.count : 0;
+    AudioSys.driveIntensity({
+      finalRound: !!(live && this.round >= ((this.cfg && this.cfg.roundsToWin) || 2)),
+      low: live ? low : 0,
+      combo: live ? comboLive : 0,
+      ult: !!this._ultPulse,
+      hit: !!this._hitPulse,
+    });
+    this._hitPulse = false;
+    this._ultPulse = false;
   }
   onWeather(kind) { if (this.stageDef) UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[kind]); }
   team(ti) { return this.teams[ti]; }
@@ -308,6 +332,7 @@ class Game {
   }
   spawnPickup(kind) { if (this.pickups.length < 3) this.pickups.push(new Pickup(this, kind)); }
   superFreeze(f, p) {
+    this._ultPulse = true;
     this.freeze = this.reduced ? 26 : 46;
     this.freezeOwner = f;
     UI.cutIn(f, p);
@@ -317,6 +342,7 @@ class Game {
     this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
     if (!blocked) {
       if (victim.redHp < victim.hp) victim.redHp = victim.hp;
+      this._hitPulse = true;
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
@@ -463,17 +489,21 @@ class Game {
     if (!this.running || this.paused) return;
     this.time++;
     this.fightFrames = (this.fightFrames || 0) + 1;
-    if (this.netRole === 'guest') { this.guestTick(); return; }
-    if (this.freeze > 0) {
-      this.freeze--;
-      if (this.freeze === 0) this.freezeOwner = null;
-      this.bufferDuringPause();
-      this.tickFxOnly();
-      return;
+    try {
+      if (this.netRole === 'guest') { this.guestTick(); return; }
+      if (this.freeze > 0) {
+        this.freeze--;
+        if (this.freeze === 0) this.freezeOwner = null;
+        this.bufferDuringPause();
+        this.tickFxOnly();
+        return;
+      }
+      if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
+      if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
+      this.step();
+    } finally {
+      this.updateMusicIntensity();
     }
-    if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
-    if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
-    this.step();
   }
   /** Durante hitstop/super-freeze as entradas continuam indo para o buffer (combos fluidos). */
   bufferDuringPause() {

@@ -94,7 +94,9 @@ Campos que importam:
 | `ambient` | Nome do MP3 em `assets/audio/sfx/` (também listado em `SFX_FILES`). Sem o campo, `stageAmbient()` escolhe um laço pelo id |
 | `pixel` | Desliga o smoothing quando as camadas são pixel art |
 
-Golpe com tremor ≥ 8 chama `stage.react`: luzes piscam, o público treme e o objeto marcado `fall` cai. No round final, ou com alguém a 30% da vida ou menos, o palco escurece, a chuva de `assets/fx/rain-streaks.png` entra e a música vai a 1,12×. Isso vale para todo palco, inclusive os que não declaram `layers`.
+Golpe com tremor ≥ 8 chama `stage.react`: luzes piscam, o público treme e o objeto marcado `fall` cai. No round final, ou com alguém a 30% da vida ou menos, o palco escurece e a chuva de `assets/fx/rain-streaks.png` entra. Isso vale para todo palco, inclusive os que não declaram `layers`.
+
+A intensidade da trilha (`AudioSys.intensity`, 0 a 1) sobe no round final, com vida baixa, combo longo, ultimate ou vários acertos nos últimos 3 segundos. O rock da playlist vai do mix calmo (70% do volume de música do jogador) até o teto desse volume, em crossfade para outra faixa quando o valor passa de 0,75, e o ambiente (chuva, vento, laço do palco) desce até 28%. A volta é mais lenta. Narrador continua abaixando o rock para 25% enquanto fala. Nada disso ultrapassa o slider de música nem fura o mudo.
 
 O id também precisa estar na lista de arenas que a sala online aceita (o núcleo valida arena). Hoje isso segue o catálogo carregado no cliente; o servidor dedicado tem cópia manual do núcleo.
 
