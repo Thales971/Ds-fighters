@@ -804,8 +804,8 @@ class Fighter {
           for (let k = 0; k < 3; k++) {
             game.spawnImgFx('arcano', 'projectile', this.x + this.dir * (30 + k * 46), this.y - 100 - k * 10, { scale: 1.6 + k * 0.4, life: 14 });
           }
-          game.spawnBurst(dkey.replace('fx2:', 'abil:'), drow, this.x, this.y - 100, this.dir, 2.2);
-          game.floatText(this.x, this.y - 230, 'FENDA TEMPORAL', '#00FFFF');
+          game.spawnBurst(dkey.replace('fx2:', 'abil:').replace('-fx', ''), drow, this.x, this.y - 100, this.dir, 2.2);
+          if (p.id === 'fenda-temporal') game.floatText(this.x, this.y - 230, 'FENDA TEMPORAL', '#00FFFF');
         }
         /* NUNES — Avanço Flamejante: o rastro de chamas fica no chão. */
         if (p.fireTrail) {
