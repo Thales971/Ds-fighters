@@ -75,6 +75,7 @@ class Game {
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
     this.time = 0;
+    this.fightFrames = 0;
     this.netRole = this.cfg.netRole || null;
     this.reduced = Profile.reducedMotion();
     this.stageDef = this.pickStage(this.cfg.stage);
@@ -167,7 +168,7 @@ class Game {
         f.overclockCut = false;
         f.overclockUntil = 0;
         f.queue = [];
-        f.cd = [0, 0, 0, 0, 0];
+        f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         f.afo = 0;
         f.stunGauge = 0;
         f.benched = k !== 0;
@@ -303,7 +304,7 @@ class Game {
   registerHit(atk, victim, d, blocked, hitstop, counter) {
     this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
     if (!blocked) {
-      victim.redHp = Math.max(victim.hp, Math.min(victim.redHp, victim.hp + d * 0.5));
+      if (victim.redHp < victim.hp) victim.redHp = victim.hp;
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
@@ -331,7 +332,7 @@ class Game {
     }
     this.roundState = 'ko';
     this.roundStateTime = 0;
-    this.slowmo = this.reduced ? 20 : 70;
+    this.slowmo = this.reduced ? 20 : 108;
     const wt = 1 - loser.team;
     this.teamWins[wt]++;
     const winner = this.activeOf(wt);
@@ -449,6 +450,7 @@ class Game {
   tick() {
     if (!this.running || this.paused) return;
     this.time++;
+    this.fightFrames = (this.fightFrames || 0) + 1;
     if (this.netRole === 'guest') { this.guestTick(); return; }
     if (this.freeze > 0) {
       this.freeze--;
@@ -670,7 +672,8 @@ class Game {
     const result = {
       winner,
       wins: this.teamWins.slice(),
-      teams: this.teams.map((t) => t.members.map((m) => ({ id: m.def.id, name: m.def.name, dmg: Math.round(m.stats.dmg), combo: m.stats.maxCombo, hits: m.stats.hits }))),
+      seconds: Math.round((this.fightFrames || 0) / 60),
+      teams: this.teams.map((t) => t.members.map((m) => ({ id: m.def.id, name: m.def.name, dmg: Math.round(m.stats.dmg), combo: m.stats.maxCombo, hits: m.stats.hits, ults: m.stats.ults || 0 }))),
       mode: this.mode,
     };
     if (this.netRole === 'host' && this.onNetEnd) this.onNetEnd(result);
@@ -850,7 +853,10 @@ class Game {
     const camX = (mid - W / 2) / (W / 2);
     let zoom = 1;
     if (this.freeze > 0 && !this.reduced) zoom = 1.06;
-    else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) zoom = 1.04;
+    else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) {
+      const age = Math.max(0, 108 - this.slowmo);
+      zoom = 1.18 - Math.min(0.12, age / 220);
+    }
     const sx = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
     const sy = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
     ctx.save();

@@ -217,9 +217,17 @@ const AudioSys = {
     src.connect(f).connect(g).connect(this.buses.sfx);
     src.start(t0);
   },
-  punch() { this.play('punch', { vol: 0.8 }) || (this.noise(0.08, 0.25, 0, 800), this.tone(180, 0.08, 'square', 0.12, 60)); },
-  kick() { this.play('kick', { vol: 0.8 }) || (this.noise(0.12, 0.3, 0, 400), this.tone(120, 0.12, 'sawtooth', 0.15, 40)); },
-  hit(heavy) { this.play(heavy ? 'heavy' : 'punch') || (this.noise(0.15, 0.28, 0, 600), this.tone(90, 0.15, 'square', 0.2, 40)); },
+  punch(vol = 0.85) { this.play('punch', { vol: vol }) || (this.noise(0.08, 0.25 * vol, 0, 800), this.tone(180, 0.08, 'square', 0.12 * vol, 60)); },
+  kick(vol = 0.9) { this.play('kick', { vol: vol }) || (this.noise(0.12, 0.3 * vol, 0, 400), this.tone(120, 0.12, 'sawtooth', 0.15 * vol, 40)); },
+  /* Assobio do golpe no ar. O impacto de verdade usa impact(). */
+  whiff(kind) { if (kind === 'kick') this.kick(0.34); else this.punch(0.3); },
+  impact(kind, heavy, ult) {
+    if (ult) { this.super_(); return; }
+    if (heavy) { this.play('heavy', { vol: 0.95 }) || this.hit(true); return; }
+    if (kind === 'kick') this.kick(1);
+    else this.punch(1);
+  },
+  hit(heavy) { this.play(heavy ? 'heavy' : 'punch', { vol: heavy ? 0.95 : 1 }) || (this.noise(0.15, 0.28, 0, 600), this.tone(90, 0.15, 'square', 0.2, 40)); },
   block() { this.play('block') || this.tone(300, 0.06, 'square', 0.1, 200); },
   special() { this.play('magic') || this.tone(500, 0.25, 'sawtooth', 0.15, 1400); },
   super_() { this.play('ultimate') || this.tone(200, 0.5, 'sawtooth', 0.18, 1600); },

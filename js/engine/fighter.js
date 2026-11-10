@@ -94,7 +94,7 @@ class Fighter {
     this.rush = null;
     this.benched = false;
     this.lastInput = EMPTY_INPUT;
-    this.stats = { dmg: 0, maxCombo: 0, hits: 0 };
+    this.stats = { dmg: 0, maxCombo: 0, hits: 0, ults: 0 };
     this.pet = opts.pet || PETS[0];
     this.applyPet();
   }
@@ -474,9 +474,14 @@ class Fighter {
       if (atk.pfx.burnOnHit && atk.petHitCounter % 4 === 0) this.addStatus('burn', atk.pfx.burnOnHit, atk);
       if (atk.pfx.explodeOnHit && atk.petHitCounter % 5 === 0) { this.chip(atk.pfx.explodeOnHit, atk); this.game.spawnBurst('fire', 3, this.x, this.y - 90, 1, 2.2); }
     }
-    game.audio.hit(d >= 13);
-    game.shake(Math.min(12, d >= 14 ? 8 : 4));
-    game.registerHit(atk, this, d, false, o.hitstop || (d >= 14 ? 8 : 5), counter);
+    const ultHit = !!(o.power && o.power.slot === 'ultimate');
+    const heavyHit = !!(ultHit || o.heavy || (o.ability && d >= 12) || d >= 16);
+    const kindHit = (atk && atk.attack && String(atk.attack.kind || '').includes('kick')) ? 'kick' : 'punch';
+    game.audio.impact(kindHit, heavyHit, ultHit);
+    const stop = ultHit ? 20 : heavyHit ? 13 : (o.hitstop || 6);
+    game.shake(ultHit ? 16 : heavyHit ? 11 : 5);
+    if (heavyHit) game.spawnBurst(ultHit ? 'fire' : 'impact', ultHit ? 3 : 2, this.x, this.y - 100, sign || this.dir || 1, ultHit ? 2.6 : 1.9);
+    game.registerHit(atk, this, d, false, stop, counter);
     if (atk) atk.gain(true);
     this.gain(false);
     // tontura
@@ -741,7 +746,9 @@ class Fighter {
     const q = ult ? this.def.quotes.super : this.def.quotes.special;
     if (q && q.length && (ult || (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4)) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
     if (ult) {
+      this.stats.ults = (this.stats.ults || 0) + 1;
       game.superFreeze(this, p);
+      if (p.sfx !== 'ultimate') game.audio.super_();
       game.audio.voice('ultimate');
     }
     game.events.push({ t: 'cast', who: this.slot, name: this.powerLabel(p) });
@@ -1133,8 +1140,7 @@ class Fighter {
       this.dir = t.x >= this.x ? 1 : -1;
       if (dist > 90 && dist < 320) this.vx = this.dir * Math.min(12, (dist - 70) / 4);
     }
-    if (kind.includes('kick')) this.game.audio.kick();
-    else this.game.audio.punch();
+    this.game.audio.whiff(kind.includes('kick') ? 'kick' : 'punch');
   }
   checkMelee(mv) {
     if (this.hasHit) return;
@@ -1257,6 +1263,13 @@ class Fighter {
     // efeitos contínuos
     if (this.alive && !this.benched) {
       if (this.has('nanomachines')) this.nanoElectricPulse();
+      if (this.redHp > this.hp + 0.3) {
+        this._ghostWait = (this._ghostWait == null ? 16 : this._ghostWait) - 1;
+        if (this._ghostWait <= 0) this.redHp = Math.max(this.hp, this.redHp - Math.max(0.55, (this.redHp - this.hp) * 0.045));
+      } else {
+        this.redHp = this.hp;
+        this._ghostWait = 16;
+      }
       if (this.has('burn') && this.frame % 20 === 0) this.chip(0.9, this.statusSource.burn);
       if (this.has('poison') && this.frame % 24 === 0) this.chip(0.8, this.statusSource.poison);
       if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
