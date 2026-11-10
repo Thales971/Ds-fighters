@@ -3,6 +3,12 @@
   "framework": null,
   "buildCommand": null,
   "cleanUrls": false,
+  "crons": [
+    {
+      "path": "/api/keepalive",
+      "schedule": "30 15 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

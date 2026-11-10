@@ -1,5 +1,46 @@
 # Supabase no DS Fighters
 
+## Batimento — o que rodar uma vez
+
+O plano gratuito pausa o projeto depois de cerca de 7 dias sem atividade no banco. Bater só em `/auth/v1/settings` não conta. O keep-alive grava de verdade: a função `ds_fighters_touch()` soma 1 em `public.ds_fighters_keepalive` e devolve o horário.
+
+A função **já foi criada** no projeto `ownxbuailthavxgfxtem` em 10/11/2026. Você não precisa colar o SQL de novo, a menos que recrie o projeto. O arquivo `supabase/migrations/20261110_ds_fighters_keepalive.sql` é a cópia: cole ele inteiro no [SQL Editor](https://supabase.com/dashboard/project/ownxbuailthavxgfxtem/sql/new) e aperte Run se um dia a função sumir. Sem essa função, o workflow e o cron falham de propósito.
+
+Confirme na hora, trocando a chave pela publicável de `js/config/supabase-config.js` (não use `service_role`):
+
+```bash
+curl -sS -X POST \
+  'https://ownxbuailthavxgfxtem.supabase.co/rest/v1/rpc/ds_fighters_touch' \
+  -H 'apikey: SUA_CHAVE_PUBLICAVEL' \
+  -H 'Authorization: Bearer SUA_CHAVE_PUBLICAVEL' \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+A resposta é um horário ISO, por exemplo `"2026-11-10T12:15:00+00:00"`. Em seguida:
+
+```bash
+curl -sS \
+  'https://ownxbuailthavxgfxtem.supabase.co/rest/v1/ds_fighters_keepalive?select=touched_at,hits' \
+  -H 'apikey: SUA_CHAVE_PUBLICAVEL' \
+  -H 'Authorization: Bearer SUA_CHAVE_PUBLICAVEL'
+```
+
+`hits` sobe a cada chamada. Se o projeto estiver pausado, o curl (e o workflow) falha com mensagem **PAUSADO** — restaure o projeto no painel e rode de novo.
+
+### O que dispara sozinho depois do SQL
+
+| Camada | Quando | Onde |
+|---|---|---|
+| GitHub Actions | todo dia 12:15 UTC, e quando você quiser | `.github/workflows/supabase-keepalive.yml` |
+| Vercel Cron | todo dia 15:30 UTC | `vercel.json` → `GET /api/keepalive` |
+
+O cron do GitHub só roda na branch padrão (`main`), depois que este PR estiver mergeado. Para testar antes: Actions → **Supabase keep-alive** → **Run workflow** (`workflow_dispatch`). O passo `node tools/supabase_keepalive.js` sai com código 1 se o banco não responder ou se o projeto estiver pausado.
+
+Não precisa de segredo. A chave publicável já está em `js/config/supabase-config.js` e é a mesma que o navegador usa. Se um dia quiser apontar para outro projeto sem editar o arquivo, crie os secrets **`SUPABASE_URL`** e **`SUPABASE_PUBLISHABLE_KEY`** no repositório (Settings → Secrets and variables → Actions). Os dois juntos substituem o arquivo. Não coloque `service_role` em lugar nenhum.
+
+No plano Hobby da Vercel o cron só pode ser diário. Por isso o agendamento é `30 15 * * *`, não a cada hora. As duas camadas são de propósito: se uma falhar, a outra ainda grava no mesmo dia.
+
 O proprietário autorizou compartilhar e reativar **supabase-aero-ball**, ref. `ownxbuailthavxgfxtem`, em 01/11/2026. O projeto voltou a `ACTIVE_HEALTHY`. A migração cria somente objetos com prefixo `ds_fighters_`; as tabelas e dados anteriores não foram substituídos.
 
 ## Banco e segurança

@@ -45,7 +45,7 @@ body.mobile .custom-rules select { flex: 1; min-width: 160px; }
 body.mobile .sel-head { position: relative; padding: 4px 0 12px; }
 body.mobile .sel-mode { font-size: 9px; line-height: 1.7; }
 body.mobile .sel-layout { position: static; display: flex; flex-direction: column; gap: 14px; }
-body.mobile .sel-grid-wrap { order: -1; display: block; }
+body.mobile .sel-grid-wrap { order: -1; display: block; height: auto; overflow: visible; }
 body.mobile .sel-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 4px; }
 body.mobile .cell { width: 100%; height: auto; min-height: 64px; padding: 3px; }
 body.mobile .cell .face { width: 100%; height: auto; aspect-ratio: 1; }

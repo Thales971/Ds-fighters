@@ -1,0 +1,23 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # Todo dia às 12:15 UTC. O cron do GitHub só dispara na branch padrão.
+    - cron: '15 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  touch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Gravar atividade no Postgres
+        env:
+          # Opcional. Sem o segredo, o script usa a chave publicável já
+          # commitada em js/config/supabase-config.js.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: node tools/supabase_keepalive.js
