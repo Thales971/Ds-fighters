@@ -368,7 +368,22 @@ class Fighter {
   }
 
   /* ---------- receber dano ---------- */
+  /* Escala de dano em combo: 100% -> 85% -> 72% -> 62% -> 55% (piso).
+     Recompensa o "opening" em vez de punir 40% de vida por um erro. */
+  comboScale() {
+    const c = (this.comboCount || 0);
+    return c <= 0 ? 1 : c === 1 ? 0.85 : c === 2 ? 0.72 : c === 3 ? 0.62 : 0.55;
+  }
   takeHit(dmg, o = {}) {
+    /* escala: dano cai se a vitima ja leva sequencia do MESMO agressor */
+    const aggr = o.attacker || null;
+    if (aggr && this.hitstun > 0 && this.lastHitBy === aggr) {
+      this.comboCount = Math.min(6, (this.comboCount || 0) + 1);
+      dmg = dmg * this.comboScale();
+    } else if (this.hitstun <= 0) {
+      this.comboCount = 0;
+    }
+    if (aggr) this.lastHitBy = aggr;
     if (!this.alive || this.benched) return false;
     const atk = o.attacker || null;
     const unblockable = o.height === 'unblockable';
@@ -764,7 +779,10 @@ class Fighter {
         let sp = p.speed || 13;
         if (seek && tgt) this.dir = tgt.x >= this.x ? 1 : -1;
         this.vx = this.dir * sp;
-        this.dashHit = { p, t: p.phase ? 18 : 16 };
+        /* FIX: a janela de hit do dash cobre pelo menos 260px — antes, dashes
+           lentos expiravam ANTES de alcançar o alvo (dano zero). */
+        const dashNeed = Math.ceil(260 / Math.max(4, sp));
+        this.dashHit = { p, t: Math.max(p.phase ? 18 : 16, dashNeed) };
         /* Dash com arte própria (PONTEIRO — Fenda Temporal): rastro com a
            arte da habilidade + afterimages ciano ao longo do blink. */
         if (p.visualSheet) {
@@ -1523,6 +1541,9 @@ class Fighter {
     if (this.dashHit) {
       this.dashHit.t--;
       const p = this.dashHit.p;
+      /* FIX: velocidade CONSTANTE durante a janela do dash — antes o atrito
+         matava o vx em ~113px e dashes nunca alcançavam o alvo. */
+      this.vx = this.dir * (p.speed || 13);
       if (!this.hasHit) {
         for (const t of this.game.opponentsOf(this)) {
           const hb = { x: this.x - 50, y: this.y - 150, w: 100, h: 130 };

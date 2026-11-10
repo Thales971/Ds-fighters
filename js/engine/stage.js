@@ -33,7 +33,7 @@ class StageRenderer {
       try {
         const img = new Image();
         img.onload = () => { this.ambSprites[k] = img; };
-        img.src = src + '?v=v35-ambience';
+        img.src = src + '?v=v36-balance13';
       } catch (e) { /* sem DOM: fallback vetorial */ }
     }
     this.fauna = [];
