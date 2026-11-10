@@ -213,15 +213,23 @@ const Profile = {
     this.data = this._normalize(this.data || this.load());
     const c = String(code || '').trim().toLowerCase();
     if (!c) return { ok: false, msg: 'Digite um código.' };
-    if (c === 'adm') {
-      const admIds = ['iales', 'du', 'felipinho'];
-      const fresh = admIds.filter((id) => !this.data.unlocked.includes(id));
-      if (!fresh.length) return { ok: true, already: true, msg: 'IALES, DU e FELIPINHO já estão liberados.', ids: admIds };
+    /* ADM é o código padrão. BATATA nasceu para liberar o QWEN; o QWEN
+       entrou no elenco normal, então BATATA ficou como apelido e libera
+       os mesmos secretos que ainda pedem código (Du, Iales, Felipinho). */
+    if (c === 'adm' || c === 'batata') {
+      const ids = this.BATATA_IDS.slice();
+      const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
+      const names = (list) => list.map((id) => ((typeof FIGHTERS !== 'undefined' && FIGHTERS.find((f) => f.id === id)) || { name: id.toUpperCase() }).name).join(', ');
+      if (!fresh.length) {
+        const extra = c === 'batata' ? ' QWEN já entra sem código.' : '';
+        return { ok: true, already: true, msg: 'IALES, DU e FELIPINHO já estão liberados.' + extra, ids };
+      }
       this.data.unlocked.push(...fresh);
       this.save();
-      return { ok: true, msg: 'Desbloqueados: ' + fresh.map((id) => ((typeof FIGHTERS !== 'undefined' && FIGHTERS.find((f) => f.id === id)) || { name: id.toUpperCase() }).name).join(', ') + '!', ids: fresh };
+      const lead = c === 'batata' ? 'QWEN já é lutador padrão. BATATA liberou: ' : 'Desbloqueados: ';
+      return { ok: true, msg: lead + names(fresh) + '!', ids: fresh };
     }
-    return { ok: false, msg: 'Código inválido — o código padrão é ADM.' };
+    return { ok: false, msg: 'Código inválido. Os códigos são ADM e BATATA.' };
   },
 
   setting(k, v) {

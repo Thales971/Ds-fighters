@@ -6,8 +6,8 @@
   <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>DS Fighters — Edição V12</title>
-  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 40 lutadores, 5 habilidades cada, 46 arenas animadas, 2x2 e online." />
+  <title>DS Fighters — Edição V20</title>
+  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 42 lutadores selecionáveis, 5 habilidades cada (IALES até 10), 47 arenas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
   <script>
     (async () => {
@@ -22,7 +22,7 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v36-balance13" />
+  <link rel="stylesheet" href="css/style.css?v=v36-portraits1" />
   <link rel="stylesheet" href="css/account.css?v=v36-balance13" />
   <link rel="stylesheet" href="css/mobile.css?v=v36-balance13" />
 </head>
@@ -67,7 +67,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
-      <p class="tagline">EDIÇÃO V12 · 40 LUTADORES · 46 ARENAS · TORNEIO VERCEL EM ATIVAÇÃO</p>
+      <p class="tagline">EDIÇÃO V20 · 42 LUTADORES · 47 ARENAS</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
       <p class="credit">Arte e código originais · Música enviada pelo proprietário · Jogo gratuito</p>
@@ -316,6 +316,7 @@
           <h3 id="tourney-title">TORNEIO ONLINE · 2–32 PARTICIPANTES</h3>
           <p class="sub">Com o armazenamento ativado, inscrições e chave ficam persistidas no Redis vinculado à Vercel. Cada confronto continua sendo uma partida P2P 1 × 1. Sem login Google.</p>
           <p class="tourney-status info" id="tourney-status" role="status" aria-live="polite">Verificando serviço de torneio…</p>
+          <button class="nav btn" id="tourney-retry" type="button" hidden>TENTAR DE NOVO</button>
           <p class="sub small">Ativação pelo proprietário do projeto: <a href="https://vercel.com/integrations/upstash" target="_blank" rel="noopener noreferrer">conectar Upstash Redis na Vercel</a>. Depois, faça redeploy.</p>
           <div class="tourney-home" id="tourney-home">
             <div class="tourney-create-box">
@@ -353,7 +354,7 @@
     </section>
 
     <div id="fps" class="fps" hidden>-- FPS</div>
-    <div id="build" class="build">build spritefix-4x15b</div>
+    <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
         <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
@@ -407,12 +408,12 @@
   </script>
   <script src="assets/stages/sheets.js?v=v36-balance13"></script>
   <script src="assets/maps/anim.js?v=v36-balance13"></script>
-  <script src="js/core/profile.js?v=v36-balance13"></script>
+  <script src="js/core/profile.js?v=v36-portraits1"></script>
   <script src="js/config/firebase-config.js?v=v36-balance13"></script>
   <script src="js/core/cloud.js?v=v36-balance13"></script>
   <script src="js/config/supabase-config.js?v=v36-balance13"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=v36-balance13"></script>
+  <script src="js/core/supabase-cloud.js?v=v36-portraits1"></script>
   <script src="js/data/fighters.js?v=v36-balance13"></script>
   <script src="js/data/fighters-v10.js?v=v36-balance13"></script>
   <script src="js/data/fighters-v11.js?v=v36-balance13"></script>
@@ -422,7 +423,7 @@
   <script src="js/data/powers-v5.js?v=v36-balance13"></script>
   <script src="js/data/powers-v6.js?v=v36-balance13"></script>
   <script src="js/data/powers-balance-v6.js?v=v36-balance13"></script>
-  <script src="js/data/powers-v7.js?v=v36-balance13"></script>
+  <script src="js/data/powers-v7.js?v=v36-portraits1"></script>
   <script src="js/data/powers-v8.js?v=v36-balance13"></script>
   <script src="js/data/powers-v9.js?v=v36-balance13"></script>
   <script src="js/data/powers-v10.js?v=v36-balance13"></script>
@@ -461,9 +462,10 @@
   <script src="js/net/room-core.js?v=v36-balance13"></script>
   <script src="js/net/online.js?v=v36-balance13"></script>
   <script src="js/ui/hud.js?v=v36-balance13"></script>
-  <script src="js/ui/ui.js?v=v36-balance13"></script>
-  <script src="js/ui/account.js?v=v36-balance13"></script>
+  <script src="js/data/roster-portraits.js?v=v36-portraits1"></script>
+  <script src="js/ui/ui.js?v=v36-portraits1"></script>
+  <script src="js/ui/account.js?v=v36-portraits1"></script>
   <script src="js/main.js?v=v36-balance13"></script>
-  <script src="js/net/tournament.js?v=v36-balance13"></script>
+  <script src="js/net/tournament.js?v=v36-portraits1"></script>
 </body>
 </html>

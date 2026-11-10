@@ -26,7 +26,7 @@ Preencha Client ID e Client Secret somente no [provedor Google do Supabase](http
 
 Adicione a URL real do DS Fighters a Authentication → URL Configuration → **Redirect URLs**. Não substitua o Site URL nem remova redirects do Aero Ball. O cliente volta a `location.origin + location.pathname`; o retorno precisa estar autorizado. Não use curingas amplos nem uma URL temporária como publicação definitiva.
 
-Enquanto Google estiver desativado, o cartão mostra **GOOGLE AGUARDANDO CONFIGURAÇÃO**. O jogo continua salvando localmente. Para usar o Firebase opcional em vez do Supabase, defina `DS_SUPABASE_CONFIG = null`.
+Enquanto Google estiver desativado, o cartão mostra **GOOGLE AGUARDANDO CONFIGURAÇÃO**. Se o host do projeto nem responder (projeto pausado, DNS ou `ERR_CONNECTION_CLOSED` em `ownxbuailthavxgfxtem.supabase.co`), o cartão mostra **NUVEM INDISPONÍVEL** e um botão **TENTAR DE NOVO**. O jogo continua salvando localmente nos dois casos. Reative o projeto no painel do Supabase antes de esperar o login funcionar. Para usar o Firebase opcional em vez do Supabase, defina `DS_SUPABASE_CONFIG = null`.
 
 ## Verificação
 

@@ -92,7 +92,12 @@ async function testAccountIsolationAndMerge() {
   assert.deepEqual({ ...Profile.data.stats }, { fights: 4, wins: 2, bestArcade: 3, maxCombo: 8 });
 
   assert.doesNotThrow(() => Profile.applyCloud({ profile: { unlocked: {}, pets: null, stats: { fights: 'bad' } } }), 'malformed remote data must not crash the profile');
-  assert.ok(Profile.SECRET_IDS.includes('qwen'), 'Batata must include Qwen in the profile secret set');
+  assert.ok(!Profile.SECRET_IDS.includes('qwen'), 'Qwen is a normal fighter and is not part of the secret set');
+  assert.deepEqual(Array.from(Profile.BATATA_IDS).sort(), ['du', 'felipinho', 'iales'], 'batata targets the remaining secret trio');
+  const batata = Profile.redeem('batata');
+  assert.equal(batata.ok, true, 'batata still redeems');
+  assert.ok(batata.ids.every((id) => Profile.BATATA_IDS.includes(id)) && !batata.ids.includes('qwen'), 'batata only unlocks the secret trio');
+  assert.ok(Profile.BATATA_IDS.every((id) => Profile.isUnlocked(id)), 'batata leaves Du, Iales and Felipinho unlocked');
   Cloud._deps = { firestoreFns: { serverTimestamp: () => ({ mocked: true }) } };
   const payload = Cloud._payload({ uid: 'account-b', displayName: 'Account B' });
   assert.equal(Object.prototype.hasOwnProperty.call(payload.profile.settings, 'serverUrl'), false);

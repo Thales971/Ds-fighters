@@ -133,6 +133,7 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .sel-grid { display: grid; grid-template-columns: repeat(7, 54px); gap: 5px; }
 .cell { position: relative; width: 54px; height: 70px; padding: 0; border: 3px solid #3a2766; background: linear-gradient(#2a1650, #120a24); cursor: pointer; color: #fff; overflow: visible; }
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
+.cell .face.roster-portrait { background-color: transparent; image-rendering: pixelated; animation: none; }
 .cell .face.roster-sprite { background-size: 492.3077% 1500%; background-position: 2.941176% 0; background-repeat: no-repeat; animation: rosterIdle .8s steps(4) infinite; }
 .cell .face.roster-sprite + .nm { padding-top: 4px; }
 .cell .face.roster-sprite-4x8 { background-size: 492.3077% 1500%; }
@@ -497,6 +498,7 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .tourney-panel input, .tourney-panel select { font-size: 12px; }
 .tourney-panel :where(button, a, input, select):focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tourney-panel [hidden] { display: none !important; }
+.tourney-panel.is-offline .tourney-home { display: none; }
 .tourney-status { margin: 8px 0; padding: 8px; border: 1px dashed #3a2766; color: #cbbbe8; font-size: 12px; line-height: 1.55; }
 .tourney-status.ok { color: var(--lime); border-color: #2a6a3a; }
 .tourney-status.warn { color: #ffb03b; border-color: #6a4a1a; }
