@@ -627,10 +627,10 @@ class Fighter {
     }
     if (p.slot === 'charge') {
       const v = this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter];
-      return { ready: v >= 100, pct: v / 100, p };
+      return { ready: v >= 100 && this.cd[i] <= 0, pct: v / 100, p };
     }
     const needOk = !p.needAfo || this.afo >= p.needAfo;
-    return { ready: this.ultimate >= 100 && needOk, pct: this.ultimate / 100, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
+    return { ready: this.ultimate >= 100 && needOk && this.cd[i] <= 0, pct: this.ultimate / 100, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
   }
   canAct() {
     return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched && !this.has('paralyze');
@@ -675,8 +675,19 @@ class Fighter {
     if (p.slot === 'simple' || p.slot === 'extra') {
       this.cd[i] = Math.max(130, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1));
     }
-    else if (p.slot === 'charge') this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
-    else this.ultimate = 0;
+    /* BUG FIX (anti-spam furado em certos modos): habilidades de CARGA e
+       ULTIMATE dependiam só do medidor — no treino (medidores infinitos) e
+       em qualquer modo com recarga acelerada elas saiam a cada 50 frames.
+       Agora TODA habilidade tem um piso de recarga por habilidade:
+       carga >= 90f, ultimate >= 150f — em TODOS os modos. */
+    else if (p.slot === 'charge') {
+      this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
+      this.cd[i] = Math.max(90, (p.cd || 45));
+    }
+    else {
+      this.ultimate = 0;
+      this.cd[i] = 150;
+    }
     this.cast = { p, i, t: 0, fired: false };
     this.state = 'cast';
     this.stateTime = 0;
