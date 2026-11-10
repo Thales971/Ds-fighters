@@ -9,7 +9,7 @@ const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 —
 
 /* Busto do atlas gerado (tools/build_roster_portraits.py). A célula da
    seleção tem 48px; cada retrato no atlas tem 96px. */
-function rosterPortraitStyle(id) {
+function rosterPortraitStyle(id, px) {
   const book = typeof ROSTER_PORTRAITS !== 'undefined' ? ROSTER_PORTRAITS : null;
   const order = book && Array.isArray(book.order) ? book.order : null;
   const idx = order ? order.indexOf(id) : -1;
@@ -18,9 +18,9 @@ function rosterPortraitStyle(id) {
   const rows = Math.ceil(order.length / cols);
   const col = idx % cols;
   const row = (idx / cols) | 0;
-  const px = 48;
+  const cell = px || 48;
   const src = `${book.file}?v=${book.version || 'v36-portraits1'}`;
-  return `background-image:url(${src});background-size:${cols * px}px ${rows * px}px;background-position:${-col * px}px ${-row * px}px;background-repeat:no-repeat`;
+  return `background-image:url(${src});background-size:${cols * cell}px ${rows * cell}px;background-position:${-col * cell}px ${-row * cell}px;background-repeat:no-repeat`;
 }
 const UI = {
   hud: HUD,
@@ -415,11 +415,11 @@ const UI = {
       ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
       <p class="bio">${d.bio}</p>
       ${d.quotes && d.quotes.intro && d.quotes.intro.length ? `<div class="quotes">“${d.quotes.intro[0]}”</div>` : ''}
-      <div class="statbars">${bar('PODER', st.power, 1.6)}${bar('VELOC.', st.speed, 1.45)}${bar('PESO', st.weight, 1.3)}${bar('VIDA', st.hp || 100, 150)}</div>
+      <div class="statbars">${bar('FORÇA', st.power, 1.7)}${bar('VELOC.', st.speed, 1.5)}${bar('ALCANCE', (d.moves && d.moves.kick && d.moves.kick.range) || 64, 96)}</div>
       <div class="theme">${kit ? kit.theme : ''}${kit && kit.autoAim ? ' · <b>AUTO AIM</b>' : ''}</div>
-      <ul class="kit">${(kit ? kit.powers : []).map((p, i) => `
+      <ul class="kit">${(kit ? kit.powers : []).slice(0, d.id === 'iales' ? 10 : 5).map((p, i) => `
         <li class="${p.slot}"><span class="ico" style="${Art.css('abil:' + d.id, p.row, 1, 34)}"></span>
-          <span class="tx"><b>${p.name}</b><small>${SLOT_NAMES[p.slot]} · ${KIND_NAMES[p.kind] || ''}</small></span>
+          <span class="tx"><b>${p.name}</b><small>${SLOT_NAMES[p.slot] || p.slot} · ${KIND_NAMES[p.kind] || ''}</small><em>${p.desc || ''}</em></span>
           <kbd>${Input.label(keyFor, 'a' + i)}</kbd></li>`).join('')}</ul>`}`;
     const spr = el.querySelector('.big-sprite:not(.q):not(.locked)');
     if (spr) spr.classList.toggle('ready', f.done[ti]);
@@ -773,10 +773,11 @@ const UI = {
     const winIds = res.teams[wt].map((m) => m.id);
     const d = FIGHTERS.find((x) => x.id === winIds[0]);
     const q = d && d.quotes.win ? d.quotes.win[(Math.random() * d.quotes.win.length) | 0] : '';
+    const clock = res.seconds != null ? res.seconds + 's' : '—';
     this.$('res-body').innerHTML = `
-      <div class="res-win">${winIds.map((id) => `<div class="win-sprite" style="background-image:url(${SpriteGen.url(id)})"></div>`).join('')}<blockquote>“${q}”</blockquote></div>
-      <table class="res-table"><thead><tr><th>Time</th><th>Lutador</th><th>Dano</th><th>Acertos</th><th>Maior combo</th></tr></thead><tbody>
-      ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td></tr>`).join('')).join('')}
+      <div class="res-win">${winIds.map((id) => `<div class="win-sprite" style="background-image:url(${SpriteGen.url(id)})"></div>`).join('')}<div class="res-quote"><b>${d ? d.name : ''}</b><blockquote>“${q}”</blockquote><small>Tempo da luta ${clock}</small></div></div>
+      <table class="res-table"><thead><tr><th>Time</th><th>Lutador</th><th>Dano</th><th>Acertos</th><th>Combo</th><th>ULTs</th></tr></thead><tbody>
+      ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td><td>${m.ults || 0}</td></tr>`).join('')).join('')}
       </tbody></table>
       <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
     this.$('stage-wrap').classList.remove('on');
@@ -921,7 +922,8 @@ const UI = {
     const pick = this.$('moves-pick');
     pick.innerHTML = FIGHTERS.map((d) => {
       const lk = !Profile.isUnlocked(d.id);
-      return `<button class="nav mp${lk ? ' locked' : ''}" data-id="${d.id}" ${lk ? '' : `style="background-image:url(${SpriteGen.faceUrl(d.id)})"`} aria-label="${lk ? 'Bloqueado' : d.name}">${lk ? '?' : ''}</button>`;
+      const portrait = lk ? '' : rosterPortraitStyle(d.id, 48);
+      return `<button class="nav mp${lk ? ' locked' : ''}" data-id="${d.id}" ${portrait ? `style="${portrait}"` : ''} aria-label="${lk ? 'Bloqueado' : d.name}">${lk ? '?' : ''}</button>`;
     }).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);
@@ -929,6 +931,7 @@ const UI = {
       const lock = !Profile.isUnlocked(id);
       pick.querySelectorAll('.mp').forEach((b) => b.classList.toggle('on', b.dataset.id === id));
       this.$('moves-list').innerHTML = lock ? `<h3>???</h3><p>Lutador secreto. Resgate um código para ver as habilidades.</p>` : `
+        <div class="moves-hero" style="background-image:url(${SpriteGen.url(d.id)})"></div>
         <h3 style="--c:${d.colors.accent}">${d.name} <small>${d.title}</small></h3><p class="sub small">${kit.theme}${kit.autoAim ? ' · Todos os ataques com AUTO AIM' : ''}</p>
         <ul class="kit big">${kit.powers.map((p, i) => `<li class="${p.slot}"><span class="ico anim" style="${Art.css('abil:' + id, p.row, 0, 64)};--row:${p.row}"></span>
           <span class="tx"><b>${p.name}</b><small>${SLOT_NAMES[p.slot]} · ${KIND_NAMES[p.kind] || ''}${p.dmg ? ' · dano ' + p.dmg : ''}</small><em>${p.desc || ''}</em></span><kbd>${Input.label(0, 'a' + i)}</kbd></li>`).join('')}</ul>`;
