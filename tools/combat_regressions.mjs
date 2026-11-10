@@ -63,10 +63,7 @@ function makeGame() {
     texts: [],
     events: [],
     combo: { owner: null, count: 0, until: 0 },
-    audio: {
-      play() {}, sfx() {}, voice() {}, block() {}, hit() {}, land() {}, punch() {}, kick() {},
-      jump() {}, dash() {}, ko() {}, ensure() {},
-    },
+    audio: new Proxy({}, { get: () => () => {} }),
     fighters() { return this._fighters || []; },
     opponentsOf(f) { return this._fighters.filter((other) => other.team !== f.team && other.alive && !other.benched); },
     enemyOf(f) { return this._fighters.find((other) => other.team !== f.team && !other.benched) || null; },
