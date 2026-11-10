@@ -186,6 +186,15 @@ class Game {
     this.roundStateTime = 0;
     UI.hud.reset(this);
     UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[this.weather.kind]);
+    this.startAmbience();
+  }
+  startAmbience() {
+    const name = typeof stageAmbient === 'function' ? stageAmbient(this.stageDef) : null;
+    if (this._ambient && this._ambient !== name) AudioSys.loop(this._ambient, false);
+    this._ambient = name;
+    if (name) AudioSys.loop(name, true, 0.22);
+    AudioSys.setTension(false);
+    this._drama = false;
   }
   onWeather(kind) { if (this.stageDef) UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[kind]); }
   team(ti) { return this.teams[ti]; }
@@ -275,7 +284,10 @@ class Game {
     if (this.texts.length > 18) this.texts.shift();
     if (this.netRole === 'host') this.netFx.push(['t', Math.round(x), Math.round(y), text, color || '#fff']);
   }
-  shake(n) { if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n); }
+  shake(n) {
+    if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n);
+    if (n >= 8 && this.stage && this.stage.react) this.stage.react(n);
+  }
   say(f, text) { UI.hud.say(f.team, text); if (this.netRole === 'host') this.netFx.push(['s', f.team, text]); }
   announce(text, color, sub) { UI.banner(text, color, sub); if (this.netRole === 'host') this.netFx.push(['n', text, color, sub || '']); }
   drawWarnLabel(ctx, x, label) {
@@ -659,6 +671,8 @@ class Game {
     this._vertigoOn = false;
     this.weather.stop();
     this.mech.stop();
+    AudioSys.setTension(false);
+    this._ambient = null;
     AudioSys.stopLoops();
     const winner = this.teamWins[0] === this.teamWins[1] ? -1 : this.teamWins[0] > this.teamWins[1] ? 0 : 1;
     const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
@@ -856,6 +870,14 @@ class Game {
     else if (this.roundState === 'ko' && this.slowmo > 0 && !this.reduced) {
       const age = Math.max(0, 108 - this.slowmo);
       zoom = 1.18 - Math.min(0.12, age / 220);
+    }
+    const low = this.fighters().some((f) => f.alive && f.hp > 0 && f.hp / f.maxHp <= 0.3);
+    const finalRound = this.round >= (this.cfg.roundsToWin || 2);
+    const drama = !!(low || finalRound) && this.roundState !== 'intro';
+    if (this.stage) this.stage.drama = drama ? 1 : 0;
+    if (this._drama !== drama) {
+      this._drama = drama;
+      AudioSys.setTension(drama);
     }
     const sx = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;
     const sy = this.shakeMag ? ((this.rnd ? this.rnd() : Math.random()) - 0.5) * this.shakeMag : 0;

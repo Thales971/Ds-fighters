@@ -89,6 +89,12 @@ Campos que importam:
 | `tint` | Cor do pós-processamento |
 | `gravity`, `friction` | Física da arena |
 | `embers`, `sparks`, `petals`, `fireflies`, `bubbles`, `motes`, `neon`, `glitch`, `code` | Camada ambiente em `js/engine/stage.js` |
+| `layers` | `[{ src, speed, y }]`. Fundo, meio e frente em PNG, cada um com parallax próprio. Sem isso, o motor fatia a imagem única em três faixas |
+| `props` | `[{ cell, x, y, fall, flash }]`. Célula de `assets/fx/stage-props.png` (48×64). `flash` acende no golpe forte; `fall` despenca. Sem a lista, o palco ganha luzes, público e um caixote nas bordas |
+| `ambient` | Nome do MP3 em `assets/audio/sfx/` (também listado em `SFX_FILES`). Sem o campo, `stageAmbient()` escolhe um laço pelo id |
+| `pixel` | Desliga o smoothing quando as camadas são pixel art |
+
+Golpe com tremor ≥ 8 chama `stage.react`: luzes piscam, o público treme e o objeto marcado `fall` cai. No round final, ou com alguém a 30% da vida ou menos, o palco escurece, a chuva de `assets/fx/rain-streaks.png` entra e a música vai a 1,12×. Isso vale para todo palco, inclusive os que não declaram `layers`.
 
 O id também precisa estar na lista de arenas que a sala online aceita (o núcleo valida arena). Hoje isso segue o catálogo carregado no cliente; o servidor dedicado tem cópia manual do núcleo.
 

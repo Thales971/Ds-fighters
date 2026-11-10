@@ -7,7 +7,7 @@
      assets/music/rock/ e liste em "tracks". Sem faixas próprias, usa "fallback".
    - Nada toca antes do primeiro gesto do jogador (política dos navegadores).
    ============================================================ */
-const SFX_FILES = ['axe', 'bees_loop', 'block', 'crowd', 'dash', 'dragon', 'explosion', 'fire', 'hazard', 'heavy', 'jump', 'kick', 'ko', 'magic', 'menu_back', 'menu_move', 'menu_ok', 'pickup', 'punch', 'rain_loop', 'shield', 'steal', 'thunder', 'thunder_cast', 'ultimate', 'unlock', 'water', 'whoosh', 'wind_loop'];
+const SFX_FILES = ['axe', 'bees_loop', 'block', 'crowd', 'dash', 'dragon', 'explosion', 'fire', 'hazard', 'heavy', 'jump', 'kick', 'ko', 'magic', 'menu_back', 'menu_move', 'menu_ok', 'pickup', 'punch', 'rain_loop', 'shield', 'steal', 'thunder', 'thunder_cast', 'ultimate', 'unlock', 'water', 'whoosh', 'wind_loop', 'amb_gym', 'amb_workshop', 'amb_metro', 'amb_rain', 'amb_park', 'amb_cafe', 'amb_server', 'amb_market', 'amb_night', 'amb_sesi'];
 const VOICE_FILES = ['choose', 'combo', 'draw', 'fight', 'ko', 'perfect', 'powerup', 'round1', 'round2', 'round3', 'stolen', 'storm', 'timeup', 'title', 'ultimate', 'unlocked', 'youlose', 'youwin'];
 
 const AudioSys = {
@@ -295,5 +295,9 @@ const AudioSys = {
     this.musicKind = null;
   },
   flushPending() { if (this.pending) { const k = this.pending; this.pending = null; this.playMusic(k); } },
+  setTension(on) {
+    if (!this.music) return;
+    try { this.music.playbackRate = on ? 1.12 : 1; } catch (e) { /* o elemento recusou a taxa */ }
+  },
 };
 AudioSys.init();
