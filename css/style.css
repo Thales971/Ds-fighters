@@ -67,9 +67,9 @@ body.reduced .press-start { animation: none; }
 .stats-card b { color: var(--cyan); }
 
 /* ---------- painéis genéricos ---------- */
-.panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 420px; max-height: 510px; overflow: auto; background: var(--panel); border: 4px solid var(--line); box-shadow: 0 0 0 4px #000, 10px 10px 0 rgba(0,0,0,.6), inset 0 0 40px rgba(178,107,255,.15); padding: 18px 22px; text-align: center; scrollbar-width: thin; }
+.panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 420px; max-height: min(510px, calc(100vh - 24px)); overflow: auto; background: var(--panel); border: 4px solid var(--line); box-shadow: 0 0 0 4px #000, 10px 10px 0 rgba(0,0,0,.6), inset 0 0 40px rgba(178,107,255,.15); padding: 18px 22px; text-align: center; scrollbar-width: thin; scrollbar-color: #ffd27d #160a28; }
 .panel.wide { width: 860px; }
-.panel.tall { height: 510px; }
+.panel.tall { height: min(510px, calc(100vh - 24px)); }
 .panel h2 { margin: 0 0 12px; font-size: 18px; color: var(--gold); text-shadow: 3px 3px 0 #a1271c; }
 .sub { font-size: 8px; color: #c9b8ff; line-height: 1.6; }
 .sub.small { font-size: 7px; }
@@ -145,7 +145,7 @@ body.reduced .cell .face.roster-sprite { animation: none; }
 .cell .face.q { display: grid; place-items: center; font-size: 24px; color: var(--gold); }
 /* Lutador travado: NENHUMA foto aparece — so o misterio (pedido do dono). */
 .nav.mp.locked { background-image: none !important; display: grid; place-items: center; font-size: 20px; color: var(--gold); filter: grayscale(1) brightness(0.6); }
-.cell .nm { display: block; font-size: 5px; padding-top: 4px; white-space: nowrap; overflow: hidden; }
+.cell .nm { display: block; font-size: 5px; padding: 4px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cell.secret { border-color: #7a5a1a; background: linear-gradient(#4a2a0a, #1a0a04); }
 .cell.locked .face { filter: brightness(0) drop-shadow(0 0 2px #6b4fb3); }
 .cell .lk { position: absolute; inset: 0; display: grid; place-content: center; font-size: 16px; text-align: center; }
@@ -256,7 +256,10 @@ body.reduced .pet-spr { animation: none; }
 .moves-keys th { color: var(--cyan); }
 .moves-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 8px 0; }
 .mp { width: 48px; height: 48px; background-color: #1a1038; background-repeat: no-repeat; border: 2px solid #3a2766; cursor: pointer; image-rendering: pixelated; }
-.moves-hero { width: 160px; height: 130px; margin: 4px auto 0; background-repeat: no-repeat; background-size: 640px 1950px; background-position: 0 0; image-rendering: pixelated; animation: idle4 .8s steps(4) infinite; }
+.moves-keys { max-height: 96px; overflow: auto; text-align: left; }
+.moves-pick { max-height: 112px; overflow: auto; }
+.moves-list { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; align-items: start; text-align: left; }
+.moves-hero { width: 160px; height: 130px; margin: 0; grid-row: 1 / span 4; position: sticky; top: 0; background-repeat: no-repeat; background-size: 640px 1950px; background-position: 0 0; image-rendering: pixelated; animation: idle4 .8s steps(4) infinite; }
 .mp.on, .mp:focus { border-color: var(--gold); }
 .moves-list { text-align: left; }
 .moves-list h3 { color: var(--c); font-size: 11px; margin: 4px 0; }
@@ -468,12 +471,14 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .sel-card .quotes { margin: 4px 0 0; font-size: 6px; line-height: 1.5; color: #8fd9a8; font-style: italic; max-height: 24px; overflow: hidden; }
 .sel-card .trait { margin: 4px 0 2px; padding: 4px 6px; }
 .sel-card .trait small { font-size: 6px; }
-.sel-card .kit li { padding-top: 2px; padding-bottom: 2px; }
+.sel-card .big-sprite { margin-top: -78px; margin-bottom: -132px; }
+.sel-card .kit .ico { width: 22px; height: 22px; }
+.sel-card .kit li { padding-top: 1px; padding-bottom: 1px; }
 .lp b { line-height: 1.6; display: block; }
 .lp .faces i { width: 36px; height: 36px; }
 
 /* Regras locais usam a mesma linguagem visual do lobby. */
-.main-menu { max-height: 354px; overflow-y: auto; overflow-x: hidden; padding-right: 10px; scrollbar-width: thin; touch-action: pan-y; }
+.main-menu { top: 196px; bottom: 36px; max-height: none; overflow-y: auto; overflow-x: hidden; padding-right: 8px; scrollbar-width: thin; scrollbar-color: #ffd27d #160a28; touch-action: pan-y; }
 .custom-rules { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 18px 24px; margin: 22px 0; }
 .custom-rules label { display: flex; align-items: center; gap: 10px; font-size: 9px; line-height: 1.7; color: #c9b8ff; }
 .custom-rules select { font-size: 9px; }
