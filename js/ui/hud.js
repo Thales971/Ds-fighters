@@ -23,6 +23,11 @@ const HUD = {
   },
   reset(game) {
     this.game = game;
+    [0, 1].forEach((ti) => {
+      const bubble = this.$('speech-' + ti);
+      if (bubble) { bubble.textContent = ''; bubble.classList.remove('on'); }
+      this.sayT[ti] = 0;
+    });
     document.querySelectorAll('#hud .side').forEach((side) => {
       const ti = +side.dataset.team;
       const t = game.teams[ti];

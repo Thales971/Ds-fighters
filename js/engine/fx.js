@@ -17,7 +17,7 @@ const ART_SHEETS = {
   ...Object.fromEntries(['winx-exe', 'nina-vector', 'dandara-query', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'emilio-trans', 'nunes', 'ponteiro']
     .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
-    .map((id) => ['fx2:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
+    .map((id) => ['fx2:' + id + '-fx', { src: 'assets/fx/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   'abil:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
   'fx2:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
@@ -29,7 +29,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v36-balance13';
+    return src + '?v=v36-pack2';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
