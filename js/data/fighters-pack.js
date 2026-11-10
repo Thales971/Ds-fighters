@@ -15,7 +15,7 @@
     title: 'A Entregadora do SESI',
     bio: 'Leva encomenda de skate entre a estação de Valinhos e o ginásio. O shape é o projétil. Chega antes do round pensar.',
     colors: { skin: '#e0b090', hair: '#1a120c', shirt: '#111111', pants: '#2a4a9a', shoes: '#f2f2f2', accent: '#f0c040' },
-    stats: { power: 1.32, speed: 1.2, weight: 0.92, hp: 295, meterRate: 1.25 },
+    stats: { power: 1.38, speed: 1.22, weight: 0.92, hp: 300, meterRate: 1.28 },
     secret: false,
     quotes: {
       intro: ['O shape chega antes de você.', 'Valinhos inteira cabe nesse corredor.'],
@@ -49,7 +49,7 @@
     title: 'O Rádio do Morro',
     bio: 'Sobe a antena de madrugada e desce com o fone ainda chiando. O sinal atravessa guarda e vira parede.',
     colors: { skin: '#c89870', hair: '#3a2414', shirt: '#1f8a62', pants: '#143028', shoes: '#5a3a22', accent: '#5cffc0' },
-    stats: { power: 1.22, speed: 1.04, weight: 1.04, hp: 300, meterRate: 1.1 },
+    stats: { power: 1.28, speed: 1.06, weight: 1.04, hp: 305, meterRate: 1.12 },
     secret: false,
     quotes: {
       intro: ['Tá me ouvindo? Agora vai ouvir.', 'O morro inteiro está na frequência.'],

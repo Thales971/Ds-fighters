@@ -29,7 +29,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v36-pack2';
+    return src + '?v=v36-pack3';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

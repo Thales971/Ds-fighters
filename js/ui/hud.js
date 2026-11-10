@@ -28,6 +28,8 @@ const HUD = {
       if (bubble) { bubble.textContent = ''; bubble.classList.remove('on'); }
       this.sayT[ti] = 0;
     });
+    const cut = document.getElementById('cutin');
+    if (cut) cut.classList.remove('on');
     document.querySelectorAll('#hud .side').forEach((side) => {
       const ti = +side.dataset.team;
       const t = game.teams[ti];
