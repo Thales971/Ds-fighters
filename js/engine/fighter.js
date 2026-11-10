@@ -743,8 +743,14 @@ class Fighter {
     const ult = p.slot === 'ultimate';
     this.flashText(this.powerLabel(p).toUpperCase(), this.def.colors.accent);
     game.audio.sfx(p.sfx || 'magic');
-    const q = ult ? this.def.quotes.super : this.def.quotes.special;
-    if (q && q.length && (ult || (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4)) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
+    if (ult && typeof game.voicedLine === 'function') game.voicedLine(this, 'ultimate');
+    else if (ult) {
+      const q = this.def.quotes.super;
+      if (q && q.length) game.say(this, q[0]);
+    } else {
+      const q = this.def.quotes.special;
+      if (q && q.length && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4) game.say(this, q[((this.game.rnd ? this.game.rnd() : Math.random()) * q.length) | 0]);
+    }
     if (ult) {
       this.stats.ults = (this.stats.ults || 0) + 1;
       game.superFreeze(this, p);

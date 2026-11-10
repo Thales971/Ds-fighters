@@ -8,7 +8,7 @@
    - Nada toca antes do primeiro gesto do jogador (política dos navegadores).
    ============================================================ */
 const SFX_FILES = ['axe', 'bees_loop', 'block', 'crowd', 'dash', 'dragon', 'explosion', 'fire', 'hazard', 'heavy', 'jump', 'kick', 'ko', 'magic', 'menu_back', 'menu_move', 'menu_ok', 'pickup', 'punch', 'rain_loop', 'shield', 'steal', 'thunder', 'thunder_cast', 'ultimate', 'unlock', 'water', 'whoosh', 'wind_loop', 'amb_gym', 'amb_workshop', 'amb_metro', 'amb_rain', 'amb_park', 'amb_cafe', 'amb_server', 'amb_market', 'amb_night', 'amb_sesi'];
-const VOICE_FILES = ['choose', 'combo', 'draw', 'fight', 'ko', 'perfect', 'powerup', 'round1', 'round2', 'round3', 'stolen', 'storm', 'timeup', 'title', 'ultimate', 'unlocked', 'youlose', 'youwin'];
+const VOICE_FILES = ['choose', 'combo', 'draw', 'fight', 'final', 'ko', 'perfect', 'powerup', 'round1', 'round2', 'round3', 'stolen', 'storm', 'timeup', 'title', 'ultimate', 'unlocked', 'youlose', 'youwin'];
 
 const AudioSys = {
   ctx: null,
@@ -119,6 +119,7 @@ const AudioSys = {
   applyVolumes() {
     if (this.buses.sfx) this.buses.sfx.gain.value = this.safeVol(this.vol('sfx'));
     if (this.buses.voice) this.buses.voice.gain.value = this.safeVol(this.vol('voice'));
+    if (this._line) this._line.volume = this.safeVol(this.vol('voice'));
     this.applyMusicVolumes();
     Object.values(this.loops).forEach((l) => { if (l.g) l.g.gain.value = this.ambientGain(l.base); });
   },
@@ -198,6 +199,32 @@ const AudioSys = {
   voice(name) {
     const key = 'v_' + name;
     return this.play(key, { bus: 'voice', exact: true, force: true, voiceKey: key });
+  },
+  /* Fala solta (lutador ou rivalidade). O arquivo pode ser trocado sem mexer no código. */
+  playVoiceFile(url) {
+    if (!url || this.vol('voice') <= 0) return false;
+    this.ensure();
+    if (this._line) {
+      try { this._line.pause(); } catch (e) { /* já parou */ }
+      this._line = null;
+      this._endVoice('line');
+    }
+    const a = new Audio(url);
+    a.volume = this.safeVol(this.vol('voice'));
+    this._line = a;
+    this._beginVoice('line');
+    const finish = () => {
+      if (this._line !== a) return;
+      this._line = null;
+      this._endVoice('line');
+    };
+    a.onended = finish;
+    a.onerror = finish;
+    try {
+      const playback = a.play();
+      if (playback && typeof playback.catch === 'function') playback.catch(finish);
+    } catch (e) { finish(); return false; }
+    return true;
   },
   loop(name, on, vol = 0.5) {
     if (!this.ctx) return;

@@ -312,7 +312,41 @@ class Game {
     if (Profile.data.settings.shake !== false && !this.reduced) this.shakeMag = Math.max(this.shakeMag, n);
     if (n >= 8 && this.stage && this.stage.react) this.stage.react(n);
   }
-  say(f, text) { UI.hud.say(f.team, text); if (this.netRole === 'host') this.netFx.push(['s', f.team, text]); }
+  say(f, text, file) {
+    UI.hud.say(f.team, text);
+    if (file && this.audio && this.audio.playVoiceFile) this.audio.playVoiceFile(file);
+    if (this.netRole === 'host') this.netFx.push(['s', f.team, text]);
+  }
+  voiceEntry(id, kind) {
+    const book = typeof VOICE_BOOK !== 'undefined' ? VOICE_BOOK : null;
+    const row = book && book.fighters && book.fighters[id];
+    return row && row[kind] ? row[kind] : null;
+  }
+  rivalry(a, b) {
+    const book = typeof VOICE_BOOK !== 'undefined' ? VOICE_BOOK : null;
+    const list = book && book.rivalries;
+    if (!a || !b || !list) return null;
+    return list.find((row) => (row.a === a && row.b === b) || (row.a === b && row.b === a)) || null;
+  }
+  voicedLine(f, kind) {
+    if (!f) return;
+    const line = this.voiceEntry(f.def.id, kind);
+    if (line && line.text) { this.say(f, line.text, line.file); return; }
+    const key = kind === 'ultimate' ? 'super' : kind;
+    const q = f.def.quotes && f.def.quotes[key];
+    if (q && q.length) this.say(f, q[0]);
+  }
+  openingLines() {
+    const [a, b] = this.fighters();
+    const rival = a && b ? this.rivalry(a.def.id, b.def.id) : null;
+    if (rival) { this.say(a, rival.text, rival.file); return; }
+    this.voicedLine(a, 'intro');
+    if (b) {
+      const line = this.voiceEntry(b.def.id, 'intro');
+      const text = line && line.text ? line.text : ((b.def.quotes && b.def.quotes.intro && b.def.quotes.intro[0]) || '');
+      if (text) this.say(b, text);
+    }
+  }
   announce(text, color, sub) { UI.banner(text, color, sub); if (this.netRole === 'host') this.netFx.push(['n', text, color, sub || '']); }
   drawWarnLabel(ctx, x, label) {
     ctx.save();
@@ -377,7 +411,7 @@ class Game {
     if (winner) {
       winner.state = 'win';
       const q = winner.def.quotes.win;
-      if (q) this.say(winner, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]);
+      this.voicedLine(winner, 'win');
     }
     const perfect = winner && winner.hp >= winner.maxHp - 0.5;
     this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
@@ -549,8 +583,9 @@ class Game {
         let sub = this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name;
         if (this.mode === 'morte-subita') sub += this.round >= 3 ? ' · O FOGO VEM FECHAR A ARENA!' : ' · MORTE SÚBITA só no round final';
         this.announce('ROUND ' + this.round, '#ffd27d', sub);
-        this.audio.voice('round' + Math.min(3, this.round));
-        if (this.round === 1) this.fighters().forEach((f) => { const q = f.def.quotes.intro; if (q) this.say(f, q[((this.rnd ? this.rnd() : Math.random()) * q.length) | 0]); });
+        const finalRound = this.round >= (this.cfg.roundsToWin || 2);
+        this.audio.voice(finalRound ? 'final' : ('round' + Math.min(3, this.round)));
+        if (this.round === 1) this.openingLines();
       }
       if (this.roundStateTime === 70) { this.announce('LUTA!', '#7dff5e'); this.audio.voice('fight'); }
       if (this.roundStateTime > 100) { this.roundState = 'fight'; this.roundStateTime = 0; }

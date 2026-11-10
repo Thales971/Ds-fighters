@@ -98,6 +98,10 @@ Golpe com tremor ≥ 8 chama `stage.react`: luzes piscam, o público treme e o o
 
 A intensidade da trilha (`AudioSys.intensity`, 0 a 1) sobe no round final, com vida baixa, combo longo, ultimate ou vários acertos nos últimos 3 segundos. O rock da playlist vai do mix calmo (70% do volume de música do jogador) até o teto desse volume, em crossfade para outra faixa quando o valor passa de 0,75, e o ambiente (chuva, vento, laço do palco) desce até 28%. A volta é mais lenta. Narrador continua abaixando o rock para 25% enquanto fala. Nada disso ultrapassa o slider de música nem fura o mudo.
 
+## Vozes
+
+O narrador e as falas dos lutadores estão em `assets/audio/voice/`. O texto e o caminho ficam em `assets/audio/voice/manifest.json` e na cópia `js/data/voice-book.js`. Para trocar uma fala, grave outro mp3 com o mesmo nome. O slider Vozes nas opções vale para o narrador e para as falas. Rivalidade de introdução está em `rivalries/`, no formato `idA__idB.mp3`.
+
 O id também precisa estar na lista de arenas que a sala online aceita (o núcleo valida arena). Hoje isso segue o catálogo carregado no cliente; o servidor dedicado tem cópia manual do núcleo.
 
 ## Ambiência

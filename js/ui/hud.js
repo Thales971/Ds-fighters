@@ -73,7 +73,7 @@ const HUD = {
     const el = this.$('speech-' + ti);
     el.textContent = text;
     el.classList.add('on');
-    this.sayT[ti] = performance.now() + 2600;
+    this.sayT[ti] = performance.now() + 4200;
   },
   hide() { this.$('hud').classList.add('hidden'); },
   update(game) {
