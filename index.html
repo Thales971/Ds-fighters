@@ -22,9 +22,9 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v36-portraits1" />
+  <link rel="stylesheet" href="css/style.css?v=v36-select2" />
   <link rel="stylesheet" href="css/account.css?v=v36-balance13" />
-  <link rel="stylesheet" href="css/mobile.css?v=v36-balance13" />
+  <link rel="stylesheet" href="css/mobile.css?v=v36-select2" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -121,6 +121,7 @@
     <section class="screen" id="scr-select" data-screen="select">
       <div class="select-bg"></div>
       <header class="sel-head">
+        <button class="nav btn tiny sel-back" type="button" data-back>VOLTAR</button>
         <h2 id="sel-title">ESCOLHA SEU LUTADOR</h2>
         <div class="sel-mode" id="sel-mode"></div>
       </header>
@@ -132,7 +133,6 @@
         </div>
         <aside class="sel-card p2" id="card-1"></aside>
       </div>
-      <button class="nav btn mobile-only" data-back>VOLTAR AO MENU</button>
     </section>
 
     <section class="screen" id="scr-stage" data-screen="stage">
@@ -149,6 +149,7 @@
         <label id="lbl-inf" class="hidden"><input type="checkbox" id="opt-inf" checked /> Medidores infinitos</label>
         <label id="lbl-autoheal" class="hidden"><input type="checkbox" id="opt-autoheal" checked /> Cura automática</label>
         <label id="lbl-ally" class="hidden"><input type="checkbox" id="opt-ally" /> P2 humano (treinar com um amigo)</label>
+        <button class="nav btn tiny" type="button" data-back>VOLTAR</button>
         <button class="nav btn primary" id="btn-fight">LUTAR!</button>
       </div>
     </section>
@@ -463,7 +464,7 @@
   <script src="js/net/online.js?v=v36-balance13"></script>
   <script src="js/ui/hud.js?v=v36-balance13"></script>
   <script src="js/data/roster-portraits.js?v=v36-portraits1"></script>
-  <script src="js/ui/ui.js?v=v36-portraits1"></script>
+  <script src="js/ui/ui.js?v=v36-select2"></script>
   <script src="js/ui/account.js?v=v36-portraits1"></script>
   <script src="js/main.js?v=v36-balance13"></script>
   <script src="js/net/tournament.js?v=v36-portraits1"></script>

@@ -89,7 +89,11 @@ const UI = {
   back() {
     AudioSys.back();
     if (this.stack.length) { const prev = this.stack.pop(); this.show(prev, false); this.stack = this.stack; return; }
-    if (['select', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins'].includes(this.screen)) return this.toMenu();
+    if (this.screen === 'select') {
+      if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
+      return this.toMenu();
+    }
+    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   toMenu() {
@@ -366,12 +370,14 @@ const UI = {
     const f = this.flow;
     this.$('sel-title').textContent = this.selTitle();
     const cells = this.$('sel-grid').querySelectorAll('.cell');
-    cells.forEach((c, k) => {
-      c.classList.toggle('p1', f.cursor[0] === k && !f.done[0]);
-      c.classList.toggle('p2', f.cursor[1] === k && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online');
-      const picked = f.picks[0].includes(k) || f.picks[1].includes(k);
+    cells.forEach((c) => {
+      const slot = this.cellSlot(c);
+      c.classList.toggle('p1', f.cursor[0] === slot && !f.done[0]);
+      c.classList.toggle('p2', f.cursor[1] === slot && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online');
+      const picked = f.picks[0].includes(slot) || f.picks[1].includes(slot);
       c.classList.toggle('picked', picked);
     });
+    this.scrollSelectCursor(this.selWho());
     [0, 1].forEach((ti) => this.renderCard(ti));
     const keys = f.p2Human ? 'P1: WASD + Enter confirma, Backspace volta · P2: setas + J confirma, K volta' : 'WASD ou controle movem · Enter, Espaço ou ✕ confirma · Backspace ou ○ volta';
     this.$('sel-help').innerHTML = keys + (f.mode === 'versus' || f.mode === 'tag' ? (f.p2Human ? '' : ' · <b>Jogador 2: aperte J para entrar</b>') : '') + ' · <b>Esc</b> menu';
@@ -418,14 +424,60 @@ const UI = {
     const spr = el.querySelector('.big-sprite:not(.q):not(.locked)');
     if (spr) spr.classList.toggle('ready', f.done[ti]);
   },
+  /* Índice gravado no cursor e em picks: posição em FIGHTERS, ou
+     FIGHTERS.length para a célula ALEATÓRIO. A grade esconde o boneco,
+     então o índice visual (0, 1, 2…) não é o índice do elenco. */
+  cellSlot(cell) {
+    const i = +cell.dataset.i;
+    return i < 0 ? FIGHTERS.length : i;
+  },
+  selectSlots() {
+    const slots = [];
+    FIGHTERS.forEach((d, i) => { if (d.id !== 'boneco-treino') slots.push(i); });
+    slots.push(FIGHTERS.length);
+    return slots;
+  },
+  selectCols() {
+    const grid = this.$('sel-grid');
+    if (!grid) return 7;
+    const parts = getComputedStyle(grid).gridTemplateColumns.split(' ').filter((part) => part && part !== 'none');
+    return parts.length || 7;
+  },
+  scrollSelectCursor(who) {
+    const grid = this.$('sel-grid');
+    const wrap = grid && grid.parentElement;
+    const f = this.flow;
+    if (!grid || !wrap || !f) return;
+    const want = f.cursor[who];
+    const cell = [...grid.querySelectorAll('.cell')].find((c) => this.cellSlot(c) === want);
+    if (!cell) return;
+    const cr = cell.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+    if (wr.height < 8) return;
+    if (cr.top < wr.top + 2) wrap.scrollTop -= wr.top - cr.top + 6;
+    else if (cr.bottom > wr.bottom - 2) wrap.scrollTop += cr.bottom - wr.bottom + 6;
+  },
   selMove(who, dx, dy) {
     const f = this.flow;
-    const n = FIGHTERS.length + 1;
-    const cols = 7;
-    let i = f.cursor[who];
-    if (dx) i = (i + dx + n) % n;
-    if (dy) { i += dy * cols; if (i < 0) i += Math.ceil(n / cols) * cols; if (i >= n) i = i % cols; if (i >= n) i = n - 1; }
-    f.cursor[who] = i;
+    const slots = this.selectSlots();
+    const cols = this.selectCols();
+    let pos = slots.indexOf(f.cursor[who]);
+    if (pos < 0) pos = 0;
+    const rows = Math.max(1, Math.ceil(slots.length / cols));
+    let col = pos % cols;
+    let row = Math.floor(pos / cols);
+    if (dx) {
+      col += dx;
+      if (col < 0) { col = cols - 1; row -= 1; }
+      else if (col >= cols) { col = 0; row += 1; }
+    }
+    if (dy) row += dy;
+    if (row < 0) row = rows - 1;
+    if (row >= rows) row = 0;
+    let next = row * cols + Math.min(col, cols - 1);
+    if (next >= slots.length) next = slots.length - 1;
+    if (next < 0) next = 0;
+    f.cursor[who] = slots[next];
     AudioSys.cursor();
     this.renderSelect();
   },
@@ -434,7 +486,7 @@ const UI = {
     if (f.done[who]) return;
     let i = f.cursor[who];
     if (i >= FIGHTERS.length) {
-      const pool = FIGHTERS.map((d, k) => k).filter((k) => Profile.isUnlocked(FIGHTERS[k].id) && !f.picks[who].includes(k));
+      const pool = FIGHTERS.map((d, k) => k).filter((k) => FIGHTERS[k].id !== 'boneco-treino' && (f.mode === 'training' || Profile.isUnlocked(FIGHTERS[k].id)) && !f.picks[who].includes(k));
       i = pool[(Math.random() * pool.length) | 0];
     }
     const d = FIGHTERS[i];
@@ -451,7 +503,11 @@ const UI = {
       if (f.p2Human) { if (f.done[0] && f.done[1]) return this.afterSelect(); }
       else { this.autoDummy(); if (f.done[0]) return this.afterSelect(); }
     } else if (f.done[0] && f.done[1]) return this.afterSelect();
-    if (!f.p2Human && f.done[0] && who === 0) f.cursor[1] = (i + 3) % FIGHTERS.length;
+    if (!f.p2Human && f.done[0] && who === 0) {
+      const slots = this.selectSlots().filter((slot) => slot < FIGHTERS.length);
+      const at = Math.max(0, slots.indexOf(i));
+      f.cursor[1] = slots[(at + 3) % slots.length];
+    }
     this.renderSelect();
   },
   autoDummy() {
@@ -503,7 +559,7 @@ const UI = {
       if (Input.hit(P.punch) || (twoPads && p1.kickHit)) this.selConfirm(1);
       else if (Input.hit(P.kick) || (twoPads && p1.a0Hit)) this.selBack(1);
     }
-    if (Input.hit(['Escape'])) this.toMenu();
+    if (Input.hit(['Escape'])) this.back();
   },
   afterSelect() {
     const f = this.flow;
