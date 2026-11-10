@@ -53,7 +53,7 @@ def layout_info():
 
 def fighter_ids_and_moves():
     ids = {}
-    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/fighters-v20.js']:
+    for p in ['js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/fighters-v20.js', 'js/data/fighters-pack.js', 'js/data/fighters-henrico.js']:
         txt = (ROOT / p).read_text(encoding='utf-8')
         # bloco de cada id: do "id: 'x'" ate o proximo "id: '"
         marks = [(m.start(), m.group(1)) for m in re.finditer(r"id:\s*'([a-z0-9-]+)'", txt)]
