@@ -351,6 +351,7 @@ const AudioSys = {
     };
     this.music = a;
     this.musicCross = 0;
+    this._hotDone = false; /* nova faixa principal: libera UMA hot */
     this.hotWanted = false;
     this._hotMiss = false;
     this.applyMusicVolumes();
@@ -416,7 +417,10 @@ const AudioSys = {
   _advanceCrossfade() {
     if (this.musicKind !== 'battle') return;
     if (this.intensity <= 0.32) this._hotMiss = false;
-    if (this.intensity >= 0.75 && !this.musicHot && !this._hotMiss) this._promoteHotTrack();
+    /* FIX: UMA hot track por faixa principal — antes, com a luta quente,
+       cada hot que acabava ja promovia outra: trocava de musica sem parar
+       e nenhuma tocava ate o fim. Agora a faixa toca inteira. */
+    if (this.intensity >= 0.75 && !this.musicHot && !this._hotMiss && !this._hotDone) this._promoteHotTrack();
     if (this.intensity <= 0.32) this.hotWanted = false;
     else if (this.intensity >= 0.75 && this.musicHot) this.hotWanted = true;
     const goal = this.hotWanted && this.musicHot ? 1 : 0;
@@ -431,6 +435,7 @@ const AudioSys = {
   },
   _promoteHotTrack() {
     if (!this.music || this.musicKind !== 'battle') return;
+    this._hotDone = true; /* uma hot track por faixa — nao fica trocando */
     const next = this.pickBattleTrack();
     if (!next || !next.file || next.file === this.music.src) { this._hotMiss = true; return; }
     const a = new Audio(next.file);
