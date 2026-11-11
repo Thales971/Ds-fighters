@@ -4,7 +4,7 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v36-pack1",
+  "version": "v36-portraits1",
   "order": [
     "du",
     "iales",
@@ -50,7 +50,8 @@ const ROSTER_PORTRAITS = {
     "ponteiro",
     "lia",
     "nexo",
-    "maximilian"
+    "maximilian",
+    "henrico"
   ],
   "crops": {
     "du": {
@@ -345,6 +346,34 @@ const ROSTER_PORTRAITS = {
       "y": 31,
       "side": 150,
       "source": "assets/sprites/ponteiro.png",
+      "frame": "idle-0"
+    },
+    "lia": {
+      "x": 92,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/lia.png",
+      "frame": "idle-0"
+    },
+    "nexo": {
+      "x": 84,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/nexo.png",
+      "frame": "idle-0"
+    },
+    "maximilian": {
+      "x": 96,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/maximilian.png",
+      "frame": "idle-0"
+    },
+    "henrico": {
+      "x": 97,
+      "y": 37,
+      "side": 136,
+      "source": "assets/sprites/henrico.png",
       "frame": "idle-0"
     }
   }
