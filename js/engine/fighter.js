@@ -216,6 +216,7 @@ class Fighter {
     let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0));
     if (this.has('meterSlow')) m *= 0.4;
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
+    if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
     /* MORTE SÚBITA: a arena em chamas acelera o medidor de todo mundo. */
     if (this.game && this.game.mode === 'morte-subita' && this.game.inferno && this.game.inferno.active) m *= 1.6;
     return m;
@@ -375,6 +376,8 @@ class Fighter {
     return c <= 0 ? 1 : c === 1 ? 0.85 : c === 2 ? 0.72 : c === 3 ? 0.62 : 0.55;
   }
   takeHit(dmg, o = {}) {
+    /* POSTURA DEFENSIVA: guarda alta ao andar pra tras absorve 15% */
+    if (this.guardUp && !o.unblockable && !o.height) dmg *= 0.85;
     /* escala: dano cai se a vitima ja leva sequencia do MESMO agressor */
     const aggr = o.attacker || null;
     if (aggr && this.hitstun > 0 && this.lastHitBy === aggr) {
@@ -731,7 +734,7 @@ class Fighter {
     this.hasHit = false;
     this.blocking = false;
     this.crouching = false;
-    if (this.onGround) this.vx *= 0.3;
+    if (this.onGround) { this.vx *= 0.3; this._doubleJumped = false; }
     this.castAfo = this.afo;
     if (p.transform) {
       this.addStatus(p.transform, p.time || 600);
@@ -1675,6 +1678,24 @@ class Fighter {
     }
     if (this.tryAbilities()) return;
     if (!this.onGround) {
+      /* DOUBLE JUMP pra todos: um pulo extra no ar (renova o airAction) */
+      if (input.up && !this._doubleJumped && !this.cast && !this.attack) {
+        this._doubleJumped = true;
+        this.airAction = false;
+        this.airChain = 0;
+        const spd2 = WALK_SPEED * this.speedMult();
+        const jump2 = (12.4 + (1.1 - this.weight()) * 3) * (this.game.jumpMul || 1) * 0.92;
+        this.vy = -jump2;
+        let dx2 = 0;
+        if (input.left) dx2 -= 1;
+        if (input.right) dx2 += 1;
+        this.vx = dx2 * spd2 * 1.15;
+        this.state = 'jump';
+        this.stateTime = 0;
+        this.game.audio.jump();
+        this.game.floatText(this.x, this.y - 200, 'DOUBLE JUMP', '#ffd27d');
+        return;
+      }
       if (!this.airAction && (this.buf.punch || this.buf.kick)) {
         this.airAction = true;
         const kind = this.buf.kick ? 'jkick' : 'jpunch';
@@ -1700,6 +1721,8 @@ class Fighter {
     if (leftEdge) this.lastLeft = this.now;
     if (input.up) { this.doJump(input); return; }
     const back = (this.dir === 1 && input.left) || (this.dir === -1 && input.right);
+    /* POSTURA DEFENSIVA: andar pra tras deixa a guarda alta — absorve 15% */
+    this.guardUp = !!(back && !input.down && this.canAct() && this.state !== 'attack' && !this.cast);
     if (input.down) {
       this.crouching = true;
       this.blocking = back || this.autoBlock();
@@ -1761,7 +1784,9 @@ class Fighter {
       this.addStatus('invuln', this.state === 'dash' ? 9 : 8);
       this.perfectDone = false;
     } else {
-      this.vx = sign * (this.state === 'dash' ? (fast ? 11 : 8.6) : (fast ? 8 : 6.6));
+      let dv = this.state === 'dash' ? (fast ? 11 : 8.6) : (fast ? 8 : 6.6);
+      if (this.game.weather && this.game.weather.kind === 'leaves') dv *= 1.10; /* folhas: dash 10% mais longo */
+      this.vx = sign * dv;
       if (this.state === 'backdash') this.addStatus('invuln', 6);
     }
     this.game.audio.dash();

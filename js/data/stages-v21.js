@@ -3,7 +3,7 @@ STAGE_LIST.push(
   {
     id: 'estacao-valinhos', name: 'Estação Valinhos', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/estacao-valinhos-mid.png',
-    weather: ['clear', 'wind'], tint: '#e7b078', ambient: 'amb_estacao-valinhos',
+    weather: ['clear', 'wind'], fauna: ['pigeons'], tint: '#e7b078', ambient: 'amb_estacao-valinhos',
     layers: [
       { src: 'assets/maps/v21/estacao-valinhos-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/estacao-valinhos-mid.png', speed: 0.42 },
@@ -20,7 +20,7 @@ STAGE_LIST.push(
   {
     id: 'feira-valinhos', name: 'Feira de Valinhos', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/feira-valinhos-mid.png',
-    weather: ['clear'], tint: '#ffb15a', ambient: 'amb_feira-valinhos',
+    weather: ['clear'], fauna: ['pigeons', 'dog'], tint: '#ffb15a', ambient: 'amb_feira-valinhos',
     layers: [
       { src: 'assets/maps/v21/feira-valinhos-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/feira-valinhos-mid.png', speed: 0.42 },
@@ -37,7 +37,7 @@ STAGE_LIST.push(
   {
     id: 'represa', name: 'Represa', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/represa-mid.png',
-    weather: ['clear', 'rain', 'wind'], tint: '#7ec8e0', ambient: 'amb_represa',
+    weather: ['clear', 'rain', 'wind'], fauna: ['birds', 'dragonfly'], tint: '#7ec8e0', ambient: 'amb_represa',
     layers: [
       { src: 'assets/maps/v21/represa-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/represa-mid.png', speed: 0.42 },
@@ -54,7 +54,7 @@ STAGE_LIST.push(
   {
     id: 'rua-centro-noite', name: 'Rua do Centro à Noite', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/rua-centro-noite-mid.png',
-    weather: ['clear', 'rain'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
+    weather: ['clear', 'rain'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
     layers: [
       { src: 'assets/maps/v21/rua-centro-noite-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/rua-centro-noite-mid.png', speed: 0.42 },
@@ -71,7 +71,7 @@ STAGE_LIST.push(
   {
     id: 'quadra-areia', name: 'Quadra de Areia', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/quadra-areia-mid.png',
-    weather: ['clear', 'wind'], tint: '#f0d090', ambient: 'amb_quadra-areia',
+    weather: ['clear', 'wind'], fauna: ['dog'], tint: '#f0d090', ambient: 'amb_quadra-areia',
     layers: [
       { src: 'assets/maps/v21/quadra-areia-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/quadra-areia-mid.png', speed: 0.42 },
@@ -88,7 +88,7 @@ STAGE_LIST.push(
   {
     id: 'arquibancada', name: 'Arquibancada do Ginásio', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/arquibancada-mid.png',
-    weather: ['clear'], tint: '#e8e8f0', ambient: 'amb_arquibancada',
+    weather: ['clear'], fauna: ['pigeons'], tint: '#e8e8f0', ambient: 'amb_arquibancada',
     layers: [
       { src: 'assets/maps/v21/arquibancada-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/arquibancada-mid.png', speed: 0.42 },
@@ -105,7 +105,7 @@ STAGE_LIST.push(
   {
     id: 'oficina-senai', name: 'Oficina SENAI', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/oficina-senai-mid.png',
-    weather: ['clear'], tint: '#c6dbeb', ambient: 'amb_oficina-senai',
+    weather: ['clear'], fauna: ['cat'], tint: '#c6dbeb', ambient: 'amb_oficina-senai',
     layers: [
       { src: 'assets/maps/v21/oficina-senai-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/oficina-senai-mid.png', speed: 0.42 },
@@ -122,7 +122,7 @@ STAGE_LIST.push(
   {
     id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/terminal-onibus-mid.png',
-    weather: ['clear', 'rain', 'wind'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus',
+    weather: ['clear', 'rain', 'wind'], fauna: ['pigeons'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus',
     layers: [
       { src: 'assets/maps/v21/terminal-onibus-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/terminal-onibus-mid.png', speed: 0.42 },
@@ -139,7 +139,7 @@ STAGE_LIST.push(
   {
     id: 'cafe-madrugada', name: 'Café da Madrugada', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/cafe-madrugada-mid.png',
-    weather: ['clear', 'rain'], tint: '#ffb07a', ambient: 'amb_cafe-madrugada',
+    weather: ['clear', 'rain'], fauna: ['cat'], tint: '#ffb07a', ambient: 'amb_cafe-madrugada',
     layers: [
       { src: 'assets/maps/v21/cafe-madrugada-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/cafe-madrugada-mid.png', speed: 0.42 },
@@ -156,7 +156,7 @@ STAGE_LIST.push(
   {
     id: 'corredor-datacenter', name: 'Corredor do Datacenter', group: 'Código', pixel: true,
     image: 'assets/maps/v21/corredor-datacenter-mid.png',
-    weather: ['clear'], tint: '#7de0ff', ambient: 'amb_corredor-datacenter',
+    weather: ['clear'], fauna: [], tint: '#7de0ff', ambient: 'amb_corredor-datacenter',
     layers: [
       { src: 'assets/maps/v21/corredor-datacenter-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/corredor-datacenter-mid.png', speed: 0.42 },
@@ -173,7 +173,7 @@ STAGE_LIST.push(
   {
     id: 'sala-deploy', name: 'Sala de Deploy', group: 'Código', pixel: true,
     image: 'assets/maps/v21/sala-deploy-mid.png',
-    weather: ['clear'], tint: '#9ad0ff', ambient: 'amb_sala-deploy',
+    weather: ['clear'], fauna: [], tint: '#9ad0ff', ambient: 'amb_sala-deploy',
     layers: [
       { src: 'assets/maps/v21/sala-deploy-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/sala-deploy-mid.png', speed: 0.42 },
@@ -190,7 +190,7 @@ STAGE_LIST.push(
   {
     id: 'hackerspace', name: 'Hackerspace', group: 'Código', pixel: true,
     image: 'assets/maps/v21/hackerspace-mid.png',
-    weather: ['clear', 'rain'], tint: '#c080ff', ambient: 'amb_hackerspace',
+    weather: ['clear', 'rain'], fauna: ['cat'], tint: '#c080ff', ambient: 'amb_hackerspace',
     layers: [
       { src: 'assets/maps/v21/hackerspace-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/hackerspace-mid.png', speed: 0.42 },
@@ -206,8 +206,9 @@ STAGE_LIST.push(
   },
   {
     id: 'telhado-escola', name: 'Telhado da Escola', group: 'Valinhos', pixel: true,
+    weather: ['clear', 'wind', 'leaves'],
     image: 'assets/maps/v21/telhado-escola-mid.png',
-    weather: ['clear', 'wind'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
+    weather: ['clear', 'wind'], fauna: ['birds', 'cat'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
     layers: [
       { src: 'assets/maps/v21/telhado-escola-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/telhado-escola-mid.png', speed: 0.42 },
@@ -223,8 +224,9 @@ STAGE_LIST.push(
   },
   {
     id: 'ponte-rio', name: 'Ponte do Rio', group: 'Valinhos', pixel: true,
+    weather: ['clear', 'rain', 'wind', 'leaves'],
     image: 'assets/maps/v21/ponte-rio-mid.png',
-    weather: ['rain', 'storm', 'wind'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
+    weather: ['rain', 'storm', 'wind'], fauna: ['birds', 'dragonfly'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
     layers: [
       { src: 'assets/maps/v21/ponte-rio-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/ponte-rio-mid.png', speed: 0.42 },
@@ -240,8 +242,9 @@ STAGE_LIST.push(
   },
   {
     id: 'parque-lago', name: 'Parque do Lago', group: 'Valinhos', pixel: true,
+    weather: ['clear', 'wind', 'leaves'],
     image: 'assets/maps/v21/parque-lago-mid.png',
-    weather: ['clear', 'wind'], tint: '#b7e39a', ambient: 'amb_parque-lago',
+    weather: ['clear', 'wind'], fauna: ['birds', 'dragonfly', 'dog'], tint: '#b7e39a', ambient: 'amb_parque-lago',
     layers: [
       { src: 'assets/maps/v21/parque-lago-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/parque-lago-mid.png', speed: 0.42 },
@@ -258,7 +261,7 @@ STAGE_LIST.push(
   {
     id: 'mercado-municipal', name: 'Mercado Municipal', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/mercado-municipal-mid.png',
-    weather: ['clear'], tint: '#ffd29a', ambient: 'amb_mercado-municipal',
+    weather: ['clear'], fauna: ['pigeons', 'cat'], tint: '#ffd29a', ambient: 'amb_mercado-municipal',
     layers: [
       { src: 'assets/maps/v21/mercado-municipal-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/mercado-municipal-mid.png', speed: 0.42 },
@@ -275,7 +278,7 @@ STAGE_LIST.push(
   {
     id: 'estudio-pixel', name: 'Estúdio de Pixel', group: 'Código', pixel: true,
     image: 'assets/maps/v21/estudio-pixel-mid.png',
-    weather: ['clear'], tint: '#ff9ad5', ambient: 'amb_estudio-pixel',
+    weather: ['clear'], fauna: [], tint: '#ff9ad5', ambient: 'amb_estudio-pixel',
     layers: [
       { src: 'assets/maps/v21/estudio-pixel-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/estudio-pixel-mid.png', speed: 0.42 },
@@ -291,8 +294,9 @@ STAGE_LIST.push(
   },
   {
     id: 'antena-morro', name: 'Antena no Morro', group: 'Valinhos', pixel: true,
+    weather: ['clear', 'wind', 'fireflies'],
     image: 'assets/maps/v21/antena-morro-mid.png',
-    weather: ['wind', 'storm', 'clear'], tint: '#9ecfff', ambient: 'amb_antena-morro',
+    weather: ['wind', 'storm', 'clear'], fauna: ['birds', 'fireflies'], tint: '#9ecfff', ambient: 'amb_antena-morro',
     layers: [
       { src: 'assets/maps/v21/antena-morro-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/antena-morro-mid.png', speed: 0.42 },
@@ -308,8 +312,9 @@ STAGE_LIST.push(
   },
   {
     id: 'biblioteca-noturna', name: 'Biblioteca Noturna', group: 'Código', pixel: true,
+    weather: ['clear', 'fireflies'],
     image: 'assets/maps/v21/biblioteca-noturna-mid.png',
-    weather: ['clear'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
+    weather: ['clear'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
     layers: [
       { src: 'assets/maps/v21/biblioteca-noturna-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/biblioteca-noturna-mid.png', speed: 0.42 },
@@ -326,7 +331,7 @@ STAGE_LIST.push(
   {
     id: 'pista-skate', name: 'Pista de Skate', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/pista-skate-mid.png',
-    weather: ['clear', 'wind'], tint: '#ffb080', ambient: 'amb_pista-skate',
+    weather: ['clear', 'wind'], fauna: ['dog', 'pigeons'], tint: '#ffb080', ambient: 'amb_pista-skate',
     layers: [
       { src: 'assets/maps/v21/pista-skate-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/pista-skate-mid.png', speed: 0.42 },

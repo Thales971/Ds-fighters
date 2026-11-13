@@ -68,9 +68,9 @@ const HUD = {
     const mech = stage.mech && typeof MECH_INFO !== 'undefined' ? MECH_INFO[stage.mech] || '' : '';
     this.$('hud-stage').innerHTML = `<span class="st">${stage.name}</span><span class="wx">${w.icon} ${w.name}</span>${mech ? `<span class="mc">${mech.split(':')[0]}</span>` : ''}`;
   },
-  combo(ti, n) {
+  combo(ti, n, dmg) {
     const el = this.$('combo-' + ti);
-    el.innerHTML = `<b>${n}</b> HITS${n >= 8 ? '<em>INSANO!</em>' : n >= 5 ? '<em>BRUTAL!</em>' : ''}`;
+    el.innerHTML = `<b>${n}</b> HITS${dmg ? ` <i>· ${Math.round(dmg)} dano</i>` : ''}${n >= 8 ? '<em>INSANO!</em>' : n >= 5 ? '<em>BRUTAL!</em>' : ''}`;
     el.classList.remove('pop');
     void el.offsetWidth;
     el.classList.add('pop', 'on');

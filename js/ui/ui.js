@@ -233,7 +233,7 @@ const UI = {
     this.tutorial = {
       step: 0,
       moved: 0, lastX: null, jumps: 0, crouches: 0, punches: 0, kicks: 0,
-      chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0,
+      chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0, doubleJumps: 0, dashes: 0,
       steps: [
         { title: 'ANDE', sub: 'A / D (ou setas) para mover', done: () => T.tutorial.moved > 260 },
         { title: 'PULE', sub: 'W para pular', done: () => T.tutorial.jumps > 0 },
@@ -245,6 +245,8 @@ const UI = {
         { title: 'ULTIMATE', sub: 'Tecla 5 — solte a ultimate', done: () => T.tutorial.ults >= 1 },
         { title: 'BLOQUEIO', sub: 'Segure para tras perto do boneco para bloquear', done: () => T.tutorial.blocks > 30 },
         { title: 'JUMP-CANCEL', sub: 'Acerte um soco e aperte W na hora do hit', done: () => T.tutorial.jumpCancels >= 1 },
+        { title: 'DOUBLE JUMP', sub: 'No ar, aperte W de novo — pulo extra pra todos', done: () => T.tutorial.doubleJumps >= 1 },
+        { title: 'DASH', sub: 'Toque duas vezes A ou D para o dash', done: () => T.tutorial.dashes >= 1 },
       ],
     };
     this.tutorialBanner();
@@ -274,6 +276,10 @@ const UI = {
     if (t.lastX != null) t.moved += Math.abs(f.x - t.lastX);
     t.lastX = f.x;
     if (!f.onGround && f.vy < -6) t.jumps++;
+    if (f._doubleJumped && !t._dj) { t.doubleJumps++; t._dj = true; }
+    if (!f._doubleJumped) t._dj = false;
+    if ((f.state === 'dash' || f.state === 'backdash') && !t._dash) { t.dashes++; t._dash = true; }
+    if (f.state !== 'dash' && f.state !== 'backdash') t._dash = false;
     if (f.crouching || f.state === 'crouch') t.crouches++;
     /* Conta cada golpe no INICIO dele (transicao de kind) — robusto contra
        golpes sobrepostos e hitstop. */

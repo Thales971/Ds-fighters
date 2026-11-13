@@ -1,6 +1,8 @@
 /* ============================================================
    DS FIGHTERS — Clima aleatório por mapa.
-   kind: clear | rain | wind | storm | snow | aurora | heatwave
+   kind: clear | rain | wind | storm | snow | aurora | heatwave | fireflies | leaves
+   - fireflies (vagalumes): noite magica — medidor +6%, brilho que guia
+   - leaves (chuva de folhas): chao de folhas — dashes 10% mais longos
    - wind: força horizontal que muda de direção (empurra lutadores e projéteis)
    - rain/storm: bônus de água/raio, fogo mais fraco, chão escorregadio
    - storm: raios caem com aviso e causam dano a qualquer lutador
@@ -117,11 +119,11 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 150 : this.kind === 'storm' ? 240 : this.kind === 'snow' ? 140 : this.kind === 'wind' ? 34 : this.kind === 'aurora' ? 70 : this.kind === 'heatwave' ? 26 : this.kind === 'fog' ? 16 : this.kind === 'clear' ? 14 : 0;
+    const want = this.kind === 'rain' ? 150 : this.kind === 'storm' ? 240 : this.kind === 'snow' ? 140 : this.kind === 'wind' ? 34 : this.kind === 'aurora' ? 70 : this.kind === 'heatwave' ? 26 : this.kind === 'fog' ? 16 : this.kind === 'fireflies' ? 42 : this.kind === 'leaves' ? 60 : this.kind === 'clear' ? 14 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
-      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : -540 + r * 540;
+      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -60 - r * 260 : this.kind === 'leaves' ? -300 - r * 240 : -540 + r * 540;
       const d = { x: (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()) };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
          profundidade (0 = fundo pequeno/lento, 2 = frente grande/rapido). */
@@ -143,6 +145,27 @@ class Weather {
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
+      if (this.kind === 'fireflies') {
+        /* VAGALUMES: flutuam em onda, piscam, perseguem de leve o vento */
+        d.ph += 0.05 + d.s * 0.06;
+        d.x += Math.sin(d.ph) * 0.8 + this.wind * 0.4;
+        d.y += Math.cos(d.ph * 0.7) * 0.6;
+        if (d.x > W + 40) d.x = -40;
+        if (d.x < -40) d.x = W + 40;
+        if (d.y > -30) d.y = -280;
+        if (d.y < -300) d.y = -40;
+        continue;
+      }
+      if (this.kind === 'leaves') {
+        /* FOLHAS: caem girando, o vento leva */
+        d.ph += 0.04 + d.s * 0.05;
+        d.x += Math.sin(d.ph) * 1.4 + this.wind * 1.6;
+        d.y += 1.1 + d.s * 0.8;
+        if (d.y > 40) { d.y = -320 - Math.random() * 60; d.x = Math.random() * W; }
+        if (d.x > W + 30) d.x = -30;
+        if (d.x < -30) d.x = W + 30;
+        continue;
+      }
       if (this.kind === 'aurora') {
         d.x += reduced ? 0 : 0.35 + d.s * 0.7;
         d.y = -320 + d.s * 100 + (reduced ? 0 : Math.sin((this.t + d.x) * 0.015) * 4);
@@ -372,6 +395,18 @@ class Weather {
     } else if (this.kind === 'heatwave') {
       ctx.fillStyle = 'rgba(255,145,65,0.035)';
       ctx.fillRect(0, H * 0.58, W, H * 0.42);
+    } else if (this.kind === 'fireflies') {
+      /* noite dos vagalumes: vinheta azul escura */
+      const night = ctx.createLinearGradient(0, 0, 0, H);
+      night.addColorStop(0, 'rgba(16,22,58,0.16)');
+      night.addColorStop(0.7, 'rgba(16,22,58,0.05)');
+      night.addColorStop(1, 'rgba(16,22,58,0)');
+      ctx.fillStyle = night;
+      ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'leaves') {
+      /* tapete de folhas no chao */
+      ctx.fillStyle = 'rgba(190,120,50,0.10)';
+      ctx.fillRect(0, H * 0.86, W, H * 0.14);
     }
     if (this.flash > 0 && !this.game.reduced) {
       ctx.fillStyle = `rgba(235,240,255,${0.08 * this.flash})`;

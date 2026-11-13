@@ -81,6 +81,7 @@ class Game {
     this.stageDef = this.pickStage(this.cfg.stage);
     this.cfg.stage = this.stageDef.id;
     this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
+    this.stage.liveFauna = (typeof LiveFauna !== 'undefined' && this.stageDef && this.stageDef.fauna && this.stageDef.fauna.length) ? new LiveFauna(this, this.stageDef) : null;
     this.stage.reducedFlag = this.reduced;
     this.round = 1;
     this.teamWins = [0, 0];
@@ -380,10 +381,11 @@ class Game {
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
-        else this.combo = { owner: atk, count: 1, until: 0 };
+        else this.combo = { owner: atk, count: 1, dmg: 0, until: 0 };
         this.combo.until = this.time + 48;
+        this.combo.dmg = (this.combo.dmg || 0) + Math.max(1, Math.round(d));
         if (this.combo.count > atk.stats.maxCombo) atk.stats.maxCombo = this.combo.count;
-        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count]); }
+        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count, this.combo.dmg); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count, this.combo.dmg]); }
         if (this.combo.count === 6) this.audio.voice('combo');
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
@@ -573,6 +575,7 @@ class Game {
     const fighting = this.roundState === 'fight';
     this.stage.update(this.weather);
     this.weather.update(fighting);
+    if (this.stage && this.stage.liveFauna && this.roundState === 'fight') this.stage.liveFauna.update();
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
     if (this.glitch > 0) this.glitch--;
@@ -829,7 +832,7 @@ class Game {
       case 's': UI.hud.say(f[1], f[2]); break;
       case 'n': UI.banner(f[1], f[2], f[3]); break;
       case 'c': { const fi = this.activeOf(f[1]); if (fi) UI.cutIn(fi, { name: f[3] }); break; }
-      case 'h': UI.hud.combo(f[1], f[2]); break;
+      case 'h': UI.hud.combo(f[1], f[2], f[3]); break;
       case 'k': this.addCrack(f[1], f[2], f[3], f[4], f[5]); break;
       default: break;
     }
@@ -885,9 +888,40 @@ class Game {
   }
 
   /* ---------- desenho ---------- */
+  /* caixas de debug: hurtbox (azul) e hitbox do golpe ativo (vermelho) */
+  _drawHitboxDebug(ctx) {
+    ctx.save();
+    ctx.lineWidth = 2;
+    for (const f of this.allFighters()) {
+      /* hurtbox */
+      ctx.strokeStyle = 'rgba(80,160,255,0.9)';
+      ctx.strokeRect(f.x - 34, f.y - 170, 68, 170);
+      ctx.fillStyle = 'rgba(80,160,255,0.08)';
+      ctx.fillRect(f.x - 34, f.y - 170, 68, 170);
+      /* hitbox do golpe ativo */
+      if (f.attack && f.attack.active) {
+        const mv = f.attack;
+        const rx = f.x + f.dir * (mv.range * 0.6);
+        ctx.strokeStyle = 'rgba(255,80,80,0.95)';
+        ctx.strokeRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        ctx.fillStyle = 'rgba(255,80,80,0.12)';
+        ctx.fillRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        /* frame data: startup/active/recovery */
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px monospace';
+        ctx.fillText(`${mv.kind}: ${mv.startup}/${mv.active}/${mv.recovery}f dano ${mv.dmg}`, f.x - 60, f.y - 186);
+      }
+    }
+    ctx.restore();
+  }
   render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    /* DEBUG DE HITBOX (treino): F9 liga/desliga — hitbox vermelho, hurtbox azul */
+    if (this.cfg && this.cfg.mode === 'training' && Input.hit && Input.hit(['F9'])) {
+      this.hitboxDebug = !this.hitboxDebug;
+      if (UI && UI.toast) UI.toast(this.hitboxDebug ? '👁 Hitboxes LIGADAS' : 'Hitboxes desligadas', 1400);
+    }
     // interpolação entre o passo anterior e o atual (renderização acima de 60 fps)
     const lerped = [];
     if (alpha < 0.999 && this.netRole !== 'guest' && this.teams && Profile.data.settings.smooth !== false) {
@@ -1020,6 +1054,7 @@ class Game {
         ctx.drawImage(this.canvas, 0, y, W, h, ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y, W, h);
       }
     }
+    if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
     ctx.save();
     ctx.translate(0, GROUND_Y);

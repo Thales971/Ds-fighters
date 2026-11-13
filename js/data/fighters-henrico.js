@@ -30,8 +30,8 @@
         super: ['K.O. SUPREMO!!'],
       },
       moves: {
-        punch: { dmg: 7, range: 58, startup: 4, active: 4, recovery: 9 },
-        kick: { dmg: 10, range: 72, startup: 6, active: 4, recovery: 11 },
+        punch: { dmg: 9, range: 62, startup: 3, active: 4, recovery: 8 },
+        kick: { dmg: 13, range: 76, startup: 5, active: 4, recovery: 9 },
       },
       special: {
         name: 'Jab Duplo', type: 'projectile', cost: 25,

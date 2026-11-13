@@ -22,7 +22,7 @@
       bio: 'Engenheira de prompts de cabelo violeta, casaco roxo e visor futurista: escreve instruções que viram realidade. Cada habilidade dela é um prompt executado na cara do rival.',
       colors: { skin: '#eec4a8', hair: '#7a3fd0', shirt: '#1a1424', pants: '#241a30', shoes: '#141020', accent: '#b96bff' },
       traits: { promptEngineer: true, visor: true, hairStyle: 'long' },
-      stats: { power: 1.24, speed: 1.10, weight: 0.96, hp: 128, meterRate: 1.16 },
+      stats: { power: 1.44, speed: 1.22, weight: 0.96, hp: 146, meterRate: 1.30 },
       secret: false,
       quotes: {
         intro: ['Deixa que eu escrevo o final.', 'Prompt aceito. Executando.'],
@@ -31,8 +31,8 @@
         super: ['PROMPT SUPREMO!!'],
       },
       moves: {
-        punch: { dmg: 6, range: 52, startup: 4, active: 4, recovery: 9 },
-        kick: { dmg: 9, range: 64, startup: 6, active: 4, recovery: 11 },
+        punch: { dmg: 9, range: 56, startup: 3, active: 4, recovery: 8 },
+        kick: { dmg: 13, range: 68, startup: 5, active: 4, recovery: 10 },
       },
       special: {
         name: 'Token Bomba', type: 'projectile', cost: 25,
