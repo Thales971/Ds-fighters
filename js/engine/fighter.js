@@ -217,6 +217,7 @@ class Fighter {
     if (this.has('meterSlow')) m *= 0.4;
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
     if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
+    if (this.game.weather && this.game.weather.kind === 'eclipse') m *= 1.10; /* eclipse: medidor +10% */
     /* MORTE SÚBITA: a arena em chamas acelera o medidor de todo mundo. */
     if (this.game && this.game.mode === 'morte-subita' && this.game.inferno && this.game.inferno.active) m *= 1.6;
     return m;

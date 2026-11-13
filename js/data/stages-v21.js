@@ -37,7 +37,7 @@ STAGE_LIST.push(
   {
     id: 'represa', name: 'Represa', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/represa-mid.png',
-    weather: ['clear', 'rain', 'wind'], fauna: ['birds', 'dragonfly'], tint: '#7ec8e0', ambient: 'amb_represa',
+    weather: ['clear', 'rain', 'wind', 'hail'], fauna: ['birds', 'dragonfly', 'fish', 'frog'], tint: '#7ec8e0', ambient: 'amb_represa',
     layers: [
       { src: 'assets/maps/v21/represa-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/represa-mid.png', speed: 0.42 },
@@ -54,7 +54,7 @@ STAGE_LIST.push(
   {
     id: 'rua-centro-noite', name: 'Rua do Centro à Noite', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/rua-centro-noite-mid.png',
-    weather: ['clear', 'rain', 'fireflies'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
+    weather: ['clear', 'rain', 'fireflies', 'eclipse'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
     layers: [
       { src: 'assets/maps/v21/rua-centro-noite-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/rua-centro-noite-mid.png', speed: 0.42 },
@@ -122,7 +122,7 @@ STAGE_LIST.push(
   {
     id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/terminal-onibus-mid.png',
-    weather: ['clear', 'rain', 'wind'], fauna: ['pigeons'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus',
+    weather: ['clear', 'rain', 'wind', 'hail'], fauna: ['pigeons'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus',
     layers: [
       { src: 'assets/maps/v21/terminal-onibus-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/terminal-onibus-mid.png', speed: 0.42 },
@@ -207,7 +207,7 @@ STAGE_LIST.push(
   {
     id: 'telhado-escola', name: 'Telhado da Escola', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/telhado-escola-mid.png',
-    weather: ['clear', 'wind', 'leaves'], fauna: ['birds', 'cat'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
+    weather: ['clear', 'wind', 'leaves'], fauna: ['birds', 'cat', 'squirrel', 'butterflies'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
     layers: [
       { src: 'assets/maps/v21/telhado-escola-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/telhado-escola-mid.png', speed: 0.42 },
@@ -224,7 +224,7 @@ STAGE_LIST.push(
   {
     id: 'ponte-rio', name: 'Ponte do Rio', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/ponte-rio-mid.png',
-    weather: ['clear', 'rain', 'wind', 'leaves', 'storm'], fauna: ['birds', 'dragonfly'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
+    weather: ['clear', 'rain', 'wind', 'leaves', 'hail'], fauna: ['birds', 'seagull', 'dragonfly', 'fish'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
     layers: [
       { src: 'assets/maps/v21/ponte-rio-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/ponte-rio-mid.png', speed: 0.42 },
@@ -241,7 +241,7 @@ STAGE_LIST.push(
   {
     id: 'parque-lago', name: 'Parque do Lago', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/parque-lago-mid.png',
-    weather: ['clear', 'wind', 'leaves'], fauna: ['birds', 'dragonfly', 'dog'], tint: '#b7e39a', ambient: 'amb_parque-lago',
+    weather: ['clear', 'wind', 'leaves', 'rainbow'], fauna: ['birds', 'dragonfly', 'dog', 'butterflies', 'fish', 'squirrel'], tint: '#b7e39a', ambient: 'amb_parque-lago',
     layers: [
       { src: 'assets/maps/v21/parque-lago-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/parque-lago-mid.png', speed: 0.42 },
@@ -309,7 +309,7 @@ STAGE_LIST.push(
   {
     id: 'biblioteca-noturna', name: 'Biblioteca Noturna', group: 'Código', pixel: true,
     image: 'assets/maps/v21/biblioteca-noturna-mid.png',
-    weather: ['clear', 'fireflies'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
+    weather: ['clear', 'fireflies', 'eclipse'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
     layers: [
       { src: 'assets/maps/v21/biblioteca-noturna-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/biblioteca-noturna-mid.png', speed: 0.42 },
