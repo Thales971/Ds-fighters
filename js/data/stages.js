@@ -77,6 +77,8 @@ const WEATHER_INFO = {
   snow: { name: 'Nevasca', icon: '❄', desc: 'Movimento 8% mais lento. Gelo +20%.' },
   aurora: { name: 'Aurora Boreal', icon: '✧', desc: 'Faixas ciano e violeta no céu. Ganho de medidor +8% para ambos.' },
   heatwave: { name: 'Onda de Calor', icon: '♨', desc: 'Fogo/magma +8%; água/gelo −5%. Sem dano ambiental.' },
+  fireflies: { name: 'Noite de Vagalumes', icon: '✦', desc: 'Noite mágica: medidor +6%.' },
+  leaves: { name: 'Chuva de Folhas', icon: '❦', desc: 'Chão de folhas: dashes 10% mais longos.' },
   fog: { name: 'Neblina', icon: '☁', desc: 'Bancos de neblina na arena — a visão fica embaçada para todos.' },
 };
 

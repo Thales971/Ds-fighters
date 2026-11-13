@@ -54,7 +54,7 @@ STAGE_LIST.push(
   {
     id: 'rua-centro-noite', name: 'Rua do Centro à Noite', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/rua-centro-noite-mid.png',
-    weather: ['clear', 'rain'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
+    weather: ['clear', 'rain', 'fireflies'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite',
     layers: [
       { src: 'assets/maps/v21/rua-centro-noite-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/rua-centro-noite-mid.png', speed: 0.42 },
@@ -206,9 +206,8 @@ STAGE_LIST.push(
   },
   {
     id: 'telhado-escola', name: 'Telhado da Escola', group: 'Valinhos', pixel: true,
-    weather: ['clear', 'wind', 'leaves'],
     image: 'assets/maps/v21/telhado-escola-mid.png',
-    weather: ['clear', 'wind'], fauna: ['birds', 'cat'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
+    weather: ['clear', 'wind', 'leaves'], fauna: ['birds', 'cat'], tint: '#ffd0a0', ambient: 'amb_telhado-escola',
     layers: [
       { src: 'assets/maps/v21/telhado-escola-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/telhado-escola-mid.png', speed: 0.42 },
@@ -224,9 +223,8 @@ STAGE_LIST.push(
   },
   {
     id: 'ponte-rio', name: 'Ponte do Rio', group: 'Valinhos', pixel: true,
-    weather: ['clear', 'rain', 'wind', 'leaves'],
     image: 'assets/maps/v21/ponte-rio-mid.png',
-    weather: ['rain', 'storm', 'wind'], fauna: ['birds', 'dragonfly'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
+    weather: ['clear', 'rain', 'wind', 'leaves', 'storm'], fauna: ['birds', 'dragonfly'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
     layers: [
       { src: 'assets/maps/v21/ponte-rio-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/ponte-rio-mid.png', speed: 0.42 },
@@ -242,9 +240,8 @@ STAGE_LIST.push(
   },
   {
     id: 'parque-lago', name: 'Parque do Lago', group: 'Valinhos', pixel: true,
-    weather: ['clear', 'wind', 'leaves'],
     image: 'assets/maps/v21/parque-lago-mid.png',
-    weather: ['clear', 'wind'], fauna: ['birds', 'dragonfly', 'dog'], tint: '#b7e39a', ambient: 'amb_parque-lago',
+    weather: ['clear', 'wind', 'leaves'], fauna: ['birds', 'dragonfly', 'dog'], tint: '#b7e39a', ambient: 'amb_parque-lago',
     layers: [
       { src: 'assets/maps/v21/parque-lago-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/parque-lago-mid.png', speed: 0.42 },
@@ -294,9 +291,8 @@ STAGE_LIST.push(
   },
   {
     id: 'antena-morro', name: 'Antena no Morro', group: 'Valinhos', pixel: true,
-    weather: ['clear', 'wind', 'fireflies'],
     image: 'assets/maps/v21/antena-morro-mid.png',
-    weather: ['wind', 'storm', 'clear'], fauna: ['birds', 'fireflies'], tint: '#9ecfff', ambient: 'amb_antena-morro',
+    weather: ['wind', 'storm', 'clear', 'fireflies'], fauna: ['birds', 'fireflies'], tint: '#9ecfff', ambient: 'amb_antena-morro',
     layers: [
       { src: 'assets/maps/v21/antena-morro-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/antena-morro-mid.png', speed: 0.42 },
@@ -312,9 +308,8 @@ STAGE_LIST.push(
   },
   {
     id: 'biblioteca-noturna', name: 'Biblioteca Noturna', group: 'Código', pixel: true,
-    weather: ['clear', 'fireflies'],
     image: 'assets/maps/v21/biblioteca-noturna-mid.png',
-    weather: ['clear'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
+    weather: ['clear', 'fireflies'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna',
     layers: [
       { src: 'assets/maps/v21/biblioteca-noturna-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/biblioteca-noturna-mid.png', speed: 0.42 },

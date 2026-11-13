@@ -188,6 +188,13 @@ const AI = {
     if (dist > ideal) fwd();
     else if (dist < 64 && Math.random() < 0.35) back();
     if (me.onGround && Math.random() < 0.004 + L.aggro * 0.02) { input.up = true; if (dist > 120) fwd(); }
+    /* DOUBLE JUMP: no ar, usa o pulo extra pra perseguir, pressionar ou escapar */
+    if (!me.onGround && !me._doubleJumped && me.canAct && me.canAct() && Math.random() < 0.05 + L.aggro * 0.05) {
+      const fugindo = me.hp < opp.hp * 0.5;
+      const inimigoAcima = opp.y < me.y - 30;
+      const pressao = Math.abs(opp.x - me.x) < 220 && opp.onGround && !fugindo;
+      if (inimigoAcima || pressao || (fugindo && opp.y > me.y)) input.up = true;
+    }
     if (!me.onGround && dist < 110 && Math.random() < 0.2) input.kick = true;
     return input;
   },

@@ -734,7 +734,7 @@ class Fighter {
     this.hasHit = false;
     this.blocking = false;
     this.crouching = false;
-    if (this.onGround) { this.vx *= 0.3; this._doubleJumped = false; }
+    if (this.onGround) this.vx *= 0.3;
     this.castAfo = this.afo;
     if (p.transform) {
       this.addStatus(p.transform, p.time || 600);
@@ -1216,6 +1216,7 @@ class Fighter {
         this.vy = 0;
         if (wasAir) {
           this.airAction = false;
+          this._doubleJumped = false; /* POUSOU: o pulo extra volta */
           if (this.state === 'jump') { this.state = 'idle'; this.stateTime = 0; }
           if (this.launched && (this.state === 'hit' || this.state === 'thrown')) {
             this.state = 'down';
