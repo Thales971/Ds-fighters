@@ -45,6 +45,7 @@ class LiveFauna {
       if (near && nd < range && a.scared <= 0 && a.state !== 'flee') {
         a.state = 'flee'; a.scared = 360 + Math.random() * 240;
         a.vx = (a.x < (near ? near.x : 480) ? -1 : 1) * (a.k === 'bird' || a.k === 'pigeon' ? 5 : 3.4);
+        a.dir = a.vx < 0 ? -1 : 1;
         if (a.k === 'pigeon' || a.k === 'bird') { a.vy = -3.2; a.flying = true; }
         /* SONS da fauna (sintetizados, curtinhos) */
         const snd = (freq, dur, type, vol, slide) => { try { if (g.audio && g.audio.tone) g.audio.tone(freq, dur, type, vol, slide); } catch (e) {} };
@@ -68,7 +69,12 @@ class LiveFauna {
       } else {
         /* comportamento calmo */
         if (a.k === 'firefly') { a.x += Math.sin(a.ph) * 0.8; a.y += Math.cos(a.ph * 0.7) * 0.7; }
-        if (a.k === 'butterfly') { a.x += Math.sin(a.ph * 0.8) * 1.1; a.y += Math.cos(a.ph * 1.3) * 0.9; if (a.x < 20 || a.x > (g.W || 960) - 20) a.dir *= -1; }
+        if (a.k === 'butterfly') {
+          const dx = Math.sin(a.ph * 0.8) * 1.1;
+          a.x += dx; a.y += Math.cos(a.ph * 1.3) * 0.9;
+          if (dx) a.dir = dx > 0 ? 1 : -1;
+          if (a.x < 20 || a.x > (g.W || 960) - 20) a.dir *= -1;
+        }
         if (a.k === 'fish') { a.timer--; if (a.timer <= 0) { a.jump = 26; a.timer = 400 + Math.random() * 600; } if (a.jump > 0) { a.jump--; a.y -= 2.4; } else if (a.y < a.baseY) a.y += 1.6; }
         if (a.k === 'squirrel') { a.x += a.dir * 1.6; a.timer--; if (a.timer <= 0) { a.dir *= -1; a.timer = 90 + Math.random() * 160; } if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
         if (a.k === 'seagull') { a.x += a.dir * 1.3; a.y += Math.sin(a.ph * 0.8) * 0.8; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
@@ -85,9 +91,13 @@ class LiveFauna {
       }
     }
   }
-  draw(ctx) {
+  draw(ctx, layer = 'all') {
+    const onGround = { pigeon: 1, cat: 1, dog: 1, squirrel: 1, frog: 1 };
     for (const a of this.animals) {
       if (a.state === 'gone') continue;
+      const grounded = !!onGround[a.k];
+      if (layer === 'back' && !grounded) continue;
+      if (layer === 'front' && grounded) continue;
       const x = a.x, y = a.y;
       ctx.save();
       ctx.translate(x, y);
@@ -106,7 +116,8 @@ class LiveFauna {
         ctx.fillStyle = '#2a8f86'; ctx.fillRect(-1, -1, 9, 2);
       } else if (a.k === 'bird' || a.k === 'seagull') {
         const frame = Math.floor(this.t / 5 + a.ph) % 4;
-        Art.fx2(ctx, 'birds', a.k === 'seagull' ? 1 : 0, frame, 0, 0, { scale: 1.05, dir: a.dir || 1 });
+        const face = (a.vx || a.dir || 1) < 0 ? -1 : 1;
+        Art.fx2(ctx, 'birds', a.k === 'seagull' ? 1 : 0, frame, 0, 0, { scale: 1.05, dir: face });
       } else if (a.k === 'pigeon') {
         ctx.scale(a.dir * 3.1, 3.1);
         ctx.fillStyle = '#9aa2b0'; ctx.fillRect(-5, -7, 10, 6);
@@ -242,7 +253,7 @@ class StageRenderer {
       if (kind !== 'bird' && spriteRow[kind] == null) return;
       const n = kind === 'bee' ? 3 : 2;
       for (let k = 0; k < n; k++) {
-        const inTank = kind === 'fish' && this.def.bubbles;
+        const inTank = kind === 'fish' && (this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias');
         const y = kind === 'fish'
           ? (inTank ? 150 + Math.random() * 200 : gy - 16 - Math.random() * 16)
           : (kind === 'bird' || kind === 'bat' ? 48 + Math.random() * 120 : 140 + Math.random() * 180);
@@ -327,7 +338,8 @@ class StageRenderer {
       f.ph += 0.05;
       if (f.kind === 'bee' || f.kind === 'butterfly') { f.y += Math.sin(f.ph * 2) * 0.8; if (Math.random() < 0.01) f.vx = -f.vx; }
       if (f.kind === 'bat') f.y += Math.sin(f.ph * 3) * 1.2;
-      if (f.kind === 'fish' && !this.def.bubbles) {
+      const tank = this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias';
+      if (f.kind === 'fish' && !tank) {
         if (f.hop > 0) { f.hop--; f.y -= 2.2; }
         else if (f.y < f.homeY) f.y += 1.6;
         else if (Math.random() < 0.004) f.hop = 22;
@@ -437,6 +449,7 @@ class StageRenderer {
     fg.addColorStop(1, 'rgba(0,0,0,0.28)');
     ctx.fillStyle = fg;
     ctx.fillRect(0, gy, W, H - gy);
+    if (this.liveFauna) this.liveFauna.draw(ctx, 'back');
     ctx.restore();
   }
   drawProps(ctx, camX) {
@@ -470,7 +483,7 @@ class StageRenderer {
     ctx.restore();
   }
   drawAmbient(ctx) {
-    if (this.liveFauna) this.liveFauna.draw(ctx);
+    if (this.liveFauna) this.liveFauna.draw(ctx, 'front');
     ctx.save();
     for (const p of this.ambient) {
       const a = Math.min(1, p.life / 30) * Math.min(1, (600 - p.life) / 60);

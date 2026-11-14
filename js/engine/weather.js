@@ -48,6 +48,7 @@ class Weather {
     this.changeAt = 900 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 900) | 0);
   }
   set(kind) {
+    if (kind !== this.kind) this.drops = [];
     this.kind = kind;
     this.intensity = kind === 'storm' ? 1 : kind === 'clear' ? 0 : 0.6 + (this.game.rnd ? this.game.rnd() : Math.random()) * 0.4;
     this.windTarget = (kind === 'wind' || kind === 'storm') ? ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1) * (1.2 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.4) : 0;
@@ -160,7 +161,7 @@ class Weather {
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
-      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -60 - r * 260 : this.kind === 'leaves' ? -300 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
+      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -60 - r * 260 : this.kind === 'leaves' ? -30 - r * 380 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
       const roll = this.game.rnd ? this.game.rnd() : Math.random();
       const d = { x: roll * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()), ph: roll * 6.28, rot: roll * 6.28, rotV: 0.05 + roll * 0.08 };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
