@@ -216,6 +216,8 @@ class Fighter {
     let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0));
     if (this.has('meterSlow')) m *= 0.4;
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
+    if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
+    if (this.game.weather && this.game.weather.kind === 'eclipse') m *= 1.10; /* eclipse: medidor +10% */
     /* MORTE SÚBITA: a arena em chamas acelera o medidor de todo mundo. */
     if (this.game && this.game.mode === 'morte-subita' && this.game.inferno && this.game.inferno.active) m *= 1.6;
     return m;
@@ -375,6 +377,10 @@ class Fighter {
     return c <= 0 ? 1 : c === 1 ? 0.85 : c === 2 ? 0.72 : c === 3 ? 0.62 : 0.55;
   }
   takeHit(dmg, o = {}) {
+
+    if (typeof VFX !== 'undefined' && dmg >= 14) VFX.impact(this.x, this.y - 110, dmg >= 22, dmg >= 22 ? '#ffd27d' : '#fff', this.game.reduced);
+    /* POSTURA DEFENSIVA: guarda alta ao andar pra tras absorve 15% */
+    if (this.guardUp && !o.unblockable && !o.height) dmg *= 0.85;
     /* escala: dano cai se a vitima ja leva sequencia do MESMO agressor */
     const aggr = o.attacker || null;
     if (aggr && this.hitstun > 0 && this.lastHitBy === aggr) {
@@ -729,6 +735,10 @@ class Fighter {
     this.stateTime = 0;
     this.attack = null;
     this.hasHit = false;
+    if (p.slot === 'ultimate') {
+      this._ultsMatch = (this._ultsMatch || 0) + 1;
+      if (this._ultsMatch >= 5) Profile.grantAchievement('ultimate-5');
+    }
     this.blocking = false;
     this.crouching = false;
     if (this.onGround) this.vx *= 0.3;
@@ -1213,6 +1223,7 @@ class Fighter {
         this.vy = 0;
         if (wasAir) {
           this.airAction = false;
+          this._doubleJumped = false; /* POUSOU: o pulo extra volta */
           if (this.state === 'jump') { this.state = 'idle'; this.stateTime = 0; }
           if (this.launched && (this.state === 'hit' || this.state === 'thrown')) {
             this.state = 'down';
@@ -1347,8 +1358,20 @@ class Fighter {
       return this.endUpdate(input);
     }
     if (this.state === 'down') {
+      /* WAKE-UP ATTACK: no fim da queda, soco/chute levanta ATACANDO
+         com invencibilidade — o canto deixa de ser sentença. */
+      if (this.stateTime > 18 && this.stateTime <= 35 && (this.buf.punch || this.buf.kick)) {
+        const getup = this.buf.kick ? 'kick' : 'punch';
+        this.buf.punch = 0; this.buf.kick = 0;
+        this.state = 'idle'; this.stateTime = 0;
+        this.startAttack(getup);
+        this.addStatus('invuln', 14); /* i-frames DEPOIS do attack (o startAttack limpa status) */
+        if (this.game.floatText) this.game.floatText(this.x, this.y - 220, 'WAKE-UP!', '#9adcff');
+        Profile.grantAchievement('wake-up');
+        return this.endUpdate(input);
+      }
       this.physics();
-      if (this.stateTime > 34) { this.state = 'idle'; this.stateTime = 0; this.addStatus('invuln', 10); }
+      if (this.stateTime > 35) { this.state = 'idle'; this.stateTime = 0; this.addStatus('invuln', 10); }
       return this.endUpdate(input);
     }
     if (this.state === 'thrown') {
@@ -1675,6 +1698,26 @@ class Fighter {
     }
     if (this.tryAbilities()) return;
     if (!this.onGround) {
+      /* DOUBLE JUMP pra todos: um pulo extra no ar (renova o airAction) */
+      if (input.up && !this._doubleJumped && !this.cast && !this.attack) {
+        this._doubleJumped = true;
+        this.airAction = false;
+        this.airChain = 0;
+        const spd2 = WALK_SPEED * this.speedMult();
+        const jump2 = (12.4 + (1.1 - this.weight()) * 3) * (this.game.jumpMul || 1) * 0.92;
+        this.vy = -jump2;
+        let dx2 = 0;
+        if (input.left) dx2 -= 1;
+        if (input.right) dx2 += 1;
+        this.vx = dx2 * spd2 * 1.15;
+        this.state = 'jump';
+        this.stateTime = 0;
+        this.game.audio.jump();
+        this.game.floatText(this.x, this.y - 200, 'DOUBLE JUMP', '#ffd27d');
+        this._djCount = (this._djCount || 0) + 1;
+        if (this._djCount === 50) Profile.grantAchievement('double-jump-50');
+        return;
+      }
       if (!this.airAction && (this.buf.punch || this.buf.kick)) {
         this.airAction = true;
         const kind = this.buf.kick ? 'jkick' : 'jpunch';
@@ -1700,6 +1743,8 @@ class Fighter {
     if (leftEdge) this.lastLeft = this.now;
     if (input.up) { this.doJump(input); return; }
     const back = (this.dir === 1 && input.left) || (this.dir === -1 && input.right);
+    /* POSTURA DEFENSIVA: andar pra tras deixa a guarda alta — absorve 15% */
+    this.guardUp = !!(back && !input.down && this.canAct() && this.state !== 'attack' && !this.cast);
     if (input.down) {
       this.crouching = true;
       this.blocking = back || this.autoBlock();
@@ -1761,11 +1806,14 @@ class Fighter {
       this.addStatus('invuln', this.state === 'dash' ? 9 : 8);
       this.perfectDone = false;
     } else {
-      this.vx = sign * (this.state === 'dash' ? (fast ? 11 : 8.6) : (fast ? 8 : 6.6));
+      let dv = this.state === 'dash' ? (fast ? 11 : 8.6) : (fast ? 8 : 6.6);
+      if (this.game.weather && this.game.weather.kind === 'leaves') dv *= 1.10; /* folhas: dash 10% mais longo */
+      this.vx = sign * dv;
       if (this.state === 'backdash') this.addStatus('invuln', 6);
     }
     this.game.audio.dash();
     this.game.dust(this.x);
+    if (typeof VFX !== 'undefined') VFX.dashLines(this.x, this.y, sign, this.game.reduced);
   }
 
   /* ---------- desenho ---------- */
@@ -1890,17 +1938,28 @@ class Fighter {
     return { sx, sy, rot, dx, dy };
   }
   draw(ctx) {
-    if (this.benched || this.hidden) return;
+    if (this.benched || this.hidden || this._netHide > 0) return;
     const pose = this.animPose();
     const frame = this.animFrame(pose);
     const game = this.game;
     const xf = this.motionXf(pose);
-    // sombra
-    ctx.fillStyle = 'rgba(0,0,0,0.42)';
-    const sh = 34 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
-    ctx.beginPath();
-    ctx.ellipse(this.x, 2, Math.max(10, sh), 7, 0, 0, Math.PI * 2);
-    ctx.fill();
+    /* sombra suave: gradiente radial que some no pulo */
+    const sh = 40 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
+    const shA = 0.45 * (1 - Math.min(Math.abs(this.y) / 300, 0.7));
+    if (shA > 0.02) {
+      const sg = ctx.createRadialGradient(this.x, 2, 2, this.x, 2, Math.max(14, sh));
+      sg.addColorStop(0, `rgba(0,0,0,${shA})`);
+      sg.addColorStop(0.7, `rgba(0,0,0,${shA * 0.5})`);
+      sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sg;
+      ctx.save();
+      ctx.translate(this.x, 2);
+      ctx.scale(1, 0.32);
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(14, sh), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     // mascote
     if (this.pet && this.pet.row >= 0 && this.alive) {
       const px = this.x - this.dir * 78;
@@ -1985,6 +2044,12 @@ class Fighter {
     return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound];
   }
   applySnap(s) {
+    /* NETCODE VISUAL: se o salto do snapshot for grande (lag), esconde o
+       lutador por 3 ticks em vez de teleportar na cara do jogador. */
+    if (this._netHide > 0) this._netHide--;
+    const saltoX = Math.abs((s[0] || 0) - this.x);
+    const saltoY = Math.abs((s[1] || 0) - this.y);
+    if (saltoX > 130 || saltoY > 130) this._netHide = 3;
     [this.x, this.y, this.dir, this.state, this.stateTime, this.hp, this.charge[0], this.charge[1], this.ultimate, this.frame, this.walkPhase] = s;
     this.attack = s[11] ? { kind: s[11], startup: 3, active: 3, recovery: 8 } : null;
     this.status = s[12] || {};

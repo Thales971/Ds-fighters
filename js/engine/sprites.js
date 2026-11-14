@@ -12,6 +12,20 @@
    ============================================================ */
 
 const SpriteGen = {
+  _preloaded: {},
+  /* PRELOAD: aquece os sprites de todo o elenco (chamado no menu) —
+     mata o hitch da primeira vez que cada lutador aparece na selecao. */
+  preloadAll() {
+    for (const [id, src] of Object.entries((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {})) {
+      if (this._preloaded[id]) continue;
+      try {
+        const img = new Image();
+        img.onload = () => { this.images[id] = img; this._preloaded[id] = true; };
+        img.src = src;
+        this._preloaded[id] = img;
+      } catch (e) { /* sem DOM */ }
+    }
+  },
   images: {},
   _flash: null,
   // Poses canônicas do motor — a ordem é a linha na folha (4x15).

@@ -1,3 +1,173 @@
+
+/* ============================================================
+   FAUNA — bichos de ambiente nos palcos. Reagem aos lutadores:
+   pombos e passaros fogem voando, gato se assusta e corre,
+   cachorro late e sai de perto, libelula flutua, vagalumes brilham.
+   Pixel art vetorial (sem asset novo).
+   ============================================================ */
+class LiveFauna {
+  constructor(game, def) {
+    this.game = game;
+    this.animals = [];
+    this.t = 0;
+    this.liveFauna = null; /* animais vivos — setado pelo Game */
+    const kinds = (def && def.fauna) || [];
+    const W = game.W || 960, groundY = game.groundY != null ? game.groundY : 440;
+    const spawn = (k, n, opts) => { for (let i = 0; i < n; i++) { const a = Object.assign({ k, x: 60 + Math.random() * (W - 120), y: groundY, vx: 0, vy: 0, dir: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 6, state: 'idle', timer: 60 + Math.random() * 240, scared: 0 }, opts); a.baseY = a.y; this.animals.push(a); } };
+    for (const k of kinds) {
+      if (k === 'pigeons') spawn('pigeon', 3 + Math.floor(Math.random() * 2), { y: groundY - 2 });
+      if (k === 'birds') spawn('bird', 2, { y: groundY - 240 - Math.random() * 120, sky: true });
+      if (k === 'cat') spawn('cat', 1, { y: groundY - 2 });
+      if (k === 'dog') spawn('dog', 1, { y: groundY - 2 });
+      if (k === 'dragonfly') spawn('dragonfly', 2, { y: groundY - 160 - Math.random() * 90, sky: true });
+      if (k === 'fireflies') spawn('firefly', 8, { y: groundY - 40 - Math.random() * 220, sky: true });
+      if (k === 'butterflies') spawn('butterfly', 3, { y: groundY - 60 - Math.random() * 140, sky: true });
+      if (k === 'fish') spawn('fish', 2, { y: groundY + 6, water: true });
+      if (k === 'squirrel') spawn('squirrel', 1, { y: groundY - 2 });
+      if (k === 'seagull') spawn('seagull', 2, { y: groundY - 200 - Math.random() * 120, sky: true });
+      if (k === 'frog') spawn('frog', 1, { y: groundY - 2 });
+    }
+  }
+  update() {
+    this.t++;
+    const g = this.game;
+    const fighters = (g.fighters && g.fighters()) || [];
+    for (const a of this.animals) {
+      a.ph += 0.05;
+      /* reacao: lutador perto */
+      let near = null, nd = 1e9;
+      for (const f of fighters) {
+        if (!f.alive) continue;
+        /* f.y e coordenada de jogo (0 = chao, negativo = alto); a.y e tela */
+        const d = Math.abs(f.x - a.x) + Math.abs(f.y) * 0.35;
+        if (d < nd) { nd = d; near = f; }
+      }
+      const range = a.k === 'firefly' || a.k === 'dragonfly' ? 0 : (a.k === 'bird' ? 160 : 110);
+      if (near && nd < range && a.scared <= 0 && a.state !== 'flee') {
+        a.state = 'flee'; a.scared = 360 + Math.random() * 240;
+        a.vx = (a.x < (near ? near.x : 480) ? -1 : 1) * (a.k === 'bird' || a.k === 'pigeon' ? 5 : 3.4);
+        if (a.k === 'pigeon' || a.k === 'bird') { a.vy = -3.2; a.flying = true; }
+        /* SONS da fauna (sintetizados, curtinhos) */
+        const snd = (freq, dur, type, vol, slide) => { try { if (g.audio && g.audio.tone) g.audio.tone(freq, dur, type, vol, slide); } catch (e) {} };
+        if (a.k === 'dog' && g.floatText) { g.floatText(a.x, a.y - 60, 'AU AU!', '#ffd27d'); snd(280, 0.09, 'square', 0.12, 180); }
+        if (a.k === 'cat' && g.floatText) { g.floatText(a.x, a.y - 60, 'MIAU!', '#ffb0e0'); snd(620, 0.16, 'sine', 0.10, 900); }
+        if (a.k === 'pigeon' || a.k === 'bird') snd(1250, 0.05, 'sine', 0.08, 1500);
+        if (a.k === 'seagull') snd(880, 0.14, 'sawtooth', 0.09, 660);
+        if (a.k === 'squirrel') snd(1500, 0.04, 'square', 0.07, 1800);
+        if (a.k === 'frog') snd(140, 0.12, 'square', 0.10, 110);
+      }
+      if (a.scared > 0) a.scared--;
+      if (a.state === 'flee') {
+        a.x += a.vx; a.y += a.vy || 0;
+        if (a.flying) a.vy = Math.min((a.vy || 0) + 0.06, -2.2);
+        const W = g.W || 960;
+        if (a.x < -60 || a.x > W + 60) { a.state = 'gone'; a.timer = 240 + Math.random() * 360; }
+        if (!a.sky && a.y < a.baseY - 200) a.y = a.baseY - 200;
+      } else if (a.state === 'gone') {
+        a.timer--;
+        if (a.timer <= 0) { /* volta */ a.state = 'idle'; a.x = Math.random() < 0.5 ? 40 : (g.W || 960) - 40; a.vx = 0; a.vy = 0; a.flying = false; a.y = a.baseY; a.dir = a.x < 400 ? 1 : -1; }
+      } else {
+        /* comportamento calmo */
+        if (a.k === 'firefly') { a.x += Math.sin(a.ph) * 0.8; a.y += Math.cos(a.ph * 0.7) * 0.7; }
+        if (a.k === 'butterfly') { a.x += Math.sin(a.ph * 0.8) * 1.1; a.y += Math.cos(a.ph * 1.3) * 0.9; if (a.x < 20 || a.x > (g.W || 960) - 20) a.dir *= -1; }
+        if (a.k === 'fish') { a.timer--; if (a.timer <= 0) { a.jump = 26; a.timer = 400 + Math.random() * 600; } if (a.jump > 0) { a.jump--; a.y -= 2.4; } else if (a.y < a.baseY) a.y += 1.6; }
+        if (a.k === 'squirrel') { a.x += a.dir * 1.6; a.timer--; if (a.timer <= 0) { a.dir *= -1; a.timer = 90 + Math.random() * 160; } if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
+        if (a.k === 'seagull') { a.x += a.dir * 1.3; a.y += Math.sin(a.ph * 0.8) * 0.8; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
+        if (a.k === 'frog') { a.timer--; if (a.timer <= 0) { a.jump = 20; a.dir = Math.random() < 0.5 ? -1 : 1; a.timer = 300 + Math.random() * 500; } if (a.jump > 0) { a.jump--; a.x += a.dir * 1.4; a.y -= 1.8; } else if (a.y < a.baseY) a.y += 2.2; }
+        else if (a.k === 'dragonfly') { a.x += Math.sin(a.ph * 0.6) * 1.4; a.y += Math.cos(a.ph) * 0.9; }
+        else if (a.k === 'bird') { a.x += a.dir * 0.9; a.y += Math.sin(a.ph) * 0.5; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
+        else if (a.k === 'pigeon') { a.x += a.dir * 0.5; if (Math.random() < 0.01) a.dir *= -1; if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
+        else if (a.k === 'cat' || a.k === 'dog') {
+          a.timer--;
+          if (a.timer <= 0) { a.dir *= -1; a.timer = 180 + Math.random() * 300; }
+          a.x += a.dir * 0.4;
+          if (a.x < 50 || a.x > (g.W || 960) - 50) a.dir *= -1;
+        }
+      }
+    }
+  }
+  draw(ctx) {
+    for (const a of this.animals) {
+      if (a.state === 'gone') continue;
+      const x = a.x, y = a.y;
+      ctx.save();
+      ctx.translate(x, y);
+      if (a.k === 'firefly') {
+        const blink = 0.45 + Math.sin(a.ph * 3) * 0.45;
+        ctx.fillStyle = `rgba(255,240,140,${blink})`;
+        ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, 6.3); ctx.fill();
+        ctx.fillStyle = `rgba(255,240,140,${blink * 0.25})`;
+        ctx.beginPath(); ctx.arc(0, 0, 6, 0, 6.3); ctx.fill();
+      } else if (a.k === 'dragonfly') {
+        ctx.fillStyle = '#5fd8c8';
+        const w = Math.sin(a.ph * 8) * 3;
+        ctx.fillRect(-6, -1 + w * 0.4, 5, 1.4); ctx.fillRect(1, -1 - w * 0.4, 5, 1.4);
+        ctx.fillRect(-1, -1, 8, 1.8);
+      } else if (a.k === 'bird') {
+        ctx.fillStyle = '#4a4f5a';
+        const flap = a.state === 'flee' ? Math.sin(a.ph * 10) * 4 : Math.sin(a.ph * 3) * 2.5;
+        ctx.beginPath(); ctx.moveTo(-5, -flap); ctx.lineTo(0, 0); ctx.lineTo(5, -flap); ctx.lineTo(0, 1.5); ctx.closePath(); ctx.fill();
+      } else if (a.k === 'pigeon') {
+        ctx.scale(a.dir, 1);
+        ctx.fillStyle = '#9aa2b0'; ctx.fillRect(-5, -7, 10, 6);
+        ctx.fillStyle = '#7b8394'; ctx.fillRect(3, -12, 5, 4);
+        ctx.fillStyle = '#e8a13b'; ctx.fillRect(7, -11, 3, 1.5);
+        ctx.fillStyle = '#7b8394'; ctx.fillRect(-2, -1, 1.6, 3); ctx.fillRect(2, -1, 1.6, 3);
+        if (a.state === 'flee') { const flap = Math.sin(a.ph * 12) * 5; ctx.fillStyle = '#b8c0d0'; ctx.fillRect(-5, -10 - flap, 10, 3); }
+      } else if (a.k === 'cat') {
+        ctx.scale(a.dir, 1);
+        ctx.fillStyle = '#3d3a45'; ctx.fillRect(-7, -8, 13, 6);
+        ctx.fillRect(4, -12, 6, 5);
+        ctx.beginPath(); ctx.moveTo(5, -12); ctx.lineTo(6.5, -15); ctx.lineTo(8, -12); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(8.5, -12); ctx.lineTo(10, -15); ctx.lineTo(11, -12); ctx.closePath(); ctx.fill();
+        const tw = Math.sin(a.ph * 2) * 2;
+        ctx.fillRect(-11, -9 + tw * 0.3, 4, 1.6);
+        ctx.fillRect(-5, -2, 2, 3); ctx.fillRect(2, -2, 2, 3);
+      } else if (a.k === 'butterfly') {
+        const flap = Math.sin(a.ph * 14);
+        ctx.fillStyle = '#ff9ad5';
+        ctx.beginPath(); ctx.ellipse(-3, 0, 3.5, 2 + flap * 1.6, -0.5, 0, 6.3); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(3, 0, 3.5, 2 - flap * 1.6, 0.5, 0, 6.3); ctx.fill();
+        ctx.fillStyle = '#3a2a3a'; ctx.fillRect(-0.8, -2, 1.6, 4);
+      } else if (a.k === 'fish') {
+        if (a.y < (a.baseY || 446) - 2) {
+          ctx.fillStyle = '#6fb8e8';
+          ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, 6.3); ctx.fill();
+          ctx.fillStyle = '#4a90c8'; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(-9, -3); ctx.lineTo(-9, 3); ctx.closePath(); ctx.fill();
+        } else { /* na agua: so a sombra */
+          ctx.fillStyle = 'rgba(30,60,90,0.35)';
+          ctx.beginPath(); ctx.ellipse(0, 0, 7, 2, 0, 0, 6.3); ctx.fill();
+        }
+      } else if (a.k === 'squirrel') {
+        ctx.scale(a.dir, 1);
+        ctx.fillStyle = '#a8724a'; ctx.fillRect(-5, -7, 10, 5);
+        ctx.fillRect(4, -11, 5, 4);
+        const tw2 = Math.sin(a.ph * 5) * 3;
+        ctx.fillStyle = '#c89068'; ctx.beginPath(); ctx.ellipse(-7, -8 + tw2 * 0.4, 4.5, 2, 0.6, 0, 6.3); ctx.fill();
+        ctx.fillStyle = '#3a2a1a'; ctx.fillRect(-4, -2, 1.8, 3); ctx.fillRect(2, -2, 1.8, 3);
+      } else if (a.k === 'seagull') {
+        ctx.fillStyle = '#f0f0f5';
+        const flap2 = a.state === 'flee' ? Math.sin(a.ph * 9) * 5 : Math.sin(a.ph * 2.5) * 3;
+        ctx.beginPath(); ctx.moveTo(-7, -flap2); ctx.lineTo(0, 0); ctx.lineTo(7, -flap2); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#e8a13b'; ctx.fillRect(2, -1, 4, 1.2);
+      } else if (a.k === 'frog') {
+        ctx.scale(a.dir, 1);
+        ctx.fillStyle = '#5aa84a'; ctx.beginPath(); ctx.ellipse(0, -3, 6, 4, 0, 0, 6.3); ctx.fill();
+        ctx.fillStyle = '#3a7830'; ctx.beginPath(); ctx.arc(3, -7, 1.8, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.arc(6.5, -7, 1.8, 0, 6.3); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.fillRect(4, -8, 1, 1); ctx.fillRect(7, -8, 1, 1);
+      } else if (a.k === 'dog') {
+        ctx.scale(a.dir, 1);
+        ctx.fillStyle = '#c48a4a'; ctx.fillRect(-8, -9, 14, 7);
+        ctx.fillRect(5, -13, 6, 5);
+        ctx.fillStyle = '#8a5a2a'; ctx.fillRect(6, -11, 5, 2);
+        const wag = Math.sin(a.ph * 6) * 2.5;
+        ctx.fillStyle = '#c48a4a'; ctx.fillRect(-11, -10 + wag, 4, 2);
+        ctx.fillRect(-6, -2, 2.4, 3); ctx.fillRect(3, -2, 2.4, 3);
+      }
+      ctx.restore();
+    }
+  }
+}
 /* ============================================================
    DS FIGHTERS — Renderização de cenários.
    Fundo animado (spritesheet 6x4) ou ilustrado (jpg) com:
@@ -300,6 +470,7 @@ class StageRenderer {
     ctx.restore();
   }
   drawAmbient(ctx) {
+    if (this.liveFauna) this.liveFauna.draw(ctx);
     ctx.save();
     for (const p of this.ambient) {
       const a = Math.min(1, p.life / 30) * Math.min(1, (600 - p.life) / 60);

@@ -81,6 +81,7 @@ class Game {
     this.stageDef = this.pickStage(this.cfg.stage);
     this.cfg.stage = this.stageDef.id;
     this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
+    this.stage.liveFauna = (typeof LiveFauna !== 'undefined' && this.stageDef && this.stageDef.fauna && this.stageDef.fauna.length) ? new LiveFauna(this, this.stageDef) : null;
     this.stage.reducedFlag = this.reduced;
     this.round = 1;
     this.teamWins = [0, 0];
@@ -380,11 +381,14 @@ class Game {
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
-        else this.combo = { owner: atk, count: 1, until: 0 };
+        else this.combo = { owner: atk, count: 1, dmg: 0, until: 0 };
         this.combo.until = this.time + 48;
+        this.combo.dmg = (this.combo.dmg || 0) + Math.max(1, Math.round(d));
         if (this.combo.count > atk.stats.maxCombo) atk.stats.maxCombo = this.combo.count;
-        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count]); }
+        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count, this.combo.dmg); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count, this.combo.dmg]); }
         if (this.combo.count === 6) this.audio.voice('combo');
+        if (this.combo.count >= 10) Profile.grantAchievement('combo-10');
+        if (this.combo.count >= 20) Profile.grantAchievement('combo-20');
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
     }
@@ -573,6 +577,8 @@ class Game {
     const fighting = this.roundState === 'fight';
     this.stage.update(this.weather);
     this.weather.update(fighting);
+    if (this.stage && this.stage.liveFauna && this.roundState === 'fight') this.stage.liveFauna.update();
+    if (typeof VFX !== 'undefined') VFX.update(W, H);
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
     if (this.glitch > 0) this.glitch--;
@@ -743,7 +749,32 @@ class Game {
     const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
     if (this.mode !== 'demo') {
       Profile.record('fights');
-      if (winner === humanTeam) Profile.record('wins');
+      if (winner === humanTeam) {
+        Profile.record('wins');
+        Profile.grantAchievement('primeiro-ko');
+        /* PERFEITO: round sem tomar dano */
+        const vencedores = this.teams[humanTeam].members;
+        const perfeito = vencedores.some((m) => m.tookDamage === 0 || m.stats.dmgTaken === 0 || (m.maxHp - m.hp) < 1);
+        if (perfeito) Profile.grantAchievement('perfeito');
+        /* vitorias por lutador + elemento */
+        for (const m of vencedores) {
+          if (m.def && m.def.id) {
+            Profile.recordWinBy(m.def.id, POWERS[m.def.id] && POWERS[m.def.id].element);
+          }
+        }
+        if (this.mode === 'online') Profile.grantAchievement('online-1');
+        /* contadores de variedade */
+        const winBy = (Profile.data && Profile.data.winBy) || {};
+        const nLut = Object.keys(winBy).length;
+        if (nLut >= 10) Profile.grantAchievement('lutadores-10');
+        if (nLut >= 25) Profile.grantAchievement('lutadores-25');
+        const winEl = (Profile.data && Profile.data.winElement) || {};
+        if (Object.keys(winEl).length >= 6) Profile.grantAchievement('elementos-6');
+        /* secretos todos desbloqueados */
+        const secretos = (typeof Profile.SECRET_IDS !== 'undefined' ? Profile.SECRET_IDS : []);
+        const unlocked = (Profile.data && Profile.data.unlocked) || [];
+        if (secretos.length && secretos.every((id2) => unlocked.includes(id2))) Profile.grantAchievement('codigos-3');
+      }
       Profile.record('maxCombo', Math.max(...this.teams[humanTeam].members.map((m) => m.stats.maxCombo)));
       const vsHuman = this.mode === 'versus' && !this.cfg.cpu[1];
       this.audio.voice(winner < 0 ? 'draw' : (vsHuman || winner === humanTeam) ? 'youwin' : 'youlose');
@@ -829,7 +860,7 @@ class Game {
       case 's': UI.hud.say(f[1], f[2]); break;
       case 'n': UI.banner(f[1], f[2], f[3]); break;
       case 'c': { const fi = this.activeOf(f[1]); if (fi) UI.cutIn(fi, { name: f[3] }); break; }
-      case 'h': UI.hud.combo(f[1], f[2]); break;
+      case 'h': UI.hud.combo(f[1], f[2], f[3]); break;
       case 'k': this.addCrack(f[1], f[2], f[3], f[4], f[5]); break;
       default: break;
     }
@@ -885,9 +916,77 @@ class Game {
   }
 
   /* ---------- desenho ---------- */
+  /* FRAME DATA: tabela dos golpes basicos — F9 no treino */
+  _drawFrameDataTable(ctx) {
+    const f = this.activeOf(0);
+    if (!f || !f.def.moves) return;
+    const mv = f.def.moves;
+    const linhas = [
+      ['SOCO', mv.punch], ['CHUTE', mv.kick], ['SOCO AGACHADO', mv.cpunch], ['CHUTE AGACHADO', mv.ckick],
+      ['SOCO NO AR', mv.jpunch], ['CHUTE NO AR', mv.jkick],
+    ].filter((l) => l[1]);
+    ctx.save();
+    ctx.font = '11px monospace';
+    const x0 = 14, y0 = 64;
+    ctx.fillStyle = 'rgba(8,10,20,0.82)';
+    ctx.fillRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.strokeStyle = 'rgba(120,180,255,0.5)';
+    ctx.strokeRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.fillStyle = '#9adcff';
+    ctx.fillText('FRAME DATA — ' + f.def.name, x0, y0 - 2);
+    ctx.fillStyle = '#8899aa';
+    ctx.fillText('golpe          ini/ati/rec  dano  alcance', x0, y0 + 12);
+    linhas.forEach((l, i) => {
+      const m = l[1];
+      const y = y0 + 28 + i * 16;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(l[0].padEnd(15, ' '), x0, y);
+      ctx.fillStyle = '#ffd27d';
+      ctx.fillText(String(m.startup) + '/' + String(m.active) + '/' + String(m.recovery) + 'f', x0 + 118, y);
+      ctx.fillStyle = '#ff9a8a';
+      ctx.fillText(String(m.dmg), x0 + 196, y);
+      ctx.fillStyle = '#9adcff';
+      ctx.fillText(String(m.range) + 'px', x0 + 240, y);
+    });
+    ctx.fillStyle = '#667788';
+    ctx.fillText('startup/ativo/recuperacao — bloqueado = punivel no recovery', x0, y0 + 34 + linhas.length * 16);
+    ctx.restore();
+  }
+  /* caixas de debug: hurtbox (azul) e hitbox do golpe ativo (vermelho) */
+  _drawHitboxDebug(ctx) {
+    if (this.cfg && this.cfg.mode === 'training') this._drawFrameDataTable(ctx);
+    ctx.save();
+    ctx.lineWidth = 2;
+    for (const f of this.allFighters()) {
+      /* hurtbox */
+      ctx.strokeStyle = 'rgba(80,160,255,0.9)';
+      ctx.strokeRect(f.x - 34, f.y - 170, 68, 170);
+      ctx.fillStyle = 'rgba(80,160,255,0.08)';
+      ctx.fillRect(f.x - 34, f.y - 170, 68, 170);
+      /* hitbox do golpe ativo */
+      if (f.attack && f.attack.active) {
+        const mv = f.attack;
+        const rx = f.x + f.dir * (mv.range * 0.6);
+        ctx.strokeStyle = 'rgba(255,80,80,0.95)';
+        ctx.strokeRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        ctx.fillStyle = 'rgba(255,80,80,0.12)';
+        ctx.fillRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        /* frame data: startup/active/recovery */
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px monospace';
+        ctx.fillText(`${mv.kind}: ${mv.startup}/${mv.active}/${mv.recovery}f dano ${mv.dmg}`, f.x - 60, f.y - 186);
+      }
+    }
+    ctx.restore();
+  }
   render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    /* DEBUG DE HITBOX (treino): F9 liga/desliga — hitbox vermelho, hurtbox azul */
+    if (this.cfg && this.cfg.mode === 'training' && Input.hit && Input.hit(['F9'])) {
+      this.hitboxDebug = !this.hitboxDebug;
+      if (UI && UI.toast) UI.toast(this.hitboxDebug ? '👁 Hitboxes LIGADAS' : 'Hitboxes desligadas', 1400);
+    }
     // interpolação entre o passo anterior e o atual (renderização acima de 60 fps)
     const lerped = [];
     if (alpha < 0.999 && this.netRole !== 'guest' && this.teams && Profile.data.settings.smooth !== false) {
@@ -981,12 +1080,28 @@ class Game {
     for (const bu of this.bursts) {
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }
-    for (const s of this.sparks) {
-      ctx.globalAlpha = Math.min(1, s.life / 12);
-      ctx.fillStyle = s.color;
-      ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+    /* FAISCAS COM GLOW: pontos aditivos com halo (antes eram quadradinhos) */
+    if (!this.reduced && this.sparks.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const s of this.sparks) {
+        const a = Math.min(1, s.life / 12);
+        const sz = s.dust ? 3 : 2.4;
+        ctx.globalAlpha = a * 0.28;
+        ctx.fillStyle = s.color;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz * 2.6, 0, 6.3); ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz, 0, 6.3); ctx.fill();
+      }
+      ctx.restore();
+    } else {
+      for (const s of this.sparks) {
+        ctx.globalAlpha = Math.min(1, s.life / 12);
+        ctx.fillStyle = s.color;
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+      }
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
     this.weather.draw(ctx);
@@ -1020,18 +1135,26 @@ class Game {
         ctx.drawImage(this.canvas, 0, y, W, h, ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y, W, h);
       }
     }
+    /* aura de ultimate: quem ta castando ult acende as bordas */
+    const casters = this.fighters().filter((f2) => f2.cast && f2.cast.p && f2.cast.p.slot === 'ultimate');
+    if (typeof VFX !== 'undefined') VFX.drawUltAura(ctx, W, H, !this.reduced ? casters : []);
+    if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
+    if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
     ctx.save();
     ctx.translate(0, GROUND_Y);
     ctx.textAlign = 'center';
     for (const t of this.texts) {
-      ctx.globalAlpha = Math.min(1, t.life / 14);
-      ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#000';
-      ctx.strokeText(t.text, t.x, t.y);
-      ctx.fillStyle = t.color;
-      ctx.fillText(t.text, t.x, t.y);
+      if (typeof VFX !== 'undefined' && !t.small) VFX.drawDamageText(ctx, t);
+      else {
+        ctx.globalAlpha = Math.min(1, t.life / 14);
+        ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#000';
+        ctx.strokeText(t.text, t.x, t.y);
+        ctx.fillStyle = t.color;
+        ctx.fillText(t.text, t.x, t.y);
+      }
     }
     ctx.restore();
     ctx.restore();

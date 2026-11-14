@@ -414,7 +414,7 @@ const FIGHTERS = [
     bio: 'Cabelo preto raspado nas laterais, moletom verde, jeans baggy e tênis. Raios azuis e sombras do submundo.',
     colors: { skin: '#e9c3a5', hair: '#1a1410', shirt: '#6b7d4a', pants: '#8fb3d9', shoes: '#eee', accent: '#4da3ff' },
     traits: { hoodie: true },
-    stats: {power: 1.32, speed: 1.10, weight: 1.05, hp: 138, meterRate: 1.25},
+    stats: {power: 1.46, speed: 1.16, weight: 1.05, hp: 144, meterRate: 1.28},
     quotes: {
       intro: ['Vai chover raio.', 'Minha sombra já tá atrás de você.'],
       win: ['Relampejou e acabou.', 'Volta pras sombras.'],
@@ -422,8 +422,8 @@ const FIGHTERS = [
       super: ['TEMPESTADE DO SUBMUNDO!!'],
     },
     moves: {
-      punch: { dmg: 5, range: 48, startup: 4, active: 4, recovery: 9 },
-      kick: { dmg: 8, range: 62, startup: 7, active: 4, recovery: 11 },
+      punch: { dmg: 8, range: 52, startup: 4, active: 4, recovery: 8 },
+      kick: { dmg: 12, range: 66, startup: 6, active: 4, recovery: 10 },
     },
     special: { name: 'Bola de Plasma', type: 'projectile', cost: 25, proj: { speed: 10, dmg: 8, w: 24, h: 24, color: '#4da3ff', shape: 'bolt' } },
     super: { name: 'Tempestade', type: 'aoe', dmg: 24, radius: 220 },

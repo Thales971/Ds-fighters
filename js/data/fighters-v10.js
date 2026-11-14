@@ -18,7 +18,7 @@
       bio: 'Lutador adulto de presença andrógina, acompanhado por dois prismas espelhados. Alterna golpes ciano e violeta e marca o rival com Resonância.',
       colors: { skin: '#d9ad8d', hair: '#142344', shirt: '#edf4ff', pants: '#18233e', shoes: '#202c4c', accent: '#56eaff' },
       traits: { dualTone: true, prismDrones: true, hairStyle: 'short' },
-      stats: { power: 1.35, speed: 1.2, weight: 0.96, hp: 122, meterRate: 1.15 },
+      stats: { power: 1.52, speed: 1.32, weight: 0.96, hp: 142, meterRate: 1.30 },
       quotes: {
         intro: ['Duas ideias. Um só golpe.', 'Sincronizando os prismas.'],
         win: ['As duas frequências concordam.', 'Dueto concluído.'],
@@ -26,8 +26,8 @@
         super: ['ECLIPSE GEMINADO!'],
       },
       moves: {
-        punch: { dmg: 6, range: 50, startup: 5, active: 4, recovery: 10 },
-        kick: { dmg: 9, range: 62, startup: 8, active: 4, recovery: 13 },
+        punch: { dmg: 9, range: 54, startup: 4, active: 4, recovery: 9 },
+        kick: { dmg: 13, range: 66, startup: 6, active: 4, recovery: 11 },
       },
       special: {
         name: 'Pulso de Dois Prismas', type: 'projectile', cost: 25,
@@ -42,7 +42,7 @@
       bio: 'Mulher adulta de anime kawaii, cabelo azul-claro, óculos redondos cianos e presilhas de estrela. Usa ondas luminosas e protege-se com o Véu da Comunidade.',
       colors: { skin: '#f1c6ac', hair: '#75d9ff', shirt: '#f5f5ff', pants: '#25273a', shoes: '#eaf8ff', accent: '#62dfff' },
       traits: { glasses: 'round', starClips: true, longHair: true, kawaii: true },
-      stats: { power: 1.35, speed: 1.2, weight: 0.96, hp: 122, meterRate: 1.15 },
+      stats: { power: 1.52, speed: 1.32, weight: 0.96, hp: 142, meterRate: 1.30 },
       quotes: {
         intro: ['Todo mundo conectado?', 'Brilho, foco e movimento!'],
         win: ['A comunidade brilhou.', 'Conexão encerrada com estilo.'],
@@ -50,14 +50,14 @@
         super: ['PULSO COLETIVO!'],
       },
       moves: {
-        punch: { dmg: 6, range: 50, startup: 5, active: 4, recovery: 10 },
-        kick: { dmg: 9, range: 62, startup: 8, active: 4, recovery: 13 },
+        punch: { dmg: 9, range: 54, startup: 4, active: 4, recovery: 9 },
+        kick: { dmg: 13, range: 66, startup: 6, active: 4, recovery: 11 },
       },
       special: {
         name: 'Reação Estelar', type: 'projectile', cost: 25,
-        proj: { row: 0, speed: 10, dmg: 10, w: 25, h: 22, color: '#70dcff', shape: 'orb', visualSheet: 'meta', visualRow: 0 },
+        proj: { row: 0, speed: 10, dmg: 14, w: 25, h: 22, color: '#70dcff', shape: 'orb', visualSheet: 'meta', visualRow: 0 },
       },
-      super: { name: 'Pulso Coletivo', type: 'aoe', dmg: 34, radius: 210, visualSheet: 'meta', visualRow: 4 },
+      super: { name: 'Pulso Coletivo', type: 'aoe', dmg: 46, radius: 240, visualSheet: 'meta', visualRow: 4 },
     },
   );
 })();
