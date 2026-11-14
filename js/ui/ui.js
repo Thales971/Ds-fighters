@@ -95,7 +95,7 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas'].includes(this.screen)) return this.toMenu();
+    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
@@ -660,16 +660,16 @@ const UI = {
   },
   enter_events() {
     const rows = Events.upcoming();
-    const now = rows.find((r) => r.active) || rows.slice().sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    const now = rows.find((r) => r.active) || rows.filter((r) => !r.live).sort((a, b) => a.daysUntil - b.daysUntil)[0];
     this.$('events-year').textContent = String(Events.today().getFullYear());
     const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
     const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
-    const when = !now ? '' : now.live ? `Termina em ${dias(now.daysLeft)}` : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
+    const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
     this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
       <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
     </div>` : '';
     this.$('events-upcoming').innerHTML = rows.map((r) => {
-      const tag = r.live ? 'agora' : r.active ? 'teste' : `em ${dias(r.daysUntil)}`;
+      const tag = r.active ? (r.live ? (r.daysLeft <= 0 ? 'hoje' : 'agora') : 'teste') : r.live ? 'hoje' : `em ${dias(r.daysUntil)}`;
       return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
     }).join('');
     const maps = STAGE_LIST.filter((s) => s.event);

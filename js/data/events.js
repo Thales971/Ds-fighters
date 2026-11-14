@@ -62,7 +62,7 @@ const Events = {
     const forced = this.override && this.override !== 'off' ? this.override : null;
     return this.list.map((ev) => {
       const live = this.span(ev, now);
-      const on = forced ? ev.id === forced : !!live;
+      const on = this.override === 'off' ? false : (forced ? ev.id === forced : !!live);
       let w = live || ev.window(y);
       if (!live && w.end < now) w = ev.window(y + 1);
       const daysLeft = live ? Math.max(0, Math.round((live.end - now) / 86400000)) : null;
