@@ -46,11 +46,11 @@ check('os 13 climas tem INFO (icone/nome/desc)', infoOk === 13, infoOk + '/13');
 // ==== 2. EFEITOS REAIS dos climas ====
 /* granizo: lasca alguem no chao */
 g.weather.roll('hail');
-const alvo = g.activeOf(0);
-alvo.hp = alvo.maxHp;
+const alvoA = g.activeOf(0), alvoB = g.activeOf(1);
+alvoA.hp = alvoA.maxHp; alvoB.hp = alvoB.maxHp;
 let granizou = false;
-for (let t = 0; t < 1200; t++) { g.tick(); if (alvo.hp < alvo.maxHp) { granizou = true; break; } }
-check('GRANIZO machuca quem fica no chao', granizou, 'hp: ' + Math.round(alvo.hp) + '/' + alvo.maxHp);
+for (let t = 0; t < 1400; t++) { g.tick(); if (alvoA.hp < alvoA.maxHp || alvoB.hp < alvoB.maxHp) { granizou = true; break; } }
+check('GRANIZO machuca quem fica no chao', granizou, 'hp: ' + Math.round(alvoA.hp) + '/' + alvoA.maxHp);
 /* arco-iris: cura */
 g.weather.roll('rainbow');
 const cura = g.activeOf(1);

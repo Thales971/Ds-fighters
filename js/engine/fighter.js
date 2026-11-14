@@ -1360,7 +1360,7 @@ class Fighter {
     if (this.state === 'down') {
       /* WAKE-UP ATTACK: no fim da queda, soco/chute levanta ATACANDO
          com invencibilidade — o canto deixa de ser sentença. */
-      if (this.stateTime > 18 && this.stateTime <= 34 && (this.buf.punch || this.buf.kick)) {
+      if (this.stateTime > 18 && this.stateTime <= 35 && (this.buf.punch || this.buf.kick)) {
         const getup = this.buf.kick ? 'kick' : 'punch';
         this.buf.punch = 0; this.buf.kick = 0;
         this.state = 'idle'; this.stateTime = 0;
@@ -1371,7 +1371,7 @@ class Fighter {
         return this.endUpdate(input);
       }
       this.physics();
-      if (this.stateTime > 34) { this.state = 'idle'; this.stateTime = 0; this.addStatus('invuln', 10); }
+      if (this.stateTime > 35) { this.state = 'idle'; this.stateTime = 0; this.addStatus('invuln', 10); }
       return this.endUpdate(input);
     }
     if (this.state === 'thrown') {
