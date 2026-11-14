@@ -204,7 +204,7 @@
           if (r) { send(c, { t: 'error', msg: 'Você já está numa sala.' }); return; }
           if (rooms.size >= maxRooms) { send(c, { t: 'error', msg: 'Servidor lotado. Tente mais tarde.' }); return; }
           const mode = ['2x2', '2x2-4'].includes(m.mode) ? m.mode : '1v1';
-          const pool = Array.isArray(m.stagePool) ? m.stagePool.filter((s) => typeof s === 'string' && /^[a-z0-9\-]{1,40}$/.test(s)).slice(0, 80) : [];
+          const pool = Array.isArray(m.stagePool) ? m.stagePool.filter((s) => typeof s === 'string' && /^[a-z0-9\-]{1,40}$/.test(s)).slice(0, 200) : [];
           if (!pool.length) { send(c, { t: 'error', msg: 'Lista de arenas inválida.' }); return; }
           const code = newCode();
           if (!code) { send(c, { t: 'error', msg: 'Não foi possível gerar um código.' }); return; }

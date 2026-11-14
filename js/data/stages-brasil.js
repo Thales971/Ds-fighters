@@ -1,7 +1,7 @@
 /* Paisagens brasileiras. Entram no Arcade e no Versus o ano inteiro.
    Maré alta só nos mapas cujo piso encontra a água. */
 const BRASIL_STAGE = (id, name, weather, fauna, ambient, blurb, tint, mech) => ({
-  id, name, group: 'Brasil', pixel: true, mech: mech || null,
+  id, name, group: 'Brasil', pixel: true, mech: mech || null, swim: mech === 'tide',
   image: `assets/maps/brasil/${id}-mid.png`,
   weather, fauna, ambient, blurb, tint,
   layers: [
