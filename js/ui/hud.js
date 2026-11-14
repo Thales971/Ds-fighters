@@ -158,11 +158,20 @@ const HUD = {
       });
     });
     const tm = this.$('hud-timer');
-    const secs = game.roundTimer === Infinity ? '∞' : String(Math.max(0, Math.ceil(game.roundTimer / 60)));
-    if (tm.textContent !== secs) tm.textContent = secs;
-    tm.classList.toggle('low', game.roundTimer !== Infinity && game.roundTimer < 600);
+    const suddenOn = !!(game.inferno && game.round === 3 && game.roundState === 'fight');
+    if (suddenOn) {
+      const secs = String(Math.max(0, Math.ceil((game.suddenLeft || 0) / 60)));
+      if (tm.textContent !== secs) tm.textContent = secs;
+      tm.classList.add('sudden');
+      tm.classList.toggle('low', (game.suddenLeft || 0) < 600);
+    } else {
+      tm.classList.remove('sudden');
+      const secs = game.roundTimer === Infinity ? '∞' : String(Math.max(0, Math.ceil(game.roundTimer / 60)));
+      if (tm.textContent !== secs) tm.textContent = secs;
+      tm.classList.toggle('low', game.roundTimer !== Infinity && game.roundTimer < 600);
+    }
     const rl = this.$('hud-round');
-    const rt = game.mode === 'training' ? 'TREINO' : 'ROUND ' + game.round;
+    const rt = game.mode === 'training' ? 'TREINO' : suddenOn ? 'MORTE SÚBITA' : 'ROUND ' + game.round;
     if (rl.textContent !== rt) rl.textContent = rt;
   },
 };

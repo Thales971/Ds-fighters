@@ -43,6 +43,7 @@ class Game {
     /* Round 3 de qualquer luta (não é modo): o chão pega fogo. */
     const sudden = this.round === 3 && this.mode !== 'training' && this.mode !== 'demo';
     this.inferno = sudden ? { t: 0, active: false } : null;
+    this.suddenLeft = sudden ? 50 * 60 : 0;
     this.imgFx = [];
     this.cracks = [];
     this.projectiles = [];
@@ -599,6 +600,7 @@ class Game {
     if (fighting) {
       if (this.roundTimer !== Infinity) this.roundTimer--;
       this.tickInferno();
+      this.tickSudden();
       for (const ti of [0, 1]) {
         const t = this.teams[ti];
         if (t.tagCd > 0) t.tagCd--;
@@ -1106,7 +1108,16 @@ class Game {
     this.stage.drawAmbient(ctx);
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
     if (this.inferno && this.inferno.active) {
-      ctx.fillStyle = 'rgba(160,36,0,0.10)';
+      const seconds = this.inferno.t / 60;
+      const heat = Math.min(1, 0.45 + seconds / 45);
+      const pulse = this.reduced ? 1 : 0.88 + 0.12 * Math.sin(this.time * 0.07);
+      const edge = Math.min(0.55, (0.28 + heat * 0.22) * pulse);
+      const mid = 0.05 + heat * 0.05;
+      const g = ctx.createRadialGradient(W / 2, H * 0.52, H * 0.16, W / 2, H * 0.48, Math.hypot(W, H) * 0.55);
+      g.addColorStop(0, 'rgba(170,28,10,' + mid.toFixed(3) + ')');
+      g.addColorStop(0.55, 'rgba(150,18,6,' + (mid + (edge - mid) * 0.35).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(120,8,0,' + edge.toFixed(3) + ')');
+      ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     }
     this.weather.drawOverlay(ctx, W, H);
@@ -1150,7 +1161,40 @@ class Game {
     ctx.restore();
     UI.hud.update(this);
   }
-  /* ---------- MORTE SÚBITA: fogo no chão a partir do 3º round ---------- */
+  /* Contagem só no 3º round. No zero, quem tem menos vida cai.
+     Vida igual: perde quem causou menos dano neste round.
+     Dano também igual: o time 2 cai, para a luta não ficar parada. */
+  tickSudden() {
+    if (!this.inferno || !this.inferno.active || this.roundState !== 'fight') return;
+    if (this.suddenLeft > 0) this.suddenLeft--;
+    if (this.suddenLeft > 0) return;
+    const hpOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.hp), 0);
+    const dmgOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.stats.dmg - (m.roundDamageStart || 0)), 0);
+    const ha = hpOf(0);
+    const hb = hpOf(1);
+    let loserTeam;
+    let why;
+    if (Math.abs(ha - hb) > 0.5) {
+      loserTeam = ha < hb ? 0 : 1;
+      why = 'Quem tinha menos vida cai';
+    } else {
+      const da = dmgOf(0);
+      const db = dmgOf(1);
+      if (Math.abs(da - db) > 0.5) {
+        loserTeam = da >= db ? 1 : 0;
+        why = 'Vida igual — vence quem causou mais dano';
+      } else {
+        loserTeam = 1;
+        why = 'Vida e dano iguais — o time 2 cai';
+      }
+    }
+    const loser = this.activeOf(loserTeam);
+    this.announce('TEMPO!', '#ff3b30', why);
+    if (loser && loser.alive) {
+      loser.hp = 0;
+      loser.defeat(loser.dir);
+    }
+  }
   tickInferno() {
     const inf = this.inferno;
     if (!inf || this.roundState !== 'fight') return;

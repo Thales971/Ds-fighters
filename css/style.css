@@ -351,7 +351,8 @@ body.reduced .pet-spr { animation: none; }
 .partner.dead { filter: grayscale(1) brightness(.5); }
 .center { text-align: center; }
 .timer { font-size: 30px; color: var(--gold); text-shadow: 3px 3px 0 #a1271c, 0 0 0 #000; background: rgba(0,0,0,.55); border: 3px solid #000; box-shadow: 0 0 0 2px var(--gold); padding: 6px 0 4px; }
-.timer.low { color: var(--red); animation: blink .5s steps(2) infinite; }
+.timer.sudden { font-size: 46px; letter-spacing: 1px; color: #ffe14d; box-shadow: 0 0 0 2px #ff3b30; }
+.timer.sudden.low { color: var(--red); animation: blink .35s steps(2) infinite; }
 .round-label { font-size: 6px; margin-top: 4px; text-shadow: 2px 2px 0 #000; }
 .hud-stage { position: absolute; top: 106px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; font-size: 6px; white-space: nowrap; }
 .hud-stage span { background: rgba(0,0,0,.6); padding: 3px 5px; border: 1px solid #3a2766; }
