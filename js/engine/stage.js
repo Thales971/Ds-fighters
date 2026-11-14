@@ -20,7 +20,7 @@ class LiveFauna {
       if (k === 'cat') spawn('cat', 1, { y: groundY - 2 });
       if (k === 'dog') spawn('dog', 1, { y: groundY - 2 });
       if (k === 'dragonfly') spawn('dragonfly', 2, { y: groundY - 160 - Math.random() * 90, sky: true });
-      if (k === 'fireflies') spawn('firefly', 14, { y: groundY - 50 - Math.random() * 240, sky: true });
+      if (k === 'fireflies') spawn('firefly', 6, { y: groundY - 210 - Math.random() * 160, sky: true });
       if (k === 'butterflies') spawn('butterfly', 3, { y: groundY - 80 - Math.random() * 120, sky: true });
       if (k === 'squirrel') spawn('squirrel', 1, { y: groundY - 2 });
       if (k === 'seagull') spawn('seagull', 2, { y: groundY - 200 - Math.random() * 120, sky: true });
@@ -92,7 +92,7 @@ class LiveFauna {
     }
   }
   draw(ctx, layer = 'all') {
-    const onGround = { pigeon: 1, cat: 1, dog: 1, squirrel: 1, frog: 1 };
+    const onGround = { pigeon: 1, cat: 1, dog: 1, squirrel: 1, frog: 1, firefly: 1 };
     for (const a of this.animals) {
       if (a.state === 'gone') continue;
       const grounded = !!onGround[a.k];
@@ -102,12 +102,10 @@ class LiveFauna {
       ctx.save();
       ctx.translate(x, y);
       if (a.k === 'firefly') {
-        const blink = 0.55 + Math.sin(a.ph * 2.4) * 0.45;
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = `rgba(255,190,50,${(blink * 0.5).toFixed(3)})`;
-        ctx.beginPath(); ctx.arc(0, 0, 16, 0, 6.3); ctx.fill();
-        ctx.fillStyle = `rgba(255,246,200,${blink.toFixed(3)})`;
-        ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, 6.3); ctx.fill();
+        const blink = [0, 1, 2, 3, 2, 1];
+        const f = blink[Math.floor(this.t * 0.12 + a.ph * 3) % blink.length];
+        Art.cell(ctx, 'fx2:firefly', 1, 0, 0, 0, { scale: 1, add: true, alpha: 0.85 });
+        Art.cell(ctx, 'fx2:firefly', 0, f, 0, 0, { scale: 1 });
       } else if (a.k === 'dragonfly') {
         ctx.scale(2.4, 2.4);
         ctx.fillStyle = '#5fd8c8';
@@ -316,7 +314,8 @@ class StageRenderer {
       const k = kinds[(Math.random() * kinds.length) | 0];
       const y0 = (k === 'ember' || k === 'bubble' || k === 'sparkd') ? this.H + 10
         : (k === 'petal' || k === 'code') ? -10
-        : (k === 'glitch' ? Math.random() * this.H * 0.5 : 120 + Math.random() * 300);
+        : (k === 'firefly' ? 40 + Math.random() * 120
+        : (k === 'glitch' ? Math.random() * this.H * 0.5 : 120 + Math.random() * 300));
       this.ambient.push({ k, x: Math.random() * this.W, y: y0, life: 0, ph: Math.random() * 6, s: Math.random(), w: k === 'glitch' ? 40 + Math.random() * 160 : 0, h: k === 'glitch' ? 2 + Math.random() * 5 : 0 });
     }
     const wind = weather ? weather.wind : 0;
@@ -539,6 +538,12 @@ class StageRenderer {
         ctx.fillStyle = '#ffd27d';
         ctx.fillRect(p.x, p.y, 2, 2);
         ctx.globalAlpha = 1;
+      }
+      else if (p.k === 'firefly') {
+        const blink = [1, 2, 3, 2, 1, 0];
+        const f = blink[Math.floor(p.life * 0.12 + p.ph * 3) % blink.length];
+        Art.cell(ctx, 'fx2:firefly', 1, 0, p.x, p.y, { scale: 1, add: true, alpha: 0.8 * a });
+        Art.cell(ctx, 'fx2:firefly', 0, f, p.x, p.y, { scale: 1, alpha: a });
       }
       else { const gl = 0.5 + Math.sin(p.life * 0.1 + p.ph) * 0.5; ctx.fillStyle = `rgba(210,255,120,${gl * a})`; ctx.fillRect(p.x, p.y, 3, 3); }
     }

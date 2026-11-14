@@ -157,11 +157,11 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 48 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
-      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -60 - r * 260 : this.kind === 'leaves' ? -30 - r * 380 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
+      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' ? -30 - r * 380 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
       const roll = this.game.rnd ? this.game.rnd() : Math.random();
       const d = { x: roll * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()), ph: roll * 6.28, rot: roll * 6.28, rotV: 0.05 + roll * 0.08 };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
@@ -191,8 +191,8 @@ class Weather {
         d.y += Math.cos(d.ph * 0.7) * 0.6;
         if (d.x > W + 40) d.x = -40;
         if (d.x < -40) d.x = W + 40;
-        if (d.y > -30) d.y = -280;
-        if (d.y < -300) d.y = -40;
+        if (d.y > -190) d.y = -360;
+        if (d.y < -420) d.y = -220;
         continue;
       }
       if (this.kind === 'hail') {
@@ -410,21 +410,13 @@ class Weather {
       ctx.fillStyle = 'rgba(255,240,200,0.30)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
     } else if (this.kind === 'fireflies') {
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
+      const blink = [0, 1, 2, 3, 2, 1];
       for (const d of this.drops) {
-        const blink = 0.55 + 0.45 * Math.abs(Math.sin(this.t * 0.12 + d.s * 9));
-        const halo = 18 + d.s * 10;
-        ctx.fillStyle = `rgba(255,186,48,${(blink * 0.42).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, halo, 0, 6.28);
-        ctx.fill();
-        ctx.fillStyle = `rgba(255,244,190,${blink.toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, 4.2, 0, 6.28);
-        ctx.fill();
+        const f = blink[Math.floor(this.t * 0.12 + d.ph * 3) % blink.length];
+        const sc = d.s > 0.84 ? 2 : 1;
+        Art.cell(ctx, 'fx2:firefly', 1, 0, d.x, d.y, { scale: sc, add: true, alpha: 0.85 });
+        Art.cell(ctx, 'fx2:firefly', 0, f, d.x, d.y, { scale: sc });
       }
-      ctx.restore();
     } else if (this.kind === 'hail') {
       const sp = this.sprites.flakes;
       for (const d of this.drops) {
