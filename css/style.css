@@ -559,7 +559,8 @@ body.reduced.shocked .skills .skill .key { animation: none; }
   .tourney-match-actions > .btn { flex: 1 1 auto; min-height: 44px; }
 }
 
-#scr-events .select-bg { background: radial-gradient(ellipse at 50% 20%, #4a2280, #1a0c32 68%); }
+#scr-events .select-bg { background: radial-gradient(ellipse at 50% 18%, #5a2e96, #241044 70%); }
+#scr-events .sel-head h2 { color: #ffe7a8; text-shadow: 2px 2px 0 #000; }
 .events-layout { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; padding: 0 12px 46px; height: 478px; }
 .ev-hero { position: relative; height: 168px; background: #2a1450 center 42% / cover no-repeat; border: 3px solid var(--gold); box-shadow: 0 0 0 3px #000; image-rendering: pixelated; }
 .ev-hero-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; background: linear-gradient(transparent, rgba(8,2,16,.72)); }
@@ -583,11 +584,17 @@ body[data-event="natal"] #skin-natal,
 body[data-event="natal"] #fx-natal,
 body[data-event="halloween"] #skin-halloween,
 body[data-event="halloween"] #fx-halloween { display: block; }
-body[data-event="natal"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 6px #d7ecff); box-shadow: 0 0 0 3px #d7ecff; }
-body[data-event="halloween"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 6px #ff9a3a); box-shadow: 0 0 0 3px #ff8a2a; }
-body[data-event="natal"] #scr-menu .mm { border-left-color: #c5e4ff; box-shadow: inset 0 -2px 0 #9ec8ee; }
-body[data-event="halloween"] #scr-menu .mm { border-left-color: #ff8a2a; box-shadow: inset 0 -2px 0 #b44ae0; }
-#fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
-#fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 11s linear infinite; }
+/* A moldura fica fora da caixa do logo e dos botões, então não escurece o miolo. */
+body[data-event="natal"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #f4fbff, 0 0 0 7px #9ec8ee; }
+body[data-event="halloween"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffb15a; }
+body[data-event="natal"] #scr-menu .mm,
+body[data-event="natal"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #f4fbff; }
+body[data-event="halloween"] #scr-menu .mm { box-shadow: -3px 0 0 #ff8a2a, 0 -3px 0 #c45cff; }
+.menu-glow { position: absolute; pointer-events: none; z-index: 1; display: none; }
+#glow-halloween { left: 400px; top: 8px; width: 280px; height: 160px; background: radial-gradient(ellipse at 30% 55%, rgba(255,140,40,.75), rgba(150,40,200,.4) 48%, transparent 74%); }
+body[data-event="halloween"] #glow-halloween { display: block; }
+#fx-natal, #fx-halloween { clip-path: inset(0 270px 0 380px); }
+#fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
+#fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
 @keyframes eventFall { to { background-position: 0 540px; } }
 body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
