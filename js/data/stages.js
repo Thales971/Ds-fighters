@@ -83,7 +83,7 @@ const WEATHER_INFO = {
   eclipse: { name: 'Eclipse', icon: '🌑', desc: 'Escuridão: medidor +10%.' },
   rainbow: { name: 'Arco-Íris', icon: '🌈', desc: 'Pós-chuva: cura lenta para TODOS os lutadores.' },
   fog: { name: 'Neblina', icon: '☁', desc: 'Bancos de neblina na arena — a visão fica embaçada para todos.' },
-  darkfog: { name: 'Neblina Sombria', icon: '☾', desc: 'Neblina roxa e baixa. A arena escurece nas bordas, sem apagar o lutador.' },
+  darkfog: { name: 'Neblina Sombria', icon: '☾', desc: 'Névoa roxa só no fundo da arena. O lutador continua nítido.' },
 };
 
 const MECH_INFO = {

@@ -22,7 +22,7 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v38-eventos" />
+  <link rel="stylesheet" href="css/style.css?v=v39-eventos" />
   <link rel="stylesheet" href="css/account.css?v=v37-henrico" />
   <link rel="stylesheet" href="css/mobile.css?v=v37-henrico" />
 </head>
@@ -75,8 +75,10 @@
 
     <section class="screen" id="scr-menu" data-screen="menu">
       <div class="menu-bg"></div>
-      <img class="menu-skin" id="skin-natal" alt="" src="assets/ui/skin-natal.png?v=v38-eventos" />
-      <img class="menu-skin" id="skin-halloween" alt="" src="assets/ui/skin-halloween.png?v=v38-eventos" />
+      <img class="menu-skin" id="skin-natal" alt="" src="assets/ui/skin-natal.png?v=v39-eventos" />
+      <img class="menu-skin" id="skin-halloween" alt="" src="assets/ui/skin-halloween.png?v=v39-eventos" />
+      <div class="menu-fx" id="fx-natal"></div>
+      <div class="menu-fx" id="fx-halloween"></div>
       <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
       <button class="nav btn mobile-only" id="btn-mobile-account">CONTA / SALVAR PROGRESSO</button>
       <nav class="main-menu" aria-label="Menu principal">
@@ -106,7 +108,7 @@
       <div class="select-bg"></div>
       <header class="sel-head"><h2>EVENTOS DO ANO</h2><div class="sel-mode" id="events-year"></div></header>
       <div class="events-layout">
-        <div id="events-now"></div>
+        <div id="events-hero"></div>
         <div id="events-upcoming"></div>
         <div id="events-maps"></div>
       </div>
@@ -469,10 +471,10 @@
   <script src="js/data/fighters-pack.js?v=v37-henrico"></script>
   <script src="js/data/fighters-henrico.js?v=v37-henrico"></script>
   <script src="js/data/pets.js?v=v37-henrico"></script>
-  <script src="js/data/stages.js?v=v38-eventos"></script>
+  <script src="js/data/stages.js?v=v39-eventos"></script>
   <script src="js/data/stages-v21.js?v=v37-round3"></script>
-  <script src="js/data/events.js?v=v38-eventos"></script>
-  <script src="js/data/stages-events.js?v=v38-eventos"></script>
+  <script src="js/data/events.js?v=v39-eventos"></script>
+  <script src="js/data/stages-events.js?v=v39-eventos"></script>
   <script src="js/engine/sprites.js?v=v37-henrico"></script>
   <script src="js/engine/fx.js?v=v37-firefly"></script>
   <script src="js/data/voice-book.js?v=v37-henrico"></script>
@@ -482,7 +484,7 @@
   <script src="js/engine/projectile.js?v=v37-henrico"></script>
   <script src="js/engine/fighter.js?v=v37-round3"></script>
   <script src="js/engine/vfx.js?v=v38-vfx"></script>
-  <script src="js/engine/weather.js?v=v38-eventos"></script>
+  <script src="js/engine/weather.js?v=v39-eventos"></script>
   <script src="js/engine/mechanics.js?v=v37-round3"></script>
   <script src="js/engine/stage.js?v=v37-firefly"></script>
   <script src="js/engine/ai.js?v=v37-henrico"></script>
@@ -492,7 +494,7 @@
   <script src="js/net/online.js?v=v37-henrico"></script>
   <script src="js/ui/hud.js?v=v37-heat"></script>
   <script src="js/data/roster-portraits.js?v=v37-henrico"></script>
-  <script src="js/ui/ui.js?v=v38-eventos"></script>
+  <script src="js/ui/ui.js?v=v39-eventos"></script>
   <script src="js/ui/account.js?v=v37-henrico"></script>
   <script src="js/main.js?v=v37-henrico"></script>
   <script src="js/net/tournament.js?v=v37-henrico"></script>

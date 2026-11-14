@@ -660,15 +660,17 @@ const UI = {
   },
   enter_events() {
     const rows = Events.upcoming();
-    const now = rows.find((r) => r.active);
+    const now = rows.find((r) => r.active) || rows.slice().sort((a, b) => a.daysUntil - b.daysUntil)[0];
     this.$('events-year').textContent = String(Events.today().getFullYear());
     const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
-    this.$('events-now').innerHTML = now
-      ? `<h3>${now.ev.name} está no ar</h3><p>${now.live ? `Termina em ${dias(now.daysLeft)}` : 'Modo teste'} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p>`
-      : `<h3>Nenhum evento hoje</h3><p>Os mapas de festa continuam em Arcade e Versus o ano inteiro.</p>`;
+    const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
+    const when = !now ? '' : now.live ? `Termina em ${dias(now.daysLeft)}` : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
+      <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
+    </div>` : '';
     this.$('events-upcoming').innerHTML = rows.map((r) => {
-      const tag = r.live ? ' · agora' : r.active ? ' · teste' : ` · em ${dias(r.daysUntil)}`;
-      return `<p class="${r.active ? 'on' : ''}"><b>${r.ev.name}</b> ${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}${tag}</p>`;
+      const tag = r.live ? 'agora' : r.active ? 'teste' : `em ${dias(r.daysUntil)}`;
+      return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
     }).join('');
     const maps = STAGE_LIST.filter((s) => s.event);
     this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');

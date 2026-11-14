@@ -240,7 +240,15 @@ class Weather {
         }
         continue;
       }
-      if (this.kind === 'fog' || this.kind === 'darkfog') {
+      if (this.kind === 'darkfog') {
+        /* NEBLINA SOMBRIA: só na faixa baixa, atrás dos pés, sem cobrir a cabeça. */
+        d.x += (this.wind || 0.4) * (0.12 + d.s * 0.16);
+        d.y = -22 - d.s * 36 + Math.sin((this.t + d.s * 200) * 0.006) * 6;
+        if (d.x > W + 240) d.x = -240;
+        if (d.x < -240) d.x = W + 200;
+        continue;
+      }
+      if (this.kind === 'fog') {
         /* NEBLINA: bancos grandes e macios derivando devagar. */
         d.x += (this.wind || 0.4) * (0.14 + d.s * 0.22);
         d.y = -80 - d.s * 120 + Math.sin((this.t + d.s * 200) * 0.006) * 26;
@@ -358,16 +366,17 @@ class Weather {
         c.width = 260; c.height = 160;
         const x = c.getContext('2d');
         const g = x.createRadialGradient(130, 80, 8, 130, 80, 120);
-        g.addColorStop(0, 'rgba(48,32,64,0.55)');
-        g.addColorStop(0.55, 'rgba(28,18,40,0.28)');
-        g.addColorStop(1, 'rgba(12,8,20,0)');
+        g.addColorStop(0, 'rgba(120,70,160,0.28)');
+        g.addColorStop(0.6, 'rgba(90,40,120,0.12)');
+        g.addColorStop(1, 'rgba(40,10,60,0)');
         x.fillStyle = g;
         x.fillRect(0, 0, 260, 160);
         this._darkFog = c;
       }
       for (const d of this.drops) {
-        const sc = d.s < 0.5 ? 2.4 : 3.6;
-        ctx.globalAlpha = d.s < 0.5 ? 0.45 : 0.7;
+        if (d.y < -90) continue;
+        const sc = d.s < 0.5 ? 2.1 : 2.8;
+        ctx.globalAlpha = d.s < 0.5 ? 0.18 : 0.28;
         ctx.drawImage(this._darkFog, d.x - 130 * sc / 2, d.y - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
       }
       ctx.globalAlpha = 1;
@@ -497,13 +506,12 @@ class Weather {
       ctx.fillStyle = 'rgba(206,216,228,0.13)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'darkfog') {
-      ctx.fillStyle = 'rgba(18,8,28,0.28)';
-      ctx.fillRect(0, 0, W, H);
-      const g = ctx.createRadialGradient(W / 2, H * 0.45, H * 0.15, W / 2, H * 0.5, H * 0.75);
-      g.addColorStop(0, 'rgba(40,10,20,0)');
-      g.addColorStop(1, 'rgba(12,4,18,0.45)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
+      /* só o chão e o fundo. O centro, onde estão os lutadores, fica limpo. */
+      const fog = ctx.createLinearGradient(0, H * 0.78, 0, H);
+      fog.addColorStop(0, 'rgba(80,36,120,0)');
+      fog.addColorStop(1, 'rgba(72,28,110,0.16)');
+      ctx.fillStyle = fog;
+      ctx.fillRect(0, H * 0.78, W, H * 0.22);
     } else if (this.kind === 'snow') {
       /* frio azulado + neblina baixa no chao + vinheta gelada */
       ctx.fillStyle = 'rgba(200,230,255,0.10)';
