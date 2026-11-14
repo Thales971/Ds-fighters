@@ -576,6 +576,7 @@ class Game {
     this.stage.update(this.weather);
     this.weather.update(fighting);
     if (this.stage && this.stage.liveFauna && this.roundState === 'fight') this.stage.liveFauna.update();
+    if (typeof VFX !== 'undefined') VFX.update(W, H);
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
     if (this.glitch > 0) this.glitch--;
@@ -1015,12 +1016,28 @@ class Game {
     for (const bu of this.bursts) {
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }
-    for (const s of this.sparks) {
-      ctx.globalAlpha = Math.min(1, s.life / 12);
-      ctx.fillStyle = s.color;
-      ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+    /* FAISCAS COM GLOW: pontos aditivos com halo (antes eram quadradinhos) */
+    if (!this.reduced && this.sparks.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const s of this.sparks) {
+        const a = Math.min(1, s.life / 12);
+        const sz = s.dust ? 3 : 2.4;
+        ctx.globalAlpha = a * 0.28;
+        ctx.fillStyle = s.color;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz * 2.6, 0, 6.3); ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz, 0, 6.3); ctx.fill();
+      }
+      ctx.restore();
+    } else {
+      for (const s of this.sparks) {
+        ctx.globalAlpha = Math.min(1, s.life / 12);
+        ctx.fillStyle = s.color;
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+      }
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
     this.weather.draw(ctx);
@@ -1054,19 +1071,26 @@ class Game {
         ctx.drawImage(this.canvas, 0, y, W, h, ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y, W, h);
       }
     }
+    /* aura de ultimate: quem ta castando ult acende as bordas */
+    const casters = this.fighters().filter((f2) => f2.cast && f2.cast.p && f2.cast.p.slot === 'ultimate');
+    if (typeof VFX !== 'undefined') VFX.drawUltAura(ctx, W, H, !this.reduced ? casters : []);
+    if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
     if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
     ctx.save();
     ctx.translate(0, GROUND_Y);
     ctx.textAlign = 'center';
     for (const t of this.texts) {
-      ctx.globalAlpha = Math.min(1, t.life / 14);
-      ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#000';
-      ctx.strokeText(t.text, t.x, t.y);
-      ctx.fillStyle = t.color;
-      ctx.fillText(t.text, t.x, t.y);
+      if (typeof VFX !== 'undefined' && !t.small) VFX.drawDamageText(ctx, t);
+      else {
+        ctx.globalAlpha = Math.min(1, t.life / 14);
+        ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#000';
+        ctx.strokeText(t.text, t.x, t.y);
+        ctx.fillStyle = t.color;
+        ctx.fillText(t.text, t.x, t.y);
+      }
     }
     ctx.restore();
     ctx.restore();

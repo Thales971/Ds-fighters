@@ -377,6 +377,8 @@ class Fighter {
     return c <= 0 ? 1 : c === 1 ? 0.85 : c === 2 ? 0.72 : c === 3 ? 0.62 : 0.55;
   }
   takeHit(dmg, o = {}) {
+
+    if (typeof VFX !== 'undefined' && dmg >= 14) VFX.impact(this.x, this.y - 110, dmg >= 22, dmg >= 22 ? '#ffd27d' : '#fff', this.game.reduced);
     /* POSTURA DEFENSIVA: guarda alta ao andar pra tras absorve 15% */
     if (this.guardUp && !o.unblockable && !o.height) dmg *= 0.85;
     /* escala: dano cai se a vitima ja leva sequencia do MESMO agressor */
@@ -1793,6 +1795,7 @@ class Fighter {
     }
     this.game.audio.dash();
     this.game.dust(this.x);
+    if (typeof VFX !== 'undefined') VFX.dashLines(this.x, this.y, sign, this.game.reduced);
   }
 
   /* ---------- desenho ---------- */
@@ -1922,12 +1925,23 @@ class Fighter {
     const frame = this.animFrame(pose);
     const game = this.game;
     const xf = this.motionXf(pose);
-    // sombra
-    ctx.fillStyle = 'rgba(0,0,0,0.42)';
-    const sh = 34 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
-    ctx.beginPath();
-    ctx.ellipse(this.x, 2, Math.max(10, sh), 7, 0, 0, Math.PI * 2);
-    ctx.fill();
+    /* sombra suave: gradiente radial que some no pulo */
+    const sh = 40 * (1 - Math.min(Math.abs(this.y) / 260, 0.6));
+    const shA = 0.45 * (1 - Math.min(Math.abs(this.y) / 300, 0.7));
+    if (shA > 0.02) {
+      const sg = ctx.createRadialGradient(this.x, 2, 2, this.x, 2, Math.max(14, sh));
+      sg.addColorStop(0, `rgba(0,0,0,${shA})`);
+      sg.addColorStop(0.7, `rgba(0,0,0,${shA * 0.5})`);
+      sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sg;
+      ctx.save();
+      ctx.translate(this.x, 2);
+      ctx.scale(1, 0.32);
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(14, sh), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     // mascote
     if (this.pet && this.pet.row >= 0 && this.alive) {
       const px = this.x - this.dir * 78;

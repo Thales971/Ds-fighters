@@ -4,7 +4,7 @@ const ctx={console, Image: class { set src(v){} }, Math, Date,
   Profile:{SECRET_IDS:[], data:{settings:{reducedMotion:false}}},
   EMPTY_INPUT:Object.freeze({left:false,right:false,down:false,up:false,punch:false,kick:false})};
 vm.createContext(ctx);
-const files=['assets/sprites/layout.js','js/data/fighters.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/weather.js'];
+const files=['assets/sprites/layout.js','js/data/fighters.js','js/data/fighters-v10.js','js/data/fighters-v11.js','js/data/powers.js','js/data/powers-turbo.js','js/data/powers-v4.js','js/data/powers-v5.js','js/data/powers-v6.js','js/data/powers-balance-v6.js','js/data/powers-v7.js','js/data/powers-v8.js','js/data/powers-v9.js','js/data/powers-v10.js','js/data/powers-v11.js','js/data/fighters-v12.js','js/data/fighters-v13.js','js/data/fighters-v14.js','js/data/fighters-v15.js','js/data/fighters-v16.js','js/data/pets.js','js/data/stages.js','js/engine/fx.js','js/engine/projectile.js','js/engine/fighter.js','js/engine/vfx.js', 'js/engine/weather.js'];
 for (const f of files) vm.runInContext(fs.readFileSync(f,'utf8'), ctx, {filename:f});
 const api=vm.runInContext('({FIGHTERS,POWERS,Fighter})',ctx);
 
