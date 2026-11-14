@@ -218,8 +218,6 @@ class Fighter {
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
     if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
     if (this.game.weather && this.game.weather.kind === 'eclipse') m *= 1.10; /* eclipse: medidor +10% */
-    /* MORTE SÚBITA: a arena em chamas acelera o medidor de todo mundo. */
-    if (this.game && this.game.mode === 'morte-subita' && this.game.inferno && this.game.inferno.active) m *= 1.6;
     return m;
   }
   gain(dealt, amount = 1) {
@@ -290,6 +288,7 @@ class Fighter {
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
     m *= this.weatherDmgMult(p);
+    if (this.game && this.game.inferno && this.game.inferno.active) m *= 1.05;
     return m;
   }
   defMult() {
@@ -1272,7 +1271,7 @@ class Fighter {
     /* NUNES — Passiva Fagulha Viva: dentro do próprio fogo ele regenera vida
        (desativada no modo MORTE SÚBITA, onde a arena já é um incêndio). */
     if (this.def.id === 'nunes' && this.alive && this.onGround && this.hp > 0
-        && game.mode !== 'morte-subita' && this.now % 10 === 0
+        && !(game.inferno && game.inferno.active) && this.now % 10 === 0
         && game.zones && game.zones.some((z) => z.owner === this && Math.abs(this.x - z.x) < z.w / 2)) {
       this.hp = Math.min(this.maxHp, this.hp + 1.4);
     }

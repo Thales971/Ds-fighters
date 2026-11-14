@@ -228,7 +228,7 @@ const UI = {
   menuGo(go) {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
-    if (['arcade', 'versus', 'tag', 'training', 'survival', 'morte-subita'].includes(go)) return this.startFlow(go);
+    if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
 
@@ -361,7 +361,7 @@ const UI = {
   enter_select() {
     const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL', 'morte-subita': 'MORTE SÚBITA' };
+    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
     grid.innerHTML = roster.map((d) => {
@@ -637,7 +637,11 @@ const UI = {
     const el = this.$('stage-preview');
     if (!s) { el.innerHTML = `<div class="sp-img q">?</div><h3>ARENA ALEATÓRIA</h3><p>Uma das ${STAGE_LIST.length} arenas, com clima sorteado.</p>`; return; }
     const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`;
-    const fauna = { bee: 'abelhas', bird: 'pássaros', butterfly: 'borboletas', bat: 'morcegos', fish: 'peixes' };
+    const fauna = {
+      bee: 'abelhas', bird: 'pássaros', birds: 'pássaros', butterfly: 'borboletas', butterflies: 'borboletas',
+      bat: 'morcegos', fish: 'peixes', pigeons: 'pombos', cat: 'gato', dog: 'cachorro',
+      dragonfly: 'libélulas', fireflies: 'vagalumes', squirrel: 'esquilo', seagull: 'gaivotas', frog: 'sapo',
+    };
     const fz = [...new Set(s.fauna || [])].map((k) => fauna[k]).join(', ');
     el.innerHTML = `<div class="sp-img ${s.sheet ? 'anim' : ''}" style="${img}"></div>
       <h3>${s.name}</h3>

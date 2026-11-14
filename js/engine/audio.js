@@ -277,6 +277,12 @@ const AudioSys = {
       src.connect(g).connect(this.buses.sfx);
       src.start();
       this.loops[name] = { src, g, base };
+    } else if (on && this.loops[name]) {
+      const base = this.safeVol(vol, 0.5);
+      if (this.loops[name].base !== base) {
+        this.loops[name].base = base;
+        this.loops[name].g.gain.value = this.ambientGain(base);
+      }
     } else if (!on && this.loops[name]) {
       try { this.loops[name].src.stop(); } catch (e) { /* já parado */ }
       delete this.loops[name];

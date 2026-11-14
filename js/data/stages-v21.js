@@ -37,7 +37,7 @@ STAGE_LIST.push(
   {
     id: 'represa', name: 'Represa', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/represa-mid.png',
-    weather: ['clear', 'rain', 'wind', 'hail'], fauna: ['birds', 'dragonfly', 'fish', 'frog'], tint: '#7ec8e0', ambient: 'amb_represa',
+    weather: ['clear', 'rain', 'wind', 'hail'], fauna: ['birds', 'dragonfly', 'fish', 'frog'], tint: '#7ec8e0', ambient: 'amb_represa', mech: 'tide',
     layers: [
       { src: 'assets/maps/v21/represa-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/represa-mid.png', speed: 0.42 },
@@ -224,7 +224,7 @@ STAGE_LIST.push(
   {
     id: 'ponte-rio', name: 'Ponte do Rio', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/ponte-rio-mid.png',
-    weather: ['clear', 'rain', 'wind', 'leaves', 'hail'], fauna: ['birds', 'seagull', 'dragonfly', 'fish'], tint: '#8fb4c8', ambient: 'amb_ponte-rio',
+    weather: ['clear', 'rain', 'wind', 'leaves', 'hail'], fauna: ['birds', 'seagull', 'dragonfly', 'fish'], tint: '#8fb4c8', ambient: 'amb_ponte-rio', mech: 'tide',
     layers: [
       { src: 'assets/maps/v21/ponte-rio-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/ponte-rio-mid.png', speed: 0.42 },
@@ -241,7 +241,7 @@ STAGE_LIST.push(
   {
     id: 'parque-lago', name: 'Parque do Lago', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/parque-lago-mid.png',
-    weather: ['clear', 'wind', 'leaves', 'rainbow'], fauna: ['birds', 'dragonfly', 'dog', 'butterflies', 'fish', 'squirrel'], tint: '#b7e39a', ambient: 'amb_parque-lago',
+    weather: ['clear', 'wind', 'leaves', 'rainbow'], fauna: ['birds', 'dragonfly', 'dog', 'butterflies', 'fish', 'squirrel'], tint: '#b7e39a', ambient: 'amb_parque-lago', mech: 'tide',
     layers: [
       { src: 'assets/maps/v21/parque-lago-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/parque-lago-mid.png', speed: 0.42 },
