@@ -561,7 +561,7 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 
 #scr-events .select-bg { background: radial-gradient(ellipse at 50% 18%, #5a2e96, #241044 70%); }
 #scr-events .sel-head h2 { color: #ffe7a8; text-shadow: 2px 2px 0 #000; }
-.events-layout { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; padding: 0 12px 46px; height: 478px; }
+.events-layout { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; padding: 0 12px 46px; height: 478px; overflow: hidden; }
 .ev-hero { position: relative; height: 168px; background: #2a1450 center 42% / cover no-repeat; border: 3px solid var(--gold); box-shadow: 0 0 0 3px #000; image-rendering: pixelated; }
 .ev-hero-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; background: linear-gradient(transparent, rgba(8,2,16,.72)); }
 .ev-hero-copy span { color: var(--gold); font-size: 8px; }
@@ -573,7 +573,7 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .ev-card b { display: block; color: #fff; font-size: 7px; line-height: 1.45; }
 .ev-card small, .ev-card em { display: block; margin-top: 3px; color: #e6d8ff; font-size: 6px; font-style: normal; }
 .ev-card.on em { color: var(--gold); }
-#events-maps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#events-maps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; min-height: 0; flex: 1; align-content: start; scrollbar-width: thin; }
 .ev-map { display: grid; grid-template-columns: 148px 1fr; gap: 6px; text-align: left; background: rgba(32,16,58,.94); color: #fff; border: 2px solid #6a48a8; padding: 4px; cursor: pointer; }
 .ev-map .th { width: 148px; height: 84px; background-size: cover; background-position: center; image-rendering: pixelated; }
 .ev-map b { display: block; font-size: 8px; color: var(--gold); }
@@ -583,13 +583,33 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 body[data-event="natal"] #skin-natal,
 body[data-event="natal"] #fx-natal,
 body[data-event="halloween"] #skin-halloween,
-body[data-event="halloween"] #fx-halloween { display: block; }
+body[data-event="halloween"] #fx-halloween,
+body[data-event="carnaval"] #skin-carnaval,
+body[data-event="pascoa"] #skin-pascoa,
+body[data-event="junina"] #skin-junina,
+body[data-event="criancas"] #skin-criancas,
+body[data-event="anonovo"] #skin-anonovo { display: block; }
 /* A moldura fica fora da caixa do logo e dos botões, então não escurece o miolo. */
 body[data-event="natal"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #f4fbff, 0 0 0 7px #9ec8ee; }
 body[data-event="halloween"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffb15a; }
 body[data-event="natal"] #scr-menu .mm,
 body[data-event="natal"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #f4fbff; }
 body[data-event="halloween"] #scr-menu .mm { box-shadow: -3px 0 0 #ff8a2a, 0 -3px 0 #c45cff; }
+body[data-event="carnaval"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffd23a; }
+body[data-event="pascoa"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffb3d1; }
+body[data-event="junina"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ff9a3c; }
+body[data-event="criancas"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #7ec8ff; }
+body[data-event="anonovo"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffe14a; }
+body[data-event="carnaval"] #scr-menu .mm,
+body[data-event="carnaval"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffd23a; }
+body[data-event="pascoa"] #scr-menu .mm,
+body[data-event="pascoa"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffb3d1; }
+body[data-event="junina"] #scr-menu .mm,
+body[data-event="junina"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ff9a3c; }
+body[data-event="criancas"] #scr-menu .mm,
+body[data-event="criancas"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #7ec8ff; }
+body[data-event="anonovo"] #scr-menu .mm,
+body[data-event="anonovo"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffe14a; }
 #fx-natal, #fx-halloween { clip-path: inset(0 270px 0 380px); }
 #fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
 #fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
