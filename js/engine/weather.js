@@ -57,14 +57,14 @@ class Weather {
     const a = this.game.audio;
     a.loop('rain_loop', kind === 'rain' || kind === 'storm', kind === 'storm' ? 0.5 : 0.32);
     const windy = kind === 'wind' || kind === 'storm' || kind === 'snow';
-    const breeze = kind === 'fog' || kind === 'hail' || kind === 'leaves';
+    const breeze = kind === 'fog' || kind === 'darkfog' || kind === 'hail' || kind === 'leaves';
     a.loop('wind_loop', windy || breeze, windy ? 0.3 : 0.15);
     /* som de entrada do clima */
     if (kind === 'hail') a.play('water', { vol: 0.22 });
     if (kind === 'eclipse') a.play('dragon', { vol: 0.16 });
     if (kind === 'rainbow') a.play('unlock', { vol: 0.2 });
     if (kind === 'fireflies') a.play('magic', { vol: 0.14 });
-    if (kind === 'leaves') a.play('whoosh', { vol: 0.12 });
+    if (kind === 'darkfog') a.play('dragon', { vol: 0.12 });
     if (this.game.onWeather) this.game.onWeather(kind);
   }
   stop() {
@@ -141,7 +141,7 @@ class Weather {
       }
     }
     /* sons ambiente dos climas novos */
-    if (fighting && (this.kind === 'fireflies' || this.kind === 'leaves' || this.kind === 'aurora' || this.kind === 'heatwave' || this.kind === 'eclipse')) {
+    if (fighting && (this.kind === 'fireflies' || this.kind === 'leaves' || this.kind === 'aurora' || this.kind === 'heatwave' || this.kind === 'eclipse' || this.kind === 'darkfog')) {
       this._chimeAt--;
       if (this._chimeAt <= 0) {
         this._chimeAt = 380 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 380) | 0);
@@ -149,7 +149,7 @@ class Weather {
         else if (this.kind === 'heatwave') this.game.audio.play('fire', { vol: 0.08 });
         else if (this.kind === 'fireflies') this.game.audio.play('magic', { vol: 0.07 });
         else if (this.kind === 'leaves') this.game.audio.play('whoosh', { vol: 0.06 });
-        else if (this.kind === 'eclipse') this.game.audio.play('dragon', { vol: 0.06 });
+        else if (this.kind === 'eclipse' || this.kind === 'darkfog') this.game.audio.play('dragon', { vol: 0.06 });
       }
     }
     this.updateParticles();
@@ -157,7 +157,7 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
@@ -238,6 +238,14 @@ class Weather {
           d.y = -40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 55;
           d.x = (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 120) - 60;
         }
+        continue;
+      }
+      if (this.kind === 'darkfog') {
+        /* NEBLINA SOMBRIA: só na faixa baixa, atrás dos pés, sem cobrir a cabeça. */
+        d.x += (this.wind || 0.4) * (0.12 + d.s * 0.16);
+        d.y = -22 - d.s * 36 + Math.sin((this.t + d.s * 200) * 0.006) * 6;
+        if (d.x > W + 240) d.x = -240;
+        if (d.x < -240) d.x = W + 200;
         continue;
       }
       if (this.kind === 'fog') {
@@ -350,6 +358,26 @@ class Weather {
         const sc = d.s < 0.5 ? 2.2 : 3.4;
         ctx.globalAlpha = d.s < 0.5 ? 0.38 : 0.55;
         ctx.drawImage(this._fogBlob, d.x - 130 * sc / 2, d.y - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
+      }
+      ctx.globalAlpha = 1;
+    } else if (this.kind === 'darkfog') {
+      if (!this._darkFog) {
+        const c = document.createElement('canvas');
+        c.width = 260; c.height = 160;
+        const x = c.getContext('2d');
+        const g = x.createRadialGradient(130, 80, 8, 130, 80, 120);
+        g.addColorStop(0, 'rgba(120,70,160,0.28)');
+        g.addColorStop(0.6, 'rgba(90,40,120,0.12)');
+        g.addColorStop(1, 'rgba(40,10,60,0)');
+        x.fillStyle = g;
+        x.fillRect(0, 0, 260, 160);
+        this._darkFog = c;
+      }
+      for (const d of this.drops) {
+        if (d.y < -90) continue;
+        const sc = d.s < 0.5 ? 2.1 : 2.8;
+        ctx.globalAlpha = d.s < 0.5 ? 0.18 : 0.28;
+        ctx.drawImage(this._darkFog, d.x - 130 * sc / 2, d.y - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
       }
       ctx.globalAlpha = 1;
     } else if (this.kind === 'snow') {
@@ -475,9 +503,15 @@ class Weather {
       ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.16)' : 'rgba(20,40,70,0.1)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'fog') {
-      /* tinta leitada deixando a tela meio zoada */
       ctx.fillStyle = 'rgba(206,216,228,0.13)';
       ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'darkfog') {
+      /* só o chão e o fundo. O centro, onde estão os lutadores, fica limpo. */
+      const fog = ctx.createLinearGradient(0, H * 0.78, 0, H);
+      fog.addColorStop(0, 'rgba(80,36,120,0)');
+      fog.addColorStop(1, 'rgba(72,28,110,0.16)');
+      ctx.fillStyle = fog;
+      ctx.fillRect(0, H * 0.78, W, H * 0.22);
     } else if (this.kind === 'snow') {
       /* frio azulado + neblina baixa no chao + vinheta gelada */
       ctx.fillStyle = 'rgba(200,230,255,0.10)';

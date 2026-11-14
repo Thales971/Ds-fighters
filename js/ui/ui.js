@@ -77,6 +77,7 @@ const UI = {
     this.screen = name;
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
+    if (typeof Events !== 'undefined') this.applyEventSkin();
     if (name !== 'fight') { this.$('banner').classList.remove('on'); this.$('cutin').classList.remove('on'); }
     const enter = this['enter_' + name];
     if (enter) enter.call(this);
@@ -94,7 +95,7 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas'].includes(this.screen)) return this.toMenu();
+    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
@@ -187,6 +188,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     this.applyRelease();
+    if (typeof Events !== 'undefined') this.applyEventSkin();
   },
   /* Edição = maior fighters-vN carregado. Contagens vêm dos dados. */
   releaseStamp() {
@@ -228,6 +230,7 @@ const UI = {
   menuGo(go) {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
+    if (go === 'events') { this.applyEventSkin(); return this.show('events'); }
     if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
@@ -648,7 +651,34 @@ const UI = {
       <p class="mech">${s.mech ? MECH_INFO[s.mech] || '' : 'Arena clássica.'}</p>
       <p class="wx">Clima possível: ${(s.weather || ['clear']).map((w) => WEATHER_INFO[w].icon + ' ' + WEATHER_INFO[w].name).join(' · ')}</p>
       ${fz ? `<p class="fz">Fauna: ${fz}</p>` : ''}
+      ${s.blurb ? `<p class="fz">${s.blurb}</p>` : ''}
       ${s.gravity ? `<p class="fz">Gravidade ${Math.round(s.gravity * 100)}%</p>` : ''}`;
+  },
+  applyEventSkin() {
+    const ev = typeof Events !== 'undefined' ? Events.active() : null;
+    document.body.dataset.event = ev && ev.skin ? ev.skin : '';
+  },
+  enter_events() {
+    const rows = Events.upcoming();
+    const now = rows.find((r) => r.active) || rows.filter((r) => !r.live).sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    this.$('events-year').textContent = String(Events.today().getFullYear());
+    const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
+    const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
+    const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
+      <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
+    </div>` : '';
+    this.$('events-upcoming').innerHTML = rows.map((r) => {
+      const tag = r.active ? (r.live ? (r.daysLeft <= 0 ? 'hoje' : 'agora') : 'teste') : r.live ? 'hoje' : `em ${dias(r.daysUntil)}`;
+      return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
+    }).join('');
+    const maps = STAGE_LIST.filter((s) => s.event);
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
+      b.addEventListener('click', () => {
+        this.startFlow('versus', { stage: b.dataset.id });
+      });
+    });
   },
   confirmStage() {
     const f = this.flow;
