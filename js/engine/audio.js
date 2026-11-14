@@ -220,11 +220,50 @@ const AudioSys = {
     };
     a.onended = finish;
     a.onerror = finish;
+    /* ACABAMENTO DE CABINE: roteia a voz pelo WebAudio com boost de graves
+       + reverb curto — vira locutor de arena, nao TTS cru. */
+    try { this._routeVoiceThroughCabinet(a); } catch (e) { /* sem ctx: toca direto */ }
     try {
       const playback = a.play();
       if (playback && typeof playback.catch === 'function') playback.catch(finish);
     } catch (e) { finish(); return false; }
     return true;
+  },
+  /* cadeia: MediaElementSource -> lowshelf (graves) -> convolver (reverb) -> saida */
+  _routeVoiceThroughCabinet(a) {
+    if (!this.ctx || this._voiceCab) { return; } /* uma cadeia so, reaproveitada */
+    const ctx2 = this.ctx;
+    const src = ctx2.createMediaElementSource(a);
+    const shelf = ctx2.createBiquadFilter();
+    shelf.type = 'lowshelf';
+    shelf.frequency.value = 180;
+    shelf.gain.value = 4.5; /* graves de locutor */
+    const comp = ctx2.createDynamicsCompressor();
+    comp.threshold.value = -22;
+    comp.ratio.value = 3.2;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.18;
+    /* reverb curto gerado (impulso de 0.5s, decaimento exponencial) */
+    const len = Math.floor(ctx2.sampleRate * 0.5);
+    const imp = ctx2.createBuffer(2, len, ctx2.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = imp.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+    }
+    const rev = ctx2.createConvolver();
+    rev.buffer = imp;
+    const wet = ctx2.createGain();
+    wet.gain.value = 0.16; /* sutil: presenca de arena */
+    const dry = ctx2.createGain();
+    dry.gain.value = 1;
+    src.connect(shelf);
+    shelf.connect(comp);
+    comp.connect(dry);
+    comp.connect(rev);
+    rev.connect(wet);
+    dry.connect(ctx2.destination);
+    wet.connect(ctx2.destination);
+    this._voiceCab = true;
   },
   loop(name, on, vol = 0.5) {
     if (!this.ctx) return;
