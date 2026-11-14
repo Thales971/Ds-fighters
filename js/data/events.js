@@ -34,13 +34,13 @@ const Events = {
     return new Date(n.getFullYear(), n.getMonth(), n.getDate());
   },
   list: [
-    { id: 'carnaval', name: 'Carnaval', icon: '🎭', skin: null, hero: null, window(year) { const e = Events.easter(year); return { start: Events.addDays(e, -51), end: Events.addDays(e, -47) }; } },
-    { id: 'pascoa', name: 'Páscoa', icon: '🐇', skin: null, hero: null, window(year) { const e = Events.easter(year); return { start: Events.addDays(e, -2), end: Events.addDays(e, 1) }; } },
-    { id: 'junina', name: 'Festa Junina', icon: '🔥', skin: null, hero: null, window(year) { return { start: new Date(year, 5, 1), end: new Date(year, 5, 30) }; } },
-    { id: 'criancas', name: 'Dia das Crianças', icon: '🎈', skin: null, hero: null, window(year) { return { start: new Date(year, 9, 10), end: new Date(year, 9, 14) }; } },
+    { id: 'carnaval', name: 'Carnaval', icon: '🎭', skin: 'carnaval', hero: 'carnaval-sambodromo', window(year) { const e = Events.easter(year); return { start: Events.addDays(e, -51), end: Events.addDays(e, -47) }; } },
+    { id: 'pascoa', name: 'Páscoa', icon: '🐇', skin: 'pascoa', hero: 'pascoa-bosque', window(year) { const e = Events.easter(year); return { start: Events.addDays(e, -2), end: Events.addDays(e, 1) }; } },
+    { id: 'junina', name: 'Festa Junina', icon: '🔥', skin: 'junina', hero: 'junina-arraial', window(year) { return { start: new Date(year, 5, 1), end: new Date(year, 5, 30) }; } },
+    { id: 'criancas', name: 'Dia das Crianças', icon: '🎈', skin: 'criancas', hero: 'criancas-parque', window(year) { return { start: new Date(year, 9, 10), end: new Date(year, 9, 14) }; } },
     { id: 'halloween', name: 'Halloween', icon: '🎃', skin: 'halloween', hero: 'halloween-rua', window(year) { return { start: new Date(year, 9, 20), end: new Date(year, 10, 2) }; } },
     { id: 'natal', name: 'Natal', icon: '🎄', skin: 'natal', hero: 'natal-praca', window(year) { return { start: new Date(year, 11, 1), end: new Date(year, 11, 26) }; } },
-    { id: 'anonovo', name: 'Ano Novo', icon: '✨', skin: null, hero: null, window(year) { return { start: new Date(year, 11, 28), end: new Date(year + 1, 0, 2) }; } },
+    { id: 'anonovo', name: 'Ano Novo', icon: '✨', skin: 'anonovo', hero: 'anonovo-copacabana', window(year) { return { start: new Date(year, 11, 31), end: new Date(year + 1, 0, 2) }; } },
   ],
   span(ev, day) {
     const y = (day || this.today()).getFullYear();

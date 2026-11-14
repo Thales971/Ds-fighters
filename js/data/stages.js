@@ -84,6 +84,8 @@ const WEATHER_INFO = {
   rainbow: { name: 'Arco-Íris', icon: '🌈', desc: 'Pós-chuva: cura lenta para TODOS os lutadores.' },
   fog: { name: 'Neblina', icon: '☁', desc: 'Bancos de neblina na arena — a visão fica embaçada para todos.' },
   darkfog: { name: 'Neblina Sombria', icon: '☾', desc: 'Névoa roxa só no fundo da arena. O lutador continua nítido.' },
+  confetti: { name: 'Confete', icon: '🎊', desc: 'Serpentina e confete caindo. Só visual, sem empurrar nem machucar.' },
+  fireworks: { name: 'Fogos', icon: '🎆', desc: 'Fogos no céu. Só visual, sem escurecer a arena.' },
 };
 
 const MECH_INFO = {
