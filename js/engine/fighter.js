@@ -735,6 +735,10 @@ class Fighter {
     this.stateTime = 0;
     this.attack = null;
     this.hasHit = false;
+    if (p.slot === 'ultimate') {
+      this._ultsMatch = (this._ultsMatch || 0) + 1;
+      if (this._ultsMatch >= 5) Profile.grantAchievement('ultimate-5');
+    }
     this.blocking = false;
     this.crouching = false;
     if (this.onGround) this.vx *= 0.3;
@@ -1354,6 +1358,18 @@ class Fighter {
       return this.endUpdate(input);
     }
     if (this.state === 'down') {
+      /* WAKE-UP ATTACK: no fim da queda, soco/chute levanta ATACANDO
+         com invencibilidade — o canto deixa de ser sentença. */
+      if (this.stateTime > 18 && this.stateTime <= 34 && (this.buf.punch || this.buf.kick)) {
+        const getup = this.buf.kick ? 'kick' : 'punch';
+        this.buf.punch = 0; this.buf.kick = 0;
+        this.state = 'idle'; this.stateTime = 0;
+        this.startAttack(getup);
+        this.addStatus('invuln', 14); /* i-frames DEPOIS do attack (o startAttack limpa status) */
+        if (this.game.floatText) this.game.floatText(this.x, this.y - 220, 'WAKE-UP!', '#9adcff');
+        Profile.grantAchievement('wake-up');
+        return this.endUpdate(input);
+      }
       this.physics();
       if (this.stateTime > 34) { this.state = 'idle'; this.stateTime = 0; this.addStatus('invuln', 10); }
       return this.endUpdate(input);
@@ -1698,6 +1714,8 @@ class Fighter {
         this.stateTime = 0;
         this.game.audio.jump();
         this.game.floatText(this.x, this.y - 200, 'DOUBLE JUMP', '#ffd27d');
+        this._djCount = (this._djCount || 0) + 1;
+        if (this._djCount === 50) Profile.grantAchievement('double-jump-50');
         return;
       }
       if (!this.airAction && (this.buf.punch || this.buf.kick)) {
@@ -1920,7 +1938,7 @@ class Fighter {
     return { sx, sy, rot, dx, dy };
   }
   draw(ctx) {
-    if (this.benched || this.hidden) return;
+    if (this.benched || this.hidden || this._netHide > 0) return;
     const pose = this.animPose();
     const frame = this.animFrame(pose);
     const game = this.game;
@@ -2026,6 +2044,12 @@ class Fighter {
     return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound];
   }
   applySnap(s) {
+    /* NETCODE VISUAL: se o salto do snapshot for grande (lag), esconde o
+       lutador por 3 ticks em vez de teleportar na cara do jogador. */
+    if (this._netHide > 0) this._netHide--;
+    const saltoX = Math.abs((s[0] || 0) - this.x);
+    const saltoY = Math.abs((s[1] || 0) - this.y);
+    if (saltoX > 130 || saltoY > 130) this._netHide = 3;
     [this.x, this.y, this.dir, this.state, this.stateTime, this.hp, this.charge[0], this.charge[1], this.ultimate, this.frame, this.walkPhase] = s;
     this.attack = s[11] ? { kind: s[11], startup: 3, active: 3, recovery: 8 } : null;
     this.status = s[12] || {};

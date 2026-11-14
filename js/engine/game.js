@@ -387,6 +387,8 @@ class Game {
         if (this.combo.count > atk.stats.maxCombo) atk.stats.maxCombo = this.combo.count;
         if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count, this.combo.dmg); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count, this.combo.dmg]); }
         if (this.combo.count === 6) this.audio.voice('combo');
+        if (this.combo.count >= 10) Profile.grantAchievement('combo-10');
+        if (this.combo.count >= 20) Profile.grantAchievement('combo-20');
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
     }
@@ -747,7 +749,32 @@ class Game {
     const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
     if (this.mode !== 'demo') {
       Profile.record('fights');
-      if (winner === humanTeam) Profile.record('wins');
+      if (winner === humanTeam) {
+        Profile.record('wins');
+        Profile.grantAchievement('primeiro-ko');
+        /* PERFEITO: round sem tomar dano */
+        const vencedores = this.teams[humanTeam].members;
+        const perfeito = vencedores.some((m) => m.tookDamage === 0 || m.stats.dmgTaken === 0 || (m.maxHp - m.hp) < 1);
+        if (perfeito) Profile.grantAchievement('perfeito');
+        /* vitorias por lutador + elemento */
+        for (const m of vencedores) {
+          if (m.def && m.def.id) {
+            Profile.recordWinBy(m.def.id, POWERS[m.def.id] && POWERS[m.def.id].element);
+          }
+        }
+        if (this.mode === 'online') Profile.grantAchievement('online-1');
+        /* contadores de variedade */
+        const winBy = (Profile.data && Profile.data.winBy) || {};
+        const nLut = Object.keys(winBy).length;
+        if (nLut >= 10) Profile.grantAchievement('lutadores-10');
+        if (nLut >= 25) Profile.grantAchievement('lutadores-25');
+        const winEl = (Profile.data && Profile.data.winElement) || {};
+        if (Object.keys(winEl).length >= 6) Profile.grantAchievement('elementos-6');
+        /* secretos todos desbloqueados */
+        const secretos = (typeof Profile.SECRET_IDS !== 'undefined' ? Profile.SECRET_IDS : []);
+        const unlocked = (Profile.data && Profile.data.unlocked) || [];
+        if (secretos.length && secretos.every((id2) => unlocked.includes(id2))) Profile.grantAchievement('codigos-3');
+      }
       Profile.record('maxCombo', Math.max(...this.teams[humanTeam].members.map((m) => m.stats.maxCombo)));
       const vsHuman = this.mode === 'versus' && !this.cfg.cpu[1];
       this.audio.voice(winner < 0 ? 'draw' : (vsHuman || winner === humanTeam) ? 'youwin' : 'youlose');
@@ -889,8 +916,45 @@ class Game {
   }
 
   /* ---------- desenho ---------- */
+  /* FRAME DATA: tabela dos golpes basicos — F9 no treino */
+  _drawFrameDataTable(ctx) {
+    const f = this.activeOf(0);
+    if (!f || !f.def.moves) return;
+    const mv = f.def.moves;
+    const linhas = [
+      ['SOCO', mv.punch], ['CHUTE', mv.kick], ['SOCO AGACHADO', mv.cpunch], ['CHUTE AGACHADO', mv.ckick],
+      ['SOCO NO AR', mv.jpunch], ['CHUTE NO AR', mv.jkick],
+    ].filter((l) => l[1]);
+    ctx.save();
+    ctx.font = '11px monospace';
+    const x0 = 14, y0 = 64;
+    ctx.fillStyle = 'rgba(8,10,20,0.82)';
+    ctx.fillRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.strokeStyle = 'rgba(120,180,255,0.5)';
+    ctx.strokeRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.fillStyle = '#9adcff';
+    ctx.fillText('FRAME DATA — ' + f.def.name, x0, y0 - 2);
+    ctx.fillStyle = '#8899aa';
+    ctx.fillText('golpe          ini/ati/rec  dano  alcance', x0, y0 + 12);
+    linhas.forEach((l, i) => {
+      const m = l[1];
+      const y = y0 + 28 + i * 16;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(l[0].padEnd(15, ' '), x0, y);
+      ctx.fillStyle = '#ffd27d';
+      ctx.fillText(String(m.startup) + '/' + String(m.active) + '/' + String(m.recovery) + 'f', x0 + 118, y);
+      ctx.fillStyle = '#ff9a8a';
+      ctx.fillText(String(m.dmg), x0 + 196, y);
+      ctx.fillStyle = '#9adcff';
+      ctx.fillText(String(m.range) + 'px', x0 + 240, y);
+    });
+    ctx.fillStyle = '#667788';
+    ctx.fillText('startup/ativo/recuperacao — bloqueado = punivel no recovery', x0, y0 + 34 + linhas.length * 16);
+    ctx.restore();
+  }
   /* caixas de debug: hurtbox (azul) e hitbox do golpe ativo (vermelho) */
   _drawHitboxDebug(ctx) {
+    if (this.cfg && this.cfg.mode === 'training') this._drawFrameDataTable(ctx);
     ctx.save();
     ctx.lineWidth = 2;
     for (const f of this.allFighters()) {

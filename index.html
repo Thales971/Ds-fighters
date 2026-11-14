@@ -89,6 +89,7 @@
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
+        <button class="nav mm" data-go="conquistas"><span>CONQUISTAS</span><small>Medalhas e recordes</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
         <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
@@ -209,6 +210,13 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-conquistas" data-screen="conquistas">
+      <div class="wrap">
+        <h2>CONQUISTAS &amp; RECORDES</h2>
+        <div id="conquistas-list"></div>
+        <button class="nav sm" data-go="menu"><span>VOLTAR</span></button>
+      </div>
+    </section>
     <section class="screen" id="scr-redeem" data-screen="redeem">
       <div class="panel">
         <h2>RESGATAR CÓDIGO</h2>
@@ -409,6 +417,7 @@
   </script>
   <script src="assets/stages/sheets.js?v=v37-henrico"></script>
   <script src="assets/maps/anim.js?v=v37-henrico"></script>
+  <script src="js/data/achievements.js?v=v39-ach"></script>
   <script src="js/core/profile.js?v=v37-henrico"></script>
   <script src="js/config/firebase-config.js?v=v37-henrico"></script>
   <script src="js/core/cloud.js?v=v37-henrico"></script>

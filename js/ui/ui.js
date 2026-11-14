@@ -69,6 +69,7 @@ const UI = {
 
   /* ---------- telas ---------- */
   show(name, push) {
+    if (name === 'conquistas' && typeof ACHIEVEMENTS !== 'undefined') this.renderConquistas();
     if (this.screen !== name) Input.releaseAll();
     if (push && this.screen) this.stack.push(this.screen);
     else if (!push) this.stack = [];
@@ -93,8 +94,35 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins'].includes(this.screen)) return this.toMenu();
+    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
+  },
+  /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
+  renderConquistas() {
+    const got = (Profile.data && Profile.data.achievements) || [];
+    const st = (Profile.data && Profile.data.stats) || {};
+    const winBy = (Profile.data && Profile.data.winBy) || {};
+    const survivalBy = st.survivalBy || {};
+    const medals = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []).map((a) => {
+      const on = got.includes(a.id);
+      return `<div class="medal ${on ? 'on' : ''}"><b>${on ? '\u{1F3C5}' : '\u{1F512}'} ${a.name}</b><span>${a.desc}</span></div>`;
+    }).join('');
+    const nome = (id) => ((typeof FIGHTERS !== 'undefined' ? FIGHTERS.find((f) => f.id === id) : null) || { name: id }).name;
+    const topSurvival = Object.entries(survivalBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+    const topWinners = Object.entries(winBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+    this.$('conquistas-list').innerHTML = `
+      <div class="cq-grid">
+        <div><h3>MEDALHAS ${got.length}/${(typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0)}</h3><div class="medals">${medals}</div></div>
+        <div>
+          <h3>RECORDES</h3>
+          <p class="rec">Melhor arcade: <b>${st.bestArcade || 0}/7</b> - Melhor survival: <b>${st.bestSurvival || 0}</b> - Combo maximo: <b>${st.maxCombo || 0}</b></p>
+          <p class="rec">Lutas: <b>${st.fights || 0}</b> - Vitorias: <b>${st.wins || 0}</b></p>
+          ${topSurvival ? `<h4>SURVIVAL POR LUTADOR</h4><ul class="tops">${topSurvival}</ul>` : ''}
+          ${topWinners ? `<h4>MAIS VITORIOSOS</h4><ul class="tops">${topWinners}</ul>` : ''}
+        </div>
+      </div>`;
   },
   toMenu() {
     if (this.game.running) this.game.stop();
@@ -259,6 +287,7 @@ const UI = {
     UI.banner('TREINO ' + (t.step + 1) + '/' + t.steps.length + ': ' + st.title, '#7dff9a', st.sub);
   },
   tutorialFinish() {
+    Profile.grantAchievement('dojo');
     this.tutorial = null;
     Profile.setting('tutorialDone', true);
     const bt = this.$('btn-tutorial');
@@ -311,6 +340,7 @@ const UI = {
 
   /* ---------- fluxo de seleção ---------- */
   startFlow(mode, extra) {
+    if (typeof SpriteGen !== 'undefined' && SpriteGen.preloadAll) SpriteGen.preloadAll(); /* aquece os 46 sprites */
     if (this.game.running) this.game.stop();
     HUD.hide();
     this.flow = Object.assign({
@@ -759,7 +789,7 @@ const UI = {
     next.hidden = true;
     if (game.mode === 'arcade') {
       if (res.winner === 0) {
-        if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); }
+        if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); Profile.grantAchievement('arcade-campeao'); }
         else { Profile.record('bestArcade', f.arcadeStep + 1); next.hidden = false; }
       }
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
@@ -767,6 +797,9 @@ const UI = {
       if (res.winner === 0) {
         f.survivalWins = (f.survivalWins || 0) + 1;
         Profile.record('bestSurvival', f.survivalWins);
+        if (f.survivalWins >= 10) Profile.grantAchievement('survival-10');
+        const p0 = game && game.teams && game.teams[0] && game.teams[0].members[0];
+        if (p0 && p0.def) Profile.recordSurvivalBy(p0.def.id, f.survivalWins);
         title = `SOBREVIVEU! ${f.survivalWins} vitória${f.survivalWins > 1 ? 's' : ''} seguidas`;
         next.hidden = false;
       } else {
