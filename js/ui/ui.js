@@ -930,7 +930,7 @@ const UI = {
     document.querySelectorAll('[data-set]').forEach((el) => {
       const k = el.dataset.set;
       const v = Profile.setting(k);
-      if (el.type === 'checkbox') el.checked = k === 'shake' || k === 'smooth' ? v !== false : !!v;
+      if (el.type === 'checkbox') el.checked = k === 'shake' || k === 'smooth' || k === 'haptic' ? v !== false : !!v;
       else if (k === 'reducedMotion') el.value = v === true ? 'on' : v === false ? 'off' : 'auto';
       else el.value = v == null ? '' : v;
       el.addEventListener('input', () => {
@@ -938,7 +938,7 @@ const UI = {
         if (k === 'reducedMotion') val = el.value === 'on' ? true : el.value === 'off' ? false : null;
         Profile.setting(k, val);
         AudioSys.applyVolumes();
-        if (k === 'touch') this.updateTouch();
+        if (k === 'touch' || k === 'touchScale' || k === 'touchOpacity') this.updateTouch();
         if (k === 'serverUrl') this.$('net-url').value = val;
         document.body.classList.toggle('reduced', Profile.reducedMotion());
       });
@@ -951,6 +951,10 @@ const UI = {
     const on = (t === 'on' || (t === 'auto' && (coarse || navigator.maxTouchPoints > 0))) && this.screen === 'fight';
     const controls = this.$('touch-controls');
     if (!on && !controls.classList.contains('hidden')) Input.releaseAll();
+    const scale = Number(Profile.setting('touchScale'));
+    const opacity = Number(Profile.setting('touchOpacity'));
+    controls.style.setProperty('--touch-scale', String(Number.isFinite(scale) ? scale : 1));
+    controls.style.setProperty('--touch-opacity', String(Number.isFinite(opacity) ? opacity : 0.92));
     controls.classList.toggle('hidden', !on);
     controls.setAttribute('aria-hidden', String(!on));
     if (on) this.updateTouchPowers();

@@ -93,11 +93,55 @@ const Input = {
         else { this._touchCodes.delete(held.code); if (!this._physical.has(held.code)) this.keys.delete(held.code); }
         held.btn.classList.toggle('on', count > 0);
       };
-      btn.addEventListener('pointerdown', on);
+      btn.addEventListener('pointerdown', (e) => { on(e); if (Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(12); });
       btn.addEventListener('pointerup', off);
       btn.addEventListener('pointercancel', off);
       btn.addEventListener('lostpointercapture', off);
     });
+    const stick = document.getElementById('stick');
+    if (stick) {
+      const knob = stick.querySelector('i');
+      const dirs = { KeyA: false, KeyD: false, KeyW: false, KeyS: false };
+      const apply = (code, down) => {
+        if (dirs[code] === down) return;
+        dirs[code] = down;
+        if (down) { this._touchCodes.set(code, (this._touchCodes.get(code) || 0) + 1); mark(code); }
+        else {
+          const count = (this._touchCodes.get(code) || 1) - 1;
+          if (count > 0) this._touchCodes.set(code, count);
+          else { this._touchCodes.delete(code); if (!this._physical.has(code)) this.keys.delete(code); }
+        }
+      };
+      const move = (e) => {
+        const box = stick.getBoundingClientRect();
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        let dx = e.clientX - cx;
+        let dy = e.clientY - cy;
+        const max = box.width * 0.36;
+        const len = Math.hypot(dx, dy) || 1;
+        if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+        if (knob) knob.style.transform = `translate(${dx}px, ${dy}px)`;
+        const dead = 16;
+        apply('KeyA', dx < -dead);
+        apply('KeyD', dx > dead);
+        apply('KeyW', dy < -dead);
+        apply('KeyS', dy > dead);
+      };
+      stick.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        try { stick.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+        if (Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(12);
+        move(e);
+      });
+      stick.addEventListener('pointermove', (e) => { if (stick.hasPointerCapture(e.pointerId)) move(e); });
+      const reset = () => {
+        if (knob) knob.style.transform = '';
+        apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false);
+      };
+      stick.addEventListener('pointerup', reset);
+      stick.addEventListener('pointercancel', reset);
+    }
   },
   releaseAll() {
     this._touchPointers.forEach(({ btn }) => btn.classList.remove('on'));

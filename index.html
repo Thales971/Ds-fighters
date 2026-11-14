@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css?v=v43-part2" />
   <link rel="stylesheet" href="css/account.css?v=v37-henrico" />
-  <link rel="stylesheet" href="css/mobile.css?v=v37-henrico" />
+  <link rel="stylesheet" href="css/mobile.css?v=v45-mobile" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -266,6 +266,9 @@
           <label class="chk"><input type="checkbox" data-set="smooth" /> Movimento suavizado (interpolação acima de 60 FPS)</label>
           <label class="chk"><input type="checkbox" data-set="showFps" /> Mostrar FPS</label>
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
+          <label>Tamanho dos botões <input type="range" min="0.8" max="1.45" step="0.05" data-set="touchScale" /></label>
+          <label>Opacidade dos botões <input type="range" min="0.35" max="1" step="0.05" data-set="touchOpacity" /></label>
+          <label class="chk"><input type="checkbox" data-set="haptic" /> Vibração ao tocar</label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
         <p class="sub small">Trilha atual: <span id="now-playing">—</span> · Envie seus rocks para <code>assets/music/rock/</code> e liste em <code>playlist.json</code>.</p>
@@ -385,6 +388,7 @@
     <div id="fps" class="fps" hidden>-- FPS</div>
     <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
+      <div class="stick" id="stick" aria-label="Joystick"><i></i></div>
       <div class="dpad">
         <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
         <button data-k="KeyA" class="t-left" aria-label="Mover para esquerda">◀</button>
@@ -407,6 +411,7 @@
         <button data-k="Digit0" data-power="9" hidden>0</button>
       </div>
       <div class="touch-toolbar"><button data-k="Escape" aria-label="Pausar luta">PAUSA</button><button id="btn-fullscreen" aria-label="Alternar tela cheia">TELA CHEIA</button></div>
+      <p class="turn-phone">Gire o celular para a luta ficar maior. Os botões continuam aqui.</p>
       <p class="mobile-only mobile-landscape-hint">Em paisagem a arena fica maior.</p>
     </div>
   </div>
@@ -438,7 +443,7 @@
   <script src="assets/stages/sheets.js?v=v37-henrico"></script>
   <script src="assets/maps/anim.js?v=v37-henrico"></script>
   <script src="js/data/achievements.js?v=v39-ach"></script>
-  <script src="js/core/profile.js?v=v37-henrico"></script>
+  <script src="js/core/profile.js?v=v45-mobile"></script>
   <script src="js/config/firebase-config.js?v=v37-henrico"></script>
   <script src="js/core/cloud.js?v=v37-henrico"></script>
   <script src="js/config/supabase-config.js?v=v37-henrico"></script>
@@ -486,7 +491,7 @@
   <script src="js/engine/fx.js?v=v37-firefly"></script>
   <script src="js/data/voice-book.js?v=v37-henrico"></script>
   <script src="js/engine/audio.js?v=v37-review"></script>
-  <script src="js/engine/input.js?v=v37-henrico"></script>
+  <script src="js/engine/input.js?v=v45-mobile"></script>
   <script src="js/ui/viewport.js?v=v37-henrico"></script>
   <script src="js/engine/projectile.js?v=v37-henrico"></script>
   <script src="js/engine/fighter.js?v=v37-round3"></script>
@@ -501,7 +506,7 @@
   <script src="js/net/online.js?v=v37-henrico"></script>
   <script src="js/ui/hud.js?v=v37-heat"></script>
   <script src="js/data/roster-portraits.js?v=v37-henrico"></script>
-  <script src="js/ui/ui.js?v=v44-mapas"></script>
+  <script src="js/ui/ui.js?v=v45-mobile"></script>
   <script src="js/ui/account.js?v=v37-henrico"></script>
   <script src="js/main.js?v=v37-henrico"></script>
   <script src="js/net/tournament.js?v=v37-henrico"></script>
