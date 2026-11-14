@@ -55,8 +55,9 @@ class Weather {
     this.nextBolt = 240 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 200) | 0);
     const a = this.game.audio;
     a.loop('rain_loop', kind === 'rain' || kind === 'storm', kind === 'storm' ? 0.5 : 0.32);
-    a.loop('wind_loop', kind === 'wind' || kind === 'storm' || kind === 'snow', 0.3);
-    a.loop('wind_loop', kind === 'fog' || kind === 'hail' || kind === 'leaves', 0.15);
+    const windy = kind === 'wind' || kind === 'storm' || kind === 'snow';
+    const breeze = kind === 'fog' || kind === 'hail' || kind === 'leaves';
+    a.loop('wind_loop', windy || breeze, windy ? 0.3 : 0.15);
     /* som de entrada do clima */
     if (kind === 'hail') a.play('water', { vol: 0.22 });
     if (kind === 'eclipse') a.play('dragon', { vol: 0.16 });
@@ -150,25 +151,18 @@ class Weather {
         else if (this.kind === 'eclipse') this.game.audio.play('dragon', { vol: 0.06 });
       }
     }
-    if (fighting && (this.kind === 'aurora' || this.kind === 'heatwave')) {
-      this._chimeAt--;
-      if (this._chimeAt <= 0) {
-        this._chimeAt = 420 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 380) | 0);
-        if (this.kind === 'aurora') this.game.audio.play('magic', { vol: 0.10 });
-        else this.game.audio.play('fire', { vol: 0.08 });
-      }
-    }
     this.updateParticles();
   }
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 150 : this.kind === 'storm' ? 240 : this.kind === 'snow' ? 140 : this.kind === 'wind' ? 34 : this.kind === 'aurora' ? 70 : this.kind === 'heatwave' ? 26 : this.kind === 'fog' ? 16 : this.kind === 'fireflies' ? 42 : this.kind === 'leaves' ? 60 : this.kind === 'hail' ? 50 : this.kind === 'eclipse' ? 10 : this.kind === 'rainbow' ? 24 : this.kind === 'clear' ? 14 : 0;
+    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 26 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
       const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -60 - r * 260 : this.kind === 'leaves' ? -300 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
-      const d = { x: (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()) };
+      const roll = this.game.rnd ? this.game.rnd() : Math.random();
+      const d = { x: roll * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()), ph: roll * 6.28, rot: roll * 6.28, rotV: 0.05 + roll * 0.08 };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
          profundidade (0 = fundo pequeno/lento, 2 = frente grande/rapido). */
       if (this.kind === 'snow') {
@@ -313,8 +307,8 @@ class Weather {
       ctx.globalAlpha = 1;
     } else if (this.kind === 'heatwave') {
       /* ONDA DE CALOR: linhas de miragem + BRASAS subindo com sprite. */
-      ctx.strokeStyle = 'rgba(255,190,112,0.52)';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(255,190,112,0.72)';
+      ctx.lineWidth = 2;
       ctx.beginPath();
       for (const d of this.drops) {
         if (d.ember) continue;
@@ -353,7 +347,7 @@ class Weather {
       }
       for (const d of this.drops) {
         const sc = d.s < 0.5 ? 2.2 : 3.4;
-        ctx.globalAlpha = d.s < 0.5 ? 0.55 : 0.8;
+        ctx.globalAlpha = d.s < 0.5 ? 0.38 : 0.55;
         ctx.drawImage(this._fogBlob, d.x - 130 * sc / 2, d.y - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
       }
       ctx.globalAlpha = 1;
@@ -384,7 +378,7 @@ class Weather {
       }
     } else if (this.kind === 'wind') {
       /* VENTO: rajadas em curva + FOLHAS girando no ar. */
-      ctx.strokeStyle = 'rgba(230,245,255,0.30)';
+      ctx.strokeStyle = 'rgba(230,245,255,0.5)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       for (const d of this.drops) {
@@ -414,8 +408,59 @@ class Weather {
       /* Ceu limpo: poeira dourada flutuando bem sutil. */
       ctx.fillStyle = 'rgba(255,240,200,0.30)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+    } else if (this.kind === 'fireflies') {
+      for (const d of this.drops) {
+        const blink = 0.4 + 0.6 * Math.abs(Math.sin((this.t + d.s * 40) * 0.08));
+        ctx.fillStyle = `rgba(255,236,150,${blink})`;
+        ctx.fillRect(Math.round(d.x) - 1, Math.round(d.y) - 1, 3, 3);
+        ctx.fillStyle = `rgba(255,220,90,${(blink * 0.28).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 7, 0, 6.28);
+        ctx.fill();
+      }
+    } else if (this.kind === 'hail') {
+      const sp = this.sprites.flakes;
+      for (const d of this.drops) {
+        const sc = 0.42 + d.s * 0.28;
+        if (sp && sp.img.width) {
+          ctx.save();
+          ctx.globalAlpha = 0.92;
+          ctx.translate(d.x, d.y);
+          ctx.rotate(d.rot || 0);
+          ctx.drawImage(sp.img, 4 * sp.cell, 0, sp.cell, sp.cell, -9 * sc, -9 * sc, 18 * sc, 18 * sc);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#e7f4ff';
+          ctx.fillRect(Math.round(d.x), Math.round(d.y), 3, 3);
+        }
+      }
+    } else if (this.kind === 'leaves') {
+      const lf = this.sprites.leaf;
+      for (const d of this.drops) {
+        const sc = 16 + d.s * 10;
+        if (lf && lf.img.width) {
+          ctx.save();
+          ctx.translate(d.x, d.y);
+          ctx.rotate(d.ph || 0);
+          ctx.drawImage(lf.img, -sc / 2, -sc / 2, sc, sc);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#7dae4a';
+          ctx.fillRect(Math.round(d.x), Math.round(d.y), 4, 3);
+        }
+      }
+    } else if (this.kind === 'eclipse') {
+      for (const d of this.drops) {
+        const tw = 0.25 + 0.75 * Math.abs(Math.sin((this.t + d.s * 90) * 0.03));
+        ctx.globalAlpha = tw;
+        ctx.fillStyle = '#e4e0ff';
+        ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+      }
+      ctx.globalAlpha = 1;
+    } else if (this.kind === 'rainbow') {
+      /* o arco fica no overlay, longe dos lutadores */
     } else {
-      ctx.strokeStyle = this.kind === 'storm' ? 'rgba(180,210,255,0.55)' : 'rgba(170,200,255,0.42)';
+      ctx.strokeStyle = this.kind === 'storm' ? 'rgba(190,214,255,0.5)' : 'rgba(176,204,255,0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (const d of this.drops) {
@@ -428,7 +473,7 @@ class Weather {
   }
   drawOverlay(ctx, W, H) {
     if (this.kind === 'rain' || this.kind === 'storm') {
-      ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.28)' : 'rgba(20,40,70,0.16)';
+      ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.16)' : 'rgba(20,40,70,0.1)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'fog') {
       /* tinta leitada deixando a tela meio zoada */
@@ -451,7 +496,7 @@ class Weather {
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, W, H * 0.58);
     } else if (this.kind === 'heatwave') {
-      ctx.fillStyle = 'rgba(255,145,65,0.035)';
+      ctx.fillStyle = 'rgba(255,145,65,0.07)';
       ctx.fillRect(0, H * 0.58, W, H * 0.42);
     } else if (this.kind === 'fireflies') {
       /* noite dos vagalumes: vinheta azul escura */
@@ -469,15 +514,15 @@ class Weather {
       /* ECLIPSE: escuridao nas bordas */
       const dark = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.25, W / 2, H * 0.5, H * 0.85);
       dark.addColorStop(0, 'rgba(10,8,30,0)');
-      dark.addColorStop(1, 'rgba(10,8,30,0.38)');
+      dark.addColorStop(1, 'rgba(10,8,30,0.22)');
       ctx.fillStyle = dark;
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'rainbow') {
       /* ARCO-IRIS: banda de cores no ceu */
-      const bands = ['rgba(255,80,80,0.05)', 'rgba(255,180,60,0.05)', 'rgba(255,240,90,0.05)', 'rgba(110,240,110,0.05)', 'rgba(110,180,255,0.05)', 'rgba(190,120,255,0.05)'];
+      const bands = ['rgba(255,70,70,0.2)', 'rgba(255,170,50,0.2)', 'rgba(255,236,80,0.18)', 'rgba(90,220,110,0.18)', 'rgba(90,170,255,0.18)', 'rgba(180,110,255,0.18)'];
       for (let bi = 0; bi < bands.length; bi++) {
         ctx.fillStyle = bands[bi];
-        ctx.fillRect(0, H * 0.08 + bi * 9, W, 9);
+        ctx.fillRect(0, H * 0.05 + bi * 7, W, 6);
       }
     }
     if (this.flash > 0 && !this.game.reduced) {

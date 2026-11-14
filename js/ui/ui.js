@@ -637,7 +637,11 @@ const UI = {
     const el = this.$('stage-preview');
     if (!s) { el.innerHTML = `<div class="sp-img q">?</div><h3>ARENA ALEATÓRIA</h3><p>Uma das ${STAGE_LIST.length} arenas, com clima sorteado.</p>`; return; }
     const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`;
-    const fauna = { bee: 'abelhas', bird: 'pássaros', butterfly: 'borboletas', bat: 'morcegos', fish: 'peixes' };
+    const fauna = {
+      bee: 'abelhas', bird: 'pássaros', birds: 'pássaros', butterfly: 'borboletas', butterflies: 'borboletas',
+      bat: 'morcegos', fish: 'peixes', pigeons: 'pombos', cat: 'gato', dog: 'cachorro',
+      dragonfly: 'libélulas', fireflies: 'vagalumes', squirrel: 'esquilo', seagull: 'gaivotas', frog: 'sapo',
+    };
     const fz = [...new Set(s.fauna || [])].map((k) => fauna[k]).join(', ');
     el.innerHTML = `<div class="sp-img ${s.sheet ? 'anim' : ''}" style="${img}"></div>
       <h3>${s.name}</h3>
