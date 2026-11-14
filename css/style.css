@@ -590,9 +590,6 @@ body[data-event="halloween"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0
 body[data-event="natal"] #scr-menu .mm,
 body[data-event="natal"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #f4fbff; }
 body[data-event="halloween"] #scr-menu .mm { box-shadow: -3px 0 0 #ff8a2a, 0 -3px 0 #c45cff; }
-.menu-glow { position: absolute; pointer-events: none; z-index: 1; display: none; }
-#glow-halloween { left: 400px; top: 8px; width: 280px; height: 160px; background: radial-gradient(ellipse at 30% 55%, rgba(255,140,40,.75), rgba(150,40,200,.4) 48%, transparent 74%); }
-body[data-event="halloween"] #glow-halloween { display: block; }
 #fx-natal, #fx-halloween { clip-path: inset(0 270px 0 380px); }
 #fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
 #fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
