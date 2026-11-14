@@ -1109,14 +1109,16 @@ class Game {
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
     if (this.inferno && this.inferno.active) {
       const seconds = this.inferno.t / 60;
-      const heat = Math.min(1, 0.45 + seconds / 45);
-      const pulse = this.reduced ? 1 : 0.88 + 0.12 * Math.sin(this.time * 0.07);
-      const edge = Math.min(0.55, (0.28 + heat * 0.22) * pulse);
-      const mid = 0.05 + heat * 0.05;
-      const g = ctx.createRadialGradient(W / 2, H * 0.52, H * 0.16, W / 2, H * 0.48, Math.hypot(W, H) * 0.55);
-      g.addColorStop(0, 'rgba(170,28,10,' + mid.toFixed(3) + ')');
-      g.addColorStop(0.55, 'rgba(150,18,6,' + (mid + (edge - mid) * 0.35).toFixed(3) + ')');
-      g.addColorStop(1, 'rgba(120,8,0,' + edge.toFixed(3) + ')');
+      const heat = Math.min(1, seconds / 40);
+      const pulse = this.reduced ? 1 : 0.9 + 0.1 * Math.sin(this.time * 0.07);
+      const wash = Math.min(0.18, (0.13 + heat * 0.05) * pulse);
+      const edge = Math.min(0.58, (0.36 + heat * 0.18) * pulse);
+      ctx.fillStyle = 'rgba(176,18,8,' + wash.toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+      const g = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.22, W / 2, H * 0.48, Math.hypot(W, H) * 0.52);
+      g.addColorStop(0, 'rgba(160,10,0,0)');
+      g.addColorStop(0.62, 'rgba(140,8,0,' + (edge * 0.28).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(110,0,0,' + edge.toFixed(3) + ')');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     }
