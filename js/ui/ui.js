@@ -77,6 +77,7 @@ const UI = {
     this.screen = name;
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
+    if (typeof Events !== 'undefined') this.applyEventSkin();
     if (name !== 'fight') { this.$('banner').classList.remove('on'); this.$('cutin').classList.remove('on'); }
     const enter = this['enter_' + name];
     if (enter) enter.call(this);
@@ -187,6 +188,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     this.applyRelease();
+    if (typeof Events !== 'undefined') this.applyEventSkin();
   },
   /* Edição = maior fighters-vN carregado. Contagens vêm dos dados. */
   releaseStamp() {
@@ -228,6 +230,7 @@ const UI = {
   menuGo(go) {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
+    if (go === 'events') { this.applyEventSkin(); return this.show('events'); }
     if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
@@ -648,7 +651,32 @@ const UI = {
       <p class="mech">${s.mech ? MECH_INFO[s.mech] || '' : 'Arena clássica.'}</p>
       <p class="wx">Clima possível: ${(s.weather || ['clear']).map((w) => WEATHER_INFO[w].icon + ' ' + WEATHER_INFO[w].name).join(' · ')}</p>
       ${fz ? `<p class="fz">Fauna: ${fz}</p>` : ''}
+      ${s.blurb ? `<p class="fz">${s.blurb}</p>` : ''}
       ${s.gravity ? `<p class="fz">Gravidade ${Math.round(s.gravity * 100)}%</p>` : ''}`;
+  },
+  applyEventSkin() {
+    const ev = typeof Events !== 'undefined' ? Events.active() : null;
+    document.body.dataset.event = ev && ev.skin ? ev.skin : '';
+  },
+  enter_events() {
+    const rows = Events.upcoming();
+    const now = rows.find((r) => r.active);
+    this.$('events-year').textContent = String(Events.today().getFullYear());
+    const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
+    this.$('events-now').innerHTML = now
+      ? `<h3>${now.ev.name} está no ar</h3><p>${now.live ? `Termina em ${dias(now.daysLeft)}` : 'Modo teste'} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p>`
+      : `<h3>Nenhum evento hoje</h3><p>Os mapas de festa continuam em Arcade e Versus o ano inteiro.</p>`;
+    this.$('events-upcoming').innerHTML = rows.map((r) => {
+      const tag = r.live ? ' · agora' : r.active ? ' · teste' : ` · em ${dias(r.daysUntil)}`;
+      return `<p class="${r.active ? 'on' : ''}"><b>${r.ev.name}</b> ${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}${tag}</p>`;
+    }).join('');
+    const maps = STAGE_LIST.filter((s) => s.event);
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
+      b.addEventListener('click', () => {
+        this.startFlow('versus', { stage: b.dataset.id });
+      });
+    });
   },
   confirmStage() {
     const f = this.flow;
