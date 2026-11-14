@@ -252,8 +252,9 @@ class StageRenderer {
       const n = kind === 'bee' ? 3 : 2;
       for (let k = 0; k < n; k++) {
         const inTank = kind === 'fish' && (this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias');
+        const surface = kind === 'fish' && this.def.swim && !inTank;
         const y = kind === 'fish'
-          ? (inTank ? 150 + Math.random() * 200 : gy - 16 - Math.random() * 16)
+          ? (inTank ? 150 + Math.random() * 200 : surface ? gy - 120 - Math.random() * 70 : gy - 16 - Math.random() * 16)
           : (kind === 'bird' || kind === 'bat' ? 48 + Math.random() * 120 : 140 + Math.random() * 180);
         this.fauna.push({
           kind,
@@ -265,6 +266,7 @@ class StageRenderer {
           row: kind === 'bird' ? ((i + k) % 3) : spriteRow[kind],
           s: 0.9 + Math.random() * 0.25,
           hop: 0,
+          swim: surface,
         });
       }
     });
@@ -338,7 +340,8 @@ class StageRenderer {
       if (f.kind === 'bee' || f.kind === 'butterfly') { f.y += Math.sin(f.ph * 2) * 0.8; if (Math.random() < 0.01) f.vx = -f.vx; }
       if (f.kind === 'bat') f.y += Math.sin(f.ph * 3) * 1.2;
       const tank = this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias';
-      if (f.kind === 'fish' && !tank) {
+      if (f.kind === 'fish' && f.swim) f.y = f.homeY + Math.sin(f.ph * 2) * 4;
+      else if (f.kind === 'fish' && !tank) {
         if (f.hop > 0) { f.hop--; f.y -= 2.2; }
         else if (f.y < f.homeY) f.y += 1.6;
         else if (Math.random() < 0.004) f.hop = 22;
