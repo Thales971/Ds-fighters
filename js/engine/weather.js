@@ -156,7 +156,7 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 26 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'fireflies' ? 48 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
@@ -409,15 +409,21 @@ class Weather {
       ctx.fillStyle = 'rgba(255,240,200,0.30)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
     } else if (this.kind === 'fireflies') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
       for (const d of this.drops) {
-        const blink = 0.4 + 0.6 * Math.abs(Math.sin((this.t + d.s * 40) * 0.08));
-        ctx.fillStyle = `rgba(255,236,150,${blink})`;
-        ctx.fillRect(Math.round(d.x) - 1, Math.round(d.y) - 1, 3, 3);
-        ctx.fillStyle = `rgba(255,220,90,${(blink * 0.28).toFixed(3)})`;
+        const blink = 0.55 + 0.45 * Math.abs(Math.sin(this.t * 0.12 + d.s * 9));
+        const halo = 18 + d.s * 10;
+        ctx.fillStyle = `rgba(255,186,48,${(blink * 0.42).toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(d.x, d.y, 7, 0, 6.28);
+        ctx.arc(d.x, d.y, halo, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = `rgba(255,244,190,${blink.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 4.2, 0, 6.28);
         ctx.fill();
       }
+      ctx.restore();
     } else if (this.kind === 'hail') {
       const sp = this.sprites.flakes;
       for (const d of this.drops) {
@@ -501,9 +507,9 @@ class Weather {
     } else if (this.kind === 'fireflies') {
       /* noite dos vagalumes: vinheta azul escura */
       const night = ctx.createLinearGradient(0, 0, 0, H);
-      night.addColorStop(0, 'rgba(16,22,58,0.16)');
-      night.addColorStop(0.7, 'rgba(16,22,58,0.05)');
-      night.addColorStop(1, 'rgba(16,22,58,0)');
+      night.addColorStop(0, 'rgba(8,12,36,0.30)');
+      night.addColorStop(0.45, 'rgba(8,12,36,0.16)');
+      night.addColorStop(1, 'rgba(8,12,36,0.07)');
       ctx.fillStyle = night;
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'leaves') {

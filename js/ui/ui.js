@@ -228,7 +228,7 @@ const UI = {
   menuGo(go) {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
-    if (['arcade', 'versus', 'tag', 'training', 'survival', 'morte-subita'].includes(go)) return this.startFlow(go);
+    if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
 
@@ -361,7 +361,7 @@ const UI = {
   enter_select() {
     const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL', 'morte-subita': 'MORTE SÚBITA' };
+    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
     grid.innerHTML = roster.map((d) => {

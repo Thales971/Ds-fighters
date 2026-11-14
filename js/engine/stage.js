@@ -20,7 +20,7 @@ class LiveFauna {
       if (k === 'cat') spawn('cat', 1, { y: groundY - 2 });
       if (k === 'dog') spawn('dog', 1, { y: groundY - 2 });
       if (k === 'dragonfly') spawn('dragonfly', 2, { y: groundY - 160 - Math.random() * 90, sky: true });
-      if (k === 'fireflies') spawn('firefly', 8, { y: groundY - 40 - Math.random() * 220, sky: true });
+      if (k === 'fireflies') spawn('firefly', 14, { y: groundY - 50 - Math.random() * 240, sky: true });
       if (k === 'butterflies') spawn('butterfly', 3, { y: groundY - 80 - Math.random() * 120, sky: true });
       if (k === 'squirrel') spawn('squirrel', 1, { y: groundY - 2 });
       if (k === 'seagull') spawn('seagull', 2, { y: groundY - 200 - Math.random() * 120, sky: true });
@@ -92,11 +92,12 @@ class LiveFauna {
       ctx.save();
       ctx.translate(x, y);
       if (a.k === 'firefly') {
-        const blink = 0.5 + Math.sin(a.ph * 3) * 0.4;
-        ctx.fillStyle = `rgba(255,236,140,${blink})`;
-        ctx.fillRect(-2, -2, 4, 4);
-        ctx.fillStyle = `rgba(255,220,80,${(blink * 0.3).toFixed(3)})`;
-        ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.3); ctx.fill();
+        const blink = 0.55 + Math.sin(a.ph * 2.4) * 0.45;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255,190,50,${(blink * 0.5).toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(0, 0, 16, 0, 6.3); ctx.fill();
+        ctx.fillStyle = `rgba(255,246,200,${blink.toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, 6.3); ctx.fill();
       } else if (a.k === 'dragonfly') {
         ctx.scale(2.4, 2.4);
         ctx.fillStyle = '#5fd8c8';
