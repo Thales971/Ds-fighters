@@ -356,7 +356,7 @@ class StageMechanic {
   constructor(game, stage) {
     this.game = game;
     this.def = stage;
-    const tideOk = stage && ['represa', 'ponte-rio', 'parque-lago', 'kotlin', 'abismo-das-baleias'].includes(stage.id);
+    const tideOk = stage && ['represa', 'ponte-rio', 'parque-lago', 'kotlin', 'abismo-das-baleias', 'anonovo-copacabana', 'anonovo-reveillon'].includes(stage.id);
     const mechName = stage && stage.mech === 'tide' && !tideOk ? null : (stage && stage.mech);
     this.m = mechName ? Object.assign({}, MECHS[mechName] || {}) : {};
     this.t = 0;

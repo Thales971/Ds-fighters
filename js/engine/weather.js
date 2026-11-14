@@ -141,7 +141,7 @@ class Weather {
       }
     }
     /* sons ambiente dos climas novos */
-    if (fighting && (this.kind === 'fireflies' || this.kind === 'leaves' || this.kind === 'aurora' || this.kind === 'heatwave' || this.kind === 'eclipse' || this.kind === 'darkfog')) {
+    if (fighting && (this.kind === 'fireflies' || this.kind === 'leaves' || this.kind === 'aurora' || this.kind === 'heatwave' || this.kind === 'eclipse' || this.kind === 'darkfog' || this.kind === 'confetti' || this.kind === 'fireworks')) {
       this._chimeAt--;
       if (this._chimeAt <= 0) {
         this._chimeAt = 380 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 380) | 0);
@@ -150,6 +150,8 @@ class Weather {
         else if (this.kind === 'fireflies') this.game.audio.play('magic', { vol: 0.07 });
         else if (this.kind === 'leaves') this.game.audio.play('whoosh', { vol: 0.06 });
         else if (this.kind === 'eclipse' || this.kind === 'darkfog') this.game.audio.play('dragon', { vol: 0.06 });
+        else if (this.kind === 'confetti') this.game.audio.play('whoosh', { vol: 0.05 });
+        else if (this.kind === 'fireworks') this.game.audio.play('explosion', { vol: 0.07 });
       }
     }
     this.updateParticles();
@@ -157,11 +159,11 @@ class Weather {
   updateParticles() {
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
-      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' ? -30 - r * 380 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
+      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' || this.kind === 'confetti' ? -30 - r * 380 : this.kind === 'fireworks' ? -200 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
       const roll = this.game.rnd ? this.game.rnd() : Math.random();
       const d = { x: roll * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()), ph: roll * 6.28, rot: roll * 6.28, rotV: 0.05 + roll * 0.08 };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
@@ -171,6 +173,10 @@ class Weather {
         d.rot = (this.game.rnd ? this.game.rnd() : Math.random()) * Math.PI * 2;
         d.rotV = ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 0.04;
         d.layer = d.s < 0.4 ? 0 : d.s < 0.75 ? 1 : 2;
+      }
+      if (this.kind === 'confetti' || this.kind === 'fireworks') {
+        d.design = ((this.game.rnd ? this.game.rnd() : Math.random()) * 5) | 0;
+        d.rotV = 0.06 + roll * 0.12;
       }
       /* VENTO: parte das particulas sao FOLHAS girando. */
       if (this.kind === 'wind') {
@@ -209,14 +215,22 @@ class Weather {
         if (d.y < -320) { d.y = 30; d.x = Math.random() * W; }
         continue;
       }
-      if (this.kind === 'leaves') {
-        /* FOLHAS: caem girando, o vento leva */
+      if (this.kind === 'leaves' || this.kind === 'confetti') {
+        /* FOLHAS e CONFETE: caem girando. Confete não altera o dash. */
         d.ph += 0.04 + d.s * 0.05;
         d.x += Math.sin(d.ph) * 1.4 + this.wind * 1.6;
         d.y += 1.1 + d.s * 0.8;
         if (d.y > 40) { d.y = -320 - Math.random() * 60; d.x = Math.random() * W; }
         if (d.x > W + 30) d.x = -30;
         if (d.x < -30) d.x = W + 30;
+        continue;
+      }
+      if (this.kind === 'fireworks') {
+        /* FOGOS: faíscas só no céu, acima dos lutadores. */
+        d.ph += 0.09;
+        d.y -= 0.4 + d.s * 0.35;
+        d.x += Math.sin(d.ph) * 0.7;
+        if (d.y < -500) { d.y = -170 - Math.random() * 50; d.x = Math.random() * W; }
         continue;
       }
       if (this.kind === 'aurora') {
@@ -486,6 +500,32 @@ class Weather {
       ctx.globalAlpha = 1;
     } else if (this.kind === 'rainbow') {
       /* o arco fica no overlay, longe dos lutadores */
+    } else if (this.kind === 'confetti') {
+      const cols = ['#ffd23a', '#ff4f8b', '#7ec8ff', '#7dff6a', '#fff'];
+      for (const d of this.drops) {
+        ctx.save();
+        ctx.translate(Math.round(d.x), Math.round(d.y));
+        ctx.rotate(d.ph || 0);
+        ctx.fillStyle = cols[(d.design || 0) % cols.length];
+        ctx.fillRect(-3, -1, 6, 2);
+        ctx.restore();
+      }
+    } else if (this.kind === 'fireworks') {
+      const cols = ['#ffe27a', '#ff4f8b', '#7ec8ff', '#fff', '#ff9a3c'];
+      for (const d of this.drops) {
+        const x = Math.round(d.x);
+        const y = Math.round(d.y);
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = cols[(d.design || 0) % cols.length];
+        ctx.fillRect(x, y, 2, 2);
+        if (Math.sin((d.ph || 0) * 2) > 0) {
+          ctx.fillRect(x - 4, y, 2, 2);
+          ctx.fillRect(x + 4, y, 2, 2);
+          ctx.fillRect(x, y - 4, 2, 2);
+          ctx.fillRect(x, y + 4, 2, 2);
+        }
+      }
+      ctx.globalAlpha = 1;
     } else {
       ctx.strokeStyle = this.kind === 'storm' ? 'rgba(190,214,255,0.5)' : 'rgba(176,204,255,0.4)';
       ctx.lineWidth = 1.5;
