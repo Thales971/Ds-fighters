@@ -80,6 +80,7 @@ const UI = {
       if (typeof Profile !== 'undefined' && Profile.unlockPitoco && Profile.unlockPitoco()) {
         UI.toast('\u{1F415} PITOCO DESBLOQUEADO!', 4200);
         AudioSys.voice('unlocked');
+        try { if (this.screen === 'custom') this.renderPets(); } catch (e) {}
       } else if (Profile.hasPitoco && Profile.hasPitoco()) {
         UI.toast('O cachorro ja te conhece.', 2200);
       }

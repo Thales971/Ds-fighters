@@ -378,8 +378,8 @@ const ROSTER_PORTRAITS = {
       "frame": "idle-0"
     },
     "jess": {
-      "x": 91,
-      "y": 55,
+      "x": 58,
+      "y": 124,
       "side": 136,
       "source": "assets/sprites/jess.png",
       "frame": "idle-0"

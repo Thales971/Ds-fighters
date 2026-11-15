@@ -381,7 +381,7 @@ class StageRenderer {
     this.crowd = null;
     if (!this.def.torcida) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v40-jess';
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v41-jessfix';
     this.crowdHype = 0;
     this.crowd = [
       { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
