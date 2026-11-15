@@ -51,6 +51,8 @@ const Input = {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
       this._physical.add(e.code);
       mark(e.code);
+      /* PITOCO: o codigo do sangue escuta em qualquer tela de pet */
+      if (typeof UI !== 'undefined' && UI.pitocoKey && UI.screen === 'custom') UI.pitocoKey(e.code);
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
     });
     window.addEventListener('keyup', (e) => { this._physical.delete(e.code); if (!this._touchCodes.has(e.code)) this.keys.delete(e.code); });

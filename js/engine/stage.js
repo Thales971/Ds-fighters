@@ -25,6 +25,10 @@ class LiveFauna {
       if (k === 'squirrel') spawn('squirrel', 1, { y: groundY - 2 });
       if (k === 'seagull') spawn('seagull', 2, { y: groundY - 200 - Math.random() * 120, sky: true });
       if (k === 'frog') spawn('frog', 1, { y: groundY - 2 });
+      if (k === 'fish') spawn('fish', 2, { y: groundY - 14, water: true });
+      if (k === 'rabbits') spawn('rabbit', 2, { y: groundY - 2 });
+      if (k === 'hamster') spawn('hamster', 1, { y: groundY - 2 });
+      if (k === 'turtle') spawn('turtle', 1, { y: groundY - 2 });
     }
   }
   update() {
@@ -82,7 +86,7 @@ class LiveFauna {
         else if (a.k === 'dragonfly') { a.x += Math.sin(a.ph * 0.6) * 1.4; a.y += Math.cos(a.ph) * 0.9; }
         else if (a.k === 'bird') { a.x += a.dir * 0.9; a.y += Math.sin(a.ph) * 0.5; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
         else if (a.k === 'pigeon') { a.x += a.dir * 0.5; if (Math.random() < 0.01) a.dir *= -1; if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
-        else if (a.k === 'cat' || a.k === 'dog') {
+        else if (a.k === 'cat' || a.k === 'dog' || a.k === 'rabbit' || a.k === 'hamster' || a.k === 'turtle') {
           a.timer--;
           if (a.timer <= 0) { a.dir *= -1; a.timer = 180 + Math.random() * 300; }
           a.x += a.dir * 0.4;
@@ -92,13 +96,25 @@ class LiveFauna {
     }
   }
   draw(ctx, layer = 'all') {
-    const onGround = { pigeon: 1, cat: 1, dog: 1, squirrel: 1, frog: 1, firefly: 1 };
+    const onGround = { pigeon: 1, cat: 1, dog: 1, squirrel: 1, frog: 1, firefly: 1, rabbit: 1, hamster: 1, turtle: 1 };
     for (const a of this.animals) {
       if (a.state === 'gone') continue;
       const grounded = !!onGround[a.k];
       if (layer === 'back' && !grounded) continue;
       if (layer === 'front' && grounded) continue;
       const x = a.x, y = a.y;
+      /* BICHOS EM SPRITE (arte do dono): cachorro, gato, pombo, peixe, sapo,
+         coelho, hamster, tartaruga — o resto segue no canvas vetorial */
+      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7 }[a.k];
+      if (typeof Art !== 'undefined' && _sprRow != null) {
+        const frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
+        ctx.save();
+        ctx.translate(x, y);
+        if (a.dir < 0) ctx.scale(-1, 1);
+        Art.cell(ctx, 'bichos', _sprRow, frame, 0, 0, { scale: 0.62, dir: 1 });
+        ctx.restore();
+        continue;
+      }
       ctx.save();
       ctx.translate(x, y);
       if (a.k === 'firefly') {
@@ -241,6 +257,7 @@ class StageRenderer {
     }
     this.fauna = [];
     this.makeFauna();
+    this.initTorcida();
     this.vignette = null;
   }
   makeFauna() {
@@ -358,9 +375,38 @@ class StageRenderer {
       p.rot += 0.12;
     }
   }
+  /* TORCIDA (sprite do dono): fileiras que pulam quando a luta esquenta */
+  initTorcida() {
+    this.crowd = null;
+    if (!this.def.torcida) return;
+    this.crowdSheet = new Image();
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v40-jess';
+    this.crowdHype = 0;
+    this.crowd = [
+      { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
+      { row: 2, y: this.H * 0.38, scale: 0.75, speed: 1.2 },
+      { row: 4, y: this.H * 0.47, scale: 0.95, speed: 1.5 },
+    ];
+  }
+  drawTorcida(ctx) {
+    if (!this.crowd || !this.crowdSheet || !this.crowdSheet.width) return;
+    if (this.crowdHype > 0) this.crowdHype--;
+    const hype = this.crowdHype > 0;
+    ctx.save();
+    for (const c of this.crowd) {
+      const jump = hype ? Math.abs(Math.sin(this.t * 0.35 * c.speed)) * 7 * c.scale : Math.sin(this.t * 0.03 + c.row) * 1.5;
+      const w = 256 * c.scale * 2.2;
+      const h = 200 * c.scale * 2.2;
+      for (let x = -w / 2; x < this.W + w; x += w * 0.98) {
+        ctx.drawImage(this.crowdSheet, c.row * 256, 0, 256, 200, x, c.y - h + jump, w, h);
+      }
+    }
+    ctx.restore();
+  }
   react(power) {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
     this.propShake = Math.max(this.propShake, power);
+    if (this.crowd) this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
     if (power < 11) return;
     for (const p of this.props) {
       if (p.fall && !p.falling && Math.random() < 0.6) {
@@ -434,6 +480,7 @@ class StageRenderer {
       ctx.fillRect(0, 0, W, Math.min(H, this.groundY + 8));
       ctx.globalAlpha = 1;
     }
+    this.drawTorcida(ctx);
     this.drawProps(ctx, camX);
     if (this.drama) this.drawDrama(ctx);
     if (this.hitFlash > 0) {

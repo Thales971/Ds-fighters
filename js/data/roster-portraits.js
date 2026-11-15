@@ -51,7 +51,8 @@ const ROSTER_PORTRAITS = {
     "lia",
     "nexo",
     "maximilian",
-    "henrico"
+    "henrico",
+    "jess"
   ],
   "crops": {
     "du": {
@@ -374,6 +375,13 @@ const ROSTER_PORTRAITS = {
       "y": 37,
       "side": 136,
       "source": "assets/sprites/henrico.png",
+      "frame": "idle-0"
+    },
+    "jess": {
+      "x": 91,
+      "y": 55,
+      "side": 136,
+      "source": "assets/sprites/jess.png",
       "frame": "idle-0"
     }
   }
