@@ -2,7 +2,7 @@
 
 Jogo de luta 2D arcade no navegador — pixel art, JS/HTML/CSS puro, sem engine. Publicado em <https://ds-fighters.vercel.app>.
 
-**Edição V20 · 46 lutadores no código (45 na grade, incluindo o secreto Maximilian, + boneco de treino oculto) · 67 arenas**
+**Edição V20 · 46 lutadores no código (45 na grade, incluindo um secreto extra, + boneco de treino oculto) · 67 arenas**
 
 O selo da tela de título e o `<title>` leem esses números dos dados (`FIGHTERS` e `STAGE_LIST`) e a edição do maior `fighters-vN.js` carregado. O cantinho `build …` repete o cache-buster das folhas (`v36-balance13` em `SpriteGen.url`). Assim a contagem não fica presa num texto antigo.
 
@@ -10,7 +10,7 @@ O `stats.power` abaixo é o valor **depois** dos arquivos de balanceamento, não
 
 ## Lutadores
 
-Código `S` = só entra com `adm` ou `batata`. Os outros 39 selecionáveis entram sem código. O boneco de treino existe no código e não aparece na grade.
+Código `S` = só entra com código secreto (não vale procurar no README). Os outros 39 selecionáveis entram sem código. O boneco de treino existe no código e não aparece na grade.
 
 | # | Nome | id | Power | Poderes | |
 |---|---|---|---:|---:|---|
@@ -94,7 +94,7 @@ Cada arena tem clima possível, fauna e uma mecânica em `js/engine/mechanics.js
 | Torneio | 2–32 pessoas, só com Redis ligado na Vercel |
 | Mascotes | Companheiro com bônus, salvo no perfil |
 | Skins | Desligado — a tela diz EM BREVE |
-| Resgatar código | Libera os três secretos neste navegador |
+| Resgatar código | Libera os secretos neste navegador (os códigos são segredo do dono) |
 
 ## Controles
 
@@ -113,9 +113,9 @@ Na seleção: WASD ou setas movem, Enter confirma, Backspace volta. No versus lo
 
 ## Códigos
 
-- `adm` — desbloqueia IALES OMEGA, DU MAGMA e FELIPINHO HYDRO.
-- `batata` — o mesmo trio. O código nasceu para liberar o QWEN; o QWEN passou a ser lutador normal, então `batata` ficou como apelido de `adm` e libera quem ainda pede código. A mensagem avisa que o QWEN já entra sem código.
-- WINX.EXE e QWEN não usam código. O selo SECRETO na grade só aparece em quem tem `secret: true` e já está liberado (os três acima).
+- Existem códigos secretos no jogo. Eles NÃO estão escritos aqui — descubra com o dono ou jogando. 🤫
+- O IALES OMEGA (10 habilidades) e os outros secretos só entram com código.
+- WINX.EXE e QWEN não usam código. O selo SECRETO na grade só aparece em quem tem `secret: true` e já está liberado.
 
 ## Online e torneio
 

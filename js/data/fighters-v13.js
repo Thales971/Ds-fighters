@@ -31,8 +31,8 @@
         super: ['ÁRVORE SAKURA!!'],
       },
       moves: {
-        punch: { dmg: 5, range: 50, startup: 3, active: 4, recovery: 8 },
-        kick: { dmg: 8, range: 62, startup: 6, active: 4, recovery: 10 },
+        punch: { dmg: 8, range: 54, startup: 3, active: 4, recovery: 8 },
+        kick: { dmg: 12, range: 68, startup: 5, active: 4, recovery: 10 },
       },
       special: {
         name: 'Tiro de Sementes', type: 'projectile', cost: 25,
@@ -102,7 +102,7 @@
       bio: '96% máquina, 4% humano: corpo brutamontes de chrome, placas gunmetal, um único olho óptico vermelho e pod de foguetes no ombro. Cada acerto pesa — e quanto mais a luta dura, mais forte ele fica.',
       colors: { skin: '#8a8f96', hair: '#101216', shirt: '#1a1d22', pants: '#0e1013', shoes: '#0a0b0d', accent: '#ff2a2a' },
       traits: { chromeBody: true, rocketPod: true, singleRedOptic: true, heavyBrawler: true },
-      stats: { power: 1.48, speed: 0.9, weight: 1.25, hp: 160, meterRate: 1.25 },
+      stats: { power: 1.62, speed: 1.06, weight: 1.20, hp: 168, meterRate: 1.32 },
       secret: false,
       quotes: {
         intro: ['Contrato assinado. Bônus garantido.', 'Seu uptime acabou.'],

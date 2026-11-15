@@ -135,6 +135,22 @@ class Projectile {
     const rot = this.p.boomerang ? this.age * 0.35 : 0;
     const dir = Math.sign(this.vx) || this.dir;
     const key = this.key || ('abil:' + this.fid);
+    /* RASTRO DE GLOW: fantasmas com fade + halo aditivo */
+    if (!game.reduced) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let k = 1; k <= 2; k++) {
+        ctx.globalAlpha = 0.22 / k;
+        Art.cell(ctx, key, this.row, frame, this.x - this.vx * 1.6 * k, this.y - this.vy * 1.6 * k, { scale: this.scale * (1 - k * 0.12), dir, rot, add: true });
+      }
+      ctx.globalAlpha = 0.15;
+      const hg = ctx.createRadialGradient(this.x, this.y, 2, this.x, this.y, 30 * this.scale);
+      hg.addColorStop(0, 'rgba(255,235,200,0.85)');
+      hg.addColorStop(1, 'rgba(255,235,200,0)');
+      ctx.fillStyle = hg;
+      ctx.beginPath(); ctx.arc(this.x, this.y, 30 * this.scale, 0, 6.3); ctx.fill();
+      ctx.restore();
+    }
     if (!game.reduced && !this.p.visualSheet) {
       ctx.save();
       ctx.globalAlpha = 0.28;

@@ -40,12 +40,10 @@ class Game {
     this.resetWorld();
   }
   resetWorld() {
-    /* MORTE SÚBITA: paredes de fogo que avançam dos dois lados (sprites do dono,
-       assets/fx/fogo.png — linha 0, 8 quadros de chama). O fogo SÓ EXISTE no
-       round final (3º round ou mais) — nos rounds 1 e 2 é luta normal. */
-    this.inferno = this.mode === 'morte-subita' && this.round >= 3
-      ? { left: -40, right: W + 40, t: 0, active: false }
-      : null;
+    /* Round 3 de qualquer luta (não é modo): o chão pega fogo. */
+    const sudden = this.round === 3 && this.mode !== 'training' && this.mode !== 'demo';
+    this.inferno = sudden ? { t: 0, active: false } : null;
+    this.suddenLeft = sudden ? 50 * 60 : 0;
     this.imgFx = [];
     this.cracks = [];
     this.projectiles = [];
@@ -81,6 +79,7 @@ class Game {
     this.stageDef = this.pickStage(this.cfg.stage);
     this.cfg.stage = this.stageDef.id;
     this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
+    this.stage.liveFauna = (typeof LiveFauna !== 'undefined' && this.stageDef && this.stageDef.fauna && this.stageDef.fauna.length) ? new LiveFauna(this, this.stageDef) : null;
     this.stage.reducedFlag = this.reduced;
     this.round = 1;
     this.teamWins = [0, 0];
@@ -380,11 +379,14 @@ class Game {
       this.lastVictim = victim;
       if (atk) {
         if (this.combo.owner === atk && this.time < this.combo.until) this.combo.count++;
-        else this.combo = { owner: atk, count: 1, until: 0 };
+        else this.combo = { owner: atk, count: 1, dmg: 0, until: 0 };
         this.combo.until = this.time + 48;
+        this.combo.dmg = (this.combo.dmg || 0) + Math.max(1, Math.round(d));
         if (this.combo.count > atk.stats.maxCombo) atk.stats.maxCombo = this.combo.count;
-        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count]); }
+        if (this.combo.count >= 2) { UI.hud.combo(atk.team, this.combo.count, this.combo.dmg); if (this.netRole === 'host') this.netFx.push(['h', atk.team, this.combo.count, this.combo.dmg]); }
         if (this.combo.count === 6) this.audio.voice('combo');
+        if (this.combo.count >= 10) Profile.grantAchievement('combo-10');
+        if (this.combo.count >= 20) Profile.grantAchievement('combo-20');
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
     }
@@ -573,6 +575,8 @@ class Game {
     const fighting = this.roundState === 'fight';
     this.stage.update(this.weather);
     this.weather.update(fighting);
+    if (this.stage && this.stage.liveFauna && this.roundState === 'fight') this.stage.liveFauna.update();
+    if (typeof VFX !== 'undefined') VFX.update(W, H);
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
     if (this.glitch > 0) this.glitch--;
@@ -581,7 +585,7 @@ class Game {
       if (this.roundStateTime === 1) {
         const wi = WEATHER_INFO[this.weather.kind];
         let sub = this.stageDef.name + ' · ' + wi.icon + ' ' + wi.name;
-        if (this.mode === 'morte-subita') sub += this.round >= 3 ? ' · O FOGO VEM FECHAR A ARENA!' : ' · MORTE SÚBITA só no round final';
+        if (this.round === 3 && this.inferno) sub += ' · MORTE SÚBITA';
         this.announce('ROUND ' + this.round, '#ffd27d', sub);
         const finalRound = this.round >= (this.cfg.roundsToWin || 2);
         this.audio.voice(finalRound ? 'final' : ('round' + Math.min(3, this.round)));
@@ -596,6 +600,7 @@ class Game {
     if (fighting) {
       if (this.roundTimer !== Infinity) this.roundTimer--;
       this.tickInferno();
+      this.tickSudden();
       for (const ti of [0, 1]) {
         const t = this.teams[ti];
         if (t.tagCd > 0) t.tagCd--;
@@ -743,7 +748,32 @@ class Game {
     const humanTeam = this.mode === 'online' ? this.cfg.localTeam : 0;
     if (this.mode !== 'demo') {
       Profile.record('fights');
-      if (winner === humanTeam) Profile.record('wins');
+      if (winner === humanTeam) {
+        Profile.record('wins');
+        Profile.grantAchievement('primeiro-ko');
+        /* PERFEITO: round sem tomar dano */
+        const vencedores = this.teams[humanTeam].members;
+        const perfeito = vencedores.some((m) => m.tookDamage === 0 || m.stats.dmgTaken === 0 || (m.maxHp - m.hp) < 1);
+        if (perfeito) Profile.grantAchievement('perfeito');
+        /* vitorias por lutador + elemento */
+        for (const m of vencedores) {
+          if (m.def && m.def.id) {
+            Profile.recordWinBy(m.def.id, POWERS[m.def.id] && POWERS[m.def.id].element);
+          }
+        }
+        if (this.mode === 'online') Profile.grantAchievement('online-1');
+        /* contadores de variedade */
+        const winBy = (Profile.data && Profile.data.winBy) || {};
+        const nLut = Object.keys(winBy).length;
+        if (nLut >= 10) Profile.grantAchievement('lutadores-10');
+        if (nLut >= 25) Profile.grantAchievement('lutadores-25');
+        const winEl = (Profile.data && Profile.data.winElement) || {};
+        if (Object.keys(winEl).length >= 6) Profile.grantAchievement('elementos-6');
+        /* secretos todos desbloqueados */
+        const secretos = (typeof Profile.SECRET_IDS !== 'undefined' ? Profile.SECRET_IDS : []);
+        const unlocked = (Profile.data && Profile.data.unlocked) || [];
+        if (secretos.length && secretos.every((id2) => unlocked.includes(id2))) Profile.grantAchievement('codigos-3');
+      }
       Profile.record('maxCombo', Math.max(...this.teams[humanTeam].members.map((m) => m.stats.maxCombo)));
       const vsHuman = this.mode === 'versus' && !this.cfg.cpu[1];
       this.audio.voice(winner < 0 ? 'draw' : (vsHuman || winner === humanTeam) ? 'youwin' : 'youlose');
@@ -829,7 +859,7 @@ class Game {
       case 's': UI.hud.say(f[1], f[2]); break;
       case 'n': UI.banner(f[1], f[2], f[3]); break;
       case 'c': { const fi = this.activeOf(f[1]); if (fi) UI.cutIn(fi, { name: f[3] }); break; }
-      case 'h': UI.hud.combo(f[1], f[2]); break;
+      case 'h': UI.hud.combo(f[1], f[2], f[3]); break;
       case 'k': this.addCrack(f[1], f[2], f[3], f[4], f[5]); break;
       default: break;
     }
@@ -885,9 +915,77 @@ class Game {
   }
 
   /* ---------- desenho ---------- */
+  /* FRAME DATA: tabela dos golpes basicos — F9 no treino */
+  _drawFrameDataTable(ctx) {
+    const f = this.activeOf(0);
+    if (!f || !f.def.moves) return;
+    const mv = f.def.moves;
+    const linhas = [
+      ['SOCO', mv.punch], ['CHUTE', mv.kick], ['SOCO AGACHADO', mv.cpunch], ['CHUTE AGACHADO', mv.ckick],
+      ['SOCO NO AR', mv.jpunch], ['CHUTE NO AR', mv.jkick],
+    ].filter((l) => l[1]);
+    ctx.save();
+    ctx.font = '11px monospace';
+    const x0 = 14, y0 = 64;
+    ctx.fillStyle = 'rgba(8,10,20,0.82)';
+    ctx.fillRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.strokeStyle = 'rgba(120,180,255,0.5)';
+    ctx.strokeRect(x0 - 6, y0 - 16, 330, 22 + linhas.length * 16);
+    ctx.fillStyle = '#9adcff';
+    ctx.fillText('FRAME DATA — ' + f.def.name, x0, y0 - 2);
+    ctx.fillStyle = '#8899aa';
+    ctx.fillText('golpe          ini/ati/rec  dano  alcance', x0, y0 + 12);
+    linhas.forEach((l, i) => {
+      const m = l[1];
+      const y = y0 + 28 + i * 16;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(l[0].padEnd(15, ' '), x0, y);
+      ctx.fillStyle = '#ffd27d';
+      ctx.fillText(String(m.startup) + '/' + String(m.active) + '/' + String(m.recovery) + 'f', x0 + 118, y);
+      ctx.fillStyle = '#ff9a8a';
+      ctx.fillText(String(m.dmg), x0 + 196, y);
+      ctx.fillStyle = '#9adcff';
+      ctx.fillText(String(m.range) + 'px', x0 + 240, y);
+    });
+    ctx.fillStyle = '#667788';
+    ctx.fillText('startup/ativo/recuperacao — bloqueado = punivel no recovery', x0, y0 + 34 + linhas.length * 16);
+    ctx.restore();
+  }
+  /* caixas de debug: hurtbox (azul) e hitbox do golpe ativo (vermelho) */
+  _drawHitboxDebug(ctx) {
+    if (this.cfg && this.cfg.mode === 'training') this._drawFrameDataTable(ctx);
+    ctx.save();
+    ctx.lineWidth = 2;
+    for (const f of this.allFighters()) {
+      /* hurtbox */
+      ctx.strokeStyle = 'rgba(80,160,255,0.9)';
+      ctx.strokeRect(f.x - 34, f.y - 170, 68, 170);
+      ctx.fillStyle = 'rgba(80,160,255,0.08)';
+      ctx.fillRect(f.x - 34, f.y - 170, 68, 170);
+      /* hitbox do golpe ativo */
+      if (f.attack && f.attack.active) {
+        const mv = f.attack;
+        const rx = f.x + f.dir * (mv.range * 0.6);
+        ctx.strokeStyle = 'rgba(255,80,80,0.95)';
+        ctx.strokeRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        ctx.fillStyle = 'rgba(255,80,80,0.12)';
+        ctx.fillRect(rx - mv.range * 0.5, f.y - 150, mv.range, 110);
+        /* frame data: startup/active/recovery */
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px monospace';
+        ctx.fillText(`${mv.kind}: ${mv.startup}/${mv.active}/${mv.recovery}f dano ${mv.dmg}`, f.x - 60, f.y - 186);
+      }
+    }
+    ctx.restore();
+  }
   render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    /* DEBUG DE HITBOX (treino): F9 liga/desliga — hitbox vermelho, hurtbox azul */
+    if (this.cfg && this.cfg.mode === 'training' && Input.hit && Input.hit(['F9'])) {
+      this.hitboxDebug = !this.hitboxDebug;
+      if (UI && UI.toast) UI.toast(this.hitboxDebug ? '👁 Hitboxes LIGADAS' : 'Hitboxes desligadas', 1400);
+    }
     // interpolação entre o passo anterior e o atual (renderização acima de 60 fps)
     const lerped = [];
     if (alpha < 0.999 && this.netRole !== 'guest' && this.teams && Profile.data.settings.smooth !== false) {
@@ -981,12 +1079,28 @@ class Game {
     for (const bu of this.bursts) {
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }
-    for (const s of this.sparks) {
-      ctx.globalAlpha = Math.min(1, s.life / 12);
-      ctx.fillStyle = s.color;
-      ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+    /* FAISCAS COM GLOW: pontos aditivos com halo (antes eram quadradinhos) */
+    if (!this.reduced && this.sparks.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const s of this.sparks) {
+        const a = Math.min(1, s.life / 12);
+        const sz = s.dust ? 3 : 2.4;
+        ctx.globalAlpha = a * 0.28;
+        ctx.fillStyle = s.color;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz * 2.6, 0, 6.3); ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz, 0, 6.3); ctx.fill();
+      }
+      ctx.restore();
+    } else {
+      for (const s of this.sparks) {
+        ctx.globalAlpha = Math.min(1, s.life / 12);
+        ctx.fillStyle = s.color;
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+      }
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
     this.weather.draw(ctx);
@@ -994,14 +1108,18 @@ class Game {
     this.stage.drawAmbient(ctx);
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
     if (this.inferno && this.inferno.active) {
-      const closed = 1 - (this.inferno.right - this.inferno.left) / W;
-      const pulse = 0.5 + 0.5 * Math.sin(this.time * 0.08);
-      const hot = ctx.createRadialGradient(W / 2, GROUND_Y - 40, W * 0.25, W / 2, GROUND_Y - 40, W * 0.75);
-      hot.addColorStop(0, 'rgba(255,40,0,0)');
-      hot.addColorStop(1, `rgba(200,20,0,${(0.18 + closed * 0.3 + pulse * 0.06).toFixed(3)})`);
-      ctx.fillStyle = hot;
+      const seconds = this.inferno.t / 60;
+      const heat = Math.min(1, seconds / 40);
+      const pulse = this.reduced ? 1 : 0.9 + 0.1 * Math.sin(this.time * 0.07);
+      const wash = Math.min(0.18, (0.13 + heat * 0.05) * pulse);
+      const edge = Math.min(0.58, (0.36 + heat * 0.18) * pulse);
+      ctx.fillStyle = 'rgba(176,18,8,' + wash.toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = `rgba(255,60,10,${(0.05 + closed * 0.08).toFixed(3)})`;
+      const g = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.22, W / 2, H * 0.48, Math.hypot(W, H) * 0.52);
+      g.addColorStop(0, 'rgba(160,10,0,0)');
+      g.addColorStop(0.62, 'rgba(140,8,0,' + (edge * 0.28).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(110,0,0,' + edge.toFixed(3) + ')');
+      ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     }
     this.weather.drawOverlay(ctx, W, H);
@@ -1020,122 +1138,94 @@ class Game {
         ctx.drawImage(this.canvas, 0, y, W, h, ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y, W, h);
       }
     }
+    /* aura de ultimate: quem ta castando ult acende as bordas */
+    const casters = this.fighters().filter((f2) => f2.cast && f2.cast.p && f2.cast.p.slot === 'ultimate');
+    if (typeof VFX !== 'undefined') VFX.drawUltAura(ctx, W, H, !this.reduced ? casters : []);
+    if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
+    if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
     ctx.save();
     ctx.translate(0, GROUND_Y);
     ctx.textAlign = 'center';
     for (const t of this.texts) {
-      ctx.globalAlpha = Math.min(1, t.life / 14);
-      ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#000';
-      ctx.strokeText(t.text, t.x, t.y);
-      ctx.fillStyle = t.color;
-      ctx.fillText(t.text, t.x, t.y);
+      if (typeof VFX !== 'undefined' && !t.small) VFX.drawDamageText(ctx, t);
+      else {
+        ctx.globalAlpha = Math.min(1, t.life / 14);
+        ctx.font = (t.small ? '12px' : '13px') + ' "Press Start 2P", monospace';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#000';
+        ctx.strokeText(t.text, t.x, t.y);
+        ctx.fillStyle = t.color;
+        ctx.fillText(t.text, t.x, t.y);
+      }
     }
     ctx.restore();
     ctx.restore();
     UI.hud.update(this);
   }
-  /* ---------- MORTE SÚBITA: o fogo fecha a arena ---------- */
+  /* Contagem só no 3º round. No zero, quem tem menos vida cai.
+     Vida igual: perde quem causou menos dano neste round.
+     Dano também igual: o time 2 cai, para a luta não ficar parada. */
+  tickSudden() {
+    if (!this.inferno || !this.inferno.active || this.roundState !== 'fight') return;
+    if (this.suddenLeft > 0) this.suddenLeft--;
+    if (this.suddenLeft > 0) return;
+    const hpOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.hp), 0);
+    const dmgOf = (ti) => this.teams[ti].members.reduce((s, m) => s + Math.max(0, m.stats.dmg - (m.roundDamageStart || 0)), 0);
+    const ha = hpOf(0);
+    const hb = hpOf(1);
+    let loserTeam;
+    let why;
+    if (Math.abs(ha - hb) > 0.5) {
+      loserTeam = ha < hb ? 0 : 1;
+      why = 'Quem tinha menos vida cai';
+    } else {
+      const da = dmgOf(0);
+      const db = dmgOf(1);
+      if (Math.abs(da - db) > 0.5) {
+        loserTeam = da >= db ? 1 : 0;
+        why = 'Vida igual — vence quem causou mais dano';
+      } else {
+        loserTeam = 1;
+        why = 'Vida e dano iguais — o time 2 cai';
+      }
+    }
+    const loser = this.activeOf(loserTeam);
+    this.announce('TEMPO!', '#ff3b30', why);
+    if (loser && loser.alive) {
+      loser.hp = 0;
+      loser.defeat(loser.dir);
+    }
+  }
   tickInferno() {
     const inf = this.inferno;
-    if (!inf) return;
+    if (!inf || this.roundState !== 'fight') return;
     inf.t++;
     if (!inf.active) {
-      if (inf.t === 360) this.announce('O FOGO ESTÁ VINDO!', '#ff9a2a', 'A arena vai fechar em 6 segundos');
-      if (inf.t >= 720) {
-        inf.active = true;
-        this.announce('MORTE SÚBITA!', '#ff3b30', 'As paredes de fogo avançam — quem ficar queima!');
-        this.audio.play('explosion', { vol: 0.7 });
-        this.shake(10);
-        this.events.push({ t: 'sudden', at: this.time });
-      }
-      return;
+      inf.active = true;
+      this.announce('MORTE SÚBITA!', '#ff3b30', 'O chão pega fogo. O dano sobe com o tempo. +5% de dano.');
+      this.audio.play('fire', { vol: 0.4 });
+      this.events.push({ t: 'sudden', at: this.time });
     }
-    // acelera com o tempo: começa lenta e fecha a arena
-    const spd = Math.min(0.85, 0.14 + (inf.t - 720) * 0.00045);
-    inf.left += spd;
-    inf.right -= spd;
-    const minGap = 230;
-    if (inf.right - inf.left < minGap) { inf.left = (W - minGap) / 2; inf.right = (W + minGap) / 2; }
-    /* CALOR DA ARENA: com o fogo ativo, OS DOIS lutadores queimam sem parar —
-       quanto mais fechada a arena, mais forte. O medidor também sobe 1.6x
-       (ver Fighter.gain). */
-    const closed = 1 - (inf.right - inf.left) / W;
-    if (inf.t % 30 === 0) {
-      for (const f of this.fighters()) {
-        if (!f.alive) continue;
-        f.chip(0.5 + closed * 2.2, null);
-        f.addStatus('burn', 60);
-      }
-      if (this.round % 1 === 0) this.floatText(W / 2, -300, 'A ARENA QUEIMA!', '#ff6a2a');
-    }
+    if (inf.t % 40 !== 0) return;
+    const seconds = inf.t / 60;
+    const dmg = Math.min(2.4, 0.35 + seconds * 0.045);
     for (const f of this.fighters()) {
-      if (!f.alive) continue;
-      const d = Math.min(f.x - inf.left, inf.right - f.x);
-      if (d < 26) {
-        // dentro do fogo: empurrão pro centro + dano contínuo + queimadura
-        f.x = Math.max(inf.left + 26, Math.min(inf.right - 26, f.x));
-        f.vx = (f.x - inf.left < inf.right - f.x) ? 4 : -4;
-        if (inf.t % 4 === 0) f.chip(2.2, null);
-        f.addStatus('burn', 90);
-        if (inf.t % 30 === 0) {
-          this.floatText(f.x, f.y - 210, 'FOGO!', '#ff6a2a');
-          this.spawnBurst('fire', 1, f.x, f.y - 80, 1, 1.8);
-          this.audio.play('fire', { vol: 0.35 });
-        }
-      } else if (d < 90 && inf.t % 90 === 0 && f.onGround) {
-        f.chip(0.8, null); // calor perto da parede
-      }
+      if (!f.alive || f.benched) continue;
+      f.chip(dmg, null);
     }
   }
   drawInferno(ctx) {
     const inf = this.inferno;
-    if (!inf) return;
-    const img = Fx.images.fogo;
-    if (!img || !img.naturalWidth) return;
-    const fw = 96, fh = 96;
-    const frame = Math.floor(this.time / 5) % 8;
-    const wall = (x0, x1, growDir) => {
-      if (x1 - x0 <= 4) return;
-      const edge = growDir > 0 ? x1 : x0; // borda interna da parede
-      // corpo do incêndio (gradiente escuro de brasas atrás das chamas)
-      const g = ctx.createLinearGradient(edge, 0, edge - growDir * 300, 0);
-      g.addColorStop(0, 'rgba(180,45,5,0.92)');
-      g.addColorStop(0.5, 'rgba(120,25,5,0.95)');
-      g.addColorStop(1, 'rgba(45,8,2,0.98)');
-      ctx.fillStyle = g;
-      ctx.fillRect(Math.min(x0, x1), -GROUND_Y - 40, x1 - x0, GROUND_Y + 70);
-      // chamas animadas na borda (fogo.png linha 0, 8 quadros de chama):
-      // a fileira da frente usa composição normal (contrastando com o fundo
-      // de brasas), as de trás brilham por cima (lighter).
-      ctx.save();
-      ctx.imageSmoothingEnabled = false;
-      const step = 100;
-      for (let k = 0, x = edge - 50; k < 4; k++, x -= growDir * step) {
-        ctx.globalCompositeOperation = k === 0 ? 'source-over' : 'lighter';
-        for (let y = -GROUND_Y - 30; y < 80; y += fh * 1.35) {
-          const f2 = (frame + ((y / (fh * 1.35)) | 0) + k) % 8;
-          ctx.globalAlpha = k === 0 ? 1 : 0.55 - k * 0.12;
-          ctx.drawImage(img, f2 * fw, 0, fw, fh, x - 75, y - 14 - k * 8, 150, fh * 1.35 + 24);
-        }
-      }
-      ctx.globalAlpha = 1;
-      ctx.restore();
-    };
-    if (inf.active) {
-      wall(-90, inf.left, 1);
-      wall(inf.right, W + 90, -1);
-    } else if (inf.t > 360) {
-      // aviso: brasas nas bordas da arena antes do fogo começar
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.25 + 0.2 * Math.sin(inf.t * 0.15);
-      const f2 = frame % 8;
-      ctx.drawImage(img, f2 * fw, 0, fw, fh, -40, -140, 140, 200);
-      ctx.drawImage(img, f2 * fw, 0, fw, fh, W - 100, -140, 140, 200);
-      ctx.restore();
+    if (!inf || !inf.active) return;
+    const frame = Math.floor(this.time / 4) % 4;
+    for (let x = 36; x < W - 20; x += 84) {
+      Art.cell(ctx, 'fx2:fire', 1, (frame + ((x / 84) | 0)) % 4, x, -22, { scale: 1.45 });
+    }
+    for (let k = 0; k < 4; k++) {
+      const y = -30 - k * 78;
+      Art.cell(ctx, 'fx2:fire', 1, (frame + k) % 4, 34, y, { scale: 1.55 });
+      Art.cell(ctx, 'fx2:fire', 1, (frame + k + 2) % 4, W - 34, y, { scale: 1.55, dir: -1 });
     }
   }
   drawBeams(ctx) {

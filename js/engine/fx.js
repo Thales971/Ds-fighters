@@ -27,12 +27,13 @@ const ART_SHEETS = {
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
   fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
+  'fx2:firefly': { src: 'assets/fx/firefly.png', size: 16, cols: 6, rows: 2 },
 };
 
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v36-pack4';
+    return src + '?v=v37-firefly';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

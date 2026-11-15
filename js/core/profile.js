@@ -74,10 +74,15 @@ const Profile = {
       bestArcade: this._number(stats.bestArcade, 0),
       maxCombo: this._number(stats.maxCombo, 0),
     };
+    /* RECORDES POR LUTADOR (survival) */
+    const survivalBy = stats.survivalBy && typeof stats.survivalBy === 'object' && !Array.isArray(stats.survivalBy) ? stats.survivalBy : {};
+    normalizedStats.survivalBy = survivalBy;
     if (Object.prototype.hasOwnProperty.call(stats, 'bestSurvival')) {
       normalizedStats.bestSurvival = this._number(stats.bestSurvival, 0);
     }
+    const achievements = [...new Set((Array.isArray(source.achievements) ? source.achievements : []))].slice(0, 64);
     return Object.assign({}, source, {
+      achievements,
       unlocked,
       pets,
       skins: this._skins(source.skins, base.skins),
@@ -280,6 +285,38 @@ const Profile = {
     this.save();
   },
 
+  /* CONQUISTAS: medalha unica, persistida, com toast */
+  grantAchievement(id) {
+    if (!id) return false;
+    this.data = this._normalize(this.data || this.load());
+    if (!Array.isArray(this.data.achievements)) this.data.achievements = [];
+    if (this.data.achievements.includes(id)) return false;
+    this.data.achievements.push(id);
+    this.save();
+    const a = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []).find((x) => x.id === id);
+    if (typeof UI !== 'undefined' && UI.toast && a) UI.toast('🏅 ' + a.name, 3200);
+    return true;
+  },
+  hasAchievement(id) {
+    return !!(this.data && Array.isArray(this.data.achievements) && this.data.achievements.includes(id));
+  },
+  /* RECORDES: survival por lutador + vitorias por lutador/elemento */
+  recordSurvivalBy(fid, wins) {
+    this.data = this._normalize(this.data || this.load());
+    const by = this.data.stats.survivalBy || (this.data.stats.survivalBy = {});
+    by[fid] = Math.max(by[fid] || 0, this._number(wins, 0));
+    this.save();
+  },
+  recordWinBy(fid, element) {
+    this.data = this._normalize(this.data || this.load());
+    const w = this.data.winBy || (this.data.winBy = {});
+    w[fid] = (w[fid] || 0) + 1;
+    if (element) {
+      const e = this.data.winElement || (this.data.winElement = {});
+      e[element] = (e[element] || 0) + 1;
+    }
+    this.save();
+  },
   record(stat, v) {
     this.data = this._normalize(this.data || this.load());
     const s = this.data.stats;

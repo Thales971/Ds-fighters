@@ -22,7 +22,7 @@
     })().catch((error) => console.warn('Cache cleanup failed:', error));
   </script>
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v37-henrico" />
+  <link rel="stylesheet" href="css/style.css?v=v43-part2" />
   <link rel="stylesheet" href="css/account.css?v=v37-henrico" />
   <link rel="stylesheet" href="css/mobile.css?v=v37-henrico" />
 </head>
@@ -75,6 +75,15 @@
 
     <section class="screen" id="scr-menu" data-screen="menu">
       <div class="menu-bg"></div>
+      <img class="menu-skin" id="skin-natal" alt="" src="assets/ui/skin-natal.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-halloween" alt="" src="assets/ui/skin-halloween.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-carnaval" alt="" src="assets/ui/skin-carnaval.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-pascoa" alt="" src="assets/ui/skin-pascoa.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-junina" alt="" src="assets/ui/skin-junina.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-criancas" alt="" src="assets/ui/skin-criancas.png?v=v43-part2" />
+      <img class="menu-skin" id="skin-anonovo" alt="" src="assets/ui/skin-anonovo.png?v=v43-part2" />
+      <div class="menu-fx" id="fx-natal"></div>
+      <div class="menu-fx" id="fx-halloween"></div>
       <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
       <button class="nav btn mobile-only" id="btn-mobile-account">CONTA / SALVAR PROGRESSO</button>
       <nav class="main-menu" aria-label="Menu principal">
@@ -82,13 +91,14 @@
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
         <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
         <button class="nav mm" data-go="survival"><span>SURVIVAL</span><small>Lute contra todos até cair — placar de vitórias</small></button>
-        <button class="nav mm" data-go="morte-subita"><span>MORTE SÚBITA</span><small>Paredes de fogo fecham a arena — dano contínuo, quem queimar perde</small></button>
+        <button class="nav mm" data-go="events"><span>EVENTOS</span><small>Calendário do ano e mapas de festa</small></button>
         <button class="nav mm" data-go="training"><span>TREINO</span><small>Boneco, medidores infinitos</small></button>
         <button class="nav mm" id="btn-tutorial" data-go="tutorial" hidden><span>TREINO GUIADO</span><small>Novo por aqui? Aprenda em 2 minutos</small></button>
         <button class="nav mm" data-go="rules"><span>PERSONALIZADO</span><small>Vida infinita, rounds e salas ao vivo</small></button>
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
+        <button class="nav mm" data-go="conquistas"><span>CONQUISTAS</span><small>Medalhas e recordes</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
         <button class="nav mm" data-go="options"><span>OPÇÕES</span><small>Áudio, vídeo e controles</small></button>
@@ -98,6 +108,17 @@
         <div class="stats-card" id="stats-card"></div>
         <div class="demo-roster" id="menu-roster"></div>
       </div>
+    </section>
+
+    <section class="screen" id="scr-events" data-screen="events">
+      <div class="select-bg"></div>
+      <header class="sel-head"><h2>EVENTOS DO ANO</h2><div class="sel-mode" id="events-year"></div></header>
+      <div class="events-layout">
+        <div id="events-hero"></div>
+        <div id="events-upcoming"></div>
+        <div id="events-maps"></div>
+      </div>
+      <button class="nav btn" data-back>VOLTAR</button>
     </section>
 
     <section class="screen" id="scr-rules" data-screen="rules">
@@ -143,7 +164,7 @@
         <div class="stage-grid" id="stage-grid" role="listbox" aria-label="Arenas"></div>
       </div>
       <div class="stage-opts">
-        <label>Clima <select id="opt-weather"><option value="random">Aleatório</option><option value="clear">Céu limpo</option><option value="rain">Chuva</option><option value="wind">Ventania</option><option value="storm">Tempestade</option><option value="snow">Nevasca</option><option value="aurora">Aurora Boreal</option><option value="heatwave">Onda de Calor</option></select></label>
+        <label>Clima <select id="opt-weather"><option value="random">Aleatório</option><option value="clear">Céu limpo</option><option value="rain">Chuva</option><option value="wind">Ventania</option><option value="storm">Tempestade</option><option value="snow">Nevasca</option><option value="fog">Neblina</option><option value="darkfog">Neblina Sombria</option><option value="aurora">Aurora Boreal</option><option value="heatwave">Onda de Calor</option></select></label>
         <label id="lbl-diff">Dificuldade <select id="opt-diff"><option value="0">Fácil — reage devagar, quase não defende</option><option value="1" selected>Normal — defende e faz combos curtos</option><option value="2">Difícil — pune erros, antiaéreo, combos longos</option><option value="3">Pesadelo — leitura quase perfeita</option></select></label>
         <label id="lbl-dummy" class="hidden">Boneco <select id="opt-dummy"><option value="stand">Parado</option><option value="block">Defende</option><option value="jump">Pula</option><option value="walk">Anda</option><option value="crouchd">Agacha</option><option value="mix">Aleatório</option><option value="cpu">CPU</option></select></label>
         <label id="lbl-inf" class="hidden"><input type="checkbox" id="opt-inf" checked /> Medidores infinitos</label>
@@ -209,6 +230,13 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-conquistas" data-screen="conquistas">
+      <div class="wrap">
+        <h2>CONQUISTAS &amp; RECORDES</h2>
+        <div id="conquistas-list"></div>
+        <button class="nav sm" data-go="menu"><span>VOLTAR</span></button>
+      </div>
+    </section>
     <section class="screen" id="scr-redeem" data-screen="redeem">
       <div class="panel">
         <h2>RESGATAR CÓDIGO</h2>
@@ -409,6 +437,7 @@
   </script>
   <script src="assets/stages/sheets.js?v=v37-henrico"></script>
   <script src="assets/maps/anim.js?v=v37-henrico"></script>
+  <script src="js/data/achievements.js?v=v39-ach"></script>
   <script src="js/core/profile.js?v=v37-henrico"></script>
   <script src="js/config/firebase-config.js?v=v37-henrico"></script>
   <script src="js/core/cloud.js?v=v37-henrico"></script>
@@ -448,27 +477,31 @@
   <script src="js/data/fighters-pack.js?v=v37-henrico"></script>
   <script src="js/data/fighters-henrico.js?v=v37-henrico"></script>
   <script src="js/data/pets.js?v=v37-henrico"></script>
-  <script src="js/data/stages.js?v=v37-henrico"></script>
-  <script src="js/data/stages-v21.js?v=v37-henrico"></script>
+  <script src="js/data/stages.js?v=v43-part2"></script>
+  <script src="js/data/stages-v21.js?v=v37-round3"></script>
+  <script src="js/data/events.js?v=v43-part2"></script>
+  <script src="js/data/stages-events.js?v=v43-part2"></script>
+  <script src="js/data/stages-brasil.js?v=v44-mapas"></script>
   <script src="js/engine/sprites.js?v=v37-henrico"></script>
-  <script src="js/engine/fx.js?v=v37-henrico"></script>
+  <script src="js/engine/fx.js?v=v37-firefly"></script>
   <script src="js/data/voice-book.js?v=v37-henrico"></script>
-  <script src="js/engine/audio.js?v=v37-henrico"></script>
+  <script src="js/engine/audio.js?v=v37-review"></script>
   <script src="js/engine/input.js?v=v37-henrico"></script>
   <script src="js/ui/viewport.js?v=v37-henrico"></script>
   <script src="js/engine/projectile.js?v=v37-henrico"></script>
-  <script src="js/engine/fighter.js?v=v37-henrico"></script>
-  <script src="js/engine/weather.js?v=v37-henrico"></script>
-  <script src="js/engine/mechanics.js?v=v37-henrico"></script>
-  <script src="js/engine/stage.js?v=v37-henrico"></script>
+  <script src="js/engine/fighter.js?v=v37-round3"></script>
+  <script src="js/engine/vfx.js?v=v38-vfx"></script>
+  <script src="js/engine/weather.js?v=v43-part2"></script>
+  <script src="js/engine/mechanics.js?v=v44-mapas"></script>
+  <script src="js/engine/stage.js?v=v44-mapas"></script>
   <script src="js/engine/ai.js?v=v37-henrico"></script>
-  <script src="js/engine/game.js?v=v37-henrico"></script>
+  <script src="js/engine/game.js?v=v37-heat"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=v37-henrico"></script>
+  <script src="js/net/room-core.js?v=v44-mapas"></script>
   <script src="js/net/online.js?v=v37-henrico"></script>
-  <script src="js/ui/hud.js?v=v37-henrico"></script>
+  <script src="js/ui/hud.js?v=v37-heat"></script>
   <script src="js/data/roster-portraits.js?v=v37-henrico"></script>
-  <script src="js/ui/ui.js?v=v37-henrico"></script>
+  <script src="js/ui/ui.js?v=v44-mapas"></script>
   <script src="js/ui/account.js?v=v37-henrico"></script>
   <script src="js/main.js?v=v37-henrico"></script>
   <script src="js/net/tournament.js?v=v37-henrico"></script>

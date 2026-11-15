@@ -68,9 +68,9 @@ const HUD = {
     const mech = stage.mech && typeof MECH_INFO !== 'undefined' ? MECH_INFO[stage.mech] || '' : '';
     this.$('hud-stage').innerHTML = `<span class="st">${stage.name}</span><span class="wx">${w.icon} ${w.name}</span>${mech ? `<span class="mc">${mech.split(':')[0]}</span>` : ''}`;
   },
-  combo(ti, n) {
+  combo(ti, n, dmg) {
     const el = this.$('combo-' + ti);
-    el.innerHTML = `<b>${n}</b> HITS${n >= 8 ? '<em>INSANO!</em>' : n >= 5 ? '<em>BRUTAL!</em>' : ''}`;
+    el.innerHTML = `<b>${n}</b> HITS${dmg ? ` <i>· ${Math.round(dmg)} dano</i>` : ''}${n >= 8 ? '<em>INSANO!</em>' : n >= 5 ? '<em>BRUTAL!</em>' : ''}`;
     el.classList.remove('pop');
     void el.offsetWidth;
     el.classList.add('pop', 'on');
@@ -158,11 +158,20 @@ const HUD = {
       });
     });
     const tm = this.$('hud-timer');
-    const secs = game.roundTimer === Infinity ? '∞' : String(Math.max(0, Math.ceil(game.roundTimer / 60)));
-    if (tm.textContent !== secs) tm.textContent = secs;
-    tm.classList.toggle('low', game.roundTimer !== Infinity && game.roundTimer < 600);
+    const suddenOn = !!(game.inferno && game.round === 3 && game.roundState === 'fight');
+    if (suddenOn) {
+      const secs = String(Math.max(0, Math.ceil((game.suddenLeft || 0) / 60)));
+      if (tm.textContent !== secs) tm.textContent = secs;
+      tm.classList.add('sudden');
+      tm.classList.toggle('low', (game.suddenLeft || 0) < 600);
+    } else {
+      tm.classList.remove('sudden');
+      const secs = game.roundTimer === Infinity ? '∞' : String(Math.max(0, Math.ceil(game.roundTimer / 60)));
+      if (tm.textContent !== secs) tm.textContent = secs;
+      tm.classList.toggle('low', game.roundTimer !== Infinity && game.roundTimer < 600);
+    }
     const rl = this.$('hud-round');
-    const rt = game.mode === 'training' ? 'TREINO' : 'ROUND ' + game.round;
+    const rt = game.mode === 'training' ? 'TREINO' : suddenOn ? 'MORTE SÚBITA' : 'ROUND ' + game.round;
     if (rl.textContent !== rt) rl.textContent = rt;
   },
 };

@@ -69,6 +69,7 @@ const UI = {
 
   /* ---------- telas ---------- */
   show(name, push) {
+    if (name === 'conquistas' && typeof ACHIEVEMENTS !== 'undefined') this.renderConquistas();
     if (this.screen !== name) Input.releaseAll();
     if (push && this.screen) this.stack.push(this.screen);
     else if (!push) this.stack = [];
@@ -76,6 +77,7 @@ const UI = {
     this.screen = name;
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
+    if (typeof Events !== 'undefined') this.applyEventSkin();
     if (name !== 'fight') { this.$('banner').classList.remove('on'); this.$('cutin').classList.remove('on'); }
     const enter = this['enter_' + name];
     if (enter) enter.call(this);
@@ -93,8 +95,35 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins'].includes(this.screen)) return this.toMenu();
+    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
+  },
+  /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
+  renderConquistas() {
+    const got = (Profile.data && Profile.data.achievements) || [];
+    const st = (Profile.data && Profile.data.stats) || {};
+    const winBy = (Profile.data && Profile.data.winBy) || {};
+    const survivalBy = st.survivalBy || {};
+    const medals = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []).map((a) => {
+      const on = got.includes(a.id);
+      return `<div class="medal ${on ? 'on' : ''}"><b>${on ? '\u{1F3C5}' : '\u{1F512}'} ${a.name}</b><span>${a.desc}</span></div>`;
+    }).join('');
+    const nome = (id) => ((typeof FIGHTERS !== 'undefined' ? FIGHTERS.find((f) => f.id === id) : null) || { name: id }).name;
+    const topSurvival = Object.entries(survivalBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+    const topWinners = Object.entries(winBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+    this.$('conquistas-list').innerHTML = `
+      <div class="cq-grid">
+        <div><h3>MEDALHAS ${got.length}/${(typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0)}</h3><div class="medals">${medals}</div></div>
+        <div>
+          <h3>RECORDES</h3>
+          <p class="rec">Melhor arcade: <b>${st.bestArcade || 0}/7</b> - Melhor survival: <b>${st.bestSurvival || 0}</b> - Combo maximo: <b>${st.maxCombo || 0}</b></p>
+          <p class="rec">Lutas: <b>${st.fights || 0}</b> - Vitorias: <b>${st.wins || 0}</b></p>
+          ${topSurvival ? `<h4>SURVIVAL POR LUTADOR</h4><ul class="tops">${topSurvival}</ul>` : ''}
+          ${topWinners ? `<h4>MAIS VITORIOSOS</h4><ul class="tops">${topWinners}</ul>` : ''}
+        </div>
+      </div>`;
   },
   toMenu() {
     if (this.game.running) this.game.stop();
@@ -159,6 +188,7 @@ const UI = {
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     this.applyRelease();
+    if (typeof Events !== 'undefined') this.applyEventSkin();
   },
   /* Edição = maior fighters-vN carregado. Contagens vêm dos dados. */
   releaseStamp() {
@@ -200,7 +230,8 @@ const UI = {
   menuGo(go) {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
-    if (['arcade', 'versus', 'tag', 'training', 'survival', 'morte-subita'].includes(go)) return this.startFlow(go);
+    if (go === 'events') { this.applyEventSkin(); return this.show('events'); }
+    if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
 
@@ -233,7 +264,7 @@ const UI = {
     this.tutorial = {
       step: 0,
       moved: 0, lastX: null, jumps: 0, crouches: 0, punches: 0, kicks: 0,
-      chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0,
+      chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0, doubleJumps: 0, dashes: 0,
       steps: [
         { title: 'ANDE', sub: 'A / D (ou setas) para mover', done: () => T.tutorial.moved > 260 },
         { title: 'PULE', sub: 'W para pular', done: () => T.tutorial.jumps > 0 },
@@ -245,6 +276,8 @@ const UI = {
         { title: 'ULTIMATE', sub: 'Tecla 5 — solte a ultimate', done: () => T.tutorial.ults >= 1 },
         { title: 'BLOQUEIO', sub: 'Segure para tras perto do boneco para bloquear', done: () => T.tutorial.blocks > 30 },
         { title: 'JUMP-CANCEL', sub: 'Acerte um soco e aperte W na hora do hit', done: () => T.tutorial.jumpCancels >= 1 },
+        { title: 'DOUBLE JUMP', sub: 'No ar, aperte W de novo — pulo extra pra todos', done: () => T.tutorial.doubleJumps >= 1 },
+        { title: 'DASH', sub: 'Toque duas vezes A ou D para o dash', done: () => T.tutorial.dashes >= 1 },
       ],
     };
     this.tutorialBanner();
@@ -257,6 +290,7 @@ const UI = {
     UI.banner('TREINO ' + (t.step + 1) + '/' + t.steps.length + ': ' + st.title, '#7dff9a', st.sub);
   },
   tutorialFinish() {
+    Profile.grantAchievement('dojo');
     this.tutorial = null;
     Profile.setting('tutorialDone', true);
     const bt = this.$('btn-tutorial');
@@ -274,6 +308,10 @@ const UI = {
     if (t.lastX != null) t.moved += Math.abs(f.x - t.lastX);
     t.lastX = f.x;
     if (!f.onGround && f.vy < -6) t.jumps++;
+    if (f._doubleJumped && !t._dj) { t.doubleJumps++; t._dj = true; }
+    if (!f._doubleJumped) t._dj = false;
+    if ((f.state === 'dash' || f.state === 'backdash') && !t._dash) { t.dashes++; t._dash = true; }
+    if (f.state !== 'dash' && f.state !== 'backdash') t._dash = false;
     if (f.crouching || f.state === 'crouch') t.crouches++;
     /* Conta cada golpe no INICIO dele (transicao de kind) — robusto contra
        golpes sobrepostos e hitstop. */
@@ -305,6 +343,7 @@ const UI = {
 
   /* ---------- fluxo de seleção ---------- */
   startFlow(mode, extra) {
+    if (typeof SpriteGen !== 'undefined' && SpriteGen.preloadAll) SpriteGen.preloadAll(); /* aquece os 46 sprites */
     if (this.game.running) this.game.stop();
     HUD.hide();
     this.flow = Object.assign({
@@ -325,7 +364,7 @@ const UI = {
   enter_select() {
     const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL', 'morte-subita': 'MORTE SÚBITA' };
+    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
     grid.innerHTML = roster.map((d) => {
@@ -601,14 +640,47 @@ const UI = {
     const el = this.$('stage-preview');
     if (!s) { el.innerHTML = `<div class="sp-img q">?</div><h3>ARENA ALEATÓRIA</h3><p>Uma das ${STAGE_LIST.length} arenas, com clima sorteado.</p>`; return; }
     const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`;
-    const fauna = { bee: 'abelhas', bird: 'pássaros', butterfly: 'borboletas', bat: 'morcegos', fish: 'peixes' };
+    const fauna = {
+      bee: 'abelhas', bird: 'pássaros', birds: 'pássaros', butterfly: 'borboletas', butterflies: 'borboletas',
+      bat: 'morcegos', fish: 'peixes', pigeons: 'pombos', cat: 'gato', dog: 'cachorro',
+      dragonfly: 'libélulas', fireflies: 'vagalumes', squirrel: 'esquilo', seagull: 'gaivotas', frog: 'sapo',
+    };
     const fz = [...new Set(s.fauna || [])].map((k) => fauna[k]).join(', ');
     el.innerHTML = `<div class="sp-img ${s.sheet ? 'anim' : ''}" style="${img}"></div>
       <h3>${s.name}</h3>
       <p class="mech">${s.mech ? MECH_INFO[s.mech] || '' : 'Arena clássica.'}</p>
       <p class="wx">Clima possível: ${(s.weather || ['clear']).map((w) => WEATHER_INFO[w].icon + ' ' + WEATHER_INFO[w].name).join(' · ')}</p>
       ${fz ? `<p class="fz">Fauna: ${fz}</p>` : ''}
+      ${s.blurb ? `<p class="fz">${s.blurb}</p>` : ''}
       ${s.gravity ? `<p class="fz">Gravidade ${Math.round(s.gravity * 100)}%</p>` : ''}`;
+  },
+  applyEventSkin() {
+    const ev = typeof Events !== 'undefined' ? Events.active() : null;
+    document.body.dataset.event = ev && ev.skin ? ev.skin : '';
+  },
+  enter_events() {
+    const rows = Events.upcoming();
+    const now = rows.find((r) => r.active) || rows.filter((r) => !r.live).sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    this.$('events-year').textContent = String(Events.today().getFullYear());
+    const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
+    const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
+    const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
+      <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
+    </div>` : '';
+    this.$('events-upcoming').innerHTML = rows.map((r) => {
+      const tag = r.active ? (r.live ? (r.daysLeft <= 0 ? 'hoje' : 'agora') : 'teste') : r.live ? 'hoje' : `em ${dias(r.daysUntil)}`;
+      return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
+    }).join('');
+    const activeId = now && now.active ? now.ev.id : '';
+    const maps = STAGE_LIST.filter((s) => s.event);
+    maps.sort((a, b) => (a.event === activeId ? 0 : 1) - (b.event === activeId ? 0 : 1));
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
+      b.addEventListener('click', () => {
+        this.startFlow('versus', { stage: b.dataset.id });
+      });
+    });
   },
   confirmStage() {
     const f = this.flow;
@@ -753,7 +825,7 @@ const UI = {
     next.hidden = true;
     if (game.mode === 'arcade') {
       if (res.winner === 0) {
-        if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); }
+        if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); Profile.grantAchievement('arcade-campeao'); }
         else { Profile.record('bestArcade', f.arcadeStep + 1); next.hidden = false; }
       }
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
@@ -761,6 +833,9 @@ const UI = {
       if (res.winner === 0) {
         f.survivalWins = (f.survivalWins || 0) + 1;
         Profile.record('bestSurvival', f.survivalWins);
+        if (f.survivalWins >= 10) Profile.grantAchievement('survival-10');
+        const p0 = game && game.teams && game.teams[0] && game.teams[0].members[0];
+        if (p0 && p0.def) Profile.recordSurvivalBy(p0.def.id, f.survivalWins);
         title = `SOBREVIVEU! ${f.survivalWins} vitória${f.survivalWins > 1 ? 's' : ''} seguidas`;
         next.hidden = false;
       } else {

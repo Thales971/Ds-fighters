@@ -51,8 +51,8 @@ body.reduced .press-start { animation: none; }
 
 /* menu */
 #scr-menu { background: linear-gradient(90deg, rgba(5,2,11,.92) 0 40%, rgba(5,2,11,.35) 70%, rgba(5,2,11,.75)); }
-#scr-menu .logo.small { position: absolute; left: 34px; top: 12px; width: 300px; filter: drop-shadow(0 4px 0 #000); }
-.main-menu { position: absolute; left: 34px; top: 176px; display: flex; flex-direction: column; gap: 5px; width: 330px; }
+#scr-menu .logo.small { position: absolute; left: 34px; top: 12px; width: 300px; z-index: 2; filter: drop-shadow(0 4px 0 #000); }
+.main-menu { position: absolute; left: 34px; top: 176px; z-index: 2; display: flex; flex-direction: column; gap: 5px; width: 330px; }
 .mm { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 6px 12px 6px 30px; background: linear-gradient(90deg, rgba(40,20,80,.85), rgba(40,20,80,0)); border: 0; border-left: 4px solid transparent; color: #d9ccff; cursor: pointer; text-align: left; transition: transform .1s, background .1s; }
 .mm span { font-size: 13px; text-shadow: 2px 2px 0 #000; }
 .mm small { font-size: 7px; color: #9d8bc9; font-family: 'Press Start 2P'; }
@@ -60,7 +60,7 @@ body.reduced .press-start { animation: none; }
 .mm:focus, .mm:hover { transform: translateX(8px); background: linear-gradient(90deg, rgba(255,79,216,.55), rgba(255,79,216,0)); border-left-color: var(--gold); color: #fff; }
 .mm:focus span, .mm:hover span { color: var(--gold); }
 .mm:focus::before, .mm:hover::before { opacity: 1; animation: blink .6s steps(2) infinite; }
-.menu-side { position: absolute; right: 26px; top: 26px; width: 250px; }
+.menu-side { position: absolute; right: 26px; top: 26px; z-index: 2; width: 250px; }
 .stats-card { background: var(--panel); border: 3px solid var(--line); box-shadow: 0 0 0 3px #000, 6px 6px 0 #000; padding: 12px; font-size: 8px; }
 .stats-card h3 { margin: 0 0 10px; font-size: 10px; color: var(--gold); }
 .stats-card div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #3a2766; }
@@ -351,7 +351,8 @@ body.reduced .pet-spr { animation: none; }
 .partner.dead { filter: grayscale(1) brightness(.5); }
 .center { text-align: center; }
 .timer { font-size: 30px; color: var(--gold); text-shadow: 3px 3px 0 #a1271c, 0 0 0 #000; background: rgba(0,0,0,.55); border: 3px solid #000; box-shadow: 0 0 0 2px var(--gold); padding: 6px 0 4px; }
-.timer.low { color: var(--red); animation: blink .5s steps(2) infinite; }
+.timer.sudden { font-size: 46px; letter-spacing: 1px; color: #ffe14d; box-shadow: 0 0 0 2px #ff3b30; }
+.timer.sudden.low { color: var(--red); animation: blink .35s steps(2) infinite; }
 .round-label { font-size: 6px; margin-top: 4px; text-shadow: 2px 2px 0 #000; }
 .hud-stage { position: absolute; top: 106px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; font-size: 6px; white-space: nowrap; }
 .hud-stage span { background: rgba(0,0,0,.6); padding: 3px 5px; border: 1px solid #3a2766; }
@@ -438,7 +439,7 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 /* ===== Expansão Turbo: status de tela, traços, lobby 4 jogadores, chat, FPS ===== */
 #game { transition: filter .25s; }
 #game.blinded { filter: blur(6px) brightness(.72) saturate(.55) contrast(1.15); }
-#game.fogged { filter: blur(1.4px) saturate(.80) brightness(1.05); }
+#game.fogged { filter: blur(0.6px) saturate(.9) brightness(1.02); }
 body.reduced #game.fogged { filter: blur(1px) saturate(.9); transition: none; }
 #game.vertigo { transform: rotate(180deg); transform-origin: center center; }
 body.reduced #game.vertigo { transform: none; transition: none; }
@@ -557,3 +558,60 @@ body.reduced.shocked .skills .skill .key { animation: none; }
   .tourney-heading { align-items: flex-start; flex-direction: column; }
   .tourney-match-actions > .btn { flex: 1 1 auto; min-height: 44px; }
 }
+
+#scr-events .select-bg { background: radial-gradient(ellipse at 50% 18%, #5a2e96, #241044 70%); }
+#scr-events .sel-head h2 { color: #ffe7a8; text-shadow: 2px 2px 0 #000; }
+.events-layout { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; padding: 0 12px 46px; height: 478px; overflow: hidden; }
+.ev-hero { position: relative; height: 168px; background: #2a1450 center 42% / cover no-repeat; border: 3px solid var(--gold); box-shadow: 0 0 0 3px #000; image-rendering: pixelated; }
+.ev-hero-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; background: linear-gradient(transparent, rgba(8,2,16,.72)); }
+.ev-hero-copy span { color: var(--gold); font-size: 8px; }
+.ev-hero-copy h3 { margin: 2px 0; font-size: 16px; color: #fff; text-shadow: 2px 2px 0 #000; }
+.ev-hero-copy p { margin: 0; font-size: 8px; color: #ffe7a8; }
+#events-upcoming { display: flex; gap: 6px; }
+.ev-card { flex: 1; min-width: 0; background: rgba(28,14,52,.92); border: 2px solid #6a48a8; padding: 6px; }
+.ev-card.on { border-color: var(--gold); background: rgba(48,28,16,.94); }
+.ev-card b { display: block; color: #fff; font-size: 7px; line-height: 1.45; }
+.ev-card small, .ev-card em { display: block; margin-top: 3px; color: #e6d8ff; font-size: 6px; font-style: normal; }
+.ev-card.on em { color: var(--gold); }
+#events-maps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; min-height: 0; flex: 1; align-content: start; scrollbar-width: thin; }
+.ev-map { display: grid; grid-template-columns: 148px 1fr; gap: 6px; text-align: left; background: rgba(32,16,58,.94); color: #fff; border: 2px solid #6a48a8; padding: 4px; cursor: pointer; }
+.ev-map .th { width: 148px; height: 84px; background-size: cover; background-position: center; image-rendering: pixelated; }
+.ev-map b { display: block; font-size: 8px; color: var(--gold); }
+.ev-map small { display: block; font-size: 7px; color: #f0e6ff; line-height: 1.45; }
+
+.menu-skin, .menu-fx { position: absolute; inset: 0; width: 960px; height: 540px; pointer-events: none; z-index: 1; image-rendering: pixelated; display: none; }
+body[data-event="natal"] #skin-natal,
+body[data-event="natal"] #fx-natal,
+body[data-event="halloween"] #skin-halloween,
+body[data-event="halloween"] #fx-halloween,
+body[data-event="carnaval"] #skin-carnaval,
+body[data-event="pascoa"] #skin-pascoa,
+body[data-event="junina"] #skin-junina,
+body[data-event="criancas"] #skin-criancas,
+body[data-event="anonovo"] #skin-anonovo { display: block; }
+/* A moldura fica fora da caixa do logo e dos botões, então não escurece o miolo. */
+body[data-event="natal"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #f4fbff, 0 0 0 7px #9ec8ee; }
+body[data-event="halloween"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffb15a; }
+body[data-event="natal"] #scr-menu .mm,
+body[data-event="natal"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #f4fbff; }
+body[data-event="halloween"] #scr-menu .mm { box-shadow: -3px 0 0 #ff8a2a, 0 -3px 0 #c45cff; }
+body[data-event="carnaval"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffd23a; }
+body[data-event="pascoa"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffb3d1; }
+body[data-event="junina"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ff9a3c; }
+body[data-event="criancas"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #7ec8ff; }
+body[data-event="anonovo"] #scr-menu .logo.small { filter: drop-shadow(0 4px 0 #000); box-shadow: 0 0 0 4px #ffe14a; }
+body[data-event="carnaval"] #scr-menu .mm,
+body[data-event="carnaval"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffd23a; }
+body[data-event="pascoa"] #scr-menu .mm,
+body[data-event="pascoa"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffb3d1; }
+body[data-event="junina"] #scr-menu .mm,
+body[data-event="junina"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ff9a3c; }
+body[data-event="criancas"] #scr-menu .mm,
+body[data-event="criancas"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #7ec8ff; }
+body[data-event="anonovo"] #scr-menu .mm,
+body[data-event="anonovo"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffe14a; }
+#fx-natal, #fx-halloween { clip-path: inset(0 270px 0 380px); }
+#fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
+#fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
+@keyframes eventFall { to { background-position: 0 540px; } }
+body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
