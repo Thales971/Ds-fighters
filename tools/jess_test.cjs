@@ -82,18 +82,21 @@ const konami = (seq) => {
   for (const k of seq) {
     buf.push(k);
     if (buf.length > 6) buf.shift();
-    if (buf.join(',') === ['ArrowLeft','ArrowLeft','ArrowRight','ArrowRight','KeyB','KeyA'].join(',')) {
+    if (buf.join(',') === ['KeyP','KeyI','KeyT','KeyO','KeyC','KeyO'].join(',')) {
       Profile.unlockPitoco();
       buf = [];
     }
   }
 };
 Profile.data.pitocoUnlocked = false;
-konami(['ArrowLeft', 'ArrowLeft', 'ArrowRight', 'ArrowRight', 'KeyB', 'KeyA']);
-check('codigo <<>>BA desbloqueia o Pitoco', Profile.hasPitoco() === true);
+konami(['KeyP', 'KeyI', 'KeyT', 'KeyO', 'KeyC', 'KeyO']);
+check('digitar PITOCO desbloqueia o Pitoco', Profile.hasPitoco() === true);
 Profile.data.pitocoUnlocked = false;
-konami(['ArrowLeft', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'KeyB', 'KeyA']);
-check('sequencia ERRADA nao desbloqueia', Profile.hasPitoco() === false);
+konami(['KeyP', 'KeyI', 'KeyT', 'KeyO', 'KeyC', 'KeyE']);
+check('sequencia ERRADA (PITOCE) nao desbloqueia', Profile.hasPitoco() === false);
+Profile.data.pitocoUnlocked = false;
+konami(['KeyX', 'KeyP', 'KeyI', 'KeyT', 'KeyO', 'KeyC', 'KeyO']);
+check('PITOCO no meio de outra coisa desbloqueia (janela deslizante)', Profile.hasPitoco() === true);
 
 const gp = mk('du', 'stack');
 const dono = gp.activeOf(0);

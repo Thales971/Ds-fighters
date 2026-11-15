@@ -68,11 +68,10 @@ const UI = {
   },
 
   /* ---------- telas ---------- */
-  /* PITOCO: o codigo do sangue — com o cursor em slot vazio de pet:
-     ESQUERDA ESQUERDA DIREITA DIREITA B A */
+  /* PITOCO: o codigo do sangue — na tela de pet, digite P-I-T-O-C-O */
   pitocoSeq: [],
   pitocoKey(k) {
-    const seq = ['ArrowLeft', 'ArrowLeft', 'ArrowRight', 'ArrowRight', 'KeyB', 'KeyA'];
+    const seq = ['KeyP', 'KeyI', 'KeyT', 'KeyO', 'KeyC', 'KeyO'];
     const t = this.pitocoSeq;
     t.push(k);
     if (t.length > seq.length) t.shift();

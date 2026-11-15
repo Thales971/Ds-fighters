@@ -315,6 +315,7 @@ class StageRenderer {
   }
   update(weather) {
     this.t++;
+    if (this.crowd && this.crowdHype > 0) this.crowdHype--;
     const d = this.def;
     const want = this.reducedFlag ? 12 : 46;
     const kinds = [];
@@ -390,7 +391,6 @@ class StageRenderer {
   }
   drawTorcida(ctx) {
     if (!this.crowd || !this.crowdSheet || !this.crowdSheet.width) return;
-    if (this.crowdHype > 0) this.crowdHype--;
     const hype = this.crowdHype > 0;
     ctx.save();
     for (const c of this.crowd) {
