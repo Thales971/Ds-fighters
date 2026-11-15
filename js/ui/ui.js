@@ -68,6 +68,23 @@ const UI = {
   },
 
   /* ---------- telas ---------- */
+  /* PITOCO: o codigo do sangue — na tela de pet, digite P-I-T-O-C-O */
+  pitocoSeq: [],
+  pitocoKey(k) {
+    const seq = ['KeyP', 'KeyI', 'KeyT', 'KeyO', 'KeyC', 'KeyO'];
+    const t = this.pitocoSeq;
+    t.push(k);
+    if (t.length > seq.length) t.shift();
+    if (t.join(',') === seq.join(',')) {
+      t.length = 0;
+      if (typeof Profile !== 'undefined' && Profile.unlockPitoco && Profile.unlockPitoco()) {
+        UI.toast('\u{1F415} PITOCO DESBLOQUEADO!', 4200);
+        AudioSys.voice('unlocked');
+      } else if (Profile.hasPitoco && Profile.hasPitoco()) {
+        UI.toast('O cachorro ja te conhece.', 2200);
+      }
+    }
+  },
   show(name, push) {
     if (name === 'conquistas' && typeof ACHIEVEMENTS !== 'undefined') this.renderConquistas();
     if (this.screen !== name) Input.releaseAll();
@@ -869,9 +886,9 @@ const UI = {
     document.querySelectorAll('.pet-tabs .tab').forEach((t) => t.classList.toggle('on', +t.dataset.slot === slot));
     const cur = Profile.data.pets[slot];
     const grid = this.$('pet-grid');
-    grid.innerHTML = PETS.map((p) => `
+    grid.innerHTML = PETS.filter((p) => !p.secret || (typeof Profile !== 'undefined' && Profile.hasPitoco && Profile.hasPitoco())).map((p) => `
       <button class="nav pet ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
-        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>
+        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v40-jess)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>
         <b>${p.name}</b><small>${p.buff}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
       </button>`).join('');
     grid.querySelectorAll('.pet').forEach((b) => b.addEventListener('click', () => {

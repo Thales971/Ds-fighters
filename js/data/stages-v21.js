@@ -1,7 +1,7 @@
 /* Palcos V21. Cada um tem parallax, clima, luz, som e o drama do motor. */
 STAGE_LIST.push(
   {
-    id: 'estacao-valinhos', name: 'Estação Valinhos', group: 'Valinhos', pixel: true,
+    id: 'estacao-valinhos', name: 'Estação Valinhos', group: 'Valinhos', pixel: true, torcida: true,
     image: 'assets/maps/v21/estacao-valinhos-mid.png',
     weather: ['clear', 'wind'], fauna: ['pigeons'], tint: '#e7b078', ambient: 'amb_estacao-valinhos',
     layers: [
@@ -69,7 +69,7 @@ STAGE_LIST.push(
     ], neon: true
   },
   {
-    id: 'quadra-areia', name: 'Quadra de Areia', group: 'Valinhos', pixel: true,
+    id: 'quadra-areia', name: 'Quadra de Areia', group: 'Valinhos', pixel: true, torcida: true,
     image: 'assets/maps/v21/quadra-areia-mid.png',
     weather: ['clear', 'wind'], fauna: ['dog'], tint: '#f0d090', ambient: 'amb_quadra-areia',
     layers: [
@@ -86,7 +86,7 @@ STAGE_LIST.push(
     ]
   },
   {
-    id: 'arquibancada', name: 'Arquibancada do Ginásio', group: 'Valinhos', pixel: true,
+    id: 'arquibancada', name: 'Arquibancada do Ginásio', group: 'Valinhos', pixel: true, torcida: true,
     image: 'assets/maps/v21/arquibancada-mid.png',
     weather: ['clear'], fauna: ['pigeons'], tint: '#e8e8f0', ambient: 'amb_arquibancada',
     layers: [
@@ -120,7 +120,7 @@ STAGE_LIST.push(
     ], sparks: true
   },
   {
-    id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true,
+    id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true, torcida: true,
     image: 'assets/maps/v21/terminal-onibus-mid.png',
     weather: ['clear', 'rain', 'wind', 'hail'], fauna: ['pigeons'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus',
     layers: [

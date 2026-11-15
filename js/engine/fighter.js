@@ -376,10 +376,22 @@ class Fighter {
     return c <= 0 ? 1 : c === 1 ? 0.85 : c === 2 ? 0.72 : c === 3 ? 0.62 : 0.55;
   }
   takeHit(dmg, o = {}) {
+    /* PITOCO (pet secreto): cara de coitado — 50% dos golpes erram sozinhos */
+    const meuPet = this.pet && this.pet.id === 'pitoco';
+    if (meuPet && !o.unblockable && !o.height) {
+      if ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5) {
+        this.game.floatText(this.x, this.y - 230, 'ERROU!', '#FFD27D');
+        return false; /* passa raspando — o atacante nao ganha barra */
+      }
+    }
 
     if (typeof VFX !== 'undefined' && dmg >= 14) VFX.impact(this.x, this.y - 110, dmg >= 22, dmg >= 22 ? '#ffd27d' : '#fff', this.game.reduced);
     /* POSTURA DEFENSIVA: guarda alta ao andar pra tras absorve 15% */
     if (this.guardUp && !o.unblockable && !o.height) dmg *= 0.85;
+    /* LIFESTEAL (Daltonic da Jess): o atacante converte 25% do dano em vida */
+    if (o.attacker && o.attacker.has && o.attacker.has('lifesteal')) {
+      o.attacker.hp = Math.min(o.attacker.maxHp, o.attacker.hp + dmg * 0.25);
+    }
     /* escala: dano cai se a vitima ja leva sequencia do MESMO agressor */
     const aggr = o.attacker || null;
     if (aggr && this.hitstun > 0 && this.lastHitBy === aggr) {
@@ -797,6 +809,18 @@ class Fighter {
         }));
         break;
       }
+      case 'daltonic': {
+        /* DALTONIC MODE: 6s — o rival ve tudo em cinza, Jess rouba 25% do dano em vida */
+        const rival = game.enemyOf(this);
+        if (rival) {
+          rival.addStatus('daltonic', 360, this);
+          this.addStatus('lifesteal', 360);
+          game.floatText(rival.x, rival.y - 250, 'DALTONIC MODE', '#F0C24B');
+          game.shake(6);
+        }
+        game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
+        break;
+      }
       case 'rewind': {
         /* REBOBINAR: volta 3 segundos no tempo — vida e posicao restauradas. */
         const hist = this._rewindHist || [];
@@ -1208,6 +1232,13 @@ class Fighter {
   }
 
   /* ---------- física ---------- */
+  /* regen do pet (o pitoco cura 15 HP/s — apelao de proposito) */
+  _petRegen() {
+    if (!this.pet || !this.pet.fx || !this.pet.fx.regen) return;
+    if (this.alive && this.hp < this.maxHp && this.game.time % 60 === 0) {
+      this.hp = Math.min(this.maxHp, this.hp + this.pet.fx.regen * 60);
+    }
+  }
   physics() {
     const game = this.game;
     const grav = (GRAVITY_BASE + this.weight() * 0.12) * (game.gravityMul || 1);
@@ -1432,6 +1463,7 @@ class Fighter {
       }
       if (this.stateTime > total) { this.state = 'idle'; this.stateTime = 0; this.perfectDone = false; }
     } else this.tryActions(input);
+    this._petRegen();
     this.physics();
     return this.endUpdate(input);
   }

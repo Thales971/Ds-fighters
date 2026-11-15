@@ -286,6 +286,17 @@ const Profile = {
   },
 
   /* CONQUISTAS: medalha unica, persistida, com toast */
+  /* PITOCO: o codigo do sangue — <<>>BA na tela de pet */
+  unlockPitoco() {
+    this.data = this._normalize(this.data || this.load());
+    if (this.data.pitocoUnlocked) return false;
+    this.data.pitocoUnlocked = true;
+    this.save();
+    return true;
+  },
+  hasPitoco() {
+    return !!(this.data && this.data.pitocoUnlocked);
+  },
   grantAchievement(id) {
     if (!id) return false;
     this.data = this._normalize(this.data || this.load());

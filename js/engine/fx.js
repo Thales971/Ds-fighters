@@ -12,6 +12,8 @@ const ART_SHEETS = {
   ...Object.fromEntries(['henrico']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   'fx2:henrico': { src: 'assets/abilities/henrico.png', size: 128, cols: 4, rows: 5 },
+  'abil:jess': { src: 'assets/abilities/jess.png', size: 128, cols: 4, rows: 5 },
+  'fx2:jess': { src: 'assets/abilities/jess.png', size: 128, cols: 4, rows: 5 },
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff
@@ -25,6 +27,9 @@ const ART_SHEETS = {
   'fx2:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
+  pitoco: { src: 'assets/pets/pitoco.png', size: 96, cols: 4 },
+  bichos: { src: 'assets/fauna/bichos.png', size: 96, cols: 4, rows: 8 },
+  torcida: { src: 'assets/fauna/torcida.png', size: 256, cols: 5, rows: 1 },
   pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
   fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
   'fx2:firefly': { src: 'assets/fx/firefly.png', size: 16, cols: 6, rows: 2 },
