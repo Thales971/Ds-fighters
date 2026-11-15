@@ -5,7 +5,7 @@ const EVENT_GROUP = {
   junina: 'Festa Junina', criancas: 'Dia das Crianças', anonovo: 'Ano Novo',
 };
 const EVENT_STAGE = (id, name, event, weather, fauna, ambient, blurb, tint, mech) => ({
-  id, name, group: EVENT_GROUP[event] || event, event, pixel: true, mech: mech || null,
+  id, name, group: EVENT_GROUP[event] || event, event, pixel: true, mech: mech || null, swim: mech === 'tide',
   image: `assets/maps/events/${id}-mid.png`,
   weather, fauna, ambient, blurb, tint,
   layers: [
