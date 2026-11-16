@@ -378,6 +378,7 @@ class StageRenderer {
       if (f.x > this.W + 60) f.x = -50;
     }
     /* FLORA: flores e grama balançam com vento e reagem a golpes */
+    if (this.floraShake > 0) this.floraShake *= 0.9;
     const floraWind = wind * 0.5 + (this.floraShake > 0 ? Math.sin(this.t * 0.3) * 1.5 : 0);
     for (const pl of this.flora) {
       pl.ph += pl.sway;
@@ -403,7 +404,7 @@ class StageRenderer {
     this.crowd = null;
     if (!this.def.torcida) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v44-pitocodir';
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v45-faunafix';
     this.crowdHype = 0;
     this.crowd = [
       { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },

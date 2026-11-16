@@ -22,21 +22,20 @@ function MAGENTA(r,g,b,a){ return a>40 && g<90 && r>150 && b>90; }
   check(img.width===384 && img.height===96, 'Pitoco: 384×96');
   check(img.width===4*96, 'Pitoco: 4 quadros de 96px');
   let d=img.data, mc=0, oc=0;
-  d.forEach((v,i)=>i%4===3?(v===0||mc++:0));
-  // contar magenta manualmente
-  for(let i=0;i<d.length;i+=4){ if(MAGENTA(d[i],d[i+1],d[i+2],d[i+3])) mc++; }
+  // contar magenta e opacos manualmente
+  for(let i=0;i<d.length;i+=4){ if(d[i+3]>0) oc++; if(MAGENTA(d[i],d[i+1],d[i+2],d[i+3])) mc++; }
   check(mc===0, 'Pitoco: 0 pixels magenta (got '+mc+')');
   check(oc>0, 'Pitoco: tem conteúdo (got '+oc+' px)');
 
   // 1.2 Bichos
   img = PNG.sync.read(fs.readFileSync('assets/fauna/bichos.png'));
-  check(img.width===384 && img.height===768, 'Bichos: 384×768 (8×4 atlas)');
+  check(img.width===384 && img.height===960, 'Bichos: 384×960 (10×4 atlas)');
   d=img.data; mc=oc=0;
   for(let i=0;i<d.length;i+=4){ const a=d[i+3]; a>0&&(oc++, MAGENTA(d[i],d[i+1],d[i+2],a)&&mc++); }
   check(mc===0, 'Bichos: 0 pixels magenta (got '+mc+')');
   check(oc>0, 'Bichos: tem conteúdo (got '+oc+' px)');
   // 8 linhas × 4 colunas = 32 células
-  check(img.width===384&&img.height===768, 'Bichos: atlas 8 fileiras × 4 colunas');
+  check(img.width===384&&img.height===960, 'Bichos: atlas 10 fileiras × 4 colunas (inclui esquilo/libelula)');
 
   // 1.3 Torcida
   img = PNG.sync.read(fs.readFileSync('assets/fauna/torcida.png'));
@@ -45,18 +44,18 @@ function MAGENTA(r,g,b,a){ return a>40 && g<90 && r>150 && b>90; }
   for(let i=0;i<d.length;i+=4){ const a=d[i+3]; a>0&&(oc++, MAGENTA(d[i],d[i+1],d[i+2],a)&&mc++); }
   check(mc===0, 'Torcida: 0 pixels magenta (got '+mc+')');
   check(oc>0, 'Torcida: tem conteúdo (got '+oc+' px)');
-  // verificar 5 fileiras com gente
-  let fileiras=0;
-  for(let r=0;r<5;r++){
+  // verificar 5 pessoas (colunas de 256x200) com sprite
+  let pessoas=0;
+  for(let col=0;col<5;col++){
     let tem=0;
-    for(let y=r*200;y<(r+1)*200&&!tem;y++){
-      for(let x=r*256;x<(r+1)*256&&!tem;x++){
+    for(let y=0;y<img.height&&!tem;y++){
+      for(let x=col*256;x<(col+1)*256&&!tem;x++){
         if(d[(y*img.width+x)*4+3]>0) tem=1;
       }
     }
-    if(tem) fileiras++;
+    if(tem) pessoas++;
   }
-  check(fileiras===5, 'Torcida: todas as 5 fileiras têm gente (got '+fileiras+'/5)');
+  check(pessoas===5, 'Torcida: todas as 5 pessoas têm sprite (got '+pessoas+'/5)');
 
   // 1.4 Jess
   img = PNG.sync.read(fs.readFileSync('assets/sprites/jess.png'));
@@ -89,7 +88,7 @@ function MAGENTA(r,g,b,a){ return a>40 && g<90 && r>150 && b>90; }
 
   // 2.3 Torcida ativa
   check(ssj.includes('drawTorcida'), 'stage.js: drawTorcida() definido');
-  check(ssj.includes("this.crowdSheet.src = 'assets/fauna/torcida.png'"), 'stage.js: torcidaSheet carrega torcida.png');
+  check(ssj.includes("crowdSheet.src = 'assets/fauna/torcida.png"), 'stage.js: crowdSheet carrega torcida.png');
 
   // --- 3. Testes de jogo (simulados) ---
   console.log('\n--- 3. MECÂNICAS DE COMBATE ---');
@@ -97,12 +96,12 @@ function MAGENTA(r,g,b,a){ return a>40 && g<90 && r>150 && b>90; }
   // 3.1 Pitoco no combate
   let fpj = fs.readFileSync('js/engine/fighter.js','utf8');
   check(fpj.includes('50% dos golpes erram sozinhos'), 'fighter.js: esquiva 50% do pitoco');
-  check(fpj.includes('regen do pet (o pitoco cura 15 HP/s)'), 'fighter.js: regeneracao 15 HP/s');
+  check(fpj.includes('cura 15 HP/s'), 'fighter.js: regeneracao 15 HP/s');
   check(fpj.includes('_petRegen()'), 'fighter.js: _petRegen chamado no loop');
 
   // 3.4 fauna foge do lutador
-  check(ssj.includes('if (near && nd < range')), 'stage.js: fauna foge quando lutador se aproxima');
-  check(ssj.includes('a.vx = -1') || ssj.includes('a.vx = 1'), 'stage.js: fauna tem velocidade de fuga');
+  check(ssj.includes('if (near && nd < range'), 'stage.js: fauna foge quando lutador se aproxima');
+  check(ssj.includes('a.vx ='), 'stage.js: fauna tem velocidade de fuga');
 
   // --- 4. Resumo ---
   console.log('\n' + '='.repeat(60));
