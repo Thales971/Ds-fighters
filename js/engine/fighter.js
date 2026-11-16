@@ -1992,10 +1992,14 @@ class Fighter {
       ctx.restore();
     }
     // mascote
-    if (this.pet && this.pet.row >= 0 && this.alive) {
+    if (this.pet && this.alive) {
       const px = this.x - this.dir * 78;
       const py = this.y - 168 + Math.sin(this.frame * 0.07) * 6;
-      Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+      if (this.pet.row >= 0) {
+        Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+      } else if (this.pet.id === 'pitoco') {
+        Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+      }
     }
     const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
     if (ghost && !game.reduced) {

@@ -104,8 +104,8 @@ class LiveFauna {
       if (layer === 'front' && grounded) continue;
       const x = a.x, y = a.y;
       /* BICHOS EM SPRITE (arte do dono): cachorro, gato, pombo, peixe, sapo,
-         coelho, hamster, tartaruga — o resto segue no canvas vetorial */
-      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7 }[a.k];
+         coelho, hamster, tartaruga, esquilo, libelula — o resto segue no canvas vetorial */
+      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7, squirrel: 8, dragonfly: 9 }[a.k];
       if (typeof Art !== 'undefined' && _sprRow != null) {
         const frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
         ctx.save();
@@ -122,58 +122,16 @@ class LiveFauna {
         const f = blink[Math.floor(this.t * 0.12 + a.ph * 3) % blink.length];
         Art.cell(ctx, 'fx2:firefly', 1, 0, 0, 0, { scale: 1, add: true, alpha: 0.85 });
         Art.cell(ctx, 'fx2:firefly', 0, f, 0, 0, { scale: 1 });
-      } else if (a.k === 'dragonfly') {
-        ctx.scale(2.4, 2.4);
-        ctx.fillStyle = '#5fd8c8';
-        const w = Math.sin(a.ph * 8) * 3;
-        ctx.fillRect(-7, -1 + w * 0.3, 6, 1.6); ctx.fillRect(1, -1 - w * 0.3, 6, 1.6);
-        ctx.fillStyle = '#2a8f86'; ctx.fillRect(-1, -1, 9, 2);
       } else if (a.k === 'bird' || a.k === 'seagull') {
         const frame = Math.floor(this.t / 5 + a.ph) % 4;
         const face = (a.vx || a.dir || 1) < 0 ? -1 : 1;
         Art.fx2(ctx, 'birds', a.k === 'seagull' ? 1 : 0, frame, 0, 0, { scale: 1.05, dir: face });
-      } else if (a.k === 'pigeon') {
-        ctx.scale(a.dir * 3.1, 3.1);
-        ctx.fillStyle = '#9aa2b0'; ctx.fillRect(-5, -7, 10, 6);
-        ctx.fillStyle = '#7b8394'; ctx.fillRect(3, -12, 5, 4);
-        ctx.fillStyle = '#e8a13b'; ctx.fillRect(7, -11, 3, 1.5);
-        ctx.fillStyle = '#7b8394'; ctx.fillRect(-2, -1, 1.6, 3); ctx.fillRect(2, -1, 1.6, 3);
-        if (a.state === 'flee') { const flap = Math.sin(a.ph * 12) * 5; ctx.fillStyle = '#b8c0d0'; ctx.fillRect(-5, -10 - flap, 10, 3); }
-      } else if (a.k === 'cat') {
-        ctx.scale(a.dir * 3.2, 3.2);
-        ctx.fillStyle = '#3d3a45'; ctx.fillRect(-7, -8, 13, 6);
-        ctx.fillRect(4, -12, 6, 5);
-        ctx.beginPath(); ctx.moveTo(5, -12); ctx.lineTo(6.5, -15); ctx.lineTo(8, -12); ctx.closePath(); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(8.5, -12); ctx.lineTo(10, -15); ctx.lineTo(11, -12); ctx.closePath(); ctx.fill();
-        const tw = Math.sin(a.ph * 2) * 2;
-        ctx.fillRect(-11, -9 + tw * 0.3, 4, 1.6);
-        ctx.fillRect(-5, -2, 2, 3); ctx.fillRect(2, -2, 2, 3);
       } else if (a.k === 'butterfly') {
         const frame = Math.floor(this.t / 4 + a.ph) % 4;
         Art.cell(ctx, 'fauna', 1, frame, 0, 0, { scale: 1.3, dir: a.dir || 1 });
       } else if (a.k === 'fish') {
         const frame = Math.floor(this.t / 6 + a.ph) % 4;
         Art.cell(ctx, 'fauna', 3, frame, 0, 0, { scale: 1.2, dir: a.dir || 1 });
-      } else if (a.k === 'squirrel') {
-        ctx.scale(a.dir * 3, 3);
-        ctx.fillStyle = '#a8724a'; ctx.fillRect(-5, -7, 10, 5);
-        ctx.fillRect(4, -11, 5, 4);
-        const tw2 = Math.sin(a.ph * 5) * 3;
-        ctx.fillStyle = '#c89068'; ctx.beginPath(); ctx.ellipse(-7, -8 + tw2 * 0.4, 4.5, 2, 0.6, 0, 6.3); ctx.fill();
-        ctx.fillStyle = '#3a2a1a'; ctx.fillRect(-4, -2, 1.8, 3); ctx.fillRect(2, -2, 1.8, 3);
-      } else if (a.k === 'frog') {
-        ctx.scale(a.dir * 3, 3);
-        ctx.fillStyle = '#5aa84a'; ctx.beginPath(); ctx.ellipse(0, -3, 6, 4, 0, 0, 6.3); ctx.fill();
-        ctx.fillStyle = '#3a7830'; ctx.beginPath(); ctx.arc(3, -7, 1.8, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.arc(6.5, -7, 1.8, 0, 6.3); ctx.fill();
-        ctx.fillStyle = '#fff'; ctx.fillRect(4, -8, 1, 1); ctx.fillRect(7, -8, 1, 1);
-      } else if (a.k === 'dog') {
-        ctx.scale(a.dir * 3.3, 3.3);
-        ctx.fillStyle = '#c48a4a'; ctx.fillRect(-8, -9, 14, 7);
-        ctx.fillRect(5, -13, 6, 5);
-        ctx.fillStyle = '#8a5a2a'; ctx.fillRect(6, -11, 5, 2);
-        const wag = Math.sin(a.ph * 6) * 2.5;
-        ctx.fillStyle = '#c48a4a'; ctx.fillRect(-11, -10 + wag, 4, 2);
-        ctx.fillRect(-6, -2, 2.4, 3); ctx.fillRect(3, -2, 2.4, 3);
       }
       ctx.restore();
     }
