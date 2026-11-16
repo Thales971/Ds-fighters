@@ -221,15 +221,26 @@ const MECHS = {
     },
   },
   tide: {
-    init() { this.wave = 0; this.dir = 1; },
+    init(g) {
+      this.wave = 0; this.dir = 1;
+      /* palco COM peixe = maré alta CONSTANTE (sempre alta, sem religar) */
+      const fauna = g && g.stage && g.stage.def && g.stage.def.fauna;
+      this.permaTide = !!(fauna && fauna.indexOf('fish') >= 0);
+      if (this.permaTide) this.wave = 130;
+    },
     every: 480,
     fire(g) {
       this.dir = (g.rnd ? g.rnd() : Math.random()) < 0.5 ? -1 : 1;
       this.wave = 130;
-      g.announce('MARÉ ALTA!', '#7f52ff', this.dir > 0 ? 'A água empurra para a direita →' : '← A água empurra para a esquerda');
-      g.audio.play('water');
+      if (!this.permaTide) {
+        g.announce('MARÉ ALTA!', '#7f52ff', this.dir > 0 ? 'A água empurra para a direita →' : '← A água empurra para a esquerda');
+        g.audio.play('water');
+      }
     },
-    tick(g) { if (this.wave > 0) { this.wave--; g.pushX = this.dir * 1.25; } },
+    tick(g) {
+      if (this.permaTide) { this.wave = 130; g.pushX = this.dir * 1.25; return; }
+      if (this.wave > 0) { this.wave--; g.pushX = this.dir * 1.25; }
+    },
     draw(ctx, g, t) {
       if (this.wave <= 0) return;
       ctx.save();

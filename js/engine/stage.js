@@ -231,7 +231,7 @@ class StageRenderer {
         const inTank = kind === 'fish' && (this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias');
         const surface = kind === 'fish' && this.def.swim && !inTank;
         const y = kind === 'fish'
-          ? (inTank ? 150 + Math.random() * 200 : surface ? gy - 120 - Math.random() * 70 : gy - 16 - Math.random() * 16)
+          ? (inTank ? 150 + Math.random() * 200 : surface ? gy - 26 - Math.random() * 22 : gy - 16 - Math.random() * 16)
           : (kind === 'bird' || kind === 'bat' ? 48 + Math.random() * 120 : 140 + Math.random() * 180);
         this.fauna.push({
           kind,
@@ -419,8 +419,12 @@ class StageRenderer {
       const jump = hype ? Math.abs(Math.sin(this.t * 0.35 * c.speed)) * 7 * c.scale : Math.sin(this.t * 0.03 + c.row) * 1.5;
       const w = 256 * c.scale * 2.2;
       const h = 200 * c.scale * 2.2;
-      for (let x = -w / 2; x < this.W + w; x += w * 0.98) {
-        ctx.drawImage(this.crowdSheet, c.row * 256, 0, 256, 256, x, c.y - h + jump, w, h);
+      let tile = 0;
+      for (let x = -w / 2; x < this.W + w; x += w * 0.98, tile++) {
+        /* a folha tem 5 pessoas (256x200 cada) em 1 fileira: cada fileira da arquibancada
+           varia a pessoa tile a tile, começando numa coluna diferente por fileira */
+        const col = (c.row + tile) % 5;
+        ctx.drawImage(this.crowdSheet, col * 256, 0, 256, 200, x, c.y - h + jump, w, h);
       }
     }
     ctx.restore();

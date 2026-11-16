@@ -58,8 +58,20 @@ function check(name, condition, extra = '') {
   }
   check('Bichos: 0 pixels magenta', magentaCount === 0, `magenta: ${magentaCount}`);
   check('Bichos: tem conteúdo', opaqueCount > 0, `opacos: ${opaqueCount}`);
-  // Cada quadro é 96×96, atlas tem 4 colunas → 4 quadros por linha, 8 linhas = 32 células
-  check('Bichos: atlas esperado 8×4 = 32 células', img.width === 384 && img.height === 768, `got ${img.width}×${img.height}`);
+  // Cada quadro é 96×96, atlas tem 4 colunas → 4 quadros por linha, 10 linhas (8 especies + esquilo + libelula) = 40 células
+  check('Bichos: atlas esperado 10×4 = 40 células', img.width === 384 && img.height === 960, `got ${img.width}×${img.height}`);
+  // Todas as 10 linhas (especies) precisam ter pelo menos 1 célula com figura
+  let linhasComFigura = 0;
+  for (let row = 0; row < 10; row++) {
+    let tem = 0;
+    for (let y = row * 96; y < (row + 1) * 96 && !tem; y++) {
+      for (let x = 0; x < img.width; x++) {
+        if (data[(y * img.width + x) * 4 + 3] > 0) { tem = 1; break; }
+      }
+    }
+    if (tem) linhasComFigura++;
+  }
+  check('Bichos: todas as 10 especies (linhas) têm sprite', linhasComFigura === 10, `linhas com sprite: ${linhasComFigura}/10`);
 
   // 1.3 Torcida
   console.log('--- Torcida (torcida.png) ---');
@@ -75,20 +87,19 @@ function check(name, condition, extra = '') {
     if (MAGENTA(data[i], data[i+1], data[i+2], a)) magentaCount++;
   }
   check('Torcida: 0 pixels magenta', magentaCount === 0, `magenta: ${magentaCount}`);
-  check('Torcida: 5 fileiras × 256px esperadas', img.width === 1280 && img.height === 200, `got ${img.width}×${img.height} (esperado 1280×200 para 5×256)`);
-  // Verificar que cada fileira tem conteúdo
-  let fileirasComFigura = 0;
-  for (let row = 0; row < 5; row++) {
+  check('Torcida: 5 colunas × 256x200 esperadas', img.width === 1280 && img.height === 200, `got ${img.width}×${img.height} (esperado 1280×200 para 5×256)`);
+  // A folha é 1 fileira × 5 pessoas (256×200 cada) — verificar que cada pessoa tem conteúdo
+  let pessoasComFigura = 0;
+  for (let col = 0; col < 5; col++) {
     let tem = 0;
-    for (let y = row * 200; y < (row + 1) * 200; y++) {
-      for (let x = row * 256; x < (row + 1) * 256; x++) {
-        const idx = (y * img.width + x) * 4;
-        if (data[idx+3] > 0) { tem = 1; break; }
+    for (let y = 0; y < img.height && !tem; y++) {
+      for (let x = col * 256; x < (col + 1) * 256; x++) {
+        if (data[(y * img.width + x) * 4 + 3] > 0) { tem = 1; break; }
       }
-      if (tem) fileirasComFigura++;
     }
+    if (tem) pessoasComFigura++;
   }
-  check('Torcida: todas as 5 fileiras têm gente', fileirasComFigura === 5, `fileiras com gente: ${fileirasComFigura}/5`);
+  check('Torcida: todas as 5 pessoas têm sprite', pessoasComFigura === 5, `pessoas com sprite: ${pessoasComFigura}/5`);
 
   // 1.4 Jess (sprite sheet)
   console.log('--- Jess (jess.png) ---');
