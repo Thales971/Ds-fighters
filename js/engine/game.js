@@ -770,8 +770,9 @@ class Game {
     if (this.matchOver) return;
     this.matchOver = true;
     this.running = false;
-    this.canvas.classList.remove('vertigo');
+    this.canvas.classList.remove('vertigo', 'daltonic');
     this._vertigoOn = false;
+    this._daltonicOn = false;
     this.weather.stop();
     this.mech.stop();
     AudioSys.setTension(false);
@@ -823,9 +824,9 @@ class Game {
   }
   stop() {
     this.running = false;
-    this.canvas.classList.remove('blinded', 'vertigo');
+    this.canvas.classList.remove('blinded', 'vertigo', 'daltonic');
     document.body.classList.remove('shocked');
-    this._blurOn = false; this._vertigoOn = false; this._shockOn = false;
+    this._blurOn = false; this._vertigoOn = false; this._shockOn = false; this._daltonicOn = false;
     if (this.weather) this.weather.stop();
     if (this.mech) this.mech.stop();
     AudioSys.stopLoops();
@@ -1044,6 +1045,9 @@ class Game {
     // A vertigem altera só a viewport do jogador local atingido; HUD e controles ficam normais.
     const vertigo = !this.reduced && lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('vertigo'); });
     if (vertigo !== this._vertigoOn) { this._vertigoOn = vertigo; this.canvas.classList.toggle('vertigo', vertigo); }
+    /* DALTONIC (ult da Jess): a tela do jogador local atingido fica cinza e turva. */
+    const daltonic = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('daltonic'); });
+    if (daltonic !== this._daltonicOn) { this._daltonicOn = daltonic; this.canvas.classList.toggle('daltonic', daltonic); }
     const shocked = lt.length === 1 && lt.some((ti) => { const f = this.activeOf(ti); return f && f.has('shock'); });
     if (shocked !== this._shockOn) { this._shockOn = shocked; document.body.classList.toggle('shocked', shocked); }
     if (this.spriteWarnings && this.spriteWarnings.length) {
@@ -1056,6 +1060,34 @@ class Game {
       ctx.fillText(this.spriteWarnings.join(' | '), W / 2, 16);
       ctx.restore();
     }
+  }
+  /* Gás rosa tipo neblina do Daltonic Mode: blobs radiais em cache varrendo a tela. */
+  drawDaltonicGas(ctx, W, H) {
+    if (!this._gasBlob) {
+      const c = document.createElement('canvas');
+      c.width = 260; c.height = 160;
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(130, 80, 10, 130, 80, 128);
+      g.addColorStop(0, 'rgba(255,122,217,0.30)');
+      g.addColorStop(0.6, 'rgba(240,90,200,0.14)');
+      g.addColorStop(1, 'rgba(230,60,190,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 260, 160);
+      this._gasBlob = c;
+    }
+    const t = this.time;
+    const n = this.reduced ? 5 : 9;
+    for (let k = 0; k < n; k++) {
+      const ph = k * 2.39;
+      const gx = (Math.sin(t * 0.011 + ph) * 0.5 + 0.5) * (W + 300) - 150 + (k % 3) * 120;
+      const gy = (Math.cos(t * 0.008 + ph * 1.7) * 0.5 + 0.5) * (H + 200) - 100 - (k % 4) * 40;
+      const sc = 2.4 + (k % 3) * 0.9;
+      ctx.globalAlpha = this.reduced ? 0.5 : 0.42 + 0.12 * Math.sin(t * 0.05 + ph);
+      ctx.drawImage(this._gasBlob, gx - 130 * sc / 2, gy - 80 * sc / 2, 260 * sc / 2, 160 * sc / 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(255,110,210,0.07)';
+    ctx.fillRect(0, 0, W, H);
   }
   renderScene(ctx) {
     const [a, b] = this.activePair();
@@ -1159,6 +1191,9 @@ class Game {
       ctx.fillRect(0, 0, W, H);
     }
     this.weather.drawOverlay(ctx, W, H);
+    /* GÁS ROSA do Daltonic Mode: neblina rosa cobre a tela do jogador atingido. */
+    const gasF = this.localTeams().map((ti) => this.activeOf(ti)).find((f) => f && f.has('daltonic'));
+    if (gasF) this.drawDaltonicGas(ctx, W, H);
     if (this.bsod > 0) {
       ctx.fillStyle = `rgba(20,60,200,${Math.min(0.55, this.bsod / 60)})`;
       ctx.fillRect(0, 0, W, H);
