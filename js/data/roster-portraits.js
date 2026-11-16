@@ -4,7 +4,7 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v42-jessgas",
+  "version": "v46-jessrecut",
   "order": [
     "du",
     "iales",
@@ -378,7 +378,7 @@ const ROSTER_PORTRAITS = {
       "frame": "idle-0"
     },
     "jess": {
-      "x": 86,
+      "x": 85,
       "y": 36,
       "side": 136,
       "source": "assets/sprites/jess.png",
