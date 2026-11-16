@@ -71,7 +71,7 @@
         Object.assign({
           id: 'daltonic', name: 'Daltonic Mode', slot: 'ultimate', row: 4,
           kind: 'daltonic', dmg: 0, cd: 900, sfx: 'ultimate',
-          desc: 'Por 6s o oponente vê tudo em cinza e Jess converte 25% do dano em vida.',
+          desc: 'Por 6s o oponente vê tudo em cinza e turvo (gás rosa), fica lento constante e com os botões de movimento e de poder invertidos; Jess converte 25% do dano em vida.',
         }, visual(4, '#F0C24B')),
       ],
     },

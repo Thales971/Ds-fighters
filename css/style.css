@@ -443,6 +443,9 @@ body.reduced #cutin.on { animation: bannerFade .9s forwards; }
 body.reduced #game.fogged { filter: blur(1px) saturate(.9); transition: none; }
 #game.vertigo { transform: rotate(180deg); transform-origin: center center; }
 body.reduced #game.vertigo { transform: none; transition: none; }
+#game.daltonic { filter: grayscale(1) blur(2.5px) brightness(.94); }
+body.reduced #game.daltonic { filter: grayscale(1) blur(1px); transition: none; }
+#stage-wrap:has(#game.daltonic)::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,122,217,.14), rgba(214,48,180,.28)); pointer-events: none; }
 body.reduced #game.blinded { filter: blur(4px) brightness(.8); transition: none; }
 #stage-wrap:has(#game.blinded)::after { content: 'CEGO!'; position: absolute; top: 46%; left: 0; right: 0; text-align: center; font-size: 22px; color: #e6e6e6; text-shadow: 3px 3px 0 #000; pointer-events: none; animation: blink-txt .5s steps(2) infinite; }
 @keyframes blink-txt { 50% { opacity: .35; } }
