@@ -38,7 +38,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v38-faunafix';
+    return src + '?v=v38-jessgas';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

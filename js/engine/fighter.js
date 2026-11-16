@@ -34,6 +34,7 @@ const STATUS_LABEL = {
   chill: { t: 'CONGELANDO', c: '#a8e6ff' }, bleed: { t: 'SANGRANDO', c: '#ff2d55' }, vuln: { t: 'VULNERÁVEL', c: '#ff9f1c' }, overclock: { t: 'OVERCLOCK', c: '#00f0ff' }, dizzy: { t: 'TONTO', c: '#ffe14d' }, stolen: { t: 'KIT ROUBADO', c: '#c77dff' }, regen: { t: 'REGEN', c: '#7dff9a' },
   resonance: { t: 'RESSONÂNCIA', c: '#88eaff' }, veil: { t: 'VÉU', c: '#f49bdf' },
   vertigo: { t: 'VERTIGEM', c: '#ff9a36' }, paralyze: { t: 'PARALISADO', c: '#bd80ff' }, nanomachines: { t: 'NANOMÁQUINAS', c: '#ffad4d' },
+  daltonic: { t: 'DALTONIC', c: '#c9c9c9' },
 };
 
 class Fighter {
@@ -811,10 +812,12 @@ class Fighter {
         break;
       }
       case 'daltonic': {
-        /* DALTONIC MODE: 6s — o rival ve tudo em cinza, Jess rouba 25% do dano em vida */
+        /* DALTONIC MODE: 6s — o rival ve tudo em cinza e turvo (gás rosa), fica
+           lento e com os controles invertidos; Jess rouba 25% do dano em vida */
         const rival = game.enemyOf(this);
         if (rival) {
           rival.addStatus('daltonic', 360, this);
+          rival.addStatus('slow', 360, this);
           this.addStatus('lifesteal', 360);
           game.floatText(rival.x, rival.y - 250, 'DALTONIC MODE', '#F0C24B');
           game.shake(6);
@@ -1348,6 +1351,11 @@ class Fighter {
       if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
       if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 60 - (this.game.rnd ? this.game.rnd() : Math.random()) * 100, '#7df9ff');
       if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#d8f6ff');
+      /* DALTONIC (ult da Jess): lentidao constante + gas rosa subindo do vitima */
+      if (this.has('daltonic')) {
+        this.addStatus('slow', 30);
+        if (this.frame % 5 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 170, this.y - 20 - (this.game.rnd ? this.game.rnd() : Math.random()) * 170, '#ff7ad9', { count: 2, speed: 1.1 });
+      }
       if (this.afterimage > 0) this.afterimage--;
       if (this.phaseDash > 0) this.phaseDash--;
       if (this.overclockHot && this.overclockUntil && this.now >= this.overclockUntil && !this.has('aura')) {
@@ -1369,6 +1377,7 @@ class Fighter {
     }
     if (this.has('shock')) input = this.shockInput(input);
     if (this.has('glitch')) input = this.glitchInput(input);
+    if (this.has('daltonic')) input = this.daltonicInput(input);
     this.press(input);
     this.queue = this.queue.filter((q) => {
       q.at--;
@@ -1815,6 +1824,14 @@ class Fighter {
     }
     return i;
   }
+  /** Daltônico (ult da Jess): direções invertidas e botões de poder espelhados. */
+  daltonicInput(input) {
+    const i = Object.assign({}, input);
+    const l = i.left; i.left = i.right; i.right = l;
+    const u = i.up; i.up = i.down; i.down = u;
+    for (let k = 0; k < 5; k++) { const t = i['a' + k]; i['a' + k] = i['a' + (9 - k)]; i['a' + (9 - k)] = t; }
+    return i;
+  }
   /** Eletrizado: os controles "mexem sozinhos" (direções invertidas em pulsos e apertos fantasmas). */
   shockInput(input) {
     const i = Object.assign({}, input);
@@ -1999,7 +2016,10 @@ class Fighter {
       if (this.pet.row >= 0) {
         Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
       } else if (this.pet.id === 'pitoco') {
-        Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+        /* A folha do Pitoco desenha o cachorro olhando para a ESQUERDA (dir=1 sem flip),
+           diferente da folha 'pets' — por isso ele precisa de dir invertido para
+           acompanhar o dono e olhar pro lado da luta. */
+        Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: -this.dir });
       }
     }
     const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');

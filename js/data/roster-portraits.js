@@ -4,7 +4,7 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v36-portraits1",
+  "version": "v42-jessgas",
   "order": [
     "du",
     "iales",
