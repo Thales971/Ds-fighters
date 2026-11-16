@@ -2016,7 +2016,10 @@ class Fighter {
       if (this.pet.row >= 0) {
         Art.cell(ctx, 'pets', this.pet.row, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
       } else if (this.pet.id === 'pitoco') {
-        Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+        /* A folha do Pitoco desenha o cachorro olhando para a ESQUERDA (dir=1 sem flip),
+           diferente da folha 'pets' — por isso ele precisa de dir invertido para
+           acompanhar o dono e olhar pro lado da luta. */
+        Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: -this.dir });
       }
     }
     const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
