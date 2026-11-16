@@ -404,7 +404,7 @@ class StageRenderer {
     this.crowd = null;
     if (!this.def.torcida) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v45-faunafix';
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v46-jessflora';
     this.crowdHype = 0;
     this.crowd = [
       { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
@@ -435,7 +435,12 @@ class StageRenderer {
     const gy = this.groundY || 458;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    for (const pl of this.flora) {
+    /* Arte real da pasta flora/ (atlas assets/fauna/flora.png, gerado por
+       tools/build_flora_atlas.py): linha por tipo, 4 variantes por linha.
+       Se o atlas nao carregou, cai no desenho vetorial de antes. */
+    const sprReady = typeof Art !== 'undefined' && Art.ready('flora');
+    for (let fi = 0; fi < this.flora.length; fi++) {
+      const pl = this.flora[fi];
       const xx = pl.x;
       const yy = pl.y - (pl.swaying > 0 ? 2 : 0);
       const sway = Math.sin(this.t * pl.sway + pl.ph) * pl.amp * (pl.swaying > 0 ? 2 : 1);
@@ -443,6 +448,18 @@ class StageRenderer {
       ctx.globalAlpha = a;
       ctx.save();
       ctx.translate(xx + sway, yy);
+      const sprRow = StageRenderer.FLORA_SPR_ROW[pl.k];
+      if (sprReady && sprRow != null) {
+        const sc = pl.scale * (pl.k === 'grass_tall' ? 0.55 : 0.32);
+        Art.cell(ctx, 'flora', sprRow, fi % 4, 0, 0, {
+          scale: sc,
+          dir: pl.dir,
+          anchor: 'bottom',
+          rot: Math.sin(this.t * pl.sway + pl.ph) * 0.06,
+        });
+        ctx.restore();
+        continue;
+      }
       if (pl.k === 'grass') {
         ctx.fillStyle = '#7cb342';
         ctx.fillRect(-1, 0, 3, 10 + Math.sin(this.t * 0.1 + pl.ph) * 2);
@@ -729,3 +746,8 @@ class StageRenderer {
     ctx.drawImage(this.vignette, 0, 0);
   }
 }
+
+/* Linhas do atlas de flora (assets/fauna/flora.png, gerado por
+   tools/build_flora_atlas.py a partir de flora/flores.png + flora/grama.png)
+   por tipo de planta; tipos sem linha caem no desenho vetorial. */
+StageRenderer.FLORA_SPR_ROW = { grass: 0, grass_tall: 1, flower_red: 2, flower_yellow: 3, clover: 4 };

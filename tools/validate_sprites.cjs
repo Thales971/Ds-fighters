@@ -19,6 +19,87 @@ function check(name, condition, extra = '') {
   }
 }
 
+// Conta, por celula 320x260 da sheet 4x15, fragmentos soltos: componentes de
+// alpha (n>=8) a mais de 6px do blob principal (dilatado 6x). Fragmento de
+// outro sprite cortado na borda cai aqui.
+function detachedFragments(img) {
+  const CW = 320, CH = 260, cols = img.width / CW, rows = img.height / CH;
+  const d = img.data;
+  let bad = 0, detail = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x0 = c * CW, y0 = r * CH;
+      const op = new Uint8Array(CW * CH);
+      for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+        if (d[((y0 + y) * img.width + x0 + x) * 4 + 3] > 40) op[y * CW + x] = 1;
+      }
+      const seen = new Uint8Array(CW * CH);
+      const comps = [];
+      for (let i = 0; i < CW * CH; i++) {
+        if (!op[i] || seen[i]) continue;
+        let size = 0;
+        const stack = [i]; seen[i] = 1;
+        while (stack.length) {
+          const p = stack.pop(); size++;
+          const px = p % CW, py = (p / CW) | 0;
+          if (px > 0 && op[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; stack.push(p - 1); }
+          if (px < CW - 1 && op[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; stack.push(p + 1); }
+          if (py > 0 && op[p - CW] && !seen[p - CW]) { seen[p - CW] = 1; stack.push(p - CW); }
+          if (py < CH - 1 && op[p + CW] && !seen[p + CW]) { seen[p + CW] = 1; stack.push(p + CW); }
+        }
+        comps.push({ size, seed: i });
+      }
+      if (!comps.length) continue;
+      comps.sort((a, b) => b.size - a.size);
+      const main = comps[0].seed;
+      // mascara do blob principal (BFS a partir do seed) dilatada 6px
+      let m;
+      {
+        const stack = [main]; const inMain = new Uint8Array(CW * CH); inMain[main] = 1;
+        while (stack.length) {
+          const p = stack.pop();
+          const px = p % CW, py = (p / CW) | 0;
+          if (px > 0 && op[p - 1] && !inMain[p - 1]) { inMain[p - 1] = 1; stack.push(p - 1); }
+          if (px < CW - 1 && op[p + 1] && !inMain[p + 1]) { inMain[p + 1] = 1; stack.push(p + 1); }
+          if (py > 0 && op[p - CW] && !inMain[p - CW]) { inMain[p - CW] = 1; stack.push(p - CW); }
+          if (py < CH - 1 && op[p + CW] && !inMain[p + CW]) { inMain[p + CW] = 1; stack.push(p + CW); }
+        }
+        m = inMain;
+        for (let k = 0; k < 6; k++) {
+          const nm = new Uint8Array(m);
+          for (let p = 0; p < CW * CH; p++) {
+            if (!m[p]) continue;
+            const px = p % CW, py = (p / CW) | 0;
+            nm[p] = 1;
+            if (px > 0) nm[p - 1] = 1;
+            if (px < CW - 1) nm[p + 1] = 1;
+            if (py > 0) nm[p - CW] = 1;
+            if (py < CH - 1) nm[p + CW] = 1;
+          }
+          m = nm;
+        }
+      }
+      for (const cp of comps.slice(1)) {
+        if (cp.size < 8) continue;
+        // esta perto do principal?
+        let near = false;
+        const stack = [cp.seed]; const vis = new Uint8Array(CW * CH); vis[cp.seed] = 1;
+        while (stack.length && !near) {
+          const p = stack.pop();
+          if (m[p]) { near = true; break; }
+          const px = p % CW, py = (p / CW) | 0;
+          if (px > 0 && op[p - 1] && !vis[p - 1]) { vis[p - 1] = 1; stack.push(p - 1); }
+          if (px < CW - 1 && op[p + 1] && !vis[p + 1]) { vis[p + 1] = 1; stack.push(p + 1); }
+          if (py > 0 && op[p - CW] && !vis[p - CW]) { vis[p - CW] = 1; stack.push(p - CW); }
+          if (py < CH - 1 && op[p + CW] && !vis[p + CW]) { vis[p + CW] = 1; stack.push(p + CW); }
+        }
+        if (!near) { bad++; if (detail.length < 6) detail.push(`r${r}c${c} n=${cp.size}`); }
+      }
+    }
+  }
+  return { bad, detail };
+}
+
 // ============================================================
 // 1. Análise de Imagens
 // ============================================================
@@ -120,6 +201,28 @@ function check(name, condition, extra = '') {
   // Linhas típicas: 15 × altura_linha. Se cada pose é ~128px → altura ~1920px
   // Vamos apenas confirmar largura múltiplo de 320 (CELL_W)
   check('Jess: largura múltiplo de 320 (CELL_W)', img.width % 320 === 0, `got ${img.width}`);
+  const frag = detachedFragments(img);
+  check('Jess: 0 fragmentos soltos (>6px do sprite principal, ex.: metade de outro sprite cortado na borda)', frag.bad === 0, frag.detail.join(' '));
+
+  // 1.5 Flora (atlas real de flora/flores.png + flora/grama.png)
+  console.log('--- Flora (flora.png) ---');
+  img = PNG.sync.read(fs.readFileSync('assets/fauna/flora.png'));
+  check('Flora: atlas 512x640 (4 cols x 5 linhas de 128px)', img.width === 512 && img.height === 640, `${img.width}x${img.height}`);
+  let floraCells = 0, floraMagenta = 0;
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 4; c++) {
+      let tem = false;
+      for (let y = r * 128; y < (r + 1) * 128 && !tem; y++) {
+        for (let x = c * 128; x < (c + 1) * 128 && !tem; x++) {
+          const i = (y * img.width + x) * 4;
+          if (img.data[i + 3] > 40) { tem = true; if (MAGENTA(img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3])) floraMagenta++; }
+        }
+      }
+      if (tem) floraCells++;
+    }
+  }
+  check('Flora: 20/20 celulas com conteudo', floraCells === 20, `${floraCells}/20`);
+  check('Flora: 0 pixels magenta', floraMagenta === 0, `magenta: ${floraMagenta}`);
 
   // ============================================================
   // 2. Resumo

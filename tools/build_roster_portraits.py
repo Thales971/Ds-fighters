@@ -119,7 +119,7 @@ def main():
         'cell': CELL,
         'cols': COLS,
         'file': 'assets/ui/roster-portraits.png',
-        'version': 'v42-jessgas',
+        'version': 'v46-jessrecut',
         'order': order,
         'crops': crops,
     }
