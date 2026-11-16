@@ -7,7 +7,7 @@
   SPRITE_LAYOUT.files[id] = `assets/sprites/${id}.png`;
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-    poseScale: { block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8, special: 0.8, win: 0.75 },
+    poseScale: { idle: 0.85, walk: 0.85, jump: 0.85, crouch: 0.7, punch: 0.85, kick: 0.85, cpunch: 0.75, ckick: 0.75, jpunch: 0.85, jkick: 0.85, block: 0.7, special: 0.8, hit: 0.8, ko: 0.8, win: 0.75 },
   });
   const visual = (row, color) => ({
     visualSheet: id, visualRow: row, impactSheets: [], impactColor: color,

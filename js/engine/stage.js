@@ -105,7 +105,7 @@ class LiveFauna {
       const x = a.x, y = a.y;
       /* BICHOS EM SPRITE (arte do dono): cachorro, gato, pombo, peixe, sapo,
          coelho, hamster, tartaruga, esquilo, libelula — o resto segue no canvas vetorial */
-      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7, squirrel: 8, dragonfly: 9 }[a.k];
+      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7 }[a.k];
       if (typeof Art !== 'undefined' && _sprRow != null) {
         const frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
         ctx.save();
@@ -356,7 +356,7 @@ class StageRenderer {
       const w = 256 * c.scale * 2.2;
       const h = 200 * c.scale * 2.2;
       for (let x = -w / 2; x < this.W + w; x += w * 0.98) {
-        ctx.drawImage(this.crowdSheet, c.row * 256, 0, 256, 200, x, c.y - h + jump, w, h);
+        ctx.drawImage(this.crowdSheet, c.row * 256, 0, 256, 256, x, c.y - h + jump, w, h);
       }
     }
     ctx.restore();
