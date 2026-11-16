@@ -156,6 +156,30 @@ let hit = false, fxAtHit = 0;
 for (let t = 0; t < 40 && !hit; t++) { g6.tick(); if (p2.hp < p2.maxHp) { hit = true; fxAtHit = g6.sparks.length + g6.bursts.length; } }
 check('golpe real causa dano e efeito de impacto (sparks/bursts)', hit && fxAtHit > 0, 'hit=' + hit + ' fx=' + fxAtHit + ' hp=' + Math.round(p2.hp));
 
+// ===== F. ATLAS DE FLORA REAL (flora/flores.png + flora/grama.png -> assets/fauna/flora.png) =====
+const fpng = PNG.sync.read(fs.readFileSync('assets/fauna/flora.png'));
+check('flora.png existe e e 512x640 (4x5 celulas de 128)', fpng.width === 512 && fpng.height === 640, fpng.width + 'x' + fpng.height);
+let fcells = 0;
+for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) {
+  let tem = false;
+  for (let y = r * 128; y < (r + 1) * 128 && !tem; y++) for (let x = c * 128; x < (c + 1) * 128 && !tem; x++) if (fpng.data[(y * fpng.width + x) * 4 + 3] > 40) tem = true;
+  if (tem) fcells++;
+}
+check('flora.png: todas as 20 celulas (5 linhas x 4 variantes) com sprite', fcells === 20, fcells + '/20');
+check('ART_SHEETS registra flora (128px, 4 cols, 5 rows)', !!(ART_SHEETS.flora && ART_SHEETS.flora.size === 128 && ART_SHEETS.flora.cols === 4 && ART_SHEETS.flora.rows === 5 && ART_SHEETS.flora.src === 'assets/fauna/flora.png'));
+check('FLORA_SPR_ROW mapeia os 5 tipos com sprite', !!(StageRenderer.FLORA_SPR_ROW && StageRenderer.FLORA_SPR_ROW.grass === 0 && StageRenderer.FLORA_SPR_ROW.grass_tall === 1 && StageRenderer.FLORA_SPR_ROW.flower_red === 2 && StageRenderer.FLORA_SPR_ROW.flower_yellow === 3 && StageRenderer.FLORA_SPR_ROW.clover === 4));
+// com o atlas "carregado", drawFlora usa drawImage (sprite) em vez de vetorial
+const g7 = mk('parque-lago');
+Art.images['flora'] = { naturalWidth: 512, naturalHeight: 640 };
+const recSpr = mkRec();
+g7.stage.drawFlora(recSpr[0]);
+check('drawFlora com atlas pronto usa sprites (drawImage por item de flora)', recSpr[1].drawImage >= g7.stage.flora.length - 2, 'drawImage=' + recSpr[1].drawImage + ' flora=' + g7.stage.flora.length);
+check('drawFlora com atlas pronto NAO cai no vetorial para tipos mapeados', recSpr[1].fillRect + recSpr[1].arc <= 2, 'fillRect=' + recSpr[1].fillRect + ' arc=' + recSpr[1].arc);
+delete Art.images['flora'];
+const recVec = mkRec();
+g7.stage.drawFlora(recVec[0]);
+check('drawFlora sem atlas cai no desenho vetorial (fallback)', recVec[1].fillRect + recVec[1].arc > 0, 'fillRect=' + recVec[1].fillRect + ' arc=' + recVec[1].arc);
+
 console.log('---');
 console.log(fails === 0 ? 'FLORA/LUZ/IMPACTO: TUDO OK (' + n + ' checks)' : 'FLORA/LUZ/IMPACTO: ' + fails + ' FALHAS de ' + n);
 `, ctx);

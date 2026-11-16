@@ -1824,12 +1824,15 @@ class Fighter {
     }
     return i;
   }
-  /** Daltônico (ult da Jess): direções invertidas e botões de poder espelhados. */
+  /** Daltônico (ult da Jess): direções invertidas e botões de poder espelhados.
+      As teclas 1-5 (a0..a4 do kit) são espelhadas dentro do kit do lutador:
+      1<->5, 2<->4, 3 fica. */
   daltonicInput(input) {
     const i = Object.assign({}, input);
     const l = i.left; i.left = i.right; i.right = l;
     const u = i.up; i.up = i.down; i.down = u;
-    for (let k = 0; k < 5; k++) { const t = i['a' + k]; i['a' + k] = i['a' + (9 - k)]; i['a' + (9 - k)] = t; }
+    const n = Math.max(1, Math.min(10, (this.currentKit() || []).length || 5));
+    for (let k = 0; k < n / 2; k++) { const t = i['a' + k]; i['a' + k] = i['a' + (n - 1 - k)]; i['a' + (n - 1 - k)] = t; }
     return i;
   }
   /** Eletrizado: os controles "mexem sozinhos" (direções invertidas em pulsos e apertos fantasmas). */

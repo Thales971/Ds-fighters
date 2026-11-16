@@ -29,6 +29,7 @@ const ART_SHEETS = {
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pitoco: { src: 'assets/pets/pitoco.png', size: 96, cols: 4 },
   bichos: { src: 'assets/fauna/bichos.png', size: 96, cols: 4, rows: 10 },
+  flora: { src: 'assets/fauna/flora.png', size: 128, cols: 4, rows: 5 },
   torcida: { src: 'assets/fauna/torcida.png', size: 256, cols: 5, rows: 1 },
   pickups: { src: 'assets/pickups/pickups.png', size: 64, cols: 4 },
   fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
@@ -38,7 +39,7 @@ const ART_SHEETS = {
 const Art = {
   images: {},
   url(src) {
-    return src + '?v=v38-jessgas';
+    return src + '?v=v39-floraatlas';
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {

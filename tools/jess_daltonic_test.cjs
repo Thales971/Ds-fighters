@@ -51,13 +51,32 @@ check('gas rosa spawnado (sparks cor de rosa)', g.sparks.some((s) => s.color ===
 const inv = od.daltonicInput({ left: false, right: true, up: false, down: true, punch: true, kick: false, a0: true, a1: false, a2: false, a3: false, a4: false, a5: false, a6: false, a7: false, a8: false, a9: false });
 check('movimento invertido (right vira left)', inv.left === true && inv.right === false);
 check('vertical invertido (down vira up)', inv.up === true && inv.down === false);
-check('botao de poder a0 vai pro a9', inv.a9 === true && inv.a0 === false);
+check('tecla 1 (a0) vira tecla 5 (a4) dentro do kit', inv.a4 === true && inv.a0 === false, 'a0=' + inv.a0 + ' a4=' + inv.a4);
 check('soco nao e invertido (nao e botao de poder)', inv.punch === true);
-check('a1 <-> a8 espelhados', inv.a8 === false && inv.a1 === false);
 const full0 = { left: false, right: false, up: false, down: false, punch: false, kick: false };
 for (let k = 0; k < 10; k++) full0['a' + k] = false;
-const inv2 = od.daltonicInput(Object.assign({}, full0, { a3: true }));
-check('a3 vira a6', inv2.a6 === true && inv2.a3 === false);
+const inv2 = od.daltonicInput(Object.assign({}, full0, { a1: true, a5: true }));
+check('tecla 2 (a1) vira tecla 4 (a3)', inv2.a3 === true && inv2.a1 === false, 'a1=' + inv2.a1 + ' a3=' + inv2.a3);
+check('tecla 3 (a2) fica no lugar (meio do espelhamento)', od.daltonicInput(Object.assign({}, full0, { a2: true })).a2 === true);
+check('slots alem do kit (a5+) nao sao tocados', inv2.a5 === true && inv2.a9 === false, 'a5=' + inv2.a5 + ' a9=' + inv2.a9);
+check('kit do rival tem 5 poderes (teclas 1-5)', od.currentKit().length === 5, 'n=' + od.currentKit().length);
+
+// 3b. caminho real do jogo: segurando RIGHT com daltonic, o rival ANDA PARA A ESQUERDA
+const g3 = mk('jess', 'du');
+const f3 = g3.activeOf(0), o3 = g3.activeOf(1);
+f3.x = 300; o3.x = 520; f3.dir = 1; o3.dir = -1;
+f3.cd = [0,0,0,0,0,0,0,0,0,0]; f3.castLock = 0; f3.state = 'idle'; f3.cast = null; f3.ultimate = 100;
+f3.tryCast(4);
+for (let t = 0; t < 70; t++) g3.tick();
+check('rival daltonic no teste de caminho', o3.has('daltonic') === true);
+const rightIn = { left: false, right: true, down: false, up: false, punch: false, kick: false };
+for (let k = 0; k < 10; k++) rightIn['a' + k] = false;
+const origInputFor = g3.inputFor.bind(g3);
+g3.inputFor = (ti) => ti === 1 ? Object.assign({}, rightIn) : origInputFor(ti);
+o3.state = 'idle'; o3.x = 480; o3.vx = 0;
+const x0 = o3.x;
+for (let t = 0; t < 40; t++) g3.tick();
+check('segurando RIGHT o rival anda para a ESQUERDA (x diminuiu)', o3.x < x0, 'x ' + x0 + ' -> ' + o3.x.toFixed(1));
 
 // 4. tela do jogador local fica cinza/turva (classe daltonic no canvas)
 const g2 = mk('du', 'jess'); // P1 humano = du (local), P2 = jess (cpu)
