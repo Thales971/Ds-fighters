@@ -96,6 +96,7 @@ class Fighter {
     this.lastInput = EMPTY_INPUT;
     this.stats = { dmg: 0, maxCombo: 0, hits: 0, ults: 0 };
     this.pet = opts.pet || PETS[0];
+    this.dust = [];
     this.applyPet();
   }
 
@@ -2014,9 +2015,43 @@ class Fighter {
     ctx.save();
     if (this.has('cloak')) ctx.globalAlpha = 0.28;
     else if (this.has('invuln') && this.frame % 6 < 3) ctx.globalAlpha = 0.45;
+    /* SOMBRA DINAMICA no chao: maior e mais opaca perto do chão, some no ar */
+    if (!game.reduced && this.onGround === false && this.y < 0) {
+      const gy = game.stage && game.stage.groundY ? game.stage.groundY : 458;
+      const airDist = Math.min(1, Math.abs(this.y) / 120);
+      const sAlpha = 0.35 * (1 - airDist);
+      const sSize = 34 * (1 - airDist * 0.5);
+      ctx.save();
+      ctx.globalAlpha = sAlpha;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(this.x, gy, sSize, sSize * 0.35, 0, 0, 6.3);
+      ctx.fill();
+      ctx.restore();
+    }
     if (this.has('rage') || this.has('armor')) {
       ctx.shadowColor = this.has('rage') ? '#ff4b1c' : '#ffd27d';
       ctx.shadowBlur = 18;
+    }
+    /* HALO DE LUZ por status ativo — brilho ao redor do lutador */
+    if (!game.reduced) {
+      const halo = this.has('overclock') ? { c: '#00f0ff', a: 0.5, r: 46 }
+        : this.has('astra') ? { c: '#a78bff', a: 0.55, r: 52 }
+        : this.has('trans') ? { c: '#7dff5e', a: 0.5, r: 50 }
+        : this.has('phoenix') ? { c: '#FF7A1A', a: 0.45, r: 48 }
+        : this.has('aura') && this.aura ? { c: this.aura.color || '#c77dff', a: 0.4, r: 44 }
+        : null;
+      if (halo) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = halo.a * (0.7 + 0.3 * Math.sin(this.frame * 0.15));
+        const g = ctx.createRadialGradient(this.x, this.y - 90, 0, this.x, this.y - 90, halo.r);
+        g.addColorStop(0, halo.c);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(this.x, this.y - 90, halo.r, 0, 6.3); ctx.fill();
+        ctx.restore();
+      }
     }
     if (this.has('chill')) ctx.filter = 'saturate(0.6) hue-rotate(160deg) brightness(1.15)';
     else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';

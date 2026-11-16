@@ -294,14 +294,47 @@ class Game {
     sheets.forEach((sheet) => this.spawnBurst(sheet, 3, x, y, owner.dir, 2.2));
     for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, p.impactColor || fx.color);
   }
-  spark(x, y, color) {
+  spark(x, y, color, opts = {}) {
     if (this.sparks.length > 220) return;
-    this.sparks.push({ x, y, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 7, vy: -(this.rnd ? this.rnd() : Math.random()) * 6 - 1, life: 22 + (this.rnd ? this.rnd() : Math.random()) * 14, color });
+    const count = opts.count || 1;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.random() * Math.PI * 2);
+      const spd = (this.rnd ? this.rnd() : Math.random()) * (opts.speed || 5) + 1;
+      this.sparks.push({
+        x, y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - (opts.up ? 0 : 2),
+        life: 18 + (this.rnd ? this.rnd() : Math.random()) * 16,
+        color: color || '#fff',
+        size: 1.4 + (this.rnd ? this.rnd() : Math.random()) * 1.6,
+        dust: !!opts.dust,
+        glow: !!opts.glow,
+        gravity: opts.gravity !== false ? 0.28 : 0,
+        fade: opts.fade !== false,
+      });
+    }
   }
-  dust(x) {
-    for (let k = 0; k < (this.reduced ? 2 : 6); k++) this.sparks.push({ x: x + ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 30, y: -4, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 3, vy: -(this.rnd ? this.rnd() : Math.random()) * 1.6, life: 18, color: 'rgba(220,210,190,0.7)', dust: true });
+  dust(x, color = 'rgba(220,210,190,0.7)', count = null) {
+    const n = count || (this.reduced ? 3 : 8);
+    for (let k = 0; k < n; k++) {
+      const ang = (Math.random() * Math.PI * 2);
+      const spd = (this.rnd ? this.rnd() : Math.random()) * 2.5 + 0.5;
+      this.sparks.push({
+        x: x + ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 24,
+        y: -4,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 1.2,
+        life: 16 + (this.rnd ? this.rnd() : Math.random()) * 10,
+        color,
+        size: 1.8 + (this.rnd ? this.rnd() : Math.random()) * 1.4,
+        dust: true,
+        glow: true,
+        gravity: 0.06,
+        fade: true,
+      });
+    }
   }
-  splash(x) { if (this.sparks.length < 200) this.sparks.push({ x, y: -2, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 2, vy: -1.5 - (this.rnd ? this.rnd() : Math.random()) * 1.5, life: 10, color: 'rgba(190,220,255,0.7)', dust: true }); }
+  splash(x) { if (this.sparks.length < 200) this.sparks.push({ x, y: -2, vx: ((this.rnd ? this.rnd() : Math.random()) - 0.5) * 2, vy: -1.5 - (this.rnd ? this.rnd() : Math.random()) * 1.5, life: 10, color: 'rgba(190,220,255,0.7)', dust: true, size: 2, glow: true, gravity: 0.1, fade: true }); }
   floatText(x, y, text, color) {
     this.texts.push({ x, y, text, color: color || '#fff', life: 54, vy: -1.1 });
     if (this.texts.length > 18) this.texts.shift();
@@ -696,7 +729,7 @@ class Game {
       this.imgFx = this.imgFx.filter((fx) => --fx.life > 0);
     }
     this.bursts = this.bursts.filter((b) => b.age < b.dur);
-    for (const s of this.sparks) { s.x += s.vx; s.y += s.vy; s.vy += s.dust ? 0.04 : 0.28; s.life--; }
+    for (const s of this.sparks) { s.x += s.vx; s.y += s.vy; s.vy += (s.gravity || 0.28); s.life--; }
     this.sparks = this.sparks.filter((s) => s.life > 0);
     for (const t of this.texts) { t.y += t.vy; t.life--; }
     this.texts = this.texts.filter((t) => t.life > 0);
@@ -1084,20 +1117,23 @@ class Game {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       for (const s of this.sparks) {
-        const a = Math.min(1, s.life / 12);
-        const sz = s.dust ? 3 : 2.4;
-        ctx.globalAlpha = a * 0.28;
+        const lifeP = s.fade ? Math.min(1, s.life / 12) : 1;
+        const sz = s.size || 2.4;
+        const gAlpha = s.glow ? (lifeP * 0.45) : (lifeP * 0.28);
+        ctx.globalAlpha = gAlpha;
         ctx.fillStyle = s.color;
-        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz * 2.6, 0, 6.3); ctx.fill();
-        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz * 2.4, 0, 6.3); ctx.fill();
+        ctx.globalAlpha = lifeP;
         ctx.beginPath(); ctx.arc(s.x + 1.5, s.y + 1.5, sz, 0, 6.3); ctx.fill();
       }
       ctx.restore();
     } else {
       for (const s of this.sparks) {
-        ctx.globalAlpha = Math.min(1, s.life / 12);
+        const lifeP = s.fade ? Math.min(1, s.life / 12) : 1;
+        const sz = s.size || 2.4;
+        ctx.globalAlpha = lifeP;
         ctx.fillStyle = s.color;
-        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.dust ? 4 : 3, s.dust ? 4 : 3);
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), sz * 2.2, sz * 2.2);
       }
       ctx.globalAlpha = 1;
     }

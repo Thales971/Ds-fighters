@@ -105,7 +105,7 @@ class LiveFauna {
       const x = a.x, y = a.y;
       /* BICHOS EM SPRITE (arte do dono): cachorro, gato, pombo, peixe, sapo,
          coelho, hamster, tartaruga, esquilo, libelula — o resto segue no canvas vetorial */
-      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7 }[a.k];
+      const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7, squirrel: 8, dragonfly: 9 }[a.k];
       if (typeof Art !== 'undefined' && _sprRow != null) {
         const frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
         ctx.save();
@@ -214,7 +214,9 @@ class StageRenderer {
       } catch (e) { /* sem DOM: fallback vetorial */ }
     }
     this.fauna = [];
+    this.flora = [];
     this.makeFauna();
+    this.makeFlora();
     this.initTorcida();
     this.vignette = null;
   }
@@ -248,6 +250,7 @@ class StageRenderer {
     this.layers = [];
     this.props = [];
     this.hitFlash = 0;
+    this.floraShake = 0;
     this.propShake = 0;
     this.drama = 0;
     this.propSheet = new Image();
@@ -265,6 +268,54 @@ class StageRenderer {
     const propList = this.def.props || defaultStageProps(this.def.id);
     this.props = propList.map((p) => ({ cell: p.cell || 0, x: p.x, y: p.y, baseY: p.y, fall: !!p.fall, flash: !!p.flash, vy: 0, rot: 0, falling: false }));
   }
+  makeFlora() {
+    const d = this.def;
+    const gy = this.groundY || 458;
+    /* BIOMA por stage: cada tipo de palco tem flora própria */
+    const biomeFlora = {
+      'spring': ['grass', 'flower_red', 'flower_yellow', 'clover'],
+      'python': ['grass', 'flower_red', 'clover'],
+      'japan': ['grass', 'flower_red', 'clover'],
+      'sakura': ['grass', 'flower_red', 'clover'],
+      '06-sakura-dojo': ['grass', 'flower_red', 'clover'],
+      '10-digital-forest': ['grass', 'flower_yellow', 'clover'],
+      'forest': ['grass', 'grass_tall', 'mushroom', 'clover'],
+      'cavern': ['mushroom', 'grass_tall'],
+      'crystal': ['mushroom', 'grass'],
+      '08-crystal-cavern': ['mushroom', 'grass'],
+      '03-underwater-lab': [],
+      'abismo-das-baleias': [],
+    };
+    const id = d.id || '';
+    const group = d.group || '';
+    let kinds = d.flora || [];
+    if (!kinds.length) {
+      const lower = (id + ' ' + group).toLowerCase();
+      for (const key of Object.keys(biomeFlora)) {
+        if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; break; }
+      }
+      if (!kinds.length) kinds = ['grass'];
+    }
+    const count = d.floraCount || (kinds.length ? 14 : 0);
+    const span = this.W || 960;
+    for (let i = 0; i < count; i++) {
+      const k = kinds[i % kinds.length] || 'grass';
+      const x = Math.random() * span;
+      this.flora.push({
+        k,
+        x,
+        y: gy - 2 - Math.random() * 6,
+        baseY: gy - 2,
+        ph: Math.random() * 6,
+        sway: k === 'grass_tall' ? 0.05 : (0.03 + Math.random() * 0.05),
+        amp: k === 'grass_tall' ? 5 : (k === 'mushroom' ? 1 : (2 + Math.random() * 4)),
+        dir: Math.random() < 0.5 ? -1 : 1,
+        life: 0,
+        swaying: 0,
+        scale: k === 'grass_tall' ? 1.4 : (k === 'mushroom' ? 1.1 : 1),
+      });
+    }
+  }
   frameRect() {
     const d = this.def;
     if (!this.usingSheet) return [0, 0, this.img.naturalWidth || this.W, this.img.naturalHeight || this.H];
@@ -275,12 +326,13 @@ class StageRenderer {
     this.t++;
     if (this.crowd && this.crowdHype > 0) this.crowdHype--;
     const d = this.def;
-    const want = this.reducedFlag ? 12 : 46;
+    const want = this.reducedFlag ? 18 : 110;
     const kinds = [];
     if (d.embers) kinds.push('ember');
     if (d.petals) kinds.push('petal');
     if (d.bubbles) kinds.push('bubble');
     if (d.fireflies) kinds.push('firefly');
+    if (d.flora || d.flowers) kinds.push('flor', 'grama', 'folha');
     /* AMBIENCIA v2: neon piscando, barras de glitch, chuva de codigo,
        poeira de luz — cada mapa ganha vida propria. */
     if (d.neon) kinds.push('neon');
@@ -325,6 +377,18 @@ class StageRenderer {
       if (f.x < -60) f.x = this.W + 50;
       if (f.x > this.W + 60) f.x = -50;
     }
+    /* FLORA: flores e grama balançam com vento e reagem a golpes */
+    const floraWind = wind * 0.5 + (this.floraShake > 0 ? Math.sin(this.t * 0.3) * 1.5 : 0);
+    for (const pl of this.flora) {
+      pl.ph += pl.sway;
+      pl.x += Math.sin(pl.ph) * pl.sway * 0.5 + floraWind * 0.3;
+      if (pl.swaying > 0) {
+        pl.swaying--;
+        pl.x += pl.dir * (pl.amp * 2);
+      }
+      if (pl.x < 10) pl.x = 10;
+      if (pl.x > (this.W || 960) - 10) pl.x = (this.W || 960) - 10;
+    }
     if (this.propShake > 0) this.propShake *= 0.84;
     if (this.hitFlash > 0) this.hitFlash--;
     for (const p of this.props) {
@@ -361,15 +425,100 @@ class StageRenderer {
     }
     ctx.restore();
   }
+  drawFlora(ctx) {
+    if (!this.flora || !this.flora.length) return;
+    const gy = this.groundY || 458;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    for (const pl of this.flora) {
+      const xx = pl.x;
+      const yy = pl.y - (pl.swaying > 0 ? 2 : 0);
+      const sway = Math.sin(this.t * pl.sway + pl.ph) * pl.amp * (pl.swaying > 0 ? 2 : 1);
+      const a = 0.85 + Math.sin(this.t * 0.05 + pl.ph) * 0.1;
+      ctx.globalAlpha = a;
+      ctx.save();
+      ctx.translate(xx + sway, yy);
+      if (pl.k === 'grass') {
+        ctx.fillStyle = '#7cb342';
+        ctx.fillRect(-1, 0, 3, 10 + Math.sin(this.t * 0.1 + pl.ph) * 2);
+        ctx.fillStyle = '#689f38';
+        ctx.fillRect(1, 2, 2, 8 + Math.sin(this.t * 0.1 + pl.ph + 1) * 2);
+      } else if (pl.k === 'grass_tall') {
+        const h = 16 + Math.sin(this.t * 0.08 + pl.ph) * 3;
+        ctx.fillStyle = '#689f38';
+        ctx.fillRect(-2, 0, 5, h);
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(0, 0, 3, h - 4);
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(-1, h - 6, 7, 4);
+      } else if (pl.k === 'flower_red') {
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath();
+        ctx.arc(0, -4, 3 + Math.sin(this.t * 0.1 + pl.ph) * 0.5, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(0, -4, 1.5, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#558b2f';
+        ctx.fillRect(-0.5, 0, 1, 6);
+      } else if (pl.k === 'flower_yellow') {
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(0, -4, 3 + Math.sin(this.t * 0.1 + pl.ph) * 0.5, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath();
+        ctx.arc(0, -4, 1.5, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#558b2f';
+        ctx.fillRect(-0.5, 0, 1, 6);
+      } else if (pl.k === 'mushroom') {
+        ctx.fillStyle = '#7b1fa2';
+        ctx.beginPath();
+        ctx.arc(0, -6, 5, 0, Math.PI, false);
+        ctx.fill();
+        ctx.fillStyle = '#4a148c';
+        ctx.fillRect(-1, -6, 2, 8);
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(-0.5, 2, 1, 4);
+      } else if (pl.k === 'clover') {
+        ctx.fillStyle = '#4caf50';
+        ctx.beginPath();
+        ctx.arc(-2, -3, 2.5, 0, 6.28);
+        ctx.arc(2, -3, 2.5, 0, 6.28);
+        ctx.arc(0, -5, 2.5, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(-0.5, -2, 1, 4);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
   react(power) {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
     this.propShake = Math.max(this.propShake, power);
+    this.floraShake = Math.max(this.floraShake, power >= 12 ? 60 : 20);
     if (this.crowd) this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
     if (power < 11) return;
     for (const p of this.props) {
       if (p.fall && !p.falling && Math.random() < 0.6) {
         p.falling = true;
         p.vy = -1.4;
+      }
+    }
+    /* FAUNA INTERATIVA: assusta bichos proximos a golpes fortes */
+    if (this.liveFauna) {
+      const r = power >= 15 ? 220 : 140;
+      for (const a of this.liveFauna.animals) {
+        if (a.state === 'gone' || a.scared > 0) continue;
+        if (Math.abs(a.x - (this.game ? this.game.W / 2 : 480)) < r && Math.random() < 0.5) {
+          a.state = 'flee'; a.scared = 240 + Math.random() * 180;
+          a.vx = (a.x < 480 ? -1 : 1) * (a.k === 'bird' || a.k === 'pigeon' ? 5 : 3.4);
+          a.dir = a.vx < 0 ? -1 : 1;
+          if (a.k === 'pigeon' || a.k === 'bird') { a.vy = -3.2; a.flying = true; }
+        }
       }
     }
   }
@@ -429,6 +578,8 @@ class StageRenderer {
       if (f.kind === 'bird') Art.fx2(ctx, 'birds', f.row, Math.floor(this.t / 6 + f.ph), f.x, f.y, { scale: 1.05 * f.s, dir });
       else Art.cell(ctx, 'fauna', f.row, Math.floor(this.t / 4 + f.ph), f.x, f.y, { scale: 1.05 * f.s, dir: -dir });
     }
+    /* FLORA: desenha flores e grama no chao */
+    this.drawFlora(ctx);
     if (!this.reducedFlag) {
       // Tint leve, source-over e limitado à área acima do piso: custa menos
       // que uma blendagem avançada em toda a tela e deixa os masters legíveis.
