@@ -230,6 +230,8 @@ body.reduced .cell .face.roster-sprite { animation: none; }
 .pet-spr { width: 96px; height: 96px; background-size: 384px auto; background-position: 0 calc(var(--row) * -96px); image-rendering: pixelated; animation: pet4 .8s steps(4) infinite; transform: scale(.7); margin: -14px; }
 .pet-spr.none { animation: none; display: grid; place-items: center; }
 .pet-spr.none::before { content: '∅'; font-size: 30px; color: #6b4fb3; }
+.pet.locked { filter: grayscale(1) brightness(0.65); cursor: not-allowed; }
+.pet.locked b { color: var(--gold); }
 @keyframes pet4 { from { background-position-x: 0; } to { background-position-x: -384px; } }
 body.reduced .pet-spr { animation: none; }
 

@@ -887,12 +887,26 @@ const UI = {
     document.querySelectorAll('.pet-tabs .tab').forEach((t) => t.classList.toggle('on', +t.dataset.slot === slot));
     const cur = Profile.data.pets[slot];
     const grid = this.$('pet-grid');
-    grid.innerHTML = PETS.filter((p) => !p.secret || (typeof Profile !== 'undefined' && Profile.hasPitoco && Profile.hasPitoco())).map((p) => `
-      <button class="nav pet ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
-        <span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v40-jess)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>
-        <b>${p.name}</b><small>${p.buff}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
-      </button>`).join('');
+    const hasPit = typeof Profile !== 'undefined' && Profile.hasPitoco && Profile.hasPitoco();
+    grid.innerHTML = PETS.map((p) => {
+      const locked = !!p.secret && !hasPit; /* segredo travado mostra SILHUETA, nao some */
+      const spr = locked
+        ? `<span class="pet-spr none" title="???"></span>`
+        : `<span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v46-jessflora)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
+      const name = locked ? '???' : p.name;
+      const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : p.buff;
+      return `
+      <button class="nav pet ${locked ? 'locked' : ''} ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
+        ${spr}
+        <b>${name}</b><small>${desc}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
+      </button>`;
+    }).join('');
     grid.querySelectorAll('.pet').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) {
+        AudioSys.play('deny');
+        UI.toast('🔒 Mascote secreto — resgaste o código PITOCO.', 2600);
+        return;
+      }
       Profile.setPet(slot, b.dataset.id);
       AudioSys.play('pickup');
       this.renderPets();
@@ -932,10 +946,13 @@ const UI = {
     msg.className = 'redeem-msg ' + (r.ok ? 'ok' : 'err');
     if (r.ok) {
       const ids = r.ids || [];
-      this.$('redeem-faces').innerHTML = ids.map((id, k) => {
+      const petFace = r.pet
+        ? `<div class="rf" style="--d:0s"><div class="vs-sprite" style="background-image:url(assets/pets/pitoco.png?v=v46-jessflora);background-size:384px auto"></div><b style="--c:#f0c24b">Pitoco</b><small>mascote secreto</small></div>`
+        : '';
+      this.$('redeem-faces').innerHTML = petFace + ids.map((id, k) => {
         const d = FIGHTERS.find((x) => x.id === id);
         const sheetClass = ROSTER_4X8_SPRITES.has(id) ? ' sprite-4x8' : '';
-        return `<div class="rf" style="--d:${k * 0.25}s"><div class="vs-sprite${sheetClass}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
+        return `<div class="rf" style="--d:${(k + (r.pet ? 1 : 0)) * 0.25}s"><div class="vs-sprite${sheetClass}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
       }).join('');
       if (!r.already) { AudioSys.play('unlock'); AudioSys.voice('unlocked'); }
       input.value = '';

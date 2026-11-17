@@ -2,7 +2,8 @@
 const fs = require('fs'); const vm = require('vm');
 function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
 const { createCanvas } = req('canvas');
-const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs,
+const { PNG } = req('pngjs');
+const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs, PNG,
   Profile: { SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian'], data: { settings: { reducedMotion: false }, unlocked: [], stats: {}, achievements: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0,
     unlockPitoco() { if (this.data.pitocoUnlocked) return false; this.data.pitocoUnlocked = true; return true; }, hasPitoco() { return !!this.data.pitocoUnlocked; } },
   EMPTY_INPUT: Object.freeze({ left: false, right: false, down: false, up: false, punch: false, kick: false }),
@@ -165,6 +166,145 @@ check('Jess + Pitoco: a dupla da ficha funciona (regen)', jess.hp > hpS0 + 25, M
 let ticksS = 0;
 for (let t = 0; t < 2400; t++) { gS.tick(); ticksS++; if (['win', 'ko', 'over'].includes(gS.roundState)) break; }
 check('Jess com Pitoco: partida completa sem crash', ticksS > 0);
+
+// ==== 7. SHEET DA JESS: recorte limpo em TODAS as 60 celulas ====
+{
+  const img = PNG.sync.read(fs.readFileSync('assets/sprites/jess.png'));
+  check('jess.png 1280x3900 (4x15 de 320x260)', img.width === 1280 && img.height === 3900, img.width + 'x' + img.height);
+  check('layout.js: jess -> assets/sprites/jess.png, 15 poses', SPRITE_LAYOUT.files.jess === 'assets/sprites/jess.png' && SPRITE_LAYOUT.poses.length === 15);
+  const CW = 320, CH = 260, dd = img.data;
+  const MAGENTA = (r,g,b,a) => a > 40 && g < 90 && r > 150 && b > 90;
+  let magenta = 0, empty = 0, edgeTouch = 0, fragTotal = 0; const fragDet = [];
+  for (let r = 0; r < 15; r++) for (let c = 0; c < 4; c++) {
+    const x0 = c * CW, y0 = r * CH;
+    const op = new Uint8Array(CW * CH);
+    let nOp = 0;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+      const i = ((y0 + y) * img.width + x0 + x) * 4;
+      if (dd[i + 3] > 40) { op[y * CW + x] = 1; nOp++; if (MAGENTA(dd[i], dd[i+1], dd[i+2], dd[i+3])) magenta++; }
+    }
+    if (nOp === 0) { empty++; continue; }
+    let bx0 = CW, bx1 = -1, by0 = CH, by1 = -1;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (op[y * CW + x]) { if (x<bx0)bx0=x; if (x>bx1)bx1=x; if (y<by0)by0=y; if (y>by1)by1=y; }
+    if (bx0 === 0 || bx1 === CW-1 || by0 === 0 || by1 === CH-1) edgeTouch++;
+    const seen = new Uint8Array(CW * CH); const comps = [];
+    for (let i = 0; i < CW * CH; i++) {
+      if (!op[i] || seen[i]) continue;
+      let size = 0; const st = [i]; seen[i] = 1;
+      while (st.length) { const p = st.pop(); size++; const px = p % CW, py = (p / CW) | 0;
+        if (px>0 && op[p-1] && !seen[p-1]) { seen[p-1]=1; st.push(p-1); }
+        if (px<CW-1 && op[p+1] && !seen[p+1]) { seen[p+1]=1; st.push(p+1); }
+        if (py>0 && op[p-CW] && !seen[p-CW]) { seen[p-CW]=1; st.push(p-CW); }
+        if (py<CH-1 && op[p+CW] && !seen[p+CW]) { seen[p+CW]=1; st.push(p+CW); } }
+      comps.push({ size, seed: i });
+    }
+    comps.sort((a, b) => b.size - a.size);
+    const main = comps[0].seed;
+    let m; { const st = [main]; const im = new Uint8Array(CW*CH); im[main] = 1;
+      while (st.length) { const p = st.pop(); const px = p % CW, py = (p / CW) | 0;
+        if (px>0 && op[p-1] && !im[p-1]) { im[p-1]=1; st.push(p-1); }
+        if (px<CW-1 && op[p+1] && !im[p+1]) { im[p+1]=1; st.push(p+1); }
+        if (py>0 && op[p-CW] && !im[p-CW]) { im[p-CW]=1; st.push(p-CW); }
+        if (py<CH-1 && op[p+CW] && !im[p+CW]) { im[p+CW]=1; st.push(p+CW); } }
+      m = im;
+      for (let k = 0; k < 6; k++) { const nm = new Uint8Array(m);
+        for (let p = 0; p < CW*CH; p++) { if (!m[p]) continue; const px = p % CW, py = (p / CW) | 0;
+          nm[p]=1; if (px>0) nm[p-1]=1; if (px<CW-1) nm[p+1]=1; if (py>0) nm[p-CW]=1; if (py<CH-1) nm[p+CW]=1; }
+        m = nm; } }
+    for (const cp of comps.slice(1)) {
+      if (cp.size < 8) continue;
+      let near = false; const st = [cp.seed]; const vis = new Uint8Array(CW*CH); vis[cp.seed] = 1;
+      while (st.length && !near) { const p = st.pop(); if (m[p]) { near = true; break; }
+        const px = p % CW, py = (p / CW) | 0;
+        if (px>0 && op[p-1] && !vis[p-1]) { vis[p-1]=1; st.push(p-1); }
+        if (px<CW-1 && op[p+1] && !vis[p+1]) { vis[p+1]=1; st.push(p+1); }
+        if (py>0 && op[p-CW] && !vis[p-CW]) { vis[p-CW]=1; st.push(p-CW); }
+        if (py<CH-1 && op[p+CW] && !vis[p+CW]) { vis[p+CW]=1; st.push(p+CW); } }
+      if (!near) { fragTotal++; if (fragDet.length < 5) fragDet.push('r'+r+'c'+c+' n='+cp.size); }
+    }
+  }
+  check('60/60 celulas com conteudo (pose nenhuma vazia)', empty === 0, empty + ' vazias');
+  check('sheet inteira: 0 pixels magenta', magenta === 0, magenta + ' px');
+  check('0 fragmentos soltos em qualquer celula (recorte limpo)', fragTotal === 0, fragDet.join(' '));
+  check('nenhuma celula toca a borda da celula (sem corte colado)', edgeTouch === 0, edgeTouch + ' tocam');
+  const ab = PNG.sync.read(fs.readFileSync('assets/abilities/jess.png'));
+  check('abilities/jess.png 512x640 (4 cols x 5 linhas de 128)', ab.width === 512 && ab.height === 640, ab.width + 'x' + ab.height);
+  let abRows = 0;
+  for (let r = 0; r < 5; r++) { let tem = false;
+    for (let y = r*128; y < (r+1)*128 && !tem; y++) for (let x = 0; x < ab.width && !tem; x++) if (ab.data[(y*ab.width+x)*4+3] > 40) tem = true;
+    if (tem) abRows++; }
+  check('abilities/jess.png: 5/5 linhas com sprite (linha 4 = ult)', abRows === 5, abRows + '/5');
+}
+
+// ==== 8. ULT COMPLETA: gas rosa continuo + tela turva (classe+CSS) + slow + expira ====
+const gU = mk('jess', 'du');
+const fU = gU.activeOf(0), oU = gU.activeOf(1);
+check('kit da Jess: 5 poderes, slot 4 = ultimate daltonic', fU.ownKit().length === 5 && fU.ownKit()[4].slot === 'ultimate', fU.ownKit().map(p => p.id).join(','));
+fU.x = 300; oU.x = 500; fU.dir = 1;
+fU.cd = [0,0,0,0,0,0,0,0,0,0]; fU.castLock = 0; fU.state = 'idle'; fU.cast = null; fU.ultimate = 100;
+fU.tryCast(4);
+for (let t = 0; t < 70; t++) gU.tick();
+check('ult aplicou daltonic + slow no rival e lifesteal na Jess', oU.has('daltonic') && oU.has('slow') && fU.has('lifesteal'));
+let pink = 0;
+for (let t = 0; t < 120; t++) { gU.tick(); pink += gU.sparks.filter((s) => s.color === '#ff7ad9').length; }
+check('gas rosa #ff7ad9 continuo (>=20 sparks em 120 frames)', pink >= 20, pink + ' sparks');
+for (let t = 0; t < 180; t++) gU.tick();
+check('aos ~5s: rival segue daltonic E lento (slow constante)', oU.has('daltonic') && oU.has('slow'), 'dalt=' + oU.left('daltonic') + ' slow=' + oU.left('slow'));
+check('speedMult do rival cortada pelo slow', oU.speedMult() <= (oU.def.stats.speed || 1) * 0.6, oU.speedMult().toFixed(2));
+// tela turva/cinza: classe no canvas + CSS real
+const toggles = [];
+const gV = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle: (c, v) => toggles.push([c, v]), add() {}, remove() {} } });
+gV.start({ mode: 'versus', teams: [['du'], ['jess']], stage: 'treino-dojo', cpu: [false, true], roundsToWin: 1, timer: 99 });
+for (let t = 0; t < 700 && gV.roundState !== 'fight'; t++) gV.tick();
+const pv = gV.activeOf(0), jv = gV.activeOf(1);
+jv.x = 400; pv.x = 300; jv.dir = -1;
+jv.cd = [0,0,0,0,0,0,0,0,0,0]; jv.castLock = 0; jv.state = 'idle'; jv.cast = null; jv.ultimate = 100;
+jv.tryCast(4);
+for (let t = 0; t < 80; t++) { gV.tick(); gV.render(); }
+const togD = toggles.filter((t) => t[0] === 'daltonic');
+check('classe .daltonic LIGADA no canvas do jogador local atingido', togD.length > 0 && togD[togD.length-1][1] === true, JSON.stringify(togD.slice(-2)));
+const css = fs.readFileSync('css/style.css', 'utf8');
+check('CSS #game.daltonic = grayscale + blur (tela cinza/turva)', /#game\\.daltonic\\s*\\{[^}]*grayscale\\(1\\)[^}]*blur/.test(css));
+check('CSS: veu de gas rosa sobre o palco (rgba 255,122,217)', /255,122,217/.test(css) && /daltonic/.test(css));
+pv.status.daltonic = 0;
+for (let t = 0; t < 5; t++) gV.render();
+const offD = toggles.filter((t) => t[0] === 'daltonic');
+check('classe .daltonic DESLIGA ao fim do status', offD[offD.length-1][1] === false);
+
+// ==== 9. CONTROLES INVERTIDOS DE VERDADE (caminho real do jogo) ====
+const gW = mk('jess', 'du');
+const fW = gW.activeOf(0), oW = gW.activeOf(1);
+fW.x = 300; oW.x = 520; fW.dir = 1; oW.dir = -1;
+fW.cd = [0,0,0,0,0,0,0,0,0,0]; fW.castLock = 0; fW.state = 'idle'; fW.cast = null; fW.ultimate = 100;
+fW.tryCast(4);
+for (let t = 0; t < 70; t++) gW.tick();
+check('rival daltonic no teste de caminho', oW.has('daltonic') === true);
+const rightIn = { left: false, right: true, down: false, up: false, punch: false, kick: false };
+for (let k = 0; k < 10; k++) rightIn['a' + k] = false;
+const origFor = gW.inputFor.bind(gW);
+gW.inputFor = (ti) => ti === 1 ? Object.assign({}, rightIn) : origFor(ti);
+oW.state = 'idle'; oW.x = 480; oW.vx = 0;
+const x0 = oW.x;
+for (let t = 0; t < 40; t++) gW.tick();
+check('segurando RIGHT com daltonic o rival anda pra ESQUERDA', oW.x < x0, 'x ' + x0 + ' -> ' + oW.x.toFixed(1));
+// habilidades: a0 -> slot 4, a4 -> slot 0, a1 -> slot 3 (espelho 1-5 dentro do kit)
+const casts = [];
+const origCast = oW.startCast.bind(oW);
+oW.startCast = (i, p) => { casts.push(i); return origCast(i, p); };
+/* drive direto no update do lutador (o loop do game pode estar em hitstop apos a ult) */
+const pressA = (slot) => {
+  const inp = { left: false, right: false, down: false, up: false, punch: false, kick: false };
+  for (let k = 0; k < 10; k++) inp['a' + k] = false;
+  inp['a' + slot] = true;
+  oW.state = 'idle'; oW.cast = null; oW.castLock = 0; oW.cd = oW.cd.map(() => 0); oW.ultimate = 100; oW.charge = [100, 100]; oW.onGround = true; oW.vx = 0; oW.benched = false;
+  oW.buf.punch = 0; oW.buf.kick = 0; for (let k = 0; k < 10; k++) oW.buf['a' + k] = 0; /* limpa resto do press anterior */
+  const antes = casts.length;
+  oW.update(Object.assign({}, inp));
+  return casts.length > antes ? casts[casts.length - 1] : -1;
+};
+const c0 = pressA(0), c4 = pressA(4), c1 = pressA(1);
+oW.startCast = origCast;
+check('tecla 1 (a0) com daltonic solta slot 4; tecla 5 (a4) solta slot 0; tecla 2 (a1) solta slot 3', c0 === 4 && c4 === 0 && c1 === 3, 'a0->' + c0 + ' a4->' + c4 + ' a1->' + c1);
 
 console.log('---');
 console.log(fails === 0 ? 'INTENSIVO JESS/PITOCO: TUDO OK (' + n + ' checks)' : 'INTENSIVO JESS/PITOCO: ' + fails + ' FALHAS de ' + n);

@@ -16,16 +16,22 @@ class LiveFauna {
     const spawn = (k, n, opts) => { const span = game.W || 960; for (let i = 0; i < n; i++) { const a = Object.assign({ k, x: 60 + Math.random() * (span - 120), y: groundY, vx: 0, vy: 0, dir: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 6, state: 'idle', timer: 60 + Math.random() * 240, scared: 0 }, opts); a.baseY = a.y; this.animals.push(a); } };
     for (const k of kinds) {
       if (k === 'pigeons') spawn('pigeon', 3 + Math.floor(Math.random() * 2), { y: groundY - 2 });
-      if (k === 'birds') spawn('bird', 2, { y: groundY - 240 - Math.random() * 120, sky: true });
+      if (k === 'birds' || k === 'bird') spawn('bird', 2, { y: groundY - 240 - Math.random() * 120, sky: true });
       if (k === 'cat') spawn('cat', 1, { y: groundY - 2 });
       if (k === 'dog') spawn('dog', 1, { y: groundY - 2 });
       if (k === 'dragonfly') spawn('dragonfly', 2, { y: groundY - 160 - Math.random() * 90, sky: true });
       if (k === 'fireflies') spawn('firefly', 6, { y: groundY - 210 - Math.random() * 160, sky: true });
-      if (k === 'butterflies') spawn('butterfly', 3, { y: groundY - 80 - Math.random() * 120, sky: true });
+      if (k === 'butterflies' || k === 'butterfly') spawn('butterfly', k === 'butterfly' ? 2 : 3, { y: groundY - 80 - Math.random() * 120, sky: true });
       if (k === 'squirrel') spawn('squirrel', 1, { y: groundY - 2 });
       if (k === 'seagull') spawn('seagull', 2, { y: groundY - 200 - Math.random() * 120, sky: true });
       if (k === 'frog') spawn('frog', 1, { y: groundY - 2 });
-      if (k === 'fish') spawn('fish', 2, { y: groundY - 14, water: true });
+      /* peixe nasce NA AGUA: palco com tanque (bubbles/underwater) no meio da coluna,
+         palco com mare (swim/tide) logo abaixo da linha do chao (dock) — antes nascia
+         no ar, acima de groundY */
+      if (k === 'fish') {
+        const tank = def && (def.bubbles || def.id === '03-underwater-lab' || def.id === 'abismo-das-baleias');
+        spawn('fish', 2, tank ? { y: 150 + Math.random() * 200, water: true } : { y: groundY + 24, water: true });
+      }
       if (k === 'rabbits') spawn('rabbit', 2, { y: groundY - 2 });
       if (k === 'hamster') spawn('hamster', 1, { y: groundY - 2 });
       if (k === 'turtle') spawn('turtle', 1, { y: groundY - 2 });
@@ -222,10 +228,14 @@ class StageRenderer {
   }
   makeFauna() {
     const list = this.def.fauna || [];
-    const spriteRow = { bee: 0, butterfly: 1, bat: 2, fish: 3 };
+    const spriteRow = { bee: 0, bat: 2 };
+    /* especies que o LiveFauna (sprites de bichos.png) ja cobre nao nascem aqui,
+       senao ficavam duplicadas (2 sistemas desenhando o mesmo bicho) */
+    const LIVE_KINDS = new Set(['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle']);
     const gy = this.groundY || 458;
     list.forEach((kind, i) => {
-      if (kind !== 'bird' && spriteRow[kind] == null) return;
+      if (LIVE_KINDS.has(kind)) return;
+      if (spriteRow[kind] == null && kind !== 'bird') return;
       const n = kind === 'bee' ? 3 : 2;
       for (let k = 0; k < n; k++) {
         const inTank = kind === 'fish' && (this.def.bubbles || this.def.id === '03-underwater-lab' || this.def.id === 'abismo-das-baleias');
@@ -291,10 +301,13 @@ class StageRenderer {
     let kinds = d.flora || [];
     if (!kinds.length) {
       const lower = (id + ' ' + group).toLowerCase();
+      let biomeMatch = false;
       for (const key of Object.keys(biomeFlora)) {
-        if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; break; }
+        if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; biomeMatch = true; break; }
       }
-      if (!kinds.length) kinds = ['grass'];
+      /* bioma casou com lista vazia (ex.: palco underwater) = SEM flora;
+         so cai no padrao quando nenhum bioma casou */
+      if (!biomeMatch) kinds = ['grass'];
     }
     const count = d.floraCount || (kinds.length ? 14 : 0);
     const span = this.W || 960;
