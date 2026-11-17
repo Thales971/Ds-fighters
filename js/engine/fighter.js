@@ -456,6 +456,7 @@ class Fighter {
       this.vx = sign * (o.kx || 3) * 0.45 / this.weight();
       game.audio.block();
       game.spawnBurst('impact', 2, this.x - sign * 14, this.y - 100, -sign, 1.3);
+      game.dust(this.x - sign * 12, 'rgba(150,200,255,0.75)', 3); /* poeira no bloqueio */
       game.registerHit(atk, this, chip, true, 3);
       this.gain(false, 0.4);
       if (atk) atk.gain(true, 0.3);
@@ -1278,6 +1279,11 @@ class Fighter {
     if (w && w.wind && this.alive && !this.benched) this.vx += w.wind * (this.y < 0 ? 0.055 : 0.03);
     if (game.pushX && this.onGround && this.alive) this.x += game.pushX;
     this.x += this.vx;
+    /* poeira leve ao correr no chao (mais frequente quando rapido) */
+    if (this.alive && this.onGround && this.state === 'walk' && Math.abs(this.vx) > 3.2) {
+      const fast = Math.abs(this.vx) > 6;
+      if ((game.rnd ? game.rnd() : Math.random()) < (fast ? 0.16 : 0.07)) game.dust(this.x - this.dir * 12, 'rgba(215,205,180,0.55)', 1);
+    }
     const decay = game.groundDecay || 0.6;
     if (this.state === 'dash' || this.state === 'backdash') this.vx *= this.def.id === 'merc' ? 0.97 : Math.max(0.9, decay);
     else if (this.state === 'cast' || this.state === 'rush') this.vx *= 0.9;
@@ -1471,6 +1477,8 @@ class Fighter {
       if (merc && this.stateTime < travel && this.stateTime % 2 === 0) {
         game.spawnImgFx('rastro', 'aura', this.x - this.dir * 18, this.y - 90, { scale: 1.3, life: 10, dir: this.dir, alpha: 0.7 });
       }
+      /* rastro de poeira no dash */
+      if (!game.reduced && this.stateTime % 3 === 0) game.dust(this.x - this.dir * 14, 'rgba(200,215,255,0.4)', 1);
       if (this.stateTime > total) { this.state = 'idle'; this.stateTime = 0; this.perfectDone = false; }
     } else this.tryActions(input);
     this._petRegen();
@@ -1864,6 +1872,7 @@ class Fighter {
       if (this.state === 'backdash') this.addStatus('invuln', 6);
     }
     this.game.audio.dash();
+    this.game.dust(this.x, 'rgba(205,220,255,0.8)', 4); /* poeira no comeco do dash */
     this.game.dust(this.x);
     if (typeof VFX !== 'undefined') VFX.dashLines(this.x, this.y, sign, this.game.reduced);
   }
@@ -2080,6 +2089,25 @@ class Fighter {
     else if (this.has('shock') && this.frame % 6 < 2) ctx.filter = 'brightness(1.8) saturate(0.4)';
     else if (this.has('overclock')) { ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; }
     const skinHue = (this.skinHue || 0);
+    /* RIM LIGHT: aura na cor do time atras do sprite (radial 'lighter') + 4 copias
+       do sprite deslocadas 1px com 'lighter' = contorno claro ao redor. Funciona
+       em qualquer canvas (nao depende de shadow/filter). */
+    if (!game.reduced && !this.has('rage') && !this.has('armor') && !this.has('overclock')) {
+      const tc = this.team === 0 ? '63,208,255' : '255,75,107';
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const rg = ctx.createRadialGradient(this.x, this.y - 90, 6, this.x, this.y - 90, 56);
+      rg.addColorStop(0, 'rgba(' + tc + ',0.30)');
+      rg.addColorStop(0.7, 'rgba(' + tc + ',0.12)');
+      rg.addColorStop(1, 'rgba(' + tc + ',0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(this.x, this.y - 90, 56, 0, 6.3); ctx.fill();
+      ctx.globalAlpha = 0.28;
+      for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x + ox, this.y + oy, false, null, null, 0);
+      }
+      ctx.restore();
+    }
     SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
     ctx.restore();
