@@ -377,7 +377,7 @@ class StageRenderer {
     this.t++;
     if (this.crowd && this.crowdHype > 0) this.crowdHype--;
     const d = this.def;
-    const want = this.reducedFlag ? 18 : 110;
+    const want = Math.round((this.reducedFlag ? 18 : 110) * ((this.game && this.game.qAmb) || 1)); /* qualidade baixa/alta muda os motes de ambiente */
     const kinds = [];
     if (d.embers) kinds.push('ember');
     if (d.petals) kinds.push('petal');
@@ -902,7 +902,8 @@ class StageRenderer {
     ctx.globalCompositeOperation = 'lighter';
     for (const L of this.lights) {
       const lx = L.x - camX * 18;
-      const pulse = this.reducedFlag ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
+      const still = this.reducedFlag || (this.game && this.game.qFxOn === false); /* qualidade baixa: luzes estaticas, sem pulso */
+      const pulse = still ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
       const halo = this._lightSprite(L, 0.16);
       if (halo) {
         ctx.globalAlpha = pulse;
