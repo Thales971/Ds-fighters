@@ -72,9 +72,9 @@ for (let r = 0; r < 10; r++) {
 }
 check('bichos.png: 10 linhas com sprite (inclui esquilo row8 e libelula row9)', rowsOk === 10, rowsOk + '/10');
 
-// 5. Torcida: 4 palcos com torcida, desenha no fundo variando pessoas (col varia por tile, src 256x200)
+// 5. Torcida: palcos com torcida no fundo (arquibancada/quadra/terminal/estacao + sesi + circo), desenha variando pessoas
 const comTorcida = STAGES.filter((s) => s.torcida);
-check('4 palcos com torcida', comTorcida.length === 4, comTorcida.map((s) => s.id).join(','));
+check('>=6 palcos com torcida (inclui sesi e circo)', comTorcida.length >= 6 && comTorcida.some((s) => s.id === 'sesi') && comTorcida.some((s) => s.id === 'circo'), comTorcida.map((s) => s.id).join(','));
 const gCrowd = mk('arquibancada');
 check('arquibancada: 3 fileiras de torcida no fundo', gCrowd.stage.crowd && gCrowd.stage.crowd.length === 3);
 // espia drawImage para ver o retangulo de origem usado na torcida

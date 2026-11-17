@@ -134,7 +134,7 @@ check('gato em sprite foge do lutador', gato.state === 'flee' || gato.state === 
 
 // ==== 6. TORCIDA ====
 const comTorcida = STAGES.filter((s) => s.torcida);
-check('4 palcos com torcida', comTorcida.length === 4, comTorcida.map((s) => s.id).join(','));
+check('>=4 palcos com torcida (inclui sesi e circo)', comTorcida.length >= 4 && comTorcida.some((s) => s.id === 'sesi') && comTorcida.some((s) => s.id === 'circo'), comTorcida.map((s) => s.id).join(','));
 let torcidaOk = 0;
 for (const st of comTorcida) {
   try {
@@ -143,7 +143,7 @@ for (const st of comTorcida) {
     for (let t = 0; t < 60; t++) { gT.tick(); gT.render(); }
   } catch (e) { console.log('   ERRO torcida ' + st.id + ': ' + String(e).slice(0, 50)); }
 }
-check('torcida inicializa e renderiza nos 4 palcos', torcidaOk === 4, torcidaOk + '/4');
+check('torcida inicializa e renderiza em TODOS os palcos com torcida', torcidaOk === comTorcida.length, torcidaOk + '/' + comTorcida.length);
 const gH = mk('du', 'stack', 'arquibancada');
 gH.stage.crowdHype = 0;
 gH.shake(10);

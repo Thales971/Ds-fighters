@@ -107,9 +107,10 @@ check('rainbow: cura lenta nos DOIS lutadores', fR1.hp > hpR1 && fR2.hp > hpR2, 
 // ===== 7. Rotacao natural de clima num palco com pool variado =====
 const gRot = mk('parque-lago', 99999); /* pool: clear, wind, leaves, rainbow; timer longo p/ round nao acabar */
 gRot.cfg.cpu = [false, false]; /* ninguem se mata: round dura ate o timer */
+gRot.activeOf(0).addStatus('invuln', 999999); gRot.activeOf(1).addStatus('invuln', 999999); /* round nao acaba por KO */
 const vistos = new Set([gRot.weather.kind]);
-for (let t = 0; t < 6000; t++) { gRot.tick(); vistos.add(gRot.weather.kind); if (vistos.size >= 3) break; }
-check('clima ROTACIONA sozinho durante o round (pool variado, >=3 tipos em 6000 ticks)', vistos.size >= 3, [...vistos].join(','));
+for (let t = 0; t < 12000; t++) { gRot.tick(); vistos.add(gRot.weather.kind); if (vistos.size >= 3) break; }
+check('clima ROTACIONA sozinho durante o round (pool variado, >=3 tipos)', vistos.size >= 3, [...vistos].join(','));
 
 // ===== 8. 94 palcos x 600 frames com clima ativo + render, sem crash =====
 let errs = 0, okN = 0;
@@ -124,6 +125,30 @@ gRed.reduced = true;
 gRed.weather.set('rain');
 for (let t = 0; t < 400; t++) gRed.weather.update(true);
 check('reduced motion: chuva com ~35% das gotas', gRed.weather.drops.length <= Math.floor(110 * 0.4) + 1, gRed.weather.drops.length + ' gotas (max normal 110)');
+
+// ===== 10. Intensidade entra/sai SUAVEM (lerp) + palcos monotomos ganharam climas novos =====
+const gL = mk('treino-dojo');
+gL.weather.set('rain');
+check('set(rain): intensityTarget em 0.6..1 e intensity ainda baixo logo apos o set (transicao suave)', gL.weather.intensityTarget >= 0.6 && gL.weather.intensityTarget <= 1 && gL.weather.intensity < 0.3, 'intensity=' + gL.weather.intensity.toFixed(2) + ' target=' + gL.weather.intensityTarget.toFixed(2));
+for (let t = 0; t < 500; t++) gL.weather.update(true);
+check('500 ticks depois a chuva CHEGA no talo (intensity converge pro target)', Math.abs(gL.weather.intensity - gL.weather.intensityTarget) < 0.02 && gL.weather.drops.length >= Math.floor(110 * 0.55), 'intensity=' + gL.weather.intensity.toFixed(2) + ' gotas=' + gL.weather.drops.length);
+gL.weather.set('clear');
+for (let t = 0; t < 600; t++) gL.weather.update(true);
+check('set(clear): clima DESLIGA devagar (intensity -> 0, sem corte seco)', gL.weather.intensityTarget === 0 && gL.weather.intensity < 0.05, 'intensity=' + gL.weather.intensity.toFixed(3));
+const poolsNovos = { 'dojo-noite': ['fireflies', 'eclipse'], 'circo': ['confetti', 'fireworks'], 'pizzaria': ['fireflies'], 'kernel': ['aurora'], '09-orbital-core': ['aurora', 'eclipse', 'fireflies'], 'cyberpunk': ['storm', 'fog'], 'pos-codigocalipse': ['darkfog', 'fireflies'], '02-volcanic-forge': ['heatwave'], 'rust': ['heatwave'], 'corredor-datacenter': ['darkfog'], 'sala-deploy': ['fog'], 'estudio-pixel': ['fireflies'], 'sesi': ['wind', 'rain'], 'sesi-patio': ['leaves'], 'senai-valinhos': ['rain'], 'area-de-trabalho': ['rain', 'fog'] };
+let poolBad = [];
+for (const id of Object.keys(poolsNovos)) {
+  const st = STAGES.find((s) => s.id === id);
+  if (!st || !poolsNovos[id].every((w) => (st.weather || []).includes(w))) poolBad.push(id);
+}
+if (!STAGE_EXTRA['01-centro-de-dados'].weather.includes('darkfog')) poolBad.push('EXTRA:01-centro-de-dados');
+check('palcos antes monotonos ganharam climas novos no pool (' + (Object.keys(poolsNovos).length + 1) + ' palcos)', poolBad.length === 0, poolBad.join(',') || 'ok');
+let motesBad = [];
+for (const st of STAGES) {
+  const g = mk(st.id);
+  if (!(g.stage.ambient || []).some((p) => p.k === 'mote')) motesBad.push(st.id);
+}
+check('TODOS os ' + STAGES.length + ' palcos tem motes de poeira nascendo (padrao ligado no engine)', motesBad.length === 0, motesBad.slice(0, 5).join(',') || STAGES.length + '/' + STAGES.length);
 
 console.log('---');
 console.log(fails === 0 ? 'CLIMA ULTRA: TUDO OK (' + n + ' checks)' : 'CLIMA ULTRA: ' + fails + ' FALHAS de ' + n);

@@ -21,6 +21,7 @@ class Weather {
     this.wind = 0;
     this.windTarget = 0;
     this.intensity = 0;
+    this.intensityTarget = 0;
     this.drops = [];
     this.flash = 0;
     this.nextBolt = 400;
@@ -50,7 +51,8 @@ class Weather {
   set(kind) {
     if (kind !== this.kind) this.drops = [];
     this.kind = kind;
-    this.intensity = kind === 'storm' ? 1 : kind === 'clear' ? 0 : 0.6 + (this.game.rnd ? this.game.rnd() : Math.random()) * 0.4;
+    /* intensidade entra suave (lerp no update): chuva nao nasce do nada */
+    this.intensityTarget = kind === 'storm' ? 1 : kind === 'clear' ? 0 : 0.6 + (this.game.rnd ? this.game.rnd() : Math.random()) * 0.4;
     this.windTarget = (kind === 'wind' || kind === 'storm') ? ((this.game.rnd ? this.game.rnd() : Math.random()) < 0.5 ? -1 : 1) * (1.2 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.4) : 0;
     if (kind !== 'wind' && kind !== 'storm') this.wind = 0;
     this.nextBolt = 240 + (((this.game.rnd ? this.game.rnd() : Math.random()) * 200) | 0);
@@ -77,6 +79,9 @@ class Weather {
   }
   update(fighting) {
     this.t++;
+    /* transicao suave de intensidade (entra/sai devagar, como clima real) */
+    this.intensity += (this.intensityTarget - this.intensity) * 0.04;
+    if (Math.abs(this.intensityTarget - this.intensity) < 0.002) this.intensity = this.intensityTarget;
     // rajadas
     if (this.kind === 'wind' || this.kind === 'storm') {
       if (this.t % 300 === 0) this.windTarget = -Math.sign(this.windTarget || 1) * (1.1 + (this.game.rnd ? this.game.rnd() : Math.random()) * 1.6);
