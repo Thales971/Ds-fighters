@@ -52,25 +52,25 @@
       powers: [
         Object.assign({
           id: 'commit-push', name: 'Commit Push', slot: 'simple', row: 0,
-          kind: 'dash', dmg: 16, speed: 20, cd: 70, sfx: 'dash',
+          kind: 'dash', dmg: 16, speed: 20, cd: 70, whiffRecovery: 20, sfx: 'dash',
           fx: { bleed: 180, vuln: 120 },
           desc: 'Dash cortante com rastro vermelho: 16 de dano + sangramento (3s) + alvo VULNERÁVEL (+20% dano, 2s). Errou? recovery longo.',
         }, visual(0, '#ff2d55')),
         Object.assign({
           id: 'rebase', name: 'Rebase', slot: 'simple', row: 1,
-          kind: 'rush', hits: 2, dmg: 17, teleport: true, cd: 115, sfx: 'dash',
+          kind: 'rush', hits: 2, dmg: 17, teleport: true, cd: 115, whiffRecovery: 20, sfx: 'dash',
           fx: { blind: 90 },
           desc: 'Dois dashes encadeados automáticos: ~34 de dano massivo e a tela do oponente fica turva por 1,5s.',
         }, visual(1, '#7dd3fc')),
         Object.assign({
           id: 'force-merge', name: 'Force Merge', slot: 'simple', row: 2,
-          kind: 'dash', dmg: 20, speed: 22, stun: 30, kx: 12, cd: 95, sfx: 'heavy',
+          kind: 'dash', dmg: 20, speed: 22, stun: 30, kx: 12, cd: 95, whiffRecovery: 20, sfx: 'heavy',
           fx: { shock: 30 },
           desc: 'Investida de ombro: 20 de dano + knockback forte + atordoamento de 0,5s.',
         }, visual(2, '#fbbf24')),
         Object.assign({
           id: 'hotfix', name: 'Hotfix', slot: 'simple', row: 3,
-          kind: 'dash', dmg: 18, speed: 14, stun: 24, launch: -9, cd: 125, sfx: 'heavy',
+          kind: 'dash', dmg: 18, speed: 14, stun: 24, launch: -9, cd: 125, whiffRecovery: 20, sfx: 'heavy',
           fx: { vuln: 240 },
           desc: 'Uppercut lançador: 18 de dano, joga o oponente pro ar; enquanto cai ele fica VULNERÁVEL (+20% dano).',
         }, visual(3, '#f87171')),

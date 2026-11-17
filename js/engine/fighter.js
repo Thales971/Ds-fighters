@@ -1678,8 +1678,12 @@ class Fighter {
     }
     const len = this.dashHit ? 18 : (c.p.slot === 'ultimate' ? 28 : 18);
     if (c.t > len && !this.queue.length) {
+      /* DASH ERRADO (whiff): recovery extra de punicao (ficha do Dev Virado:
+         "errou o dash, apanhou" — hitstun extra enquanto a janela passou vazia) */
+      const whiffed = !this.hasHit && c.p.kind === 'dash' && c.p.slot !== 'ultimate' && c.p.whiffRecovery;
       this.cast = null;
       this.dashHit = null;
+      if (whiffed) this.hitstun = Math.max(this.hitstun, c.p.whiffRecovery);
       this.state = this.onGround ? 'idle' : 'jump';
       this.stateTime = 0;
     } else if (c.t > 70) {
@@ -1712,7 +1716,8 @@ class Fighter {
       r.hits--;
       const last = r.hits === 0;
       if (Math.abs(t.x - this.x) < 140 && Math.abs(t.y - this.y) < 160) {
-        t.takeHit(r.p.dmg / (r.p.hits || 5), { attacker: this, kx: last ? 12 : 1.5, dirSign: this.dir, stun: 22, launch: last ? -10 : 0, noScale: true, ability: true, power: r.p, element: this.elementOf(r.p), heavy: last });
+        const landed = t.takeHit(r.p.dmg / (r.p.hits || 5), { attacker: this, kx: last ? 12 : 1.5, dirSign: this.dir, stun: 22, launch: last ? -10 : 0, noScale: true, ability: true, power: r.p, element: this.elementOf(r.p), heavy: last });
+        if (landed) r.landed = true;
         this.game.beams.push({ owner: this, fid: r.fid, row: r.p.row, x: t.x, dir: this.dir, len: 0, age: 0, life: 14, y: t.y - 110, single: true, scale: last ? 2.4 : 1.4 });
       }
       if (last && r.p.finisherPillars && t) {
@@ -1723,6 +1728,8 @@ class Fighter {
       }
     }
     if (r.hits <= 0 && r.t > (r.p.hits || 5) * 7 + 10) {
+      /* rush que nao acertou nenhum hit: mesma punicao de dash errado */
+      if (r.p.whiffRecovery && !r.landed) this.hitstun = Math.max(this.hitstun, r.p.whiffRecovery);
       this.rush = null;
       this.state = 'idle';
       this.stateTime = 0;
