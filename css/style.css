@@ -332,8 +332,15 @@ body.reduced .pet-spr { animation: none; }
 .life { position: relative; height: 18px; background: #1a0508; border: 3px solid #000; box-shadow: 0 0 0 2px #ffd27d, inset 0 -4px 0 rgba(0,0,0,.4); overflow: hidden; }
 .life > div { position: absolute; top: 0; bottom: 0; left: 0; }
 .side.p2 .life > div { left: auto; right: 0; }
-.life .red { background: repeating-linear-gradient(90deg, #ff5a4a 0 6px, #c01812 6px 8px); transition: width .45s linear; }
+.life .red { background: repeating-linear-gradient(90deg, #ff7a5a 0 6px, #e02418 6px 8px); box-shadow: 0 0 8px rgba(255, 60, 40, .55); transition: width .45s linear; }
 .life .fill { background: linear-gradient(#fff36b 0 25%, #ffd400 25% 70%, #d99a00 70%); transition: width .08s; }
+.life .dmgflash { background: linear-gradient(rgba(255,255,255,.95), rgba(255,220,220,.55)); opacity: 0; pointer-events: none; }
+.life.hit .dmgflash { animation: dmgflash .14s ease-out; }
+@keyframes dmgflash { from { opacity: .9; } to { opacity: 0; } }
+.life.hit { animation: lifeShake .12s linear; }
+@keyframes lifeShake { 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.life.low { animation: lowGlow .5s steps(2) infinite; }
+@keyframes lowGlow { 50% { box-shadow: 0 0 0 2px #ffd27d, 0 0 16px rgba(255, 59, 48, .85); } }
 .life.low .fill { background: linear-gradient(#ff8a5c 0 25%, #ff3b30 25% 70%, #a1271c 70%); animation: lowHp .5s steps(2) infinite; }
 @keyframes lowHp { 50% { filter: brightness(1.6); } }
 .life .shield { background: repeating-linear-gradient(45deg, rgba(120,220,255,.75) 0 4px, rgba(120,220,255,.35) 4px 8px); }
@@ -403,7 +410,7 @@ body.reduced .pet-spr { animation: none; }
 .skill .key { margin-top: 3px; font-size: 7px; color: var(--gold); background: #241640; border: 2px solid #000; border-bottom-width: 3px; padding: 2px 3px; min-width: 22px; text-align: center; white-space: nowrap; }
 .skills.stolen .skill .ico { border-color: var(--violet); }
 .skill-name { display: none; }
-body.reduced .skill.ultimate.ready .ico, body.reduced .life.low .fill, body.reduced .timer.low { animation: none; }
+body.reduced .skill.ultimate.ready .ico, body.reduced .life.low .fill, body.reduced .timer.low, body.reduced .life.hit .dmgflash, body.reduced .life.hit, body.reduced .life.low { animation: none; }
 
 /* banner / cut-in / toast */
 #banner { position: absolute; left: 0; right: 0; top: 190px; text-align: center; z-index: 30; pointer-events: none; opacity: 0; }

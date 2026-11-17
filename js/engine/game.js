@@ -1181,6 +1181,9 @@ class Game {
     }
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
+    /* foreground do palco (grama alta na frente dos lutadores) fica sobre os
+       lutadores mas abaixo da chuva/clima */
+    if (this.stage.drawForeground) this.stage.drawForeground(ctx, camX);
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
