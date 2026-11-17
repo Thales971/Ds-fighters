@@ -200,6 +200,7 @@ class Game {
     this._hitPulse = false;
     this._ultPulse = false;
     this._drama = false;
+    this._lb = 0; /* letterbox (barras de cinema) no drama — 0..1 */
   }
   updateMusicIntensity() {
     if (typeof AudioSys === 'undefined' || !AudioSys.driveIntensity) return;
@@ -1257,6 +1258,17 @@ class Game {
     if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
     this.applyChroma(ctx, W, H); /* aberracao cromatica no topo da cena (HUD fica nitido) */
+    /* LETTERBOX de cinema: 2 barras pretas entram deslizando quando o drama liga
+       (HP baixo, ou round final de partida com mais de 1 round) — junto com a
+       vinheta escura vira cena de final. Em melhor-de-1 so entra com HP baixo. */
+    const lbT = this._drama && (low || (this.cfg.roundsToWin || 2) > 1) ? 1 : 0;
+    this._lb += (lbT - this._lb) * (this.reduced ? 1 : 0.08);
+    if (this._lb > 0.01) {
+      const bh = Math.round(H * 0.085 * this._lb);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, bh);
+      ctx.fillRect(0, H - bh, W, bh);
+    }
     ctx.save();
     ctx.translate(0, GROUND_Y);
     ctx.textAlign = 'center';

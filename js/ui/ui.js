@@ -93,6 +93,7 @@ const UI = {
     else if (!push) this.stack = [];
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.dataset.screen === name));
     this.screen = name;
+    if (name !== 'select') this.stopSelectBg();
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
     if (typeof Events !== 'undefined') this.applyEventSkin();
@@ -409,6 +410,56 @@ const UI = {
       c.addEventListener('mouseenter', () => { const who = this.selWho(); f.cursor[who] = +c.dataset.i < 0 ? FIGHTERS.length : +c.dataset.i; this.renderSelect(); });
     });
     this.renderSelect();
+    this.startSelectBg();
+  },
+  /* Palco real animado atras da selecao: StageRenderer + Weather num canvas
+     proprio com rAF proprio (o loop principal so renderiza durante a luta). */
+  startSelectBg() {
+    this.stopSelectBg();
+    const cv = this.$('select-live');
+    if (!cv || !cv.getContext || typeof StageRenderer === 'undefined' || typeof Weather === 'undefined' || typeof STAGE_LIST === 'undefined' || !STAGE_LIST.length) return;
+    const W = 960, H = 540;
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    const def = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    const stage = new StageRenderer(def, W, H, Math.round(H * 0.85));
+    const stub = {
+      W, H, rnd: Math.random, reduced: Profile.reducedMotion(), stageDef: def,
+      audio: { loop() {}, play() {}, voice() {} },
+      announce() {}, splash() {}, floatText() {},
+      fighters: () => [], strikes: [], onWeather: null,
+    };
+    stage.game = stub;
+    const weather = new Weather(stub, def);
+    weather.roll();
+    const reduced = stub.reduced;
+    let t = 0;
+    const draw = () => {
+      if (!this._selBg || this.screen !== 'select') return;
+      this._selBgRaf = requestAnimationFrame(draw);
+      t++;
+      try {
+        weather.update(false);
+        stage.update(weather);
+        ctx.clearRect(0, 0, W, H);
+        const camX = reduced ? 0 : Math.sin(t * 0.005) * 0.6;
+        stage.drawBack(ctx, camX, 0);
+        ctx.save();
+        ctx.translate(0, stage.groundY);
+        weather.draw(ctx);
+        ctx.restore();
+        if (stage.drawForeground) stage.drawForeground(ctx, camX);
+        stage.drawAmbient(ctx);
+        stage.drawVignette(ctx);
+      } catch (e) { /* fundo do menu nunca pode quebrar a selecao */ }
+    };
+    this._selBg = true;
+    this._selBgRaf = requestAnimationFrame(draw);
+  },
+  stopSelectBg() {
+    if (this._selBgRaf) cancelAnimationFrame(this._selBgRaf);
+    this._selBgRaf = 0;
+    this._selBg = null;
   },
   selWho() {
     const f = this.flow;

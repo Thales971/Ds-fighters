@@ -147,11 +147,11 @@ check('stage carrega waveSheet (assets/fx/mare.png no codigo)', !!(gM.stage.wave
 // tide.draw com sprite pronto usa drawImage (nao fillRect de onda)
 gM.mech.m.wave = 130;
 const recM = { drawImage: 0, fillRect: 0 };
-const ctxM = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect() { recM.fillRect++; }, drawImage() { recM.drawImage++; }, createLinearGradient: () => ({ addColorStop() {} }), measureText: () => ({ width: 10 }) }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+const ctxM = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect(x, y, w, h) { if (w >= 10) recM.fillRect++; }, drawImage() { recM.drawImage++; }, createLinearGradient: () => ({ addColorStop() {} }), measureText: () => ({ width: 10 }) }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
 gM.stage.waveSheet = { complete: true, naturalWidth: 1184, naturalHeight: 640 };
 gM.mech.m.draw(ctxM, gM, 100);
 check('tide.draw com sprite: usa drawImage das ondas (>=2 tiles)', recM.drawImage >= 2, 'drawImage=' + recM.drawImage);
-check('tide.draw com sprite: NAO usa o canvas generico de ondas (fillRect so do fallback)', recM.fillRect === 0, 'fillRect=' + recM.fillRect);
+check('tide.draw com sprite: NAO usa o canvas generico de ondas (fillRect largo so do fallback; filetes finos do reflexo podem usar fillRect fino)', recM.fillRect === 0, 'fillRect largo=' + recM.fillRect);
 // fallback: sem sheet pronta -> canvas antigo de triangulos
 gM.stage.waveSheet = { complete: false, naturalWidth: 0 };
 const recM2 = { drawImage: 0, fillRect: 0 };
