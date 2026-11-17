@@ -93,7 +93,7 @@ f1.status = {}; f1.addStatus('aura', 600); f1.aura = { color: '#c77dff', id: 'x'
 f1.status = {}; f1.aura = null;
 {
   const rr = mkRec(); f1.draw(rr[0]);
-  check('sem status: SEM halo (radial so da sombra)', rr[1].radial === 1, 'radial=' + rr[1].radial);
+  check('sem status: SEM halo de status (radiais so da sombra + rim light na cor do time)', rr[1].radial === 2 && rr[1].styles.some((c) => /63,208,255|255,75,107/.test(c)), 'radial=' + rr[1].radial);
 }
 // halo desligado com reduced motion
 const gR = mk('treino-dojo'); gR.reduced = true;
