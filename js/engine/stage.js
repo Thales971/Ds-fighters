@@ -246,8 +246,11 @@ class StageRenderer {
     this.fauna = [];
     this.flora = [];
     this.lights = [];
+    this.foreground = [];
+    this._skyGrad = null;
     this.makeFauna();
     this.makeFlora();
+    this.makeForeground();
     this.initTorcida();
     this.lights = this.buildLights();
     this.vignette = null;
@@ -327,16 +330,22 @@ class StageRenderer {
     };
     const id = d.id || '';
     const group = d.group || '';
-    let kinds = d.flora || [];
-    if (!kinds.length) {
-      const lower = (id + ' ' + group).toLowerCase();
+    /* FLORA SO EM MAPA NATURAL: d.flora explicito manda (vazio = sem flora);
+       senao bioma especifico; senao so ganha grama/flores se o nome/grupo do
+       palco for de lugar natural (parque, floresta, lago, rio, praia...). Palco
+       urbano/tecnico (datacenter, metro, dojo, circo...) NAO tem flora. */
+    const NATURAL_KW = ['parque', 'park', 'floresta', 'forest', 'jardim', 'garden', 'lago', 'represa', 'praia', 'beach', 'rio', 'ponte', 'manguezal', 'doca', 'serra', 'mirante', 'trilha', 'tijuca', 'iguacu', 'chapada', 'sitio', 'cafezal', 'lencois', 'campos', 'sakura', 'spring', 'python', 'japan', 'vale', 'savana', 'bosque', 'campo', 'quintal', 'fazenda', 'natureza', 'mata', 'terreiro', 'dunas', 'cachoeira', 'canyon', 'caatinga', 'pantano', 'morro', 'feira'];
+    let kinds;
+    if (Array.isArray(d.flora)) {
+      kinds = d.flora;
+    } else {
+      kinds = [];
+      const lower = (id + ' ' + (d.name || '') + ' ' + group).toLowerCase();
       let biomeMatch = false;
       for (const key of Object.keys(biomeFlora)) {
         if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; biomeMatch = true; break; }
       }
-      /* bioma casou com lista vazia (ex.: palco underwater) = SEM flora;
-         so cai no padrao quando nenhum bioma casou */
-      if (!biomeMatch) kinds = ['grass'];
+      if (!biomeMatch && NATURAL_KW.some((k) => lower.indexOf(k) >= 0)) kinds = ['grass', 'flower_red', 'clover'];
     }
     const count = d.floraCount || (kinds.length ? 14 : 0);
     const span = this.W || 960;
@@ -391,6 +400,7 @@ class StageRenderer {
       this.ambient.push({ k, x: Math.random() * this.W, y: y0, life: 0, ph: Math.random() * 6, s: Math.random(), w: k === 'glitch' ? 40 + Math.random() * 160 : 0, h: k === 'glitch' ? 2 + Math.random() * 5 : 0 });
     }
     const wind = weather ? weather.wind : 0;
+    this._wind = wind;
     this.ambient = this.ambient.filter((p) => {
       p.life++;
       if (p.k === 'ember') { p.y -= 1 + p.s; p.x += Math.sin(p.life * 0.05 + p.ph) * 0.6 + wind; }
@@ -564,7 +574,16 @@ class StageRenderer {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
     this.propShake = Math.max(this.propShake, power);
     this.floraShake = Math.max(this.floraShake, power >= 12 ? 60 : 20);
-    if (this.crowd) this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
+    if (this.crowd) {
+      const wasHype = this.crowdHype > 0;
+      this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
+      /* torcida vibra no golpe forte (som 'crowd', com throttle pra nao spammar) */
+      const g = this.game;
+      if (!wasHype && power >= 8 && g && g.audio && g.audio.play && (!this._cheerAt || this.t - this._cheerAt > 90)) {
+        this._cheerAt = this.t;
+        try { g.audio.play('crowd', { vol: 0.22 }); } catch (e) {}
+      }
+    }
     if (power < 11) return;
     for (const p of this.props) {
       if (p.fall && !p.falling && Math.random() < 0.6) {
@@ -641,6 +660,14 @@ class StageRenderer {
       const dir = f.vx > 0 ? 1 : -1;
       if (f.kind === 'bird') Art.fx2(ctx, 'birds', f.row, Math.floor(this.t / 6 + f.ph), f.x, f.y, { scale: 1.05 * f.s, dir });
       else Art.cell(ctx, 'fauna', f.row, Math.floor(this.t / 4 + f.ph), f.x, f.y, { scale: 1.05 * f.s, dir: -dir });
+    }
+    /* CEU POR TEMA: gradiente de cor no topo do palco (cacheado, 1 retangulo por frame) */
+    if (this._skyGrad == null) this._skyGrad = this.buildSkyGradient(ctx);
+    if (this._skyGrad) {
+      ctx.save();
+      ctx.fillStyle = this._skyGrad;
+      ctx.fillRect(0, 0, W, H * 0.75);
+      ctx.restore();
     }
     /* FLORA: desenha flores e grama no chao */
     this.drawFlora(ctx);
@@ -773,6 +800,70 @@ class StageRenderer {
     }
     ctx.restore();
   }
+  /* CEU POR TEMA: gradiente sutil no topo do palco muda a "cara" do mapa
+     (neve fria, forja laranja, pôr do sol rosa no parque, noite indigo...).
+     Cacheado no 1o frame: 1 createLinearGradient + 1 fillRect por frame. */
+  buildSkyGradient(ctx) {
+    const d = this.def || {};
+    const t = ((d.id || '') + ' ' + (d.name || '') + ' ' + (d.group || '')).toLowerCase();
+    const stops = StageRenderer.skyFor(t, d.tint || '#ffffff');
+    const g = ctx.createLinearGradient(0, 0, 0, (this.H || 540) * 0.78);
+    for (const [col, at] of stops) g.addColorStop(at, col);
+    return g;
+  }
+  /* CAMADA FOREGROUND: tufos altos de grama nas bordas, NA FRENTE dos lutadores,
+     com parallax rapido e leve blur — profundidade de palco 2D. So em mapa
+     natural (onde existe flora). */
+  makeForeground() {
+    this.foreground = [];
+    if (!this.flora || !this.flora.length) return;
+    const gy = this.groundY || 458;
+    const W = this.W || 960;
+    const rows = [StageRenderer.FLORA_SPR_ROW.grass_tall, StageRenderer.FLORA_SPR_ROW.grass, StageRenderer.FLORA_SPR_ROW.clover];
+    const n = 4 + ((Math.random() * 4) | 0);
+    for (let i = 0; i < n; i++) {
+      const leftSide = i % 2 === 0;
+      this.foreground.push({
+        row: rows[(Math.random() * rows.length) | 0] || 0,
+        x: leftSide ? -30 + Math.random() * 170 : W - 140 + Math.random() * 170,
+        y: gy + 6 + Math.random() * 10,
+        scale: 2.6 + Math.random() * 1.8,
+        dir: Math.random() < 0.5 ? -1 : 1,
+        ph: Math.random() * 6,
+        col: (Math.random() * 4) | 0,
+      });
+    }
+  }
+  drawForeground(ctx, camX) {
+    if (!this.foreground.length) return;
+    const gy = this.groundY || 458;
+    const wind = (this._wind || 0);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (!this.reducedFlag && ctx.filter !== undefined) { try { ctx.filter = 'blur(1.2px)'; } catch (e) {} }
+    const sprReady = typeof Art !== 'undefined' && Art.ready('flora');
+    for (const t of this.foreground) {
+      const sway = this.reducedFlag ? 0 : (Math.sin(this.t * 0.045 + t.ph) * 7 + wind * 2.2);
+      ctx.save();
+      ctx.globalAlpha = 0.96;
+      ctx.translate(t.x - camX * 26 + sway, t.y);
+      if (sprReady) {
+        Art.cell(ctx, 'flora', t.row, t.col, 0, 0, { scale: t.scale * 0.55, dir: t.dir, anchor: 'bottom', rot: sway * 0.012 });
+      } else {
+        /* fallback vetorial: tufo alto de grama */
+        const h = 26 * t.scale * 0.4;
+        ctx.fillStyle = '#4e8f2f';
+        ctx.fillRect(-3, -h, 6, h);
+        ctx.fillStyle = '#6ab04c';
+        ctx.fillRect(0, -h * 0.85, 4, h * 0.85);
+        ctx.fillStyle = '#3c7023';
+        ctx.fillRect(-6, -h * 0.6, 4, h * 0.6);
+      }
+      ctx.restore();
+    }
+    try { ctx.filter = 'none'; } catch (e) {}
+    ctx.restore();
+  }
   /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) + luminarias
      (props com flash) viram fontes de luz: halo aditivo pulsante ao redor
      da fonte e poça de luz no piso de combate. */
@@ -788,6 +879,22 @@ class StageRenderer {
     }
     return list;
   }
+  /* Halo/poça de cada luz cacheados em offscreen canvas (criados 1x): com FPS
+     ilimitado (120/144/240 Hz) o render nao recria gradiente por frame. */
+  _lightSprite(L, alpha) {
+    if (!L._halo && typeof document !== 'undefined') {
+      const c = document.createElement('canvas');
+      c.width = c.height = Math.ceil(L.r * 2);
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(L.r, L.r, 0, L.r, L.r, L.r);
+      g.addColorStop(0, 'rgba(' + L.color + ',' + alpha + ')');
+      g.addColorStop(1, 'rgba(' + L.color + ',0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, L.r * 2, L.r * 2);
+      L._halo = c;
+    }
+    return L._halo;
+  }
   drawLights(ctx, camX) {
     if (!this.lights.length) return;
     const gy = this.groundY;
@@ -796,20 +903,44 @@ class StageRenderer {
     for (const L of this.lights) {
       const lx = L.x - camX * 18;
       const pulse = this.reducedFlag ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
-      const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
-      g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
-      g.addColorStop(1, 'rgba(' + L.color + ',0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      const halo = this._lightSprite(L, 0.16);
+      if (halo) {
+        ctx.globalAlpha = pulse;
+        ctx.drawImage(halo, lx - L.r, L.y - L.r);
+        ctx.globalAlpha = 1;
+      } else {
+        const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
+        g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(' + L.color + ',0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      }
       if (L.y < gy) {
         const pr = L.r * 0.85;
-        const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
-        pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
-        pg.addColorStop(1, 'rgba(' + L.color + ',0)');
-        ctx.fillStyle = pg;
-        ctx.beginPath();
-        ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (!L._pool && typeof document !== 'undefined') {
+          const c = document.createElement('canvas');
+          c.width = c.height = 128;
+          const x = c.getContext('2d');
+          const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+          g.addColorStop(0, 'rgba(' + L.color + ',0.10)');
+          g.addColorStop(1, 'rgba(' + L.color + ',0)');
+          x.fillStyle = g;
+          x.fillRect(0, 0, 128, 128);
+          L._pool = c;
+        }
+        if (L._pool) {
+          ctx.globalAlpha = pulse;
+          ctx.drawImage(L._pool, lx - pr, gy + 4 - 12, pr * 2, 24);
+          ctx.globalAlpha = 1;
+        } else {
+          const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
+          pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
+          pg.addColorStop(1, 'rgba(' + L.color + ',0)');
+          ctx.fillStyle = pg;
+          ctx.beginPath();
+          ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
     ctx.restore();
@@ -843,3 +974,26 @@ class StageRenderer {
    tools/build_flora_atlas.py a partir de flora/flores.png + flora/grama.png)
    por tipo de planta; tipos sem linha caem no desenho vetorial. */
 StageRenderer.FLORA_SPR_ROW = { grass: 0, grass_tall: 1, flower_red: 2, flower_yellow: 3, clover: 4 };
+
+/* Paleta de ceu por tema do palco: [regex no id+nome+grupo, stops [[rgba, offset]...]]
+   (topo -> horizonte). O ultimo fallback deriva a cor do proprio tint do mapa. */
+StageRenderer.skyFor = (text, tint) => {
+  const themes = [
+    [/underwater|abismo|baleia|submarino/, [['rgba(24,96,170,0.36)', 0], ['rgba(10,44,96,0.14)', 0.55], ['rgba(0,0,0,0)', 1]]],
+    [/kernel|neve|snow|artico|artic|ice|gelo|granizo|hail/, [['rgba(150,205,255,0.30)', 0], ['rgba(205,232,255,0.12)', 0.55], ['rgba(0,0,0,0)', 1]]],
+    [/storm|tempestade/, [['rgba(26,34,64,0.34)', 0], ['rgba(48,58,96,0.12)', 0.6], ['rgba(0,0,0,0)', 1]]],
+    [/volcan|forja|lava|rust|fundi|molten|calor|heat|deserto/, [['rgba(255,110,30,0.30)', 0], ['rgba(255,64,12,0.12)', 0.55], ['rgba(0,0,0,0)', 1]]],
+    [/neon|cyber|chrome|cromada|codigo|datacenter|glitch|exe|placa-mae|hack/, [['rgba(255,79,216,0.22)', 0], ['rgba(63,208,255,0.14)', 0.5], ['rgba(0,0,0,0)', 1]]],
+    [/noite|night|biblioteca|madrugada|halloween|cemiterio/, [['rgba(14,10,44,0.40)', 0], ['rgba(52,26,92,0.14)', 0.55], ['rgba(0,0,0,0)', 1]]],
+    [/sakura|japan|parque|lago|floresta|forest|jardim|spring|python|pantano|manguezal|doca|iguacu|tijuca|bosque|sitio|cafezal|paraty|bonito|serra|mirante|chapada|lencois|campos|vale|praia|dunas|parque de divers/, [['rgba(255,150,185,0.30)', 0], ['rgba(255,120,110,0.13)', 0.5], ['rgba(0,0,0,0)', 1]]],
+    [/circo|pizzaria|cafe|mercado|feira|terminal|metro|oficina|sesi|senai|quadra|escola|pista|estacao|trabalho|area|hive|colmeia|docker|porto/, [['rgba(255,190,90,0.18)', 0], ['rgba(255,150,60,0.07)', 0.55], ['rgba(0,0,0,0)', 1]]],
+  ];
+  for (const [re, stops] of themes) if (re.test(text)) return stops;
+  /* fallback: deriva do tint do mapa (topo um pouco mais forte, some no horizonte) */
+  const m = /^#([0-9a-f]{6})$/i.exec(tint || '');
+  if (m) {
+    const r = parseInt(m[1].slice(0, 2), 16), g = parseInt(m[1].slice(2, 4), 16), b = parseInt(m[1].slice(4, 6), 16);
+    return [['rgba(' + r + ',' + g + ',' + b + ',0.26)', 0], ['rgba(' + r + ',' + g + ',' + b + ',0.09)', 0.55], ['rgba(' + r + ',' + g + ',' + b + ',0)', 1]];
+  }
+  return [['rgba(255,255,255,0.10)', 0], ['rgba(255,255,255,0)', 1]];
+};

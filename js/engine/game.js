@@ -79,6 +79,7 @@ class Game {
     this.stageDef = this.pickStage(this.cfg.stage);
     this.cfg.stage = this.stageDef.id;
     this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
+    this.stage.game = this; /* stage.react acessa game.audio (cheer da torcida) e game.W */
     this.stage.liveFauna = (typeof LiveFauna !== 'undefined' && this.stageDef && this.stageDef.fauna && this.stageDef.fauna.length) ? new LiveFauna(this, this.stageDef) : null;
     this.stage.reducedFlag = this.reduced;
     this.round = 1;
@@ -115,7 +116,7 @@ class Game {
     // pra pessoa saber que o problema foi cache do aparelho, não o jogo.
     if (SpriteGen.fixes && SpriteGen.fixes.length) this.spriteWarnings.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
     this.beginRound();
-    if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
+    if (this.mode !== 'demo') AudioSys.playMusic((this.cfg && this.cfg.music) || 'battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
   }
   pickStage(id) {
     if (!id || id === 'random') return STAGE_LIST[((this.rnd ? this.rnd() : Math.random()) * STAGE_LIST.length) | 0];
@@ -602,6 +603,12 @@ class Game {
     if (!this.teams) return;
     for (const f of this.allFighters()) { f._px = f.x; f._py = f.y; }
     for (const p of this.projectiles) { p._px = p.x; p._py = p.y; }
+    /* fluidez em alta taxa: strikes, zonas, pickups e fauna tambem interpolam */
+    for (const s of this.strikes) { s._px = s.x; s._py = s.y; }
+    for (const z of this.zones) { z._px = z.x; z._py = z.y; }
+    for (const p of this.pickups) { p._px = p.x; p._py = p.y; }
+    const lf = this.stage && this.stage.liveFauna;
+    if (lf) for (const a of lf.animals) { a._px = a.x; a._py = a.y; }
   }
   step() {
     this.roundStateTime++;
@@ -1023,7 +1030,10 @@ class Game {
     // interpolação entre o passo anterior e o atual (renderização acima de 60 fps)
     const lerped = [];
     if (alpha < 0.999 && this.netRole !== 'guest' && this.teams && Profile.data.settings.smooth !== false) {
-      for (const e of [...this.allFighters(), ...this.projectiles]) {
+      const lf = this.stage && this.stage.liveFauna;
+      const ents = [...this.allFighters(), ...this.projectiles, ...this.strikes, ...this.zones, ...this.pickups];
+      if (lf) ents.push(...lf.animals);
+      for (const e of ents) {
         if (e._px === undefined) continue;
         const dx = e.x - e._px;
         const dy = e.y - e._py;
@@ -1171,6 +1181,9 @@ class Game {
     }
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
+    /* foreground do palco (grama alta na frente dos lutadores) fica sobre os
+       lutadores mas abaixo da chuva/clima */
+    if (this.stage.drawForeground) this.stage.drawForeground(ctx, camX);
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);

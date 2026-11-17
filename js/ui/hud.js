@@ -9,6 +9,8 @@ const HUD = {
   built: false,
   sayT: [0, 0],
   comboT: [0, 0],
+  _prevHp: [0, 0],
+  _hitT: [0, 0],
   $(id) { return document.getElementById(id); },
   keyLabels(game, ti) {
     const cfg = game.cfg || {};
@@ -39,7 +41,7 @@ const HUD = {
         <div class="face" style="background-image:url(${SpriteGen.faceUrl(f.def.id)})"></div>
         <div class="info">
           <div class="nameline"><span class="name">${f.def.name}</span><span class="pips">${game.mode === 'training' ? 'TREINO' : '<i></i>'.repeat(Math.min(9, game.cfg.roundsToWin))}</span></div>
-          <div class="life"><div class="red"></div><div class="fill"></div><div class="shield"></div><div class="lifenum"></div></div>
+          <div class="life"><div class="red"></div><div class="fill"></div><div class="shield"></div><div class="dmgflash"></div><div class="lifenum"></div></div>
           <div class="meters">
             <div class="m ult"><b>ULT</b><span><i></i></span></div>
             <div class="m ca"><b>A</b><span><i></i></span></div>
@@ -99,6 +101,11 @@ const HUD = {
       q('.red').style.width = Math.max(0, f.redHp / f.maxHp) * 100 + '%';
       q('.shield').style.width = Math.min(100, ((f.shield || 0) / f.maxHp) * 100 * 3) + '%';
       q('.lifenum').textContent = game.cfg.infiniteLife ? '∞' : Math.ceil(Math.max(0, f.hp));
+      /* flash branco na barra quando leva dano (ghost vermelho drena depois) */
+      if (this._prevHp[ti] === undefined) this._prevHp[ti] = f.hp;
+      if (f.hp < this._prevHp[ti] - 0.01) this._hitT[ti] = now + 140;
+      this._prevHp[ti] = f.hp;
+      q('.life').classList.toggle('hit', now < (this._hitT[ti] || 0));
       q('.life').classList.toggle('low', hpPct < 25);
       q('.ult i').style.width = f.ultimate + '%';
       q('.ult').classList.toggle('full', f.ultimate >= 100);

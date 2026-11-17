@@ -16,9 +16,16 @@ const AppViewport = {
     };
     window.addEventListener('resize', schedule);
     window.addEventListener('orientationchange', () => { Input.releaseAll(); schedule(); });
+    /* entrar/sair de tela cheia nao dispara resize em todo navegador */
+    document.addEventListener('fullscreenchange', schedule);
+    document.addEventListener('webkitfullscreenchange', schedule);
     if (window.visualViewport) {
       visualViewport.addEventListener('resize', schedule);
       visualViewport.addEventListener('scroll', schedule);
+    }
+    /* fallback: qualquer mudanca de tamanho do documento refaz o fit */
+    if (typeof ResizeObserver !== 'undefined') {
+      try { new ResizeObserver(schedule).observe(document.documentElement); } catch (e) {}
     }
     this.insets = document.createElement('div');
     this.insets.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';

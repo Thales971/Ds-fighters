@@ -348,7 +348,7 @@ const AudioSys = {
   sfx(name) { if (name && !this.play(name)) this.special(); },
 
   /* ---------- música ---------- */
-  pickBattleTrack() {
+  pickBattleTrack(kind) {
     const uniqueByFile = (list) => {
       const seen = new Set();
       return (Array.isArray(list) ? list : []).filter((t) => {
@@ -357,6 +357,15 @@ const AudioSys = {
         return true;
       });
     };
+    /* modo chefe: so as faixas mais AMV da lista "boss" (Skillet Monster etc.) */
+    if (kind === 'boss' && this.playlist.boss && this.playlist.boss.length) {
+      const boss = uniqueByFile(this.playlist.boss);
+      const ch = boss.length > 1 && this.lastTrack ? boss.filter((t) => t.file !== this.lastTrack) : boss;
+      const src = ch.length ? ch : boss;
+      const c = src[Math.floor(Math.random() * src.length)] || src[0];
+      this.lastTrack = c.file;
+      return c;
+    }
     const own = uniqueByFile(this.playlist.tracks);
     const pool = own.length ? own : uniqueByFile(this.playlist.fallback);
     if (!pool.length) return null;
@@ -369,7 +378,7 @@ const AudioSys = {
   },
   playMusic(kind) {
     if (!this.unlocked) { this.pending = kind; return; }
-    if (kind === 'menu' && this.musicKind === 'menu' && this.music && !this.music.paused) return;
+    if ((kind === 'menu' || kind === 'boss') && this.musicKind === kind && this.music && !this.music.paused) return;
     if (kind === 'menu') {
       this.intensity = 0;
       this.intensityTarget = 0;
@@ -377,7 +386,7 @@ const AudioSys = {
       this._ultUntil = 0;
     }
     this.stopMusic();
-    const track = kind === 'menu' ? this.playlist.menu : this.pickBattleTrack();
+    const track = kind === 'menu' ? this.playlist.menu : this.pickBattleTrack(kind);
     this.musicKind = kind;
     if (!track || !track.file) return;
     const a = new Audio(track.file);
