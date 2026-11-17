@@ -2092,17 +2092,18 @@ class Fighter {
     /* RIM LIGHT: aura na cor do time atras do sprite (radial 'lighter') + 4 copias
        do sprite deslocadas 1px com 'lighter' = contorno claro ao redor. Funciona
        em qualquer canvas (nao depende de shadow/filter). */
-    if (!game.reduced && !this.has('rage') && !this.has('armor') && !this.has('overclock')) {
+    const qRim = game.qRim == null ? 1 : game.qRim; /* qualidade baixa desliga o rim; alta reforça */
+    if (!game.reduced && qRim > 0 && !this.has('rage') && !this.has('armor') && !this.has('overclock')) {
       const tc = this.team === 0 ? '63,208,255' : '255,75,107';
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       const rg = ctx.createRadialGradient(this.x, this.y - 90, 6, this.x, this.y - 90, 56);
-      rg.addColorStop(0, 'rgba(' + tc + ',0.30)');
-      rg.addColorStop(0.7, 'rgba(' + tc + ',0.12)');
+      rg.addColorStop(0, 'rgba(' + tc + ',' + Math.min(0.5, 0.30 * qRim).toFixed(3) + ')');
+      rg.addColorStop(0.7, 'rgba(' + tc + ',' + Math.min(0.22, 0.12 * qRim).toFixed(3) + ')');
       rg.addColorStop(1, 'rgba(' + tc + ',0)');
       ctx.fillStyle = rg;
       ctx.beginPath(); ctx.arc(this.x, this.y - 90, 56, 0, 6.3); ctx.fill();
-      ctx.globalAlpha = 0.28;
+      ctx.globalAlpha = Math.min(0.45, 0.28 * qRim);
       for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
         SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x + ox, this.y + oy, false, null, null, 0);
       }

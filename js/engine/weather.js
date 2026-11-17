@@ -171,7 +171,7 @@ class Weather {
     const W = this.game.W;
     const reduced = this.game.reduced;
     const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
-    const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1));
+    const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
       const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' || this.kind === 'confetti' ? -30 - r * 380 : this.kind === 'fireworks' ? -200 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
@@ -302,7 +302,8 @@ class Weather {
       if (d.y > 0) {
         if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.3 && !reduced) this.game.splash(d.x);
         /* gota bateu no chao: anel de ondinha expandindo (proporcional a intensidade da chuva) */
-        if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.3 * this.intensity && this.rings.length < (reduced ? 24 : 60)) {
+        const qw = this.game.qWeather || 1;
+        if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < Math.min(0.9, 0.3 * this.intensity * qw) && this.rings.length < Math.round((reduced ? 24 : 60) * qw)) {
           this.rings.push({ x: d.x, r: 2, life: 20, max: 20 });
         }
         d.y = -540 - (this.game.rnd ? this.game.rnd() : Math.random()) * 40;
