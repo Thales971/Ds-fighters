@@ -24,7 +24,7 @@ let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 /* ctx gravador: conta drawImage/radial/lighter/ellipse/filter/gradientes */
 const mkRec = () => {
-  const r = { drawImage: 0, radial: 0, lighter: 0, ellipse: 0, filters: [], linear: 0, fillRect: 0, arc: 0 };
+  const r = { drawImage: 0, radial: 0, lighter: 0, ellipse: 0, filters: [], linear: 0, fillRect: 0, arc: 0, styles: [] };
   const base = { canvas: null, save() {}, restore() {}, clearRect() {}, strokeRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, translate() {}, scale() {}, rotate() {}, setTransform() {}, measureText: () => ({ width: 10 }), createPattern: () => ({}) };
   return [new Proxy(base, {
     get(t, k) {
@@ -32,8 +32,8 @@ const mkRec = () => {
       if (k === 'ellipse') return () => { r.ellipse++; };
       if (k === 'fillRect') return () => { r.fillRect++; };
       if (k === 'arc') return () => { r.arc++; };
-      if (k === 'createRadialGradient') return () => { r.radial++; return { addColorStop() {} }; };
-      if (k === 'createLinearGradient') return () => { r.linear++; return { addColorStop() {} }; };
+      if (k === 'createRadialGradient') return () => { r.radial++; return { addColorStop(o, c) { r.styles.push(String(c)); } }; };
+      if (k === 'createLinearGradient') return () => { r.linear++; return { addColorStop(o, c) { r.styles.push(String(c)); } }; };
       if (k === 'filter') return undefined;
       if (k in t) return t[k];
       return undefined;
@@ -41,6 +41,7 @@ const mkRec = () => {
     set(t, k, v) {
       if (k === 'globalCompositeOperation' && v === 'lighter') r.lighter++;
       if (k === 'filter' && v && v !== 'none') r.filters.push(v);
+      if (k === 'fillStyle' && typeof v === 'string') r.styles.push(v);
       t[k] = v; return true;
     },
   }), r];
@@ -173,6 +174,46 @@ for (const st of ['04-neon-city-exe', '05-fight-exe', '01-centro-de-dados', '02-
   try { const g = mk(st); const rec = mkRec(); for (let t = 0; t < 600; t++) { g.tick(); g.render(); } } catch (e) { neonErrs++; console.log('  ERRO ' + st + ': ' + e.message.slice(0, 70)); }
 }
 check('palcos neon/glitch/codigo/sparks: 600 frames sem crash', neonErrs === 0, neonErrs + ' erros');
+
+// ===== 9. LUZES DINAMICAS: halo aditivo + poça no chao, drama na vinheta, holofote =====
+const gL = mk('circo');
+check('circo declara luzes de holofote (def.lights)', (gL.stage.def.lights || []).length >= 2, JSON.stringify(gL.stage.def.lights || []));
+check('stage monta luzes (def.lights + props flash viram luminarias)', gL.stage.lights.length >= 4, gL.stage.lights.length + ' luzes');
+const recL = mkRec();
+gL.stage.drawBack(recL[0], 0, 0);
+check('drawBack: halo radial por luz + poça radial no chao', recL[1].radial >= gL.stage.lights.length * 2, 'radial=' + recL[1].radial + ' luzes=' + gL.stage.lights.length);
+check('luzes usam composite lighter (luz aditiva)', recL[1].lighter > 0, 'lighter=' + recL[1].lighter);
+check('poça de luz no piso: ellipse por luz acima do chao', recL[1].ellipse >= 2, 'ellipse=' + recL[1].ellipse);
+/* pulso: mesma luz em tempos diferentes -> alpha (fillStyle) muda */
+const pulseA = mkRec(); gL.stage.drawBack(pulseA[0], 0, 0);
+for (let t = 0; t < 40; t++) gL.stage.update(gL.weather);
+const pulseB = mkRec(); gL.stage.drawBack(pulseB[0], 0, 0);
+const sA = pulseA[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|');
+const sB = pulseB[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|');
+check('luz PULSA com o tempo (rgba do halo muda entre frames)', sA !== sB, 't=' + gL.stage.t + ' reduced=' + gL.stage.reducedFlag + ' A=[' + sA.slice(0, 90) + '] B=[' + sB.slice(0, 90) + ']');
+const gT = mk('treino-dojo');
+check('palco sem def.lights ganha luminarias dos props flash', gT.stage.lights.length >= 2, gT.stage.lights.length + ' luzes');
+/* DRAMA: vinheta ganha camada extra escura nas bordas */
+const gDr = mk('treino-dojo');
+gDr.stage.drama = 1; gDr.stage.reducedFlag = false;
+const recDr = mkRec(); gDr.stage.drawVignette(recDr[0]);
+check('drama LIGADO: vinheta cacheada + radial extra escuro nas bordas', recDr[1].drawImage >= 1 && recDr[1].radial >= 1 && recDr[1].fillRect >= 1, 'drawImage=' + recDr[1].drawImage + ' radial=' + recDr[1].radial + ' fillRect=' + recDr[1].fillRect);
+gDr.stage.drama = 0;
+const recDr2 = mkRec(); gDr.stage.drawVignette(recDr2[0]);
+check('drama DESLIGADO: so a vinheta cacheada (sem radial novo)', recDr2[1].radial === 0 && recDr2[1].fillRect === 0 && recDr2[1].drawImage >= 1, 'radial=' + recDr2[1].radial + ' fillRect=' + recDr2[1].fillRect);
+/* HOLOFOTE (mech spotlight do circo): cone com gradiente + poça radial */
+const gSp = mk('circo');
+check('circo tem mech de holofote com draw', !!(gSp.mech && gSp.mech.m && gSp.mech.m.draw), '');
+const recSp = mkRec();
+gSp.mech.m.x = 480;
+gSp.mech.m.draw(recSp[0], gSp);
+check('holofote: cone com gradiente linear + poça radial no chao', recSp[1].linear >= 1 && recSp[1].radial >= 1 && recSp[1].ellipse >= 1, 'linear=' + recSp[1].linear + ' radial=' + recSp[1].radial + ' ellipse=' + recSp[1].ellipse);
+/* palcos com luzes novas: 300 frames sem crash */
+let luzErrs = 0;
+for (const st of ['circo', 'dojo-noite', 'pizzaria', 'cyberpunk', 'kernel', 'rua-centro-noite', 'cafe-madrugada', 'biblioteca-noturna', 'abismo-das-baleias', '03-underwater-lab']) {
+  try { const g = mk(st); for (let t = 0; t < 300; t++) { g.tick(); g.render(); } } catch (e) { luzErrs++; console.log('  ERRO luz ' + st + ': ' + e.message.slice(0, 70)); }
+}
+check('palcos com luzes novas: 300 frames tick+render sem crash', luzErrs === 0, luzErrs + ' erros');
 
 console.log('---');
 console.log(fails === 0 ? 'LUZ/AMB: TUDO OK (' + n + ' checks)' : 'LUZ/AMB: ' + fails + ' FALHAS de ' + n);

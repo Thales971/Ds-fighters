@@ -245,9 +245,11 @@ class StageRenderer {
     }
     this.fauna = [];
     this.flora = [];
+    this.lights = [];
     this.makeFauna();
     this.makeFlora();
     this.initTorcida();
+    this.lights = this.buildLights();
     this.vignette = null;
   }
   makeFauna() {
@@ -669,6 +671,7 @@ class StageRenderer {
     fg.addColorStop(1, 'rgba(0,0,0,0.28)');
     ctx.fillStyle = fg;
     ctx.fillRect(0, gy, W, H - gy);
+    this.drawLights(ctx, camX);
     if (this.liveFauna) this.liveFauna.draw(ctx, 'back');
     ctx.restore();
   }
@@ -770,6 +773,47 @@ class StageRenderer {
     }
     ctx.restore();
   }
+  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) + luminarias
+     (props com flash) viram fontes de luz: halo aditivo pulsante ao redor
+     da fonte e poça de luz no piso de combate. */
+  buildLights() {
+    const d = this.def || {};
+    const list = [];
+    for (const L of (d.lights || [])) {
+      list.push({ x: L.x, y: L.y, r: L.r || 110, color: L.color || '255,220,150', pulse: L.pulse == null ? 1 : L.pulse, ph: L.x * 0.013 + (L.y || 0) * 0.007 });
+    }
+    for (const p of this.props) {
+      if (!p.flash) continue;
+      list.push({ x: p.x, y: p.y - 42, r: 130, color: d.neon ? (p.cell % 2 ? '255,120,240' : '120,240,255') : '255,214,140', pulse: 1, ph: p.x * 0.017 });
+    }
+    return list;
+  }
+  drawLights(ctx, camX) {
+    if (!this.lights.length) return;
+    const gy = this.groundY;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const L of this.lights) {
+      const lx = L.x - camX * 18;
+      const pulse = this.reducedFlag ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
+      const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
+      g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(' + L.color + ',0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      if (L.y < gy) {
+        const pr = L.r * 0.85;
+        const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
+        pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
+        pg.addColorStop(1, 'rgba(' + L.color + ',0)');
+        ctx.fillStyle = pg;
+        ctx.beginPath();
+        ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
   drawVignette(ctx) {
     if (!this.vignette) {
       const c = document.createElement('canvas');
@@ -784,6 +828,14 @@ class StageRenderer {
       this.vignette = c;
     }
     ctx.drawImage(this.vignette, 0, 0);
+    /* DRAMA (HP baixo / round final): escurece mais as bordas, clima de cinema */
+    if (this.drama && !this.reducedFlag) {
+      const g = ctx.createRadialGradient(this.W / 2, this.H * 0.5, this.H * 0.3, this.W / 2, this.H * 0.5, this.W * 0.78);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(1, 'rgba(10,4,18,0.45)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.W, this.H);
+    }
   }
 }
 

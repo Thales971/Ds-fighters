@@ -54,7 +54,7 @@ STAGE_LIST.push(
   {
     id: 'rua-centro-noite', name: 'Rua do Centro à Noite', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/rua-centro-noite-mid.png',
-    weather: ['clear', 'rain', 'fireflies', 'eclipse', 'darkfog'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite', motes: true,
+    weather: ['clear', 'rain', 'fireflies', 'eclipse', 'darkfog'], fauna: ['cat'], tint: '#9aa0ff', ambient: 'amb_rua-centro-noite', motes: true, lights: [{ x: 160, y: 110, r: 110, color: '255,220,150' }, { x: 800, y: 110, r: 110, color: '255,220,150' }],
     layers: [
       { src: 'assets/maps/v21/rua-centro-noite-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/rua-centro-noite-mid.png', speed: 0.42 },
@@ -139,7 +139,7 @@ STAGE_LIST.push(
   {
     id: 'cafe-madrugada', name: 'Café da Madrugada', group: 'Valinhos', pixel: true,
     image: 'assets/maps/v21/cafe-madrugada-mid.png',
-    weather: ['clear', 'rain', 'fireflies'], fauna: ['cat'], tint: '#ffb07a', ambient: 'amb_cafe-madrugada', motes: true,
+    weather: ['clear', 'rain', 'fireflies'], fauna: ['cat'], tint: '#ffb07a', ambient: 'amb_cafe-madrugada', motes: true, lights: [{ x: 300, y: 130, r: 120, color: '255,200,130' }, { x: 660, y: 130, r: 120, color: '255,200,130' }],
     layers: [
       { src: 'assets/maps/v21/cafe-madrugada-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/cafe-madrugada-mid.png', speed: 0.42 },
@@ -309,7 +309,7 @@ STAGE_LIST.push(
   {
     id: 'biblioteca-noturna', name: 'Biblioteca Noturna', group: 'Código', pixel: true,
     image: 'assets/maps/v21/biblioteca-noturna-mid.png',
-    weather: ['clear', 'fireflies', 'eclipse', 'darkfog'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna', motes: true,
+    weather: ['clear', 'fireflies', 'eclipse', 'darkfog'], fauna: ['cat', 'fireflies'], tint: '#f0d8a8', ambient: 'amb_biblioteca-noturna', motes: true, lights: [{ x: 480, y: 130, r: 210, color: '255,210,140', pulse: 0.6 }],
     layers: [
       { src: 'assets/maps/v21/biblioteca-noturna-far.png', speed: 0.16 },
       { src: 'assets/maps/v21/biblioteca-noturna-mid.png', speed: 0.42 },

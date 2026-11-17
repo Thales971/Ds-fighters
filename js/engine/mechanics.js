@@ -99,12 +99,19 @@ const MECHS = {
     },
     draw(ctx, g) {
       ctx.save();
-      ctx.globalAlpha = 0.1;
-      ctx.fillStyle = '#fff6a8';
+      /* cone com gradiente: brilhante no alto do palco, some na base */
+      const cone = ctx.createLinearGradient(0, -540, 0, 0);
+      cone.addColorStop(0, 'rgba(255,246,168,0.30)');
+      cone.addColorStop(1, 'rgba(255,246,168,0.06)');
+      ctx.fillStyle = cone;
       ctx.beginPath();
       ctx.moveTo(this.x - 14, -540); ctx.lineTo(this.x + 14, -540); ctx.lineTo(this.x + 84, 0); ctx.lineTo(this.x - 84, 0);
       ctx.fill();
-      ctx.globalAlpha = 0.25;
+      /* poça de luz no chao com gradiente radial */
+      const pool = ctx.createRadialGradient(this.x, 0, 0, this.x, 0, 84);
+      pool.addColorStop(0, 'rgba(255,246,168,0.34)');
+      pool.addColorStop(1, 'rgba(255,246,168,0)');
+      ctx.fillStyle = pool;
       ctx.beginPath();
       ctx.ellipse(this.x, 0, 84, 10, 0, 0, Math.PI * 2);
       ctx.fill();
