@@ -23,6 +23,7 @@ class Weather {
     this.intensity = 0;
     this.intensityTarget = 0;
     this.drops = [];
+    this.rings = []; /* aneis de impacto da chuva no chao */
     this.flash = 0;
     this.nextBolt = 400;
     this.changeAt = 0;
@@ -162,6 +163,11 @@ class Weather {
     this.updateParticles();
   }
   updateParticles() {
+    /* aneis de impacto: expandem e apagam sozinhos */
+    if (this.rings.length) {
+      for (const rg of this.rings) { rg.r += 1.7; rg.life--; }
+      this.rings = this.rings.filter((rg) => rg.life > 0);
+    }
     const W = this.game.W;
     const reduced = this.game.reduced;
     const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
@@ -295,6 +301,10 @@ class Weather {
       }
       if (d.y > 0) {
         if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.3 && !reduced) this.game.splash(d.x);
+        /* gota bateu no chao: anel de ondinha expandindo (proporcional a intensidade da chuva) */
+        if ((this.kind === 'rain' || this.kind === 'storm') && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.3 * this.intensity && this.rings.length < (reduced ? 24 : 60)) {
+          this.rings.push({ x: d.x, r: 2, life: 20, max: 20 });
+        }
         d.y = -540 - (this.game.rnd ? this.game.rnd() : Math.random()) * 40;
         d.x = (this.game.rnd ? this.game.rnd() : Math.random()) * (W + 200) - 100;
       }
@@ -540,6 +550,15 @@ class Weather {
         ctx.lineTo(d.x - this.wind * 3, d.y - 12 - d.s * 8);
       }
       ctx.stroke();
+      /* aneis de impacto no chao (elipse achatada = perspectiva), alpha decai com a vida */
+      if (this.rings.length) {
+        for (const rg of this.rings) {
+          ctx.strokeStyle = 'rgba(186,218,255,' + ((rg.life / rg.max) * 0.5).toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.ellipse(rg.x, 2.5, rg.r, rg.r * 0.32, 0, 0, 6.3);
+          ctx.stroke();
+        }
+      }
     }
     ctx.restore();
   }

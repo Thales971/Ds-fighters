@@ -265,6 +265,16 @@ const MECHS = {
         for (let x = -SW - ox; x < g.W + SW; x += SW) {
           ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW + bob, SW, ROW);
         }
+        /* REFLEXO na agua: copia espelhada e achatada das ondas abaixo da superficie */
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = g.reduced ? 0.07 : 0.13;
+        ctx.translate(0, 6 + bob);
+        ctx.scale(1, -0.38);
+        for (let x = -SW - ox; x < g.W + SW; x += SW) {
+          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW, SW, ROW);
+        }
+        ctx.restore();
       } else {
         ctx.globalAlpha = Math.min(0.5, this.wave / 60);
         ctx.fillStyle = '#5fb8ff';
@@ -277,6 +287,19 @@ const MECHS = {
           ctx.fillStyle = '#5fb8ff';
         }
       }
+      /* filetes de luz do ceu cintilando na agua (aditivos, bem leves) */
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const streaks = g.reduced ? 6 : 12;
+      for (let k = 0; k < streaks; k++) {
+        const fx = ((k * 197 + t * 0.6) % (g.W + 80)) - 40;
+        const fh = 12 + ((k * 37 + t) % 22);
+        const fa = (0.04 + 0.08 * (0.5 + 0.5 * Math.sin(t * 0.11 + k * 2.1))) * (g.reduced ? 0.6 : 1);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(190,225,255,' + fa.toFixed(3) + ')';
+        ctx.fillRect(fx, 3, 2 + (k % 3), fh);
+      }
+      ctx.restore();
       ctx.restore();
     },
   },
