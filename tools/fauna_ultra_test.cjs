@@ -126,6 +126,39 @@ let fired = false, decayed = false;
 for (let t = 0; t < 700; t++) { gK.mech.tick(true); if (gK.mech.m.wave === 130 && !fired) fired = true; if (fired && gK.mech.m.wave === 0) { decayed = true; break; } }
 check('kotlin: mare DISPARA (every 480) e DECAI ate 0 (nao fica constante)', fired && decayed, 'inicio wave=' + wave0 + ' fired=' + fired + ' decayed=' + decayed);
 
+// ===== 6b. SPRITES REAIS DA MARE (assets/fx/mare.png) no lugar do canvas generico =====
+const mare = PNG.sync.read(fs.readFileSync('assets/fx/mare.png'));
+check('mare.png 1184x640 (4 ondas de 160px)', mare.width === 1184 && mare.height === 640, mare.width + 'x' + mare.height);
+let mareMag = 0, mareRows = 0;
+for (let r = 0; r < 4; r++) {
+  let tem = 0;
+  for (let y = r * 160; y < (r + 1) * 160; y++) for (let x = 0; x < 1184; x++) {
+    const i = (y * 1184 + x) * 4;
+    if (mare.data[i + 3] > 40) { tem++; if (MAGENTA(mare.data[i], mare.data[i+1], mare.data[i+2], mare.data[i+3])) mareMag++; }
+  }
+  if (tem > 1000) mareRows++;
+}
+check('mare.png: 4/4 ondas com conteudo', mareRows === 4, mareRows + '/4');
+check('mare.png: 0 magenta (chroma-key limpo)', mareMag === 0, mareMag + ' px');
+const gM = mk('represa');
+const stageSrc = fs.readFileSync('js/engine/stage.js', 'utf8');
+check('stage carrega waveSheet (assets/fx/mare.png no codigo)', !!(gM.stage.waveSheet) && stageSrc.indexOf("waveSheet.src = 'assets/fx/mare.png") >= 0, '');
+// tide.draw com sprite pronto usa drawImage (nao fillRect de onda)
+gM.mech.m.wave = 130;
+const recM = { drawImage: 0, fillRect: 0 };
+const ctxM = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect() { recM.fillRect++; }, drawImage() { recM.drawImage++; }, createLinearGradient: () => ({ addColorStop() {} }), measureText: () => ({ width: 10 }) }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+gM.stage.waveSheet = { complete: true, naturalWidth: 1184, naturalHeight: 640 };
+gM.mech.m.draw(ctxM, gM, 100);
+check('tide.draw com sprite: usa drawImage das ondas (>=2 tiles)', recM.drawImage >= 2, 'drawImage=' + recM.drawImage);
+check('tide.draw com sprite: NAO usa o canvas generico de ondas (fillRect so do fallback)', recM.fillRect === 0, 'fillRect=' + recM.fillRect);
+// fallback: sem sheet pronta -> canvas antigo de triangulos
+gM.stage.waveSheet = { complete: false, naturalWidth: 0 };
+const recM2 = { drawImage: 0, fillRect: 0 };
+const ctxM2 = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect() { recM2.fillRect++; }, drawImage() { recM2.drawImage++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+gM.mech.m.draw(ctxM2, gM, 100);
+check('tide.draw sem sprite: fallback vetorial (fillRect > 0, drawImage = 0)', recM2.fillRect > 0 && recM2.drawImage === 0, 'fillRect=' + recM2.fillRect + ' drawImage=' + recM2.drawImage);
+check('tide.draw com wave=0 nao desenha nada', (() => { gM.mech.m.wave = 0; const r = { n: 0 }; const c = new Proxy({ canvas: null, save() {}, restore() {}, fillRect() { r.n++; }, drawImage() { r.n++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } }); gM.mech.m.draw(c, gM, 100); return r.n === 0; })());
+
 // ===== 7. RENDER: as 10 linhas do bichos + vetoriais (bird/bat/bee) aparecem =====
 const drawnRows = new Set(); const drawnVet = new Set();
 const origCell = Art.cell.bind(Art);

@@ -267,6 +267,9 @@ class StageRenderer {
     this.propSheet.src = 'assets/fx/stage-props.png?v=v36-amb1';
     this.rainSheet = new Image();
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
+    /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
+    this.waveSheet = new Image();
+    this.waveSheet.src = 'assets/fx/mare.png?v=v47-maresprites';
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
@@ -417,7 +420,7 @@ class StageRenderer {
     this.crowd = null;
     if (!this.def.torcida) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v46-jessflora';
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
     this.crowdHype = 0;
     this.crowd = [
       { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
