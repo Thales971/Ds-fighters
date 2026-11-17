@@ -57,6 +57,7 @@ class Game {
     this.texts = [];
     this.events = [];
     this.hitstop = 0;
+    this.chroma = 0; /* aberracao cromatica (RGB split) no golpe pesado/KO */
     this.freeze = 0;
     this.freezeOwner = null;
     this.shakeMag = 0;
@@ -199,6 +200,7 @@ class Game {
     this._hitPulse = false;
     this._ultPulse = false;
     this._drama = false;
+    this._lb = 0; /* letterbox (barras de cinema) no drama — 0..1 */
   }
   updateMusicIntensity() {
     if (typeof AudioSys === 'undefined' || !AudioSys.driveIntensity) return;
@@ -407,6 +409,11 @@ class Game {
   }
   registerHit(atk, victim, d, blocked, hitstop, counter) {
     this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
+    /* golpe pesado: hit-stop maior + aberracao cromatica na tela */
+    if (!blocked && d >= 20) {
+      this.chroma = Math.max(this.chroma, this.reduced ? 4 : (d >= 26 ? 9 : 6));
+      if (d >= 26 && !this.reduced) this.hitstop = Math.max(this.hitstop, 7);
+    }
     if (!blocked) {
       if (victim.redHp < victim.hp) victim.redHp = victim.hp;
       this._hitPulse = true;
@@ -454,6 +461,7 @@ class Game {
     this.audio.voice(perfect ? 'perfect' : 'ko');
     this.audio.play('crowd', { vol: 0.6 });
     this.shake(14);
+    if (!this.reduced) this.chroma = 12; /* K.O.: RGB split forte por alguns frames */
   }
   tagIn(ti, idx, forced) {
     const t = this.teams[ti];
@@ -568,6 +576,7 @@ class Game {
         this.tickFxOnly();
         return;
       }
+      if (this.chroma > 0) this.chroma--; /* decai sempre (e visual: nao espera o hitstop acabar) */
       if (this.hitstop > 0) { this.hitstop--; this.bufferDuringPause(); this.tickFxOnly(); return; }
       if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3 !== 0) { this.tickFxOnly(); return; } }
       this.step();
@@ -1072,6 +1081,26 @@ class Game {
     }
   }
   /* Gás rosa tipo neblina do Daltonic Mode: blobs radiais em cache varrendo a tela. */
+  /* Aberracao cromatica: desloca os canais R e B horizontalmente por alguns
+     frames apos golpe pesado/KO. So roda enquanto chroma > 0 (poucos frames),
+     entao o getImageData caro nao acontece todo frame. */
+  applyChroma(ctx, W, H) {
+    if (this.chroma <= 0 || this.reduced) return;
+    if (typeof ctx.getImageData !== 'function' || typeof ctx.putImageData !== 'function') return;
+    const d = this.chroma >= 10 ? 2 : 1; /* 2px so no K.O.; golpe pesado fica sutil (1px) */
+    const img = ctx.getImageData(0, 0, W, H);
+    const s = img.data;
+    const src = new Uint8ClampedArray(s);
+    for (let y = 0; y < H; y++) {
+      const row = y * W * 4;
+      for (let x = 0; x < W; x++) {
+        const i = row + x * 4;
+        s[i] = src[x > d ? i - d * 4 : row];                 /* canal R deslocado */
+        s[i + 2] = src[x < W - 1 - d ? i + d * 4 + 2 : row + 2]; /* canal B deslocado */
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
   drawDaltonicGas(ctx, W, H) {
     if (!this._gasBlob) {
       const c = document.createElement('canvas');
@@ -1228,6 +1257,18 @@ class Game {
     if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
     if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
+    this.applyChroma(ctx, W, H); /* aberracao cromatica no topo da cena (HUD fica nitido) */
+    /* LETTERBOX de cinema: 2 barras pretas entram deslizando quando o drama liga
+       (HP baixo, ou round final de partida com mais de 1 round) — junto com a
+       vinheta escura vira cena de final. Em melhor-de-1 so entra com HP baixo. */
+    const lbT = this._drama && (low || (this.cfg.roundsToWin || 2) > 1) ? 1 : 0;
+    this._lb += (lbT - this._lb) * (this.reduced ? 1 : 0.08);
+    if (this._lb > 0.01) {
+      const bh = Math.round(H * 0.085 * this._lb);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, bh);
+      ctx.fillRect(0, H - bh, W, bh);
+    }
     ctx.save();
     ctx.translate(0, GROUND_Y);
     ctx.textAlign = 'center';
