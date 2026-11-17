@@ -10,7 +10,7 @@
   --scale: 1;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: #05020b; overflow: hidden; }
+html, body { margin: 0; height: 100%; background: #05020b; overflow: hidden; overscroll-behavior: none; }
 body { font-family: 'Press Start 2P', monospace; color: #fff; -webkit-font-smoothing: none; user-select: none; touch-action: manipulation; }
 button, input, select { font-family: inherit; }
 kbd { display: inline-block; min-width: 20px; padding: 3px 5px; border: 2px solid #ffd27d; border-bottom-width: 4px; border-radius: 4px; background: #241640; color: var(--gold); font: 9px 'Press Start 2P', monospace; text-align: center; }
@@ -39,10 +39,22 @@ body.reduced .screen.on { animation: none; }
 .title-bg::before { content: ''; position: absolute; left: -10%; right: -10%; bottom: -10%; height: 55%; background: linear-gradient(transparent 0 0), repeating-linear-gradient(90deg, rgba(255,79,216,.45) 0 2px, transparent 2px 60px), repeating-linear-gradient(0deg, rgba(255,79,216,.45) 0 2px, transparent 2px 30px); transform: perspective(300px) rotateX(60deg); transform-origin: bottom; animation: grid 2s linear infinite; }
 @keyframes grid { to { background-position: 0 30px, 0 30px; } }
 body.reduced .title-bg::before { animation: none; }
+/* ceu vivo: estrelas piscando + neblina magenta subindo + faixa de luz varrendo */
+.title-bg::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(2px 2px at 12% 22%, #fff 60%, transparent 61%), radial-gradient(2px 2px at 32% 12%, #9adcff 60%, transparent 61%), radial-gradient(1px 1px at 55% 26%, #fff 60%, transparent 61%), radial-gradient(2px 2px at 71% 9%, #ffd27d 60%, transparent 61%), radial-gradient(1px 1px at 86% 20%, #fff 60%, transparent 61%), radial-gradient(2px 2px at 44% 6%, #ff9adf 60%, transparent 61%), radial-gradient(1px 1px at 94% 32%, #9adcff 60%, transparent 61%), radial-gradient(1px 1px at 6% 38%, #fff 60%, transparent 61%); animation: stars 2.6s steps(2) infinite; }
+@keyframes stars { 50% { opacity: .25; } }
+.title-fx { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 108%, rgba(255,79,216,.28), transparent 60%), radial-gradient(ellipse at 50% -20%, rgba(90,220,255,.16), transparent 55%); }
+.title-fx::before { content: ''; position: absolute; left: 0; right: 0; top: -20%; height: 18%; background: linear-gradient(180deg, transparent, rgba(255,255,255,.10), transparent); animation: scan 3.4s linear infinite; }
+@keyframes scan { to { top: 120%; } }
+body.reduced .title-bg::after, body.reduced .title-fx::before { animation: none; }
 #scr-title { text-align: center; }
-#scr-title .logo { width: 620px; margin-top: 60px; filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 24px rgba(255, 79, 216, .5)); animation: logoIn .8s cubic-bezier(.2, 1.6, .4, 1); }
+#scr-title .logo { width: 620px; margin-top: 60px; filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 24px rgba(255, 79, 216, .5)); animation: logoIn .8s cubic-bezier(.2, 1.6, .4, 1), logoFloat 3.4s ease-in-out .9s infinite, logoGlow 2.2s ease-in-out .9s infinite; }
 @keyframes logoIn { from { transform: scale(.3) rotate(-6deg); opacity: 0; } }
-.tagline { color: var(--cyan); font-size: 11px; letter-spacing: 2px; margin: 6px 0 26px; text-shadow: 2px 2px 0 #000; }
+@keyframes logoFloat { 50% { transform: translateY(-12px) rotate(.6deg); } }
+@keyframes logoGlow { 50% { filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 42px rgba(125, 224, 255, .75)); } }
+body.reduced #scr-title .logo { animation: none; }
+.tagline { color: var(--cyan); font-size: 11px; letter-spacing: 2px; margin: 6px 0 26px; text-shadow: 2px 2px 0 #000; animation: tagPulse 1.6s ease-in-out infinite; }
+@keyframes tagPulse { 50% { color: #fff; text-shadow: 0 0 12px rgba(154, 220, 255, .9), 2px 2px 0 #000; } }
+body.reduced .tagline { animation: none; }
 .press-start { background: none; border: 0; color: var(--gold); font-size: 22px; cursor: pointer; text-shadow: 3px 3px 0 #a1271c, 0 0 18px rgba(255, 210, 125, .6); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .15; } }
 body.reduced .press-start { animation: none; }

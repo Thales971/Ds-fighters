@@ -115,7 +115,7 @@ class Game {
     // pra pessoa saber que o problema foi cache do aparelho, não o jogo.
     if (SpriteGen.fixes && SpriteGen.fixes.length) this.spriteWarnings.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
     this.beginRound();
-    if (this.mode !== 'demo') AudioSys.playMusic('battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
+    if (this.mode !== 'demo') AudioSys.playMusic((this.cfg && this.cfg.music) || 'battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
   }
   pickStage(id) {
     if (!id || id === 'random') return STAGE_LIST[((this.rnd ? this.rnd() : Math.random()) * STAGE_LIST.length) | 0];

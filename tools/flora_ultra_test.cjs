@@ -81,6 +81,15 @@ check('03-underwater-lab (agua) NAO tem flora terrestre', (gU.stage.flora || [])
 const gS = mk('spring');
 const kindsS = new Set((gS.stage.flora || []).map((p) => p.k));
 check('bioma spring inclui flower_red', kindsS.has('flower_red'), [...kindsS].join(','));
+/* FLORA SO EM MAPA NATURAL: urbano/tecnico sem flora, natural com flora */
+const URBANOS = ['treino-dojo', 'sesi', 'sesi-patio', 'cyberpunk', 'corredor-datacenter', 'sala-deploy', 'pizzaria', 'dojo-noite', 'circo', 'docker', 'chrome', '02-volcanic-forge', '09-orbital-core', 'kali', 'senai-valinhos', 'area-de-trabalho', 'estudio-pixel', 'hackerspace', 'biblioteca-noturna', 'rua-centro-noite', 'quadra-areia', 'pista-skate', 'terminal-onibus', 'arquibancada', 'oficina-senai', 'cafe-madrugada', 'telhado-escola', 'mercado-municipal', 'estacao-valinhos', 'senai-valinhos'];
+let urbRuim = [];
+for (const id of URBANOS) { const st = STAGES.find((s) => s.id === id); if (!st) continue; const g = mk(id); if ((g.stage.flora || []).length) urbRuim.push(id + ':' + g.stage.flora.length); }
+check('palcos urbanos/tecnicos SEM flora (grama so em mapa natural)', urbRuim.length === 0, urbRuim.slice(0, 6).join(' | ') || 'ok');
+const NATURAIS = ['parque-lago', 'represa', 'ponte-rio', 'manguezal', 'tijuca', 'japan', 'spring', '06-sakura-dojo', 'vale-do-cache', 'bonito', 'sitio-manga', 'cafezal', 'lencois', 'serra-neblina', 'antena-morro', 'feira-valinhos', 'pascoa-jardim', 'criancas-parque', 'ibirapuera', '10-digital-forest', 'python'];
+let natRuim = [];
+for (const id of NATURAIS) { const st = STAGES.find((s) => s.id === id); if (!st) continue; const g = mk(id); if (!(g.stage.flora || []).length) natRuim.push(id); }
+check('palcos naturais COM flora (' + NATURAIS.length + ' testados)', natRuim.length === 0, natRuim.join(',') || 'ok');
 
 // ===== 3. VENTO + SHAKE: flora balanca e o shake decai =====
 const gW = mk('parque-lago');

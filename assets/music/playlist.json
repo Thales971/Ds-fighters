@@ -1,5 +1,5 @@
 {
-  "_como_usar": "Faixas fornecidas pelo proprietário, importadas com FFmpeg. Sorteio por luta, sem repetição consecutiva; volume moderado e ducking durante narrador. Não inclui vídeos originais.",
+  "_como_usar": "Faixas fornecidas pelo proprietário, importadas com FFmpeg. Sorteio por luta, sem repetição consecutiva; volume moderado e ducking durante narrador. Não inclui vídeos originais. A lista \"boss\" (as faixas mais AMV, ex.: Skillet Monster) toca so na luta final contra o chefe no modo torneio.",
   "tracks": [
     {
       "title": "Audioslave — Like a Stone",
@@ -243,5 +243,79 @@
   "menu": {
     "title": "DS Fighters — Tema do Menu",
     "file": "assets/music/menu_theme.mp3"
-  }
+  },
+  "boss": [
+    {
+      "title": "Skillet — Monster",
+      "file": "assets/music/rock/skillet-monster-1mjlM_RnsVE.mp3"
+    },
+    {
+      "title": "Skillet — Hero",
+      "file": "assets/music/rock/skillet-hero-uGcsIdGOuZY.mp3"
+    },
+    {
+      "title": "Starset — Monster (Official Music Video)",
+      "file": "assets/music/rock/Starset - Monster (Official Music Video).mp3"
+    },
+    {
+      "title": "Metal Gear Rising — It Has to Be This Way",
+      "file": "assets/music/rock/metal-gear-rising-it-has-to-be-this-way-2l0RMGid6vo.mp3"
+    },
+    {
+      "title": "Metal Gear Rising — The Hot Wind Blowing (Platinum Mix)",
+      "file": "assets/music/rock/metal-gear-rising-the-hot-wind-blowing-platinum-mix-mUfTybEv1HU.mp3"
+    },
+    {
+      "title": "Slipknot — Duality",
+      "file": "assets/music/rock/slipknot-duality-6fVE8kSM43I.mp3"
+    },
+    {
+      "title": "Slipknot — Psychosocial",
+      "file": "assets/music/rock/slipknot-psychosocial-5abamRO41fE.mp3"
+    },
+    {
+      "title": "Slipknot — Nero Forte",
+      "file": "assets/music/rock/slipknot-nero-forte-JGNqvH9ykfA.mp3"
+    },
+    {
+      "title": "Dragonforce — Through the Fire and Flames [OFFICIAL VIDEO]",
+      "file": "assets/music/rock/Dragonforce - Through the Fire and Flames [OFFICIAL VIDEO].mp3"
+    },
+    {
+      "title": "Linkin Park — Faint",
+      "file": "assets/music/rock/linkin-park-faint-LYU-8IFcDPw.mp3"
+    },
+    {
+      "title": "Linkin Park — One Step Closer",
+      "file": "assets/music/rock/linkin-park-one-step-closer-4qlCC1GOwFw.mp3"
+    },
+    {
+      "title": "Disturbed — Down with the Sickness",
+      "file": "assets/music/rock/disturbed-down-with-the-sickness-09LTT0xwdfw.mp3"
+    },
+    {
+      "title": "Papa Roach — Last Resort (Squeaky Clean Version)",
+      "file": "assets/music/rock/papa-roach-last-resort-squeaky-clean-version-j0lSpNtjPM8.mp3"
+    },
+    {
+      "title": "Korn — Freak on a Leash",
+      "file": "assets/music/rock/korn-freak-on-a-leash-jRGrNDV2mKc.mp3"
+    },
+    {
+      "title": "Limp Bizkit — Break Stuff",
+      "file": "assets/music/rock/limp-bizkit-break-stuff-ZpUYjpKg9KY.mp3"
+    },
+    {
+      "title": "System of a Down — Chop Suey!",
+      "file": "assets/music/rock/system-of-a-down-chop-suey-CSvFpBOe8eY.mp3"
+    },
+    {
+      "title": "Three Days Grace — Riot",
+      "file": "assets/music/rock/three-days-grace-riot-ixZDTiXiHsc.mp3"
+    },
+    {
+      "title": "Thousand Foot Krutch — Fire It Up",
+      "file": "assets/music/rock/Thousand Foot Krutch - Fire It Up.mp3"
+    }
+  ]
 }

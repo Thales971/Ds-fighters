@@ -445,7 +445,7 @@ const UI = {
     const el = this.$('card-' + ti);
     const solo = f.mode === 'arcade' || f.mode === 'online';
     if (ti === 1 && solo) {
-      el.innerHTML = f.mode === 'arcade' ? `<div class="card-empty"><b>ESCADA ARCADE</b><p>7 lutas, dificuldade crescente e um chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES' : 'Chefe: ???'}</p></div>` : `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
+      el.innerHTML = f.mode === 'arcade' ? `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p></div>` : `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
       return;
     }
     const idx = f.cursor[ti];
@@ -765,10 +765,28 @@ const UI = {
   buildArcade() {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
-    const pool = FIGHTERS.filter((d) => d.id !== me && !d.secret).map((d) => d.id).sort(() => Math.random() - 0.5).slice(0, 6);
+    /* TORNEIO RAPIDO ate o chefe: os 6 mais FORTES e INSUPORTAVEIS
+       (projetil/zoner/spam de longe, alcance absurdo, stats altos),
+       em ordem crescente de dificuldade, e o chefe IALES no fim. */
+    const score = (d) => {
+      const s = d.stats || {};
+      let sc = (s.power || 1) * 2 + (s.speed || 1) + (s.meterRate || 1) + (s.hp || 100) / 200;
+      const sp = (d.special && d.special.type) || '';
+      if (/projectile|cycle|multi|beam|summon|aoe/i.test(sp)) sc += 1.1; /* atira de longe: insuportavel */
+      if (/rush|buff|transform/i.test(sp)) sc += 0.5;
+      const kick = (d.moves && d.moves.kick) || {};
+      if ((kick.range || 0) >= 70) sc += 0.4; /* alcance absurdo */
+      return sc;
+    };
+    const rivais = FIGHTERS.filter((d) => d.id !== me && !d.secret)
+      .map((d) => ({ id: d.id, sc: score(d) }))
+      .sort((a, b) => b.sc - a.sc)
+      .slice(0, 6)
+      .map((r) => r.id)
+      .reverse(); /* mais fraco primeiro, mais forte por ultimo */
     const boss = me !== 'iales' && Profile.isUnlocked('iales') ? 'iales' : me !== 'fullstack' ? 'fullstack' : 'stack';
-    if (pool.includes(boss)) pool.splice(pool.indexOf(boss), 1, FIGHTERS.find((d) => !d.secret && d.id !== me && !pool.includes(d.id) && d.id !== boss).id);
-    f.ladder = [...pool, boss];
+    const semBoss = rivais.filter((id) => id !== boss);
+    f.ladder = [...semBoss, boss];
     f.arcadeStep = 0;
   },
   launchSurvival() {
@@ -799,9 +817,13 @@ const UI = {
     const me = FIGHTERS[f.picks[0][0]].id;
     const opp = f.ladder[f.arcadeStep];
     const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    const isBoss = f.arcadeStep >= f.ladder.length - 1; /* ultima luta = chefe */
     this.launch({
-      mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random', difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
-      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 2, timer: 180,
+      mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random',
+      difficulty: isBoss ? 3 : Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
+      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]],
+      roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99, /* torneio rapido; chefe vale 2 rounds */
+      music: isBoss ? 'boss' : 'battle', /* chefe entra com as faixas AMV (Skillet Monster etc.) */
     });
   },
   arcadeNext() {

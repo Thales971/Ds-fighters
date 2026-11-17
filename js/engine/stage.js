@@ -327,16 +327,22 @@ class StageRenderer {
     };
     const id = d.id || '';
     const group = d.group || '';
-    let kinds = d.flora || [];
-    if (!kinds.length) {
-      const lower = (id + ' ' + group).toLowerCase();
+    /* FLORA SO EM MAPA NATURAL: d.flora explicito manda (vazio = sem flora);
+       senao bioma especifico; senao so ganha grama/flores se o nome/grupo do
+       palco for de lugar natural (parque, floresta, lago, rio, praia...). Palco
+       urbano/tecnico (datacenter, metro, dojo, circo...) NAO tem flora. */
+    const NATURAL_KW = ['parque', 'park', 'floresta', 'forest', 'jardim', 'garden', 'lago', 'represa', 'praia', 'beach', 'rio', 'ponte', 'manguezal', 'doca', 'serra', 'mirante', 'trilha', 'tijuca', 'iguacu', 'chapada', 'sitio', 'cafezal', 'lencois', 'campos', 'sakura', 'spring', 'python', 'japan', 'vale', 'savana', 'bosque', 'campo', 'quintal', 'fazenda', 'natureza', 'mata', 'terreiro', 'dunas', 'cachoeira', 'canyon', 'caatinga', 'pantano', 'morro', 'feira'];
+    let kinds;
+    if (Array.isArray(d.flora)) {
+      kinds = d.flora;
+    } else {
+      kinds = [];
+      const lower = (id + ' ' + (d.name || '') + ' ' + group).toLowerCase();
       let biomeMatch = false;
       for (const key of Object.keys(biomeFlora)) {
         if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; biomeMatch = true; break; }
       }
-      /* bioma casou com lista vazia (ex.: palco underwater) = SEM flora;
-         so cai no padrao quando nenhum bioma casou */
-      if (!biomeMatch) kinds = ['grass'];
+      if (!biomeMatch && NATURAL_KW.some((k) => lower.indexOf(k) >= 0)) kinds = ['grass', 'flower_red', 'clover'];
     }
     const count = d.floraCount || (kinds.length ? 14 : 0);
     const span = this.W || 960;
