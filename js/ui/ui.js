@@ -892,7 +892,7 @@ const UI = {
       const locked = !!p.secret && !hasPit; /* segredo travado mostra SILHUETA, nao some */
       const spr = locked
         ? `<span class="pet-spr none" title="???"></span>`
-        : `<span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v46-jessflora)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
+        : `<span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v47-maresprites)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
       const name = locked ? '???' : p.name;
       const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : p.buff;
       return `
@@ -947,7 +947,7 @@ const UI = {
     if (r.ok) {
       const ids = r.ids || [];
       const petFace = r.pet
-        ? `<div class="rf" style="--d:0s"><div class="vs-sprite" style="background-image:url(assets/pets/pitoco.png?v=v46-jessflora);background-size:384px auto"></div><b style="--c:#f0c24b">Pitoco</b><small>mascote secreto</small></div>`
+        ? `<div class="rf" style="--d:0s"><div class="vs-sprite" style="background-image:url(assets/pets/pitoco.png?v=v47-maresprites);background-size:384px auto"></div><b style="--c:#f0c24b">Pitoco</b><small>mascote secreto</small></div>`
         : '';
       this.$('redeem-faces').innerHTML = petFace + ids.map((id, k) => {
         const d = FIGHTERS.find((x) => x.id === id);

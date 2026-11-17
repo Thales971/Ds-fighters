@@ -13,7 +13,7 @@ class LiveFauna {
     this.liveFauna = null; /* animais vivos — setado pelo Game */
     const kinds = (def && def.fauna) || [];
     const groundY = (typeof GROUND_Y === 'number') ? GROUND_Y : 458;
-    const spawn = (k, n, opts) => { const span = game.W || 960; for (let i = 0; i < n; i++) { const a = Object.assign({ k, x: 60 + Math.random() * (span - 120), y: groundY, vx: 0, vy: 0, dir: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 6, state: 'idle', timer: 60 + Math.random() * 240, scared: 0 }, opts); a.baseY = a.y; this.animals.push(a); } };
+    const spawn = (k, n, opts) => { const span = game.W || 960; for (let i = 0; i < n; i++) { const a = Object.assign({ k, x: 60 + Math.random() * (span - 120), y: groundY, vx: 0, vy: 0, dir: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 6, state: 'idle', timer: 60 + Math.random() * 240, scared: 0, alert: 0, perch: 0, peck: 0, jump: 0 }, opts); a.baseY = a.y; this.animals.push(a); } };
     for (const k of kinds) {
       if (k === 'pigeons') spawn('pigeon', 3 + Math.floor(Math.random() * 2), { y: groundY - 2 });
       if (k === 'birds' || k === 'bird') spawn('bird', 2, { y: groundY - 240 - Math.random() * 120, sky: true });
@@ -52,6 +52,9 @@ class LiveFauna {
         if (d < nd) { nd = d; near = f; }
       }
       const range = a.k === 'firefly' || a.k === 'dragonfly' ? 0 : (a.k === 'bird' ? 160 : 110);
+      /* ALERTA: lutador perto mas FORA do raio de fuga — o bicho para e assiste a luta */
+      if (near && nd >= range && nd < range + 130 && a.state === 'idle' && a.scared <= 0 && a.alert <= 0 && !a.water) a.alert = 40;
+      if (a.alert > 0) a.alert--;
       if (near && nd < range && a.scared <= 0 && a.state !== 'flee') {
         a.state = 'flee'; a.scared = 360 + Math.random() * 240;
         a.vx = (a.x < (near ? near.x : 480) ? -1 : 1) * (a.k === 'bird' || a.k === 'pigeon' ? 5 : 3.4);
@@ -76,22 +79,40 @@ class LiveFauna {
       } else if (a.state === 'gone') {
         a.timer--;
         if (a.timer <= 0) { /* volta */ a.state = 'idle'; a.x = Math.random() < 0.5 ? 40 : (g.W || 960) - 40; a.vx = 0; a.vy = 0; a.flying = false; a.y = a.baseY; a.dir = a.x < 400 ? 1 : -1; }
+      } else if (a.alert > 0 && !a.sky && !a.water) {
+        /* ASSISTINDO A LUTA: parado, virado pro lutador mais proximo */
+        a.ph += 0.05;
+        if (near) a.dir = near.x >= a.x ? 1 : -1;
       } else {
         /* comportamento calmo */
         if (a.k === 'firefly') { a.x += Math.sin(a.ph) * 0.8; a.y += Math.cos(a.ph * 0.7) * 0.7; }
         if (a.k === 'butterfly') {
-          const dx = Math.sin(a.ph * 0.8) * 1.1;
-          a.x += dx; a.y += Math.cos(a.ph * 1.3) * 0.9;
-          if (dx) a.dir = dx > 0 ? 1 : -1;
-          if (a.x < 20 || a.x > (g.W || 960) - 20) a.dir *= -1;
+          if (a.perch > 0) {
+            /* POUSADA numa flor do palco: asas fecham devagar e fica parada */
+            a.perch--;
+            a.ph += 0.02;
+            if (a.px != null) { a.x += (a.px - a.x) * 0.2; a.y += (a.py - a.y) * 0.2; }
+          } else {
+            const dx = Math.sin(a.ph * 0.8) * 1.1;
+            a.x += dx; a.y += Math.cos(a.ph * 1.3) * 0.9;
+            if (dx) a.dir = dx > 0 ? 1 : -1;
+            if (a.x < 20 || a.x > (g.W || 960) - 20) a.dir *= -1;
+            /* de vez em quando pousa numa flor do palco (se houver) */
+            const st = g.stage;
+            const flores = st && st.flora ? st.flora.filter((p) => p.k === 'flower_red' || p.k === 'flower_yellow') : [];
+            if (flores.length && Math.random() < 0.003) {
+              const fl = flores[(Math.random() * flores.length) | 0];
+              a.perch = 240 + Math.random() * 300; a.px = fl.x; a.py = fl.y - 16 - Math.random() * 6;
+            }
+          }
         }
-        if (a.k === 'fish') { a.timer--; if (a.timer <= 0) { a.jump = 26; a.timer = 400 + Math.random() * 600; } if (a.jump > 0) { a.jump--; a.y -= 2.4; } else if (a.y < a.baseY) a.y += 1.6; }
+        if (a.k === 'fish') { a.timer--; if (a.timer <= 0) { a.jump = 26; a.timer = 400 + Math.random() * 600; if (g.splash) g.splash(a.x); try { if (g.audio && g.audio.play) g.audio.play('water', { vol: 0.12 }); } catch (e) {} } if (a.jump > 0) { a.jump--; a.y -= 2.4; } else if (a.y < a.baseY) a.y += 1.6; }
         if (a.k === 'squirrel') { a.x += a.dir * 1.6; a.timer--; if (a.timer <= 0) { a.dir *= -1; a.timer = 90 + Math.random() * 160; } if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
         if (a.k === 'seagull') { a.x += a.dir * 1.3; a.y += Math.sin(a.ph * 0.8) * 0.8; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
         if (a.k === 'frog') { a.timer--; if (a.timer <= 0) { a.jump = 20; a.dir = Math.random() < 0.5 ? -1 : 1; a.timer = 300 + Math.random() * 500; } if (a.jump > 0) { a.jump--; a.x += a.dir * 1.4; a.y -= 1.8; } else if (a.y < a.baseY) a.y += 2.2; }
         else if (a.k === 'dragonfly') { a.x += Math.sin(a.ph * 0.6) * 1.4; a.y += Math.cos(a.ph) * 0.9; }
         else if (a.k === 'bird') { a.x += a.dir * 0.9; a.y += Math.sin(a.ph) * 0.5; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
-        else if (a.k === 'pigeon') { a.x += a.dir * 0.5; if (Math.random() < 0.01) a.dir *= -1; if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; }
+        else if (a.k === 'pigeon') { a.x += a.dir * 0.5; if (Math.random() < 0.01) a.dir *= -1; if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; a.timer--; if (a.timer <= 0) { a.peck = 16; a.timer = 160 + Math.random() * 420; } if (a.peck > 0) a.peck--; }
         else if (a.k === 'cat' || a.k === 'dog' || a.k === 'rabbit' || a.k === 'hamster' || a.k === 'turtle') {
           a.timer--;
           if (a.timer <= 0) { a.dir *= -1; a.timer = 180 + Math.random() * 300; }
@@ -113,9 +134,11 @@ class LiveFauna {
          coelho, hamster, tartaruga, esquilo, libelula — o resto segue no canvas vetorial */
       const _sprRow = { dog: 0, cat: 1, pigeon: 2, fish: 3, frog: 4, rabbit: 5, hamster: 6, turtle: 7, squirrel: 8, dragonfly: 9 }[a.k];
       if (typeof Art !== 'undefined' && _sprRow != null) {
-        const frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
+        let frame = a.state === 'flee' ? 3 : (Math.floor(this.t * 0.15 + a.ph) % 4);
+        let dy = 0;
+        if (a.k === 'pigeon' && a.peck > 0) { frame = 2; dy = -Math.sin((16 - a.peck) / 16 * Math.PI) * 7; }
         ctx.save();
-        ctx.translate(x, y);
+        ctx.translate(x, y + dy);
         if (a.dir < 0) ctx.scale(-1, 1);
         Art.cell(ctx, 'bichos', _sprRow, frame, 0, 0, { scale: 0.62, dir: 1 });
         ctx.restore();
@@ -133,7 +156,8 @@ class LiveFauna {
         const face = (a.vx || a.dir || 1) < 0 ? -1 : 1;
         Art.fx2(ctx, 'birds', a.k === 'seagull' ? 1 : 0, frame, 0, 0, { scale: 1.05, dir: face });
       } else if (a.k === 'butterfly') {
-        const frame = Math.floor(this.t / 4 + a.ph) % 4;
+        /* pousada numa flor: asas fechadas (frame 0) e parada */
+        const frame = a.perch > 0 ? 0 : (Math.floor(this.t / 4 + a.ph) % 4);
         Art.cell(ctx, 'fauna', 1, frame, 0, 0, { scale: 1.3, dir: a.dir || 1 });
       } else if (a.k === 'fish') {
         const frame = Math.floor(this.t / 6 + a.ph) % 4;
@@ -221,9 +245,11 @@ class StageRenderer {
     }
     this.fauna = [];
     this.flora = [];
+    this.lights = [];
     this.makeFauna();
     this.makeFlora();
     this.initTorcida();
+    this.lights = this.buildLights();
     this.vignette = null;
   }
   makeFauna() {
@@ -267,6 +293,9 @@ class StageRenderer {
     this.propSheet.src = 'assets/fx/stage-props.png?v=v36-amb1';
     this.rainSheet = new Image();
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
+    /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
+    this.waveSheet = new Image();
+    this.waveSheet.src = 'assets/fx/mare.png?v=v47-maresprites';
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
@@ -351,7 +380,7 @@ class StageRenderer {
     if (d.neon) kinds.push('neon');
     if (d.glitch) kinds.push('glitch');
     if (d.code) kinds.push('code');
-    if (d.motes) kinds.push('mote');
+    if (d.motes !== false) kinds.push('mote'); /* poeira de luz em TODOS os palcos (a menos que o mapa desligue) */
     if (d.sparks) kinds.push('sparkd');
     if (kinds.length && this.ambient.length < want && this.t % 4 === 0) {
       const k = kinds[(Math.random() * kinds.length) | 0];
@@ -417,7 +446,7 @@ class StageRenderer {
     this.crowd = null;
     if (!this.def.torcida) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v46-jessflora';
+    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
     this.crowdHype = 0;
     this.crowd = [
       { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
@@ -642,6 +671,7 @@ class StageRenderer {
     fg.addColorStop(1, 'rgba(0,0,0,0.28)');
     ctx.fillStyle = fg;
     ctx.fillRect(0, gy, W, H - gy);
+    this.drawLights(ctx, camX);
     if (this.liveFauna) this.liveFauna.draw(ctx, 'back');
     ctx.restore();
   }
@@ -743,6 +773,47 @@ class StageRenderer {
     }
     ctx.restore();
   }
+  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) + luminarias
+     (props com flash) viram fontes de luz: halo aditivo pulsante ao redor
+     da fonte e poça de luz no piso de combate. */
+  buildLights() {
+    const d = this.def || {};
+    const list = [];
+    for (const L of (d.lights || [])) {
+      list.push({ x: L.x, y: L.y, r: L.r || 110, color: L.color || '255,220,150', pulse: L.pulse == null ? 1 : L.pulse, ph: L.x * 0.013 + (L.y || 0) * 0.007 });
+    }
+    for (const p of this.props) {
+      if (!p.flash) continue;
+      list.push({ x: p.x, y: p.y - 42, r: 130, color: d.neon ? (p.cell % 2 ? '255,120,240' : '120,240,255') : '255,214,140', pulse: 1, ph: p.x * 0.017 });
+    }
+    return list;
+  }
+  drawLights(ctx, camX) {
+    if (!this.lights.length) return;
+    const gy = this.groundY;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const L of this.lights) {
+      const lx = L.x - camX * 18;
+      const pulse = this.reducedFlag ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
+      const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
+      g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(' + L.color + ',0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      if (L.y < gy) {
+        const pr = L.r * 0.85;
+        const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
+        pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
+        pg.addColorStop(1, 'rgba(' + L.color + ',0)');
+        ctx.fillStyle = pg;
+        ctx.beginPath();
+        ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
   drawVignette(ctx) {
     if (!this.vignette) {
       const c = document.createElement('canvas');
@@ -757,6 +828,14 @@ class StageRenderer {
       this.vignette = c;
     }
     ctx.drawImage(this.vignette, 0, 0);
+    /* DRAMA (HP baixo / round final): escurece mais as bordas, clima de cinema */
+    if (this.drama && !this.reducedFlag) {
+      const g = ctx.createRadialGradient(this.W / 2, this.H * 0.5, this.H * 0.3, this.W / 2, this.H * 0.5, this.W * 0.78);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(1, 'rgba(10,4,18,0.45)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.W, this.H);
+    }
   }
 }
 

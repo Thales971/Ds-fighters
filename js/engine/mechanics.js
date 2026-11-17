@@ -99,12 +99,19 @@ const MECHS = {
     },
     draw(ctx, g) {
       ctx.save();
-      ctx.globalAlpha = 0.1;
-      ctx.fillStyle = '#fff6a8';
+      /* cone com gradiente: brilhante no alto do palco, some na base */
+      const cone = ctx.createLinearGradient(0, -540, 0, 0);
+      cone.addColorStop(0, 'rgba(255,246,168,0.30)');
+      cone.addColorStop(1, 'rgba(255,246,168,0.06)');
+      ctx.fillStyle = cone;
       ctx.beginPath();
       ctx.moveTo(this.x - 14, -540); ctx.lineTo(this.x + 14, -540); ctx.lineTo(this.x + 84, 0); ctx.lineTo(this.x - 84, 0);
       ctx.fill();
-      ctx.globalAlpha = 0.25;
+      /* poça de luz no chao com gradiente radial */
+      const pool = ctx.createRadialGradient(this.x, 0, 0, this.x, 0, 84);
+      pool.addColorStop(0, 'rgba(255,246,168,0.34)');
+      pool.addColorStop(1, 'rgba(255,246,168,0)');
+      ctx.fillStyle = pool;
       ctx.beginPath();
       ctx.ellipse(this.x, 0, 84, 10, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -244,15 +251,31 @@ const MECHS = {
     draw(ctx, g, t) {
       if (this.wave <= 0) return;
       ctx.save();
-      ctx.globalAlpha = Math.min(0.5, this.wave / 60);
-      ctx.fillStyle = '#5fb8ff';
-      for (let x = -60; x < g.W + 60; x += 48) {
-        const ox = (t * this.dir * 3) % 48;
-        const h = 10 + Math.sin((x + t * 4) * 0.05) * 6;
-        ctx.fillRect(x + ox, -h, 40, h + 8);
-        ctx.fillStyle = '#e6f6ff';
-        ctx.fillRect(x + ox, -h - 3, 40, 3);
+      /* sprite real das ondas (assets/fx/mare.png, 4 variantes de 1184x160);
+         se ainda nao carregou, cai no canvas antigo de triangulos */
+      const sheet = g.stage && g.stage.waveSheet;
+      const ready = sheet && sheet.complete && sheet.naturalWidth;
+      ctx.globalAlpha = Math.min(0.92, 0.25 + (this.wave / 130) * 0.75);
+      if (ready) {
+        const SW = 1184, ROW = 160;
+        const row = Math.floor(t / 24) % 4; /* troca a onda devagar */
+        const sy = row * ROW;
+        const bob = Math.sin(t * 0.08) * 3;
+        const ox = ((t * this.dir * 2.2) % SW + SW) % SW;
+        for (let x = -SW - ox; x < g.W + SW; x += SW) {
+          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW + bob, SW, ROW);
+        }
+      } else {
+        ctx.globalAlpha = Math.min(0.5, this.wave / 60);
         ctx.fillStyle = '#5fb8ff';
+        for (let x = -60; x < g.W + 60; x += 48) {
+          const ox = (t * this.dir * 3) % 48;
+          const h = 10 + Math.sin((x + t * 4) * 0.05) * 6;
+          ctx.fillRect(x + ox, -h, 40, h + 8);
+          ctx.fillStyle = '#e6f6ff';
+          ctx.fillRect(x + ox, -h - 3, 40, 3);
+          ctx.fillStyle = '#5fb8ff';
+        }
       }
       ctx.restore();
     },

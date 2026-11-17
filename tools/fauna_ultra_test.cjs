@@ -107,6 +107,7 @@ const gR = mk('represa'); /* mech tide + fish */
 const peixeR = gR.stage.liveFauna.animals.filter((a) => a.k === 'fish');
 check('represa nasce peixe', peixeR.length === 2, peixeR.length + ' peixes');
 check('peixe do palco de mare nasce ABAIXO da linha do chao (na agua, y >= GROUND_Y)', peixeR.every((a) => a.y >= GROUND_Y), peixeR.map((a) => 'y=' + a.y).join(','));
+peixeR[0].x = 100; peixeR[0].state = 'idle'; peixeR[0].scared = 0; peixeR[0].alert = 0; /* longe dos lutadores pra nao fugir */
 let pulou = false, voltouAgua = false;
 for (let t = 0; t < 900; t++) { gR.stage.liveFauna.update(); const f = peixeR[0]; if (f.y < f.baseY - 20) pulou = true; if (pulou && f.y >= f.baseY - 1) { voltouAgua = true; break; } }
 check("peixe PULA pra fora d'agua e volta (y sobe e retorna ao baseY)", pulou && voltouAgua);
@@ -125,6 +126,39 @@ let wave0 = gK.mech.m.wave;
 let fired = false, decayed = false;
 for (let t = 0; t < 700; t++) { gK.mech.tick(true); if (gK.mech.m.wave === 130 && !fired) fired = true; if (fired && gK.mech.m.wave === 0) { decayed = true; break; } }
 check('kotlin: mare DISPARA (every 480) e DECAI ate 0 (nao fica constante)', fired && decayed, 'inicio wave=' + wave0 + ' fired=' + fired + ' decayed=' + decayed);
+
+// ===== 6b. SPRITES REAIS DA MARE (assets/fx/mare.png) no lugar do canvas generico =====
+const mare = PNG.sync.read(fs.readFileSync('assets/fx/mare.png'));
+check('mare.png 1184x640 (4 ondas de 160px)', mare.width === 1184 && mare.height === 640, mare.width + 'x' + mare.height);
+let mareMag = 0, mareRows = 0;
+for (let r = 0; r < 4; r++) {
+  let tem = 0;
+  for (let y = r * 160; y < (r + 1) * 160; y++) for (let x = 0; x < 1184; x++) {
+    const i = (y * 1184 + x) * 4;
+    if (mare.data[i + 3] > 40) { tem++; if (MAGENTA(mare.data[i], mare.data[i+1], mare.data[i+2], mare.data[i+3])) mareMag++; }
+  }
+  if (tem > 1000) mareRows++;
+}
+check('mare.png: 4/4 ondas com conteudo', mareRows === 4, mareRows + '/4');
+check('mare.png: 0 magenta (chroma-key limpo)', mareMag === 0, mareMag + ' px');
+const gM = mk('represa');
+const stageSrc = fs.readFileSync('js/engine/stage.js', 'utf8');
+check('stage carrega waveSheet (assets/fx/mare.png no codigo)', !!(gM.stage.waveSheet) && stageSrc.indexOf("waveSheet.src = 'assets/fx/mare.png") >= 0, '');
+// tide.draw com sprite pronto usa drawImage (nao fillRect de onda)
+gM.mech.m.wave = 130;
+const recM = { drawImage: 0, fillRect: 0 };
+const ctxM = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect() { recM.fillRect++; }, drawImage() { recM.drawImage++; }, createLinearGradient: () => ({ addColorStop() {} }), measureText: () => ({ width: 10 }) }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+gM.stage.waveSheet = { complete: true, naturalWidth: 1184, naturalHeight: 640 };
+gM.mech.m.draw(ctxM, gM, 100);
+check('tide.draw com sprite: usa drawImage das ondas (>=2 tiles)', recM.drawImage >= 2, 'drawImage=' + recM.drawImage);
+check('tide.draw com sprite: NAO usa o canvas generico de ondas (fillRect so do fallback)', recM.fillRect === 0, 'fillRect=' + recM.fillRect);
+// fallback: sem sheet pronta -> canvas antigo de triangulos
+gM.stage.waveSheet = { complete: false, naturalWidth: 0 };
+const recM2 = { drawImage: 0, fillRect: 0 };
+const ctxM2 = new Proxy({ canvas: null, save() {}, restore() {}, translate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, fillRect() { recM2.fillRect++; }, drawImage() { recM2.drawImage++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+gM.mech.m.draw(ctxM2, gM, 100);
+check('tide.draw sem sprite: fallback vetorial (fillRect > 0, drawImage = 0)', recM2.fillRect > 0 && recM2.drawImage === 0, 'fillRect=' + recM2.fillRect + ' drawImage=' + recM2.drawImage);
+check('tide.draw com wave=0 nao desenha nada', (() => { gM.mech.m.wave = 0; const r = { n: 0 }; const c = new Proxy({ canvas: null, save() {}, restore() {}, fillRect() { r.n++; }, drawImage() { r.n++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } }); gM.mech.m.draw(c, gM, 100); return r.n === 0; })());
 
 // ===== 7. RENDER: as 10 linhas do bichos + vetoriais (bird/bat/bee) aparecem =====
 const drawnRows = new Set(); const drawnVet = new Set();
@@ -148,6 +182,88 @@ check('render usou fauna vetorial p/ bird/bat/bee (linhas fauna.png + fx2:birds)
   const vet = gAll.stage.fauna.map((f) => f.kind);
   check('palco sintetico: 14 tipos no LiveFauna + bat/bee so no vetorial, sem duplicar', ks.size === 14 && vet.length >= 2 && vet.every((k) => (k === 'bat' || k === 'bee') && !ks.has(k)), 'live kinds=' + ks.size + ' vet=' + vet.join(','));
 }
+
+// ===== 8. COMPORTAMENTOS NOVOS: alerta assiste a luta, borboleta pousa na flor, pombo bica, peixe espirra =====
+const gN = mk('parque-lago');
+const lfN = new LiveFauna(gN, { id: 'teste', fauna: ['pigeons', 'butterflies', 'fish'] });
+gN.stage.liveFauna = lfN;
+check('spawn inicializa alert/perch/peck/jump em 0', lfN.animals.every((a) => a.alert === 0 && a.perch === 0 && a.peck === 0 && a.jump === 0));
+const fN = gN.activeOf(0);
+/* ALERTA: pombo a media distancia do lutador para e assiste, virado pra ele */
+const pombo = lfN.animals.find((a) => a.k === 'pigeon');
+pombo.x = fN.x + 170; pombo.y = GROUND_Y - 2; pombo.baseY = pombo.y; pombo.state = 'idle'; pombo.scared = 0; pombo.alert = 0;
+let alertou = false;
+for (let t = 0; t < 120; t++) { lfN.update(); if (pombo.alert > 0) alertou = true; }
+check('bicho a media distancia PARA e ASSISTE a luta (alert dispara, nao foge)', alertou && pombo.state !== 'flee' && pombo.state !== 'gone', 'alert=' + pombo.alert + ' state=' + pombo.state);
+check('quem assiste fica VIRADO pro lutador mais proximo', pombo.dir === (fN.x >= pombo.x ? 1 : -1), 'dir=' + pombo.dir + ' f.x=' + fN.x + ' a.x=' + pombo.x.toFixed(0));
+/* lutadores no centro: deixa as bordas calmas pros proximos testes */
+gN.activeOf(0).x = 480; gN.activeOf(1).x = 480;
+/* BORBOLETA pousando numa flor do palco (flor LONGE dos lutadores, senao ela foge) */
+const borb = lfN.animals.filter((a) => a.k === 'butterfly');
+gN.stage.flora = [{ k: 'flower_red', x: 150, y: 440 }, { k: 'flower_yellow', x: 150, y: 430 }];
+let pousou = false;
+for (let t = 0; t < 4000 && !pousou; t++) { lfN.update(); if (borb.some((a) => a.perch > 0)) pousou = true; }
+check('borboleta POUSA numa flor do palco de vez em quando (perch > 0)', pousou);
+const b0 = borb.find((a) => a.perch > 0) || borb[0];
+b0.perch = 200; b0.px = 150; b0.py = 420; b0.x = 850; b0.y = 380; b0.state = 'idle'; b0.scared = 0; b0.alert = 0;
+const bx = b0.x;
+for (let t = 0; t < 60; t++) lfN.update();
+check('pousada: borboleta se aproxima da flor e o perch decresce', b0.perch < 200 && b0.x < bx, 'perch=' + b0.perch + ' x=' + b0.x.toFixed(1) + ' (antes ' + bx.toFixed(1) + ', alvo 150)');
+/* POMBO bicando o chao (lutadores no centro, pombo longe -> calmo) */
+const peckP = lfN.animals.find((a) => a.k === 'pigeon');
+peckP.x = 850; peckP.state = 'idle'; peckP.scared = 0; peckP.alert = 0; peckP.timer = 30;
+let bicou = false;
+for (let t = 0; t < 900; t++) { lfN.update(); if (peckP.peck > 0) { bicou = true; break; } }
+check('pombo BICA o chao de vez em quando (peck > 0)', bicou, 'peck=' + peckP.peck);
+/* PEIXE pula e espirra agua + som */
+let splashes = 0, waterSnd = 0;
+gN.splash = () => { splashes++; };
+gN.audio = { play: (s) => { if (s === 'water') waterSnd++; }, tone() {}, loop() {} };
+const peixeN = lfN.animals.find((a) => a.k === 'fish');
+peixeN.x = 850; peixeN.y = peixeN.baseY; peixeN.state = 'idle'; peixeN.scared = 0; peixeN.alert = 0; peixeN.timer = 20;
+let espirlhou = false;
+for (let t = 0; t < 1600; t++) { lfN.update(); if (splashes > 0) { espirlhou = true; break; } }
+check('peixe PULA da agua e faz splash + som de agua', espirlhou && waterSnd > 0, 'splashes=' + splashes + ' water=' + waterSnd);
+/* draw: perch usa frame 0 (asas fechadas) e peck desce o pombo */
+const framesPerch = new Set(); const origCell2 = Art.cell.bind(Art);
+Art.images['fauna'] = { naturalWidth: 192, naturalHeight: 48 };
+Art.images['bichos'] = { naturalWidth: 384, naturalHeight: 960 };
+Art.cell = (c, key, row, col, ...rest) => { if (key === 'fauna' && row === 1 && b0.perch > 0) framesPerch.add(col); if (key === 'bichos' && row === 2 && peckP.peck > 0) framesPerch.add('peck' + col); return origCell2(c, key, row, col, ...rest); };
+b0.perch = 50; peckP.peck = 8;
+lfN.draw(fake2d());
+Art.cell = origCell2;
+check('draw: borboleta pousada usa frame 0 (asas fechadas)', framesPerch.has(0), [...framesPerch].join(','));
+check('draw: pombo bicando usa frame de bico (2)', framesPerch.has('peck2'), [...framesPerch].join(','));
+
+// ===== 9. PALCOS ANTES VAZIOS agora tem fauna/motes/torcida =====
+const SING = { pigeons: 'pigeon', birds: 'bird', butterflies: 'butterfly', fireflies: 'firefly', rabbits: 'rabbit' };
+const espFauna = { 'dojo-noite': ['bat', 'fireflies'], 'circo': ['pigeons'], 'pizzaria': ['cat'], 'sesi': ['pigeons', 'dog'], 'sesi-patio': ['pigeons', 'dog'], 'senai-valinhos': ['pigeons', 'cat'], 'area-de-trabalho': ['cat'], 'kernel': ['bird'], '09-orbital-core': ['bat', 'fireflies'], 'cyberpunk': ['bat'], 'treino-dojo': ['cat'], 'corredor-datacenter': ['fireflies'], 'sala-deploy': ['fireflies'], 'estudio-pixel': ['fireflies'], '02-volcanic-forge': ['bat'], 'rust': ['bat'], 'java': ['bat'] };
+let faunaBad = [];
+for (const id of Object.keys(espFauna)) {
+  const st = STAGES.find((s) => s.id === id);
+  if (!st || !espFauna[id].every((k) => (st.fauna || []).includes(k))) faunaBad.push(id);
+}
+/* palcos classicos animados (so no browser, via STAGE_SHEETS) pegam o STAGE_EXTRA */
+const espExtra = { '01-centro-de-dados': ['bat'], '02-chuva-de-codigo': ['bat'], '03-laboratorio-95': ['fireflies'], '05-fight-exe': ['bat'], '07-placa-mae': ['fireflies'], '11-oficina-latas': ['cat'], '12-terminal-fosforo': ['bat'], '13-metro-pacotes': ['pigeons'] };
+for (const id of Object.keys(espExtra)) {
+  const ex = STAGE_EXTRA[id];
+  if (!ex || !espExtra[id].every((k) => (ex.fauna || []).includes(k))) faunaBad.push('EXTRA:' + id);
+}
+check('palcos antes vazios agora declaram fauna propria (' + (Object.keys(espFauna).length + Object.keys(espExtra).length) + ' palcos)', faunaBad.length === 0, faunaBad.join(',') || 'ok');
+let nasceuBad = [];
+for (const id of ['dojo-noite', 'circo', 'pizzaria', 'sesi', 'kernel', '09-orbital-core', 'corredor-datacenter', 'treino-dojo']) {
+  const g = mk(id);
+  const ks = new Set();
+  if (g.stage.liveFauna) for (const a of g.stage.liveFauna.animals) ks.add(a.k);
+  for (const f of (g.stage.fauna || [])) ks.add(f.kind);
+  const st = STAGES.find((s) => s.id === id);
+  const want = st.fauna.map((k) => SING[k] || k);
+  if (!want.every((k) => ks.has(k))) nasceuBad.push(id + ' quer=' + want.join(',') + ' tem=' + [...ks].join(','));
+}
+check('nesses palcos os bichos realmente NASCEM no jogo', nasceuBad.length === 0, nasceuBad.slice(0, 3).join(' | '));
+const gMot = mk('sesi');
+check('sesi: motes de poeira no ar (motes:true -> particulas mote no fundo)', (gMot.stage.fauna || []).some((f) => f.kind === 'mote') || (gMot.stage.ambient || []).some((p) => p.k === 'mote'), 'fauna kinds=' + (gMot.stage.fauna || []).map((f) => f.kind).slice(0, 6).join(','));
+check('sesi e circo tem TORCIDA no fundo (def.torcida + 3 fileiras)', STAGES.find((s) => s.id === 'sesi').torcida === true && STAGES.find((s) => s.id === 'circo').torcida === true && gMot.stage.crowd && gMot.stage.crowd.length === 3, 'crowd=' + (gMot.stage.crowd ? gMot.stage.crowd.length : 'null'));
 
 console.log('---');
 console.log(fails === 0 ? 'FAUNA ULTRA: TUDO OK (' + n + ' checks)' : 'FAUNA ULTRA: ' + fails + ' FALHAS de ' + n);

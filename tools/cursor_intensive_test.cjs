@@ -78,7 +78,7 @@ for (const st of tide.slice(0, 3)) {
   g.start({ mode: 'versus', teams: [['du'], ['stack']], stage: st.id, cpu: [false, false], roundsToWin: 1, timer: 99 });
   for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
   for (let t = 0; t < 120; t++) g.tick();
-  const fs2 = (g.stage.fauna || []).filter((f) => f.kind === 'fish' && f.swim);
+  const fs2 = g.stage.liveFauna ? g.stage.liveFauna.animals.filter((a) => a.k === 'fish' && a.water) : [];
   if (fs2.length > 0) peixes++;
 }
 check('peixes NADANDO (swim) nos palcos de maré', peixes >= 2, peixes + '/3 palcos com peixes em superfície');

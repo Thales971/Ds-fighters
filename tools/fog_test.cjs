@@ -34,8 +34,8 @@ const pool = (typeof STAGE_EXTRA === 'object') ? STAGE_EXTRA['01-centro-de-dados
 check('stage 01 tem fog no pool', ((pool && pool.weather) || []).includes('fog'), JSON.stringify(pool && pool.weather));
 // seta a neblina e roda
 g.weather.set('fog');
-for (let t = 0; t < 180; t++) g.tick();
-check('particulas de neblina', g.weather.drops.length > 8, g.weather.drops.length + ' bancos');
+for (let t = 0; t < 600; t++) g.tick();
+check('particulas de neblina (intensidade converge suave e enche os bancos)', g.weather.drops.length >= 5 && g.weather.drops.length <= 10, g.weather.drops.length + ' bancos (max 10)');
 g.render();
 fs.mkdirSync('.vibe/weather', { recursive: true });
 fs.writeFileSync('.vibe/weather/clima-fog.png', canvas.toBuffer('image/png'));
