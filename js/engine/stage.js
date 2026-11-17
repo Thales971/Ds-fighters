@@ -570,7 +570,16 @@ class StageRenderer {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
     this.propShake = Math.max(this.propShake, power);
     this.floraShake = Math.max(this.floraShake, power >= 12 ? 60 : 20);
-    if (this.crowd) this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
+    if (this.crowd) {
+      const wasHype = this.crowdHype > 0;
+      this.crowdHype = Math.max(this.crowdHype, power >= 8 ? 60 : 24);
+      /* torcida vibra no golpe forte (som 'crowd', com throttle pra nao spammar) */
+      const g = this.game;
+      if (!wasHype && power >= 8 && g && g.audio && g.audio.play && (!this._cheerAt || this.t - this._cheerAt > 90)) {
+        this._cheerAt = this.t;
+        try { g.audio.play('crowd', { vol: 0.22 }); } catch (e) {}
+      }
+    }
     if (power < 11) return;
     for (const p of this.props) {
       if (p.fall && !p.falling && Math.random() < 0.6) {
@@ -794,6 +803,22 @@ class StageRenderer {
     }
     return list;
   }
+  /* Halo/poça de cada luz cacheados em offscreen canvas (criados 1x): com FPS
+     ilimitado (120/144/240 Hz) o render nao recria gradiente por frame. */
+  _lightSprite(L, alpha) {
+    if (!L._halo && typeof document !== 'undefined') {
+      const c = document.createElement('canvas');
+      c.width = c.height = Math.ceil(L.r * 2);
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(L.r, L.r, 0, L.r, L.r, L.r);
+      g.addColorStop(0, 'rgba(' + L.color + ',' + alpha + ')');
+      g.addColorStop(1, 'rgba(' + L.color + ',0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, L.r * 2, L.r * 2);
+      L._halo = c;
+    }
+    return L._halo;
+  }
   drawLights(ctx, camX) {
     if (!this.lights.length) return;
     const gy = this.groundY;
@@ -802,20 +827,44 @@ class StageRenderer {
     for (const L of this.lights) {
       const lx = L.x - camX * 18;
       const pulse = this.reducedFlag ? 1 : (0.82 + 0.18 * Math.sin(this.t * 0.045 * (L.pulse || 1) + L.ph));
-      const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
-      g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
-      g.addColorStop(1, 'rgba(' + L.color + ',0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      const halo = this._lightSprite(L, 0.16);
+      if (halo) {
+        ctx.globalAlpha = pulse;
+        ctx.drawImage(halo, lx - L.r, L.y - L.r);
+        ctx.globalAlpha = 1;
+      } else {
+        const g = ctx.createRadialGradient(lx, L.y, 0, lx, L.y, L.r);
+        g.addColorStop(0, 'rgba(' + L.color + ',' + (0.16 * pulse).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(' + L.color + ',0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(lx - L.r, L.y - L.r, L.r * 2, L.r * 2);
+      }
       if (L.y < gy) {
         const pr = L.r * 0.85;
-        const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
-        pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
-        pg.addColorStop(1, 'rgba(' + L.color + ',0)');
-        ctx.fillStyle = pg;
-        ctx.beginPath();
-        ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (!L._pool && typeof document !== 'undefined') {
+          const c = document.createElement('canvas');
+          c.width = c.height = 128;
+          const x = c.getContext('2d');
+          const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+          g.addColorStop(0, 'rgba(' + L.color + ',0.10)');
+          g.addColorStop(1, 'rgba(' + L.color + ',0)');
+          x.fillStyle = g;
+          x.fillRect(0, 0, 128, 128);
+          L._pool = c;
+        }
+        if (L._pool) {
+          ctx.globalAlpha = pulse;
+          ctx.drawImage(L._pool, lx - pr, gy + 4 - 12, pr * 2, 24);
+          ctx.globalAlpha = 1;
+        } else {
+          const pg = ctx.createRadialGradient(lx, gy, 0, lx, gy, pr);
+          pg.addColorStop(0, 'rgba(' + L.color + ',' + (0.10 * pulse).toFixed(3) + ')');
+          pg.addColorStop(1, 'rgba(' + L.color + ',0)');
+          ctx.fillStyle = pg;
+          ctx.beginPath();
+          ctx.ellipse(lx, gy + 4, pr, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
     ctx.restore();

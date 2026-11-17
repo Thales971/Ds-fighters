@@ -24,7 +24,7 @@ let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 /* ctx gravador: conta drawImage/radial/lighter/ellipse/filter/gradientes */
 const mkRec = () => {
-  const r = { drawImage: 0, radial: 0, lighter: 0, ellipse: 0, filters: [], linear: 0, fillRect: 0, arc: 0, styles: [] };
+  const r = { drawImage: 0, radial: 0, lighter: 0, ellipse: 0, filters: [], linear: 0, fillRect: 0, arc: 0, styles: [], alphas: [] };
   const base = { canvas: null, save() {}, restore() {}, clearRect() {}, strokeRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, translate() {}, scale() {}, rotate() {}, setTransform() {}, measureText: () => ({ width: 10 }), createPattern: () => ({}) };
   return [new Proxy(base, {
     get(t, k) {
@@ -42,6 +42,7 @@ const mkRec = () => {
       if (k === 'globalCompositeOperation' && v === 'lighter') r.lighter++;
       if (k === 'filter' && v && v !== 'none') r.filters.push(v);
       if (k === 'fillStyle' && typeof v === 'string') r.styles.push(v);
+      if (k === 'globalAlpha' && typeof v === 'number') r.alphas.push(v);
       t[k] = v; return true;
     },
   }), r];
@@ -181,16 +182,20 @@ check('circo declara luzes de holofote (def.lights)', (gL.stage.def.lights || []
 check('stage monta luzes (def.lights + props flash viram luminarias)', gL.stage.lights.length >= 4, gL.stage.lights.length + ' luzes');
 const recL = mkRec();
 gL.stage.drawBack(recL[0], 0, 0);
-check('drawBack: halo radial por luz + poça radial no chao', recL[1].radial >= gL.stage.lights.length * 2, 'radial=' + recL[1].radial + ' luzes=' + gL.stage.lights.length);
+/* halo cacheado em offscreen (drawImage) OU gradiente direto no fallback — os dois valem */
+check('drawBack: halo por luz + poça no chao (cache drawImage ou gradiente radial)', recL[1].radial >= gL.stage.lights.length * 2 || recL[1].drawImage >= gL.stage.lights.length * 2, 'radial=' + recL[1].radial + ' drawImage=' + recL[1].drawImage + ' luzes=' + gL.stage.lights.length);
 check('luzes usam composite lighter (luz aditiva)', recL[1].lighter > 0, 'lighter=' + recL[1].lighter);
-check('poça de luz no piso: ellipse por luz acima do chao', recL[1].ellipse >= 2, 'ellipse=' + recL[1].ellipse);
-/* pulso: mesma luz em tempos diferentes -> alpha (fillStyle) muda */
+check('poça de luz no piso desenhada (ellipse no fallback ou drawImage do cache)', recL[1].ellipse >= 2 || recL[1].drawImage >= gL.stage.lights.length, 'ellipse=' + recL[1].ellipse + ' drawImage=' + recL[1].drawImage);
+/* pulso: mesma luz em tempos diferentes -> alpha (globalAlpha) muda entre frames */
 const pulseA = mkRec(); gL.stage.drawBack(pulseA[0], 0, 0);
 for (let t = 0; t < 40; t++) gL.stage.update(gL.weather);
 const pulseB = mkRec(); gL.stage.drawBack(pulseB[0], 0, 0);
-const sA = pulseA[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|');
-const sB = pulseB[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|');
-check('luz PULSA com o tempo (rgba do halo muda entre frames)', sA !== sB, 't=' + gL.stage.t + ' reduced=' + gL.stage.reducedFlag + ' A=[' + sA.slice(0, 90) + '] B=[' + sB.slice(0, 90) + ']');
+const sA = pulseA[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|') + '#' + pulseA[1].alphas.join(',');
+const sB = pulseB[1].styles.filter((s) => s.indexOf('rgba(') === 0).join('|') + '#' + pulseB[1].alphas.join(',');
+check('luz PULSA com o tempo (alpha muda entre frames, cache ou nao)', sA !== sB, 't=' + gL.stage.t + ' reduced=' + gL.stage.reducedFlag);
+/* cache: segunda drawBack NAO recria gradiente (radial nao aumenta) e usa drawImage */
+const recL2 = mkRec(); gL.stage.drawBack(recL2[0], 0, 0);
+check('halo cacheado: 2a drawBack usa drawImage e nao recria gradiente (leve pra FPS alto)', recL2[1].drawImage >= gL.stage.lights.length * 2 && recL2[1].radial === 0, 'drawImage=' + recL2[1].drawImage + ' radial=' + recL2[1].radial);
 const gT = mk('treino-dojo');
 check('palco sem def.lights ganha luminarias dos props flash', gT.stage.lights.length >= 2, gT.stage.lights.length + ' luzes');
 /* DRAMA: vinheta ganha camada extra escura nas bordas */
