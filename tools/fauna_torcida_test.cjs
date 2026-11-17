@@ -28,18 +28,19 @@ const mk = (stage) => {
   return g;
 };
 
-// 1. Peixe NA SUPERFICIE (agua = nivel do chao 458), nao no ar — palcos swim com peixe
-for (const stage of ['manguezal', 'paraty', 'bonito']) {
+// 1. Peixe NA AGUA (abaixo da linha do chao 458), nao no ar — palcos swim/tide com peixe
+// (peixe agora vive no LiveFauna, desenhado pelo atlas bichos.png linha 3)
+for (const stage of ['manguezal', 'paraty', 'bonito', 'represa', 'parque-lago']) {
   const g = mk(stage);
-  const fish = (g.stage.fauna || []).filter((f) => f.kind === 'fish');
+  const fish = (g.stage.liveFauna ? g.stage.liveFauna.animals : []).filter((a) => a.k === 'fish');
   check(stage + ': peixe existe no ambiente', fish.length > 0, fish.length + ' peixes');
-  const allNear = fish.every((f) => f.homeY > 458 - 60 && f.homeY <= 458);
-  check(stage + ': peixe nasce na superficie da agua (homeY perto de 458, nao no ar)', allNear, 'homeY=' + fish.map((f) => Math.round(f.homeY)).join(','));
+  const allWater = fish.every((f) => f.baseY >= 458 && f.baseY <= 458 + 40);
+  check(stage + ': peixe nasce NA AGUA (baseY >= 458, abaixo do dock, nao no ar)', allWater, 'baseY=' + fish.map((f) => Math.round(f.baseY)).join(','));
 }
 // palco com tanque (bolhas) continua dentro do tanque
 const gTank = mk('03-underwater-lab');
-const tankFish = (gTank.stage.fauna || []).filter((f) => f.kind === 'fish');
-check('03-underwater-lab: peixe dentro do tanque (y 150-350)', tankFish.length > 0 && tankFish.every((f) => f.homeY >= 150 && f.homeY <= 350), 'homeY=' + tankFish.map((f) => Math.round(f.homeY)).join(','));
+const tankFish = (gTank.stage.liveFauna ? gTank.stage.liveFauna.animals : []).filter((a) => a.k === 'fish');
+check('03-underwater-lab: peixe dentro do tanque (y 150-350)', tankFish.length > 0 && tankFish.every((f) => f.baseY >= 150 && f.baseY <= 350), 'baseY=' + tankFish.map((f) => Math.round(f.baseY)).join(','));
 
 // 2. Maré alta CONSTANTE em palco com peixe (wave nunca zera, pushX ativo)
 const gTide = mk('manguezal');

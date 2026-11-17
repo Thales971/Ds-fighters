@@ -221,6 +221,12 @@ const Profile = {
     /* ADM é o código padrão. BATATA nasceu para liberar o QWEN; o QWEN
        entrou no elenco normal, então BATATA ficou como apelido e libera
        os mesmos secretos que ainda pedem código (Du, Iales, Felipinho). */
+    /* PITOCO: o unico mascote secreto — so ele pode ser resgatado por codigo */
+    if (c === 'pitoco') {
+      if (this.hasPitoco()) return { ok: true, already: true, msg: 'PITOCO já está desbloqueado.', pet: true };
+      this.unlockPitoco();
+      return { ok: true, msg: 'Desbloqueado: PITOCO! Ele apareceu na seleção de mascotes.', pet: true };
+    }
     if (c === 'relogio') {
       const ids = ['maximilian'];
       const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
@@ -242,7 +248,7 @@ const Profile = {
       const lead = c === 'batata' ? 'QWEN já é lutador padrão. BATATA liberou: ' : 'Desbloqueados: ';
       return { ok: true, msg: lead + names(fresh) + '!', ids: fresh };
     }
-    return { ok: false, msg: 'Código inválido. Os códigos são ADM, BATATA e RELOGIO.' };
+    return { ok: false, msg: 'Código inválido. Os códigos são ADM, BATATA, RELOGIO e PITOCO.' };
   },
 
   setting(k, v) {
@@ -275,18 +281,23 @@ const Profile = {
   },
   petFor(slot) {
     const id = this.data.pets[slot] || 'none';
-    return PETS.find((p) => p.id === id) || PETS[0];
+    const pet = PETS.find((p) => p.id === id) || PETS[0];
+    /* pet secreto travado (ex.: PITOCO sem desbloquear) nao pode ser equipado */
+    if (pet.secret && !this.hasPitoco()) return PETS[0];
+    return pet;
   },
 
   setPet(slot, id) {
     if (slot !== 0 && slot !== 1) return;
     this.data = this._normalize(this.data || this.load());
+    const pet = PETS.find((p) => p.id === String(id || 'none'));
+    if (pet && pet.secret && !this.hasPitoco()) return; /* so desbloqueado pode equipar */
     this.data.pets[slot] = String(id || 'none');
     this.save();
   },
 
   /* CONQUISTAS: medalha unica, persistida, com toast */
-  /* PITOCO: o codigo do sangue — <<>>BA na tela de pet */
+  /* PITOCO: codigo PITOCO no resgate ou digitando P-I-T-O-C-O na tela de pets */
   unlockPitoco() {
     this.data = this._normalize(this.data || this.load());
     if (this.data.pitocoUnlocked) return false;
