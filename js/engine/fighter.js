@@ -10,6 +10,7 @@ const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 3.00;
+const HP_LIMIT = 500; /* limite de HP do jogo = 500 (pedido do dono) */
 /* Anti-spam: todas as habilidades recarregam o DOBRO em qualquer modo
    (o 1.4x ainda deixava spam — pedido do dono). */
 const ABILITY_CD_MULT = 2.0;
@@ -48,14 +49,15 @@ class Fighter {
     this.vx = 0;
     this.vy = 0;
     this.dir = dir;
-    this.maxHp = Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER));
-    /* TORNEIO (arcade): lutadores fracos ganham buff automatico (Balance.buffFor) */
-    this.tourneyBuff = null;
-    if (game && game.mode === 'arcade' && typeof Balance !== 'undefined' && Balance.buffFor) {
+    this.maxHp = Math.min(HP_LIMIT, Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER)));
+    /* Balanceamento geral: lutadores fracos ganham buff em TODOS os modos
+       (classificacao em Balance.buffFor); HP segue limitado a HP_LIMIT. */
+    this.balanceBuff = null;
+    if (typeof Balance !== 'undefined' && Balance.buffFor) {
       const b = Balance.buffFor(def);
       if (b) {
-        this.tourneyBuff = b;
-        this.maxHp = Math.max(1, Math.round(this.maxHp * b.hp));
+        this.balanceBuff = b;
+        this.maxHp = Math.min(HP_LIMIT, Math.max(1, Math.round(this.maxHp * b.hp)));
       }
     }
     this.hp = this.maxHp;
@@ -287,7 +289,7 @@ class Fighter {
     return m;
   }
   dmgMult(p) {
-    let m = (this.def.stats.power || 1) * (this.tourneyBuff ? this.tourneyBuff.power : 1);
+    let m = (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
