@@ -1,6 +1,7 @@
-// TORNEIO LOCAL: balanceamento (fracos ganham buff), chaveamento de 8,
-// buff aplicado no Fighter so no modo torneio, fluxo de rounds, anti-spam
-// segurando no modo torneio, e wiring de UI (botao, handlers, badge).
+// BUFF DOS FRACOS NO TORNEIO (arcade existente): classificacao de forca (Balance),
+// buff aplicado no Fighter SO no modo arcade (nao mexe no versus), badge BUFF no
+// grid do arcade, toast no launchArcade, anti-spam continua segurando no arcade,
+// e o torneio arcade segue intacto (6 rivais + chefe).
 const fs = require('fs'); const vm = require('vm');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
@@ -47,45 +48,25 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   check('IALES (forte/secreto) esta no topo do ranking', R.ialesRank >= 0 && R.ialesRank <= 5, 'rank=' + R.ialesRank);
 }
 
-// ===== 2. Chaveamento =====
+// ===== 2. Torneio arcade intacto: 6 rivais + chefe, ordem crescente =====
 {
   const r = vm.runInContext(`
   (function(){
-    const out = {};
-    // bracket deterministico com rnd fixo
-    let seed = 42; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    const br = buildTourneyBracket('kira', 8, rnd);
-    out.size = br.chave.length;
-    out.hasPlayer = br.chave.includes('kira');
-    out.unique = new Set(br.chave).size === br.chave.length;
-    out.names = br.roundsNames;
-    const p0 = tourneyRoundPairings(br.chave, 'kira');
-    out.myOpp = p0.myOpp;
-    out.pairs0 = p0.pairs.length;
-    // resolve 4 rounds sempre vencendo: deve sobrar exatamente o player
-    let chave = br.chave, pairs = p0.pairs, rounds = 0;
-    while (chave.length > 1 && rounds < 10) {
-      const pr = tourneyRoundPairings(chave, 'kira');
-      chave = tourneyResolveRound(pr.pairs, 'kira', true, rnd);
-      rounds++;
-    }
-    out.roundsToWin = rounds;
-    out.champion = chave[0];
-    // se o player perde na primeira, ele sai da chave
-    const br2 = buildTourneyBracket('cracker', 8, rnd);
-    const pr2 = tourneyRoundPairings(br2.chave, 'cracker');
-    const after = tourneyResolveRound(pr2.pairs, 'cracker', false, rnd);
-    out.eliminated = !after.includes('cracker');
-    out.nextSize = after.length;
-    return JSON.stringify(out);
+    // replica a logica do buildArcade (ui.js) sem DOM: mesma funcao score
+    const score = (d) => Balance.score(d);
+    const me = 'kira';
+    const rivais = FIGHTERS.filter((d) => d.id !== me && d.id !== 'boneco-treino' && !d.secret)
+      .map((d) => ({ id: d.id, sc: score(d) }))
+      .sort((a, b) => b.sc - a.sc)
+      .slice(0, 6).map((r2) => r2.id).reverse();
+    const ladder = [...rivais.filter((id) => id !== 'iales'), 'iales'];
+    return JSON.stringify({ ladder, n: ladder.length, last: ladder[ladder.length - 1] });
   })()`, ctx);
   const R = JSON.parse(r);
-  check('chaveamento de 8 com player incluso, 8 ids unicos, nomes OITAVAS..FINAL', R.size === 8 && R.hasPlayer && R.unique && R.names.join(',') === 'OITAVAS,QUARTAS,FINAL', JSON.stringify({ size: R.size, names: R.names }));
-  check('round 0 tem 4 partidas e meu oponente definido', R.pairs0 === 4 && !!R.myOpp, 'myOpp=' + R.myOpp);
-  check('vencendo 3 rounds (8->4->2->1) o player e o campeao; perdendo na 1a sai da chave', R.roundsToWin === 3 && R.champion === 'kira' && R.eliminated && R.nextSize === 4, JSON.stringify(R));
+  check('arcade segue intacto: 6 rivais em ordem crescente + chefe IALES no fim', R.n === 7 && R.last === 'iales' && R.ladder.length === 7, JSON.stringify(R.ladder));
 }
 
-// ===== 3. Buff aplicado no Fighter SO no modo torneio + dmgMult =====
+// ===== 3. Buff aplicado no Fighter SO no modo arcade (torneio) + dmgMult =====
 {
   const r = vm.runInContext(`
   (function(){
@@ -100,25 +81,25 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const weakId = rank[rank.length - 1].id, strongId = rank[0].id;
     const weakDef = FIGHTERS.find((d) => d.id === weakId), strongDef = FIGHTERS.find((d) => d.id === strongId);
     const baseWeakHp = Math.round((weakDef.stats.hp || 100) * HEALTH_MULTIPLIER);
-    const g1 = mk('torneio', weakId, strongId);
+    const g1 = mk('arcade', weakId, strongId);
     const fw = g1.activeOf(0), fs = g1.activeOf(1);
     const g2 = mk('versus', weakId, strongId);
     const fw2 = g2.activeOf(0);
     const out = {
       weakId, strongId,
       weakBuff: fw.tourneyBuff, strongBuff: fs.tourneyBuff,
-      weakHpTorneio: fw.maxHp, weakHpVersus: fw2.maxHp, weakHpBase: baseWeakHp,
+      weakHpArcade: fw.maxHp, weakHpVersus: fw2.maxHp, weakHpBase: baseWeakHp,
       weakDmgTorneio: Math.round(fw.dmgMult() * 100) / 100, weakDmgVersus: Math.round(fw2.dmgMult() * 100) / 100,
-      strongHpTorneio: fs.maxHp, strongHpBase: Math.round((strongDef.stats.hp || 100) * HEALTH_MULTIPLIER),
+      strongHpArcade: fs.maxHp, strongHpBase: Math.round((strongDef.stats.hp || 100) * HEALTH_MULTIPLIER),
     };
     // partida torneio completa sem crash (IA nos dois lados)
     const g3 = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle(){},add(){},remove(){} } });
-    g3.start({ mode: 'torneio', teams: [['kira'], ['rafael']], stage: 'random', cpu: [true, true], roundsToWin: 1, timer: 60, difficulty: 1 });
+    g3.start({ mode: 'arcade', teams: [['kira'], ['rafael']], stage: 'random', cpu: [true, true], roundsToWin: 1, timer: 60, difficulty: 1 });
     let t = 0; let err = null;
     try { for (; t < 9000 && !g3.matchOver; t++) g3.tick(); } catch (e) { err = e.message; }
     out.match = { over: g3.matchOver, ticks: t, err };
     // anti-spam no modo torneio: H1 do du repetido, intervalo min >= piso do perfil
-    const g4 = mk('torneio', 'du', 'stack');
+    const g4 = mk('arcade', 'du', 'stack');
     const f4 = g4.activeOf(0);
     f4.cd = [0,0,0,0,0,0,0,0,0,0]; f4.castLock = 0; f4.state = 'idle'; f4.charge = [100,100]; f4.ultimate = 100;
     const kit = f4.currentKit(); const IDX = kit.findIndex((p) => p.slot === 'simple');
@@ -128,15 +109,15 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       if (g4.roundState === 'fight' && f4.tryCast(IDX)) { if (lastCast >= 0) gaps.push(t2 - lastCast); lastCast = t2; casts++; }
       g4.tick();
     }
-    out.antispamTorneio = { casts, minGap: gaps.length ? Math.min(...gaps) : -1, floor: f4.spamProfile().floor };
+    out.antispamArcade = { casts, minGap: gaps.length ? Math.min(...gaps) : -1, floor: f4.spamProfile().floor };
     return JSON.stringify(out);
   })()`, ctx);
   const R = JSON.parse(r);
-  check(`fraco (${R.weakId}) no torneio ganha buff e HP sobe; no versus nao muda`, R.weakBuff && R.weakHpTorneio > R.weakHpBase && R.weakHpVersus === R.weakHpBase, `hp base=${R.weakHpBase} torneio=${R.weakHpTorneio} versus=${R.weakHpVersus} buff=` + JSON.stringify(R.weakBuff));
-  check(`dmgMult reflete o buff de forca so no torneio (${R.weakDmgTorneio} vs ${R.weakDmgVersus})`, R.weakDmgTorneio > R.weakDmgVersus * 1.1, '');
-  check(`forte (${R.strongId}) nao ganha buff no torneio`, R.strongBuff === null && R.strongHpTorneio === R.strongHpBase, `hp=${R.strongHpTorneio} base=${R.strongHpBase}`);
-  check('partida em modo torneio (IA x IA) completa sem crash', R.match.over && !R.match.err, JSON.stringify(R.match));
-  check('anti-spam segura no modo torneio (intervalo min >= piso do perfil)', R.antispamTorneio.minGap >= R.antispamTorneio.floor - 10, JSON.stringify(R.antispamTorneio));
+  check(`fraco (${R.weakId}) no TORNEIO (arcade) ganha buff e HP sobe; no versus nao muda`, R.weakBuff && R.weakHpArcade > R.weakHpBase && R.weakHpVersus === R.weakHpBase, `hp base=${R.weakHpBase} arcade=${R.weakHpArcade} versus=${R.weakHpVersus} buff=` + JSON.stringify(R.weakBuff));
+  check(`dmgMult reflete o buff de forca so no arcade (${R.weakDmgTorneio} vs ${R.weakDmgVersus})`, R.weakDmgTorneio > R.weakDmgVersus * 1.1, '');
+  check(`forte (${R.strongId}) nao ganha buff no arcade`, R.strongBuff === null && R.strongHpArcade === R.strongHpBase, `hp=${R.strongHpArcade} base=${R.strongHpBase}`);
+  check('partida em modo arcade (IA x IA) completa sem crash', R.match.over && !R.match.err, JSON.stringify(R.match));
+  check('anti-spam continua segura no arcade (intervalo min >= piso do perfil)', R.antispamArcade.minGap >= R.antispamArcade.floor - 10, JSON.stringify(R.antispamArcade));
 }
 
 // ===== 4. Wiring de UI =====
@@ -144,13 +125,13 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   const html = fs.readFileSync('index.html', 'utf8');
   const ui = fs.readFileSync('js/ui/ui.js', 'utf8');
   const css = fs.readFileSync('css/style.css', 'utf8');
-  check('index.html: botao data-go="torneio" no menu + script balance.js', /data-go="torneio"/.test(html) && /js\/data\/balance\.js/.test(html));
-  check('ui.js: handlers do torneio (startFlow, afterSelect, torneioNext, onMatchEnd, buildTorneio/launchTorneio)', /buildTorneio/.test(ui) && /launchTorneio/.test(ui) && /torneioNext/.test(ui) && /game\.mode === 'torneio'/.test(ui) && /'torneio'/.test(ui));
-  check('ui.js: badge BUFF no grid so no modo torneio', /sx buff/.test(ui) && /Balance\.buffFor/.test(ui));
+  check('index.html: SEM botao de modo torneio novo (torneio existente intacto) + script balance.js', !/data-go="torneio"/.test(html) && /js\/data\/balance\.js/.test(html) && /data-go="arcade"/.test(html));
+  check('ui.js: arcade intacto (buildArcade/launchArcade) + badge BUFF no grid do arcade + toast de buff no launchArcade', /buildArcade/.test(ui) && /launchArcade/.test(ui) && !/buildTorneio/.test(ui) && /f\.mode === 'arcade' && typeof Balance/.test(ui) && /BUFF DE TORNEIO/.test(ui));
+  check('ui.js: card do arcade menciona buff dos fracos', /ganham BUFF autom/.test(ui));
   check('css: badge .sx.buff com estilo', /\.cell \.sx\.buff/.test(css));
-  check('fighter.js: buff aplicado so quando game.mode === torneio', /game\.mode === 'torneio'/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')) && /tourneyBuff/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')));
+  check('fighter.js: buff aplicado so quando game.mode === arcade', /game\.mode === 'arcade'/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')) && /tourneyBuff/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')));
 }
 
 console.log('---');
-console.log('TORNEIO: ' + (fails ? fails + ' FALHAS de ' + n : 'TUDO OK (' + n + ' checks)'));
+console.log('BUFF FRACOS NO TORNEIO (arcade): ' + (fails ? fails + ' FALHAS de ' + n : 'TUDO OK (' + n + ' checks)'));
 process.exit(fails ? 1 : 0);

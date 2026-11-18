@@ -61,5 +61,4 @@ console.log(testMode('survival', { cpu: [false, true] }));
 console.log(testMode('morte-subita', { roundsToWin: 1 }));
 console.log(testMode('online', { netRole: 'host', mySlot: 0 }));
 console.log(testMode('demo'));
-console.log(testMode('torneio', { cpu: [false, true] }));
 `, ctx);
