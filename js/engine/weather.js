@@ -596,31 +596,64 @@ class Weather {
     } else if (this.kind === 'rainbow') {
       /* o arco fica no overlay, longe dos lutadores */
     } else if (this.kind === 'confetti') {
-      const cols = ['#ffd23a', '#ff4f8b', '#7ec8ff', '#7dff6a', '#fff'];
+      /* CONFETE de papel: papelzinho colorido com faixa clara em cima (brilho),
+         tamanho varia com a profundidade, girando enquanto cai. */
+      const cols = ['#ffd23a', '#ff4f8b', '#7ec8ff', '#7dff6a', '#c9a2ff', '#fff'];
+      const hi = ['#fff3b0', '#ffb3cf', '#d9efff', '#ccffbb', '#e9dcff', '#ffffff'];
       for (const d of this.drops) {
+        const w = 4 + d.s * 4.5;
+        const h = d.s > 0.6 ? 3 : 2;
+        const ci = (d.design || 0) % cols.length;
         ctx.save();
         ctx.translate(Math.round(d.x), Math.round(d.y));
         ctx.rotate(d.ph || 0);
-        ctx.fillStyle = cols[(d.design || 0) % cols.length];
-        ctx.fillRect(-3, -1, 6, 2);
+        ctx.fillStyle = cols[ci];
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+        ctx.fillStyle = hi[ci];
+        ctx.fillRect(-w / 2, -h / 2, w, 1);
         ctx.restore();
       }
     } else if (this.kind === 'fireworks') {
-      const cols = ['#ffe27a', '#ff4f8b', '#7ec8ff', '#fff', '#ff9a3c'];
+      /* FOGOS: faísca radial em 'lighter' (brilho aditivo, blob em cache por cor)
+         + 4 pontinhos de fagulha ao redor — parece fogo de artifício, nao cruz. */
+      const cols = [
+        ['rgba(255,255,255,0.95)', 'rgba(255,226,122,0.55)'],
+        ['rgba(255,255,255,0.95)', 'rgba(255,79,139,0.55)'],
+        ['rgba(255,255,255,0.95)', 'rgba(126,200,255,0.55)'],
+        ['rgba(255,255,255,0.90)', 'rgba(255,255,255,0.40)'],
+        ['rgba(255,255,255,0.95)', 'rgba(255,154,60,0.55)'],
+      ];
+      this._sparkBlobs = this._sparkBlobs || {};
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
       for (const d of this.drops) {
-        const x = Math.round(d.x);
-        const y = Math.round(d.y);
-        ctx.globalAlpha = 0.9;
-        ctx.fillStyle = cols[(d.design || 0) % cols.length];
-        ctx.fillRect(x, y, 2, 2);
-        if (Math.sin((d.ph || 0) * 2) > 0) {
-          ctx.fillRect(x - 4, y, 2, 2);
-          ctx.fillRect(x + 4, y, 2, 2);
-          ctx.fillRect(x, y - 4, 2, 2);
-          ctx.fillRect(x, y + 4, 2, 2);
+        const ci = (d.design || 0) % cols.length;
+        let blob = this._sparkBlobs[ci];
+        if (!blob) {
+          const c = document.createElement('canvas');
+          c.width = 22; c.height = 22;
+          const x = c.getContext('2d');
+          const g = x.createRadialGradient(11, 11, 1, 11, 11, 10.5);
+          g.addColorStop(0, cols[ci][0]);
+          g.addColorStop(0.4, cols[ci][1]);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          x.fillStyle = g;
+          x.fillRect(0, 0, 22, 22);
+          blob = this._sparkBlobs[ci] = c;
         }
+        const x = Math.round(d.x), y = Math.round(d.y);
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(blob, x - 11, y - 11);
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = cols[ci][1];
+        const s = Math.sin((d.ph || 0) * 2) > 0 ? 5 : 3;
+        ctx.fillRect(x - s, y, 2, 2);
+        ctx.fillRect(x + s - 2, y, 2, 2);
+        ctx.fillRect(x, y - s, 2, 2);
+        ctx.fillRect(x, y + s - 2, 2, 2);
       }
       ctx.globalAlpha = 1;
+      ctx.restore();
     } else {
       /* CHUVA/TEMPESTADE em 2 passagens: trilha larga e transparente + nucleo claro
          brilhante na cabeca da gota (parece vidro molhado, nao linha chapada). */

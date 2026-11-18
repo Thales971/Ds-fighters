@@ -45,7 +45,7 @@ const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' +
 g.weather.sprites.flakes = { img: WEATHER_IMGS.flakes, cell: 28 };
 g.weather.sprites.leaf = { img: WEATHER_IMGS.leaf, cell: 16 };
 g.weather.sprites.spark = { img: WEATHER_IMGS.spark, cell: 8 };
-const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave'];
+const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave', 'confetti', 'fireworks', 'eclipse', 'rainbow', 'fog', 'darkfog', 'leaves', 'hail', 'fireflies'];
 for (const kind of KINDS) {
   g.weather.set(kind);
   for (let t = 0; t < 180; t++) { g.tick(); if (t < 60) g.weather.updateParticles(); }
@@ -105,6 +105,33 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   const wsrc = fs.readFileSync('js/engine/weather.js', 'utf8');
   check('weather.js: rainbow usa ctx.arc (arco), rain 2 passagens, heatwave shimmer, flash raio', wsrc.indexOf('ctx.arc(cx') >= 0 && wsrc.indexOf('trilha larga') >= 0 && wsrc.indexOf('shimmer: faixas verticais') >= 0 && wsrc.indexOf('RAIO: polilinha') >= 0);
   check('weather.js v3: aurora v2 em cortinas em camadas + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina densa de proposito', wsrc.indexOf('AURORA BOREAL v2') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('bancos grandes e macios') >= 0);
+  check('weather.js v4: confete de papel two-tone + fogos com faisca radial aditiva em cache', wsrc.indexOf('CONFETE de papel') >= 0 && wsrc.indexOf('FOGOS: fa') >= 0 && wsrc.indexOf('_sparkBlobs') >= 0);
+  /* fogos: brilho aditivo no ceu (pixels bem claros acima dos lutadores) vs baseline clear */
+  g.weather.set('clear'); g.weather.intensity = 0; g.weather.drops.length = 0; g.render();
+  const baseW = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  g.weather.set('fireworks'); g.weather.intensity = 1;
+  for (let t = 0; t < 60; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-fireworks2.png'), canvas.toBuffer('image/png'));
+  const dW = cx2d.getImageData(0, 0, 960, 540).data;
+  let glow = 0;
+  for (let y = 0; y < 300; y++) for (let x = 0; x < 960; x++) {
+    const i = (y * 960 + x) * 4;
+    if (dW[i] + dW[i + 1] + dW[i + 2] > 560 && dW[i] + dW[i + 1] + dW[i + 2] - (baseW[i] + baseW[i + 1] + baseW[i + 2]) > 90) glow++;
+  }
+  check('fogos com brilho aditivo no ceu (pixels brilhantes=' + glow + ')', glow > 150, '');
+  /* confete: varias cores distintas no ar */
+  g.weather.set('confetti'); g.weather.intensity = 1;
+  for (let t = 0; t < 60; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-confetti2.png'), canvas.toBuffer('image/png'));
+  const dC = cx2d.getImageData(0, 0, 960, 540).data;
+  const hues = new Set();
+  for (let i = 0; i < dC.length; i += 4) {
+    const r = dC[i], gg = dC[i + 1], b = dC[i + 2];
+    if (r + gg + b > 420 && Math.max(r, gg, b) - Math.min(r, gg, b) > 60) hues.add(((r >> 4) << 8) | ((gg >> 4) << 4) | (b >> 4));
+  }
+  check('confete com variety de cores (cores distintas=' + hues.size + ')', hues.size >= 4, '');
 
   /* diffs controlados (sem tick entre baseline e clima = lutadores parados) */
   const diffCount = (base, d, y0, y1, thr) => {
