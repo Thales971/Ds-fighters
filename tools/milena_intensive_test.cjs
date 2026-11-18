@@ -34,6 +34,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         found: !!f, name: f && f.name, title: f && f.title, stats: f && f.stats,
         moves: f && Object.keys(f.moves), quotes: f && Object.keys(f.quotes),
         powers: kit ? kit.powers.map((p) => p.id + ':' + p.slot + ':' + p.kind + ':row' + p.row + (p.kernel ? ':KERNEL' : '')) : null,
+        fxmap: kit ? kit.powers.map((p) => p.id + '=' + Object.keys(p.fx || {}).sort().join('+')) : null,
         sig: sig && sig.trait,
         layoutFile: SPRITE_LAYOUT.files['milena'],
         perFighter: !!(SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter['milena']),
@@ -45,6 +46,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const R = JSON.parse(r);
     check('registrada no FIGHTERS (nome/titulo/stats/moves/quotes)', R.found && R.name === 'MILENA' && R.title === 'A Janela de Erro' && R.stats.hp === 170 && R.moves.join(',') === 'punch,kick' && R.quotes.includes('super'), JSON.stringify({ name: R.name, title: R.title, stats: R.stats }));
     check('POWERS: 5 poderes (shot/blast/dash/rain/ult kernel), rows 0-4', R.powers && R.powers.length === 5 && R.powers[4].includes('ultimate') && R.powers[4].includes('KERNEL'), R.powers && R.powers.join(' | '));
+    check('BUFF: power 1.12 e debuffs no oponente (alerta slow+vuln, varredura chill, fuga vuln, cascata glitch+blind+poison, ult bleed+blind)', R.stats.power === 1.12 && R.fxmap && R.fxmap[0].includes('slow') && R.fxmap[0].includes('vuln') && R.fxmap[1].includes('chill') && R.fxmap[2].includes('vuln') && R.fxmap[3].includes('glitch') && R.fxmap[3].includes('blind') && R.fxmap[3].includes('poison') && R.fxmap[4].includes('bleed') && R.fxmap[4].includes('blind'), JSON.stringify(R.fxmap));
     check('layout/art atlas/grid registrados e desbloqueada por padrao', R.layoutFile === 'assets/sprites/milena.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster && R.unlocked && R.sig === 'ALERTA DO SISTEMA', '');
   }
 
@@ -135,10 +137,10 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       {
         const g = mk(); const [me, op] = prep(g);
         me.tryCast(0);
-        let slow = false, dmg = 0; const hp0 = op.hp;
-        for (let t = 0; t < 200; t++) { g.tick(); if (op.has('slow')) slow = true; }
+        let slow = false, vuln = false, dmg = 0; const hp0 = op.hp;
+        for (let t = 0; t < 200; t++) { g.tick(); if (op.has('slow')) slow = true; if (op.has('vuln')) vuln = true; }
         dmg = Math.round((hp0 - op.hp) * 10) / 10;
-        out.alerta = { slow, dmg };
+        out.alerta = { slow, vuln, dmg };
       }
       /* 2. Varredura Verde (blast) stun + dano */
       {
@@ -146,9 +148,9 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         op.hp = op.maxHp;
         const hp0 = op.hp;
         me.tryCast(1);
-        let stun = 0;
-        for (let t = 0; t < 160; t++) { g.tick(); if (op.stun > 0 || op.state === 'hit') stun++; }
-        out.varredura = { dmg: Math.round(hp0 - op.hp), stunTicks: stun };
+        let stun = 0, chill = false;
+        for (let t = 0; t < 160; t++) { g.tick(); if (op.stun > 0 || op.state === 'hit') stun++; if (op.has('chill')) chill = true; }
+        out.varredura = { dmg: Math.round(hp0 - op.hp), stunTicks: stun, chill };
       }
       /* 3. Fuga do Erro (dash phase): iFrames + dano atravessando */
       {
@@ -156,19 +158,19 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         me.x = 300; op.x = 420;
         const hp0 = op.hp;
         me.tryCast(2);
-        let inv = false;
-        for (let t = 0; t < 80; t++) { g.tick(); if (me.has('invuln')) inv = true; }
-        out.fuga = { invuln: inv, dmg: Math.round((hp0 - op.hp) * 10) / 10 };
+        let inv = false, vuln = false;
+        for (let t = 0; t < 80; t++) { g.tick(); if (me.has('invuln')) inv = true; if (op.has('vuln')) vuln = true; }
+        out.fuga = { invuln: inv, vuln, dmg: Math.round((hp0 - op.hp) * 10) / 10 };
       }
       /* 4. Erros em Cascata (rain) aplica glitch */
       {
         const g = mk(); const [me, op] = prep(g);
         me.cd = [0,0,0,0,0]; me.charge = [100, 100]; me.castLock = 0; me.state = 'idle'; me.cast = null;
         me.tryCast(3);
-        let gl = false, dmg = 0; const hp0 = op.hp;
-        for (let t = 0; t < 300; t++) { g.tick(); if (op.has('glitch')) gl = true; }
+        let gl = false, blind = false, poison = false, dmg = 0; const hp0 = op.hp;
+        for (let t = 0; t < 300; t++) { g.tick(); if (op.has('glitch')) gl = true; if (op.has('blind')) blind = true; if (op.has('poison')) poison = true; }
         dmg = Math.round((hp0 - op.hp) * 10) / 10;
-        out.cascata = { glitch: gl, dmg };
+        out.cascata = { glitch: gl, blind, poison, dmg };
       }
       /* 5. ULT Tela Azul: kernel -> game.bsod > 0 e dano massivo */
       {
@@ -176,9 +178,9 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         const hp0 = op.hp;
         me.ultimate = 100;
         me.tryCast(4);
-        let bsod = 0, ultGasta = me.ultimate === 0;
-        for (let t = 0; t < 200; t++) { g.tick(); bsod = Math.max(bsod, g.bsod); }
-        out.ult = { bsod, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta };
+        let bsod = 0, ultGasta = me.ultimate === 0, bleed = false, blind = false;
+        for (let t = 0; t < 200; t++) { g.tick(); bsod = Math.max(bsod, g.bsod); if (op.has('bleed')) bleed = true; if (op.has('blind')) blind = true; }
+        out.ult = { bsod, bleed, blind, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta };
       }
       /* 6. IA dos dois lados + modos */
       const run = (opts, maxTicks) => {
@@ -203,11 +205,11 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const R = JSON.parse(r);
     check('blit renderiza as 15 poses no canvas real', R.bad.length === 0, R.bad.join(',') || 'ok');
     check('flip dir=-1 espelha e mantem conteudo', R.flip.n1 > 5000 && R.flip.n2 > 5000 && R.flip.diff > 1000, JSON.stringify(R.flip));
-    check('Alerta do Sistema: projétil causa dano e aplica SLOW', R.alerta.dmg > 0 && R.alerta.slow, JSON.stringify(R.alerta));
-    check('Varredura Verde: blast no alvo causa dano + stun', R.varredura.dmg > 0 && R.varredura.stunTicks > 10, JSON.stringify(R.varredura));
-    check('Fuga do Erro: dash com iFrames causa dano atravessando', R.fuga.invuln && R.fuga.dmg > 0, JSON.stringify(R.fuga));
-    check('Erros em Cascata: chuva de erros aplica GLITCH + dano', R.cascata.glitch && R.cascata.dmg > 0, JSON.stringify(R.cascata));
-    check('ULT Tela Azul de Kernel: bsod>0 na tela, dano massivo, gasta ultimate', R.ult.bsod > 0 && R.ult.dmg >= 25 && R.ult.ultGasta, JSON.stringify(R.ult));
+    check('Alerta do Sistema: projétil causa dano e aplica SLOW + VULN', R.alerta.dmg > 0 && R.alerta.slow && R.alerta.vuln, JSON.stringify(R.alerta));
+    check('Varredura Verde: blast no alvo causa dano + stun + CHILL', R.varredura.dmg > 0 && R.varredura.stunTicks > 10 && R.varredura.chill, JSON.stringify(R.varredura));
+    check('Fuga do Erro: dash com iFrames causa dano atravessando + VULN no rival', R.fuga.invuln && R.fuga.dmg > 0 && R.fuga.vuln, JSON.stringify(R.fuga));
+    check('Erros em Cascata: chuva aplica GLITCH + CEGO + VENENO + dano', R.cascata.glitch && R.cascata.blind && R.cascata.poison && R.cascata.dmg > 0, JSON.stringify(R.cascata));
+    check('ULT Tela Azul de Kernel: bsod>0 + SANGRAMENTO + CEGO, dano massivo, gasta ultimate', R.ult.bsod > 0 && R.ult.bleed && R.ult.blind && R.ult.dmg >= 25 && R.ult.ultGasta, JSON.stringify(R.ult));
     check('IA: 3 partidas como P1 e 3 como P2 completas sem crash', R.ia.p1 === 3 && R.ia.p2 === 3 && !R.ia.err, JSON.stringify(R.ia));
     check('modos arcade/tag/survival sem crash', R.arcade && !R.arcade.err && R.tag && !R.tag.err && R.surv && !R.surv.err, JSON.stringify({ arcade: R.arcade, tag: R.tag, surv: R.surv }));
     check('sem warning de folha da milena', R.warn.length === 0, JSON.stringify(R.warn));
