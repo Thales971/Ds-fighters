@@ -39,6 +39,27 @@ def bands(profile, thr):
     return out
 
 
+
+def drop_edge_slivers(sub, min_sz):
+    """Remove respingos da celula vizinha: componentes que tocam a borda
+    ESQUERDA ou DIREITA da celula e sao bem menores que o maior componente
+    (figura real pode tocar a borda; resto de figura alheia fica numa quina)."""
+    lab, n = ndimage.label(sub)
+    keep = np.zeros_like(sub)
+    if not n:
+        return keep
+    sizes = [int(s2) for s2 in ndimage.sum(sub, lab, range(1, n + 1))]
+    maxs = max(sizes)
+    for i in range(n):
+        if sizes[i] <= min_sz:
+            continue
+        comp = lab == i + 1
+        touches_edge = comp[:, 0].any() or comp[:, -1].any()
+        if touches_edge and sizes[i] < maxs * 0.25:
+            continue
+        keep |= comp
+    return keep
+
 def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     """Detecta bg pelas bordas e o grid por projecao; extrai figuras."""
     im = Image.open(path).convert('RGB')
@@ -59,13 +80,7 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
         for ri, (y0, y1) in enumerate(rb):
             for ci, (x0, x1) in enumerate(cb):
                 sub = fg[y0:y1, x0:x1]
-                lab, n = ndimage.label(sub)
-                keep = np.zeros_like(sub)
-                if n:
-                    sizes = [int(s2) for s2 in ndimage.sum(sub, lab, range(1, n + 1))]
-                    for i in range(n):
-                        if sizes[i] > min_sz:
-                            keep |= lab == i + 1
+                keep = drop_edge_slivers(sub, min_sz)
                 if not keep.any():
                     continue
                 yy, xx = np.where(keep)
@@ -100,13 +115,7 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     for ri, (y0, y1) in enumerate(rb):
         for ci, (x0, x1) in enumerate(cb):
             sub = fg[y0:y1, x0:x1]
-            lab, n = ndimage.label(sub)
-            keep = np.zeros_like(sub)
-            if n:
-                sizes = [int(s) for s in ndimage.sum(sub, lab, range(1, n + 1))]
-                for i in range(n):
-                    if sizes[i] > min_sz:
-                        keep |= lab == i + 1
+            keep = drop_edge_slivers(sub, min_sz)
             if not keep.any():
                 continue
             yy, xx = np.where(keep)
