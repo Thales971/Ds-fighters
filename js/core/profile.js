@@ -7,10 +7,12 @@ const Profile = {
   ACCOUNT_KEY_PREFIX: 'dsfighters.profile.account.v1.',
   DEVICE_SETTINGS_KEY: 'dsfighters.profile.device-settings.v1',
   SKINS_ENABLED: false,
-  /* Du, Iales e Felipinho sao SECRETOS: so entram com o codigo padrao ADM.
-     Winx.exe e Qwen agora sao personagens NORMAIS (sem codigo). */
+  /* Du, Iales, Felipinho e Maximilian sao SECRETOS: so entram com codigo.
+     Os codigos em si ficam so nas comparacoes abaixo — nunca em comentarios,
+     README ou mensagens de erro (anti-vazamento, pedido do dono).
+     Winx.exe e Qwen sao personagens NORMAIS (sem codigo). */
   SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian'],
-  BATATA_IDS: ['du', 'iales', 'felipinho'],
+  LEGACY_IDS: ['du', 'iales', 'felipinho'],
   data: null,
   accountUid: null,
 
@@ -218,9 +220,9 @@ const Profile = {
     this.data = this._normalize(this.data || this.load());
     const c = String(code || '').trim().toLowerCase();
     if (!c) return { ok: false, msg: 'Digite um código.' };
-    /* ADM é o código padrão. BATATA nasceu para liberar o QWEN; o QWEN
-       entrou no elenco normal, então BATATA ficou como apelido e libera
-       os mesmos secretos que ainda pedem código (Du, Iales, Felipinho). */
+    /* Ha um codigo padrao e um apelido legado (nomes so nas comparacoes abaixo);
+       o legado ficou como apelido e libera os mesmos secretos (Du, Iales,
+       Felipinho). NUNCA escreva os codigos em comentarios/README/msgs. */
     /* PITOCO: o unico mascote secreto — so ele pode ser resgatado por codigo */
     if (c === 'pitoco') {
       if (this.hasPitoco()) return { ok: true, already: true, msg: 'PITOCO já está desbloqueado.', pet: true };
@@ -236,7 +238,7 @@ const Profile = {
       return { ok: true, msg: 'Desbloqueado: MAXIMILIAN!', ids: fresh };
     }
     if (c === 'adm' || c === 'batata') {
-      const ids = c === 'adm' ? this.BATATA_IDS.concat(['maximilian']) : this.BATATA_IDS.slice();
+      const ids = c === 'adm' ? this.LEGACY_IDS.concat(['maximilian']) : this.LEGACY_IDS.slice();
       const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
       const names = (list) => list.map((id) => ((typeof FIGHTERS !== 'undefined' && FIGHTERS.find((f) => f.id === id)) || { name: id.toUpperCase() }).name).join(', ');
       if (!fresh.length) {
@@ -248,7 +250,8 @@ const Profile = {
       const lead = c === 'batata' ? 'QWEN já é lutador padrão. BATATA liberou: ' : 'Desbloqueados: ';
       return { ok: true, msg: lead + names(fresh) + '!', ids: fresh };
     }
-    return { ok: false, msg: 'Código inválido. Os códigos são ADM, BATATA, RELOGIO e PITOCO.' };
+    /* NUNCA liste os codigos validos na msg de erro — vazaria o segredo na tela */
+    return { ok: false, msg: 'Código inválido. 🤫 Dica: os códigos não aparecem em lugar nenhum — descubra jogando ou pergunte ao dono.' };
   },
 
   setting(k, v) {

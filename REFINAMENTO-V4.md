@@ -20,7 +20,7 @@ O servidor dedicado publica um diretório vivo de salas reais. É possível entr
 
 ## Google e progresso
 
-O perfil anônimo e os perfis autenticados têm snapshots locais separados por UID. Respostas e uploads obsoletos são rejeitados após troca de conta; o logout tenta descarregar a fila pendente e as preferências de dispositivo ficam locais. Desbloqueios e estatísticas são normalizados. `Batata` continua liberando DU, IALES, Felipinho e Qwen. As regras Firestore restringem leitura/gravação ao dono e validam o formato dos dados.
+O perfil anônimo e os perfis autenticados têm snapshots locais separados por UID. Respostas e uploads obsoletos são rejeitados após troca de conta; o logout tenta descarregar a fila pendente e as preferências de dispositivo ficam locais. Desbloqueios e estatísticas são normalizados. código legado continua liberando DU, IALES, Felipinho e Qwen. As regras Firestore restringem leitura/gravação ao dono e validam o formato dos dados.
 
 **`js/config/firebase-config.js` continua sem configuração real.** A implementação foi testada offline e com Firebase simulado, mas não houve login Google real ou publicação de regras em um projeto Firebase. Para ativar, configure o projeto público, habilite Google Auth, autorize o domínio e publique `firestore.rules` conforme [FIREBASE.md](FIREBASE.md). Não é necessário fornecer chave privada de serviço para o frontend.
 

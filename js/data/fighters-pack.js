@@ -1,5 +1,6 @@
 /* Três lutadores novos. Carrega depois do balanceamento, então os números daqui valem.
-   Maximilian é secreto: código RELOGIO, e também ADM. */
+   Maximilian é secreto: só entra com código (os códigos não ficam escritos em lugar
+   nenhum público — nem README, nem comentário, nem mensagem de erro). */
 (() => {
   const frames = Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4]));
   const add = (id) => {

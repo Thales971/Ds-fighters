@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const ctx = {
-  console, Image: class { set src(v) {} }, Math, Date, JSON,
+  console, fs, Image: class { set src(v) {} }, Math, Date, JSON,
   localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
   EMPTY_INPUT: Object.freeze({ left: false, right: false, down: false, up: false, punch: false, kick: false }),
   Input: { init() {}, read: () => ({ left: false, right: false, down: false, up: false, punch: false, kick: false }), pad: () => null, padCount: 0 },
@@ -42,5 +42,38 @@ const rb = Profile.redeem('batata');
 check('codigo BATATA legado (informativo)', rb.ok === true, rb.msg);
 const rw = Profile.redeem('winx');
 check('codigo WINX invalido agora', rw.ok === false, rw.msg);
+// 6) ANTI-VAZAMENTO: codigo errado NAO pode listar os codigos validos na msg
+const rx = Profile.redeem('xyz-errado-123');
+const msgPad = ' ' + String(rx.msg || '').toLowerCase() + ' ';
+const vaza = [' adm ', ' batata ', ' relogio ', ' pitoco '].some((w) => msgPad.indexOf(w) >= 0);
+check('msg de codigo invalido NAO vaza os codigos validos', rx.ok === false && !vaza, JSON.stringify(rx.msg));
+const psrc = fs.readFileSync('js/core/profile.js', 'utf8');
+const NL = String.fromCharCode(10);
+const badLine = psrc.split(NL).find((l) => l.indexOf('ok: false') >= 0 && (l.indexOf('adm') >= 0 || l.indexOf('batata') >= 0 || l.indexOf('relogio') >= 0));
+check('profile.js: nenhuma linha de erro lista codigos', !badLine, badLine ? badLine.trim().slice(0, 80) : '');
 console.log(fails === 0 ? 'UNLOCK: TUDO OK' : 'UNLOCK: ' + fails + ' FALHAS');
 `, ctx);
+/* 7) README e arquivos publicos nao podem conter os codigos secretos */
+{
+  const leakers = [];
+  const CODEWORDS = ['adm', 'batata', 'relogio'];
+  const hasCode = (s) => {
+    const t = ' ' + s.toLowerCase().replace(/[^a-zà-ú ]/g, ' ') + ' ';
+    return CODEWORDS.some((w) => t.indexOf(' ' + w + ' ') >= 0);
+  };
+  const mdFiles = fs.readdirSync('.').filter((f) => f.endsWith('.md')).concat(fs.existsSync('docs') ? fs.readdirSync('docs').filter((f) => f.endsWith('.md')).map((f) => 'docs/' + f) : []);
+  for (const f of mdFiles) {
+    if (hasCode(fs.readFileSync(f, 'utf8'))) leakers.push(f);
+  }
+  if (hasCode(fs.readFileSync('index.html', 'utf8'))) leakers.push('index.html');
+  // comentarios de codigo nao podem citar os codigos (linhas // ou /* ... */)
+  for (const f of ['js/ui/ui.js', 'js/data/fighters-pack.js', 'js/core/profile.js', 'js/data/pets.js']) {
+    const s = fs.readFileSync(f, 'utf8');
+    const commentLines = s.split('\n').filter((l) => l.trim().startsWith('//') || l.trim().startsWith('/*') || l.indexOf('/*') >= 0);
+    if (commentLines.some(hasCode)) leakers.push(f + ' (comentario)');
+  }
+  const n0 = (typeof fails !== 'undefined') ? fails : 0;
+  console.log((leakers.length === 0 ? 'OK   ' : 'FALHA') + ' README/arquivos publicos sem vazar codigos secretos' + (leakers.length ? ' — ' + leakers.join(', ') : ''));
+  if (leakers.length) process.exitCode = 1;
+}
+

@@ -6,7 +6,7 @@
 
 A expansão acrescenta quatro lutadores e três arenas à base existente. No jogo carregado no navegador, o elenco passou a **30 lutadores** e o catálogo, a **45 arenas**.
 
-- **Winx.EXE** é a personagem secreta de código, com força-base **1,38**, igual à de DU. `WINX` e `WINX.EXE` desbloqueiam somente a Winx. O código **Batata** continua liberando seu grupo antigo (DU, IALES, Felipinho e Qwen).
+- **Winx.EXE** é a personagem secreta de código, com força-base **1,38**, igual à de DU. `código antigo` e `código antigo` desbloqueiam somente a Winx. O código legado continua liberando seu grupo antigo (DU, IALES, Felipinho e Qwen).
 - **Kimi** é uma personagem normal de anime com cabelo verde-água e kit de água/gelo.
 - **DeepSeek** é uma personagem normal com tema aquático e cauda/fluke de baleia.
 - **Dandara Query** é uma mulher adulta do interior do RJ, de dreads, especialista em banco de dados, disponível sem código.
@@ -31,7 +31,7 @@ Cada lutador possui um sheet transparente **4 × 8** com oito ações, normaliza
 
 ## Verificações executadas
 
-- `node tools/v7_regressions.cjs` — kits/IDs, força da Winx, código separado do Batata, status com limite, linhas de animação, arenas e allowlist online.
+- `node tools/v7_regressions.cjs` — kits/IDs, força da Winx, código separado do legado, status com limite, linhas de animação, arenas e allowlist online.
 - `python3 tools/selection_ui_check.py` — 8 verificações no Chromium: botão Voltar de skins, código, miniaturas desktop/mobile, nomes narrados em português e console sem erros.
 - `python3 tools/v7_browser_check.py` — partida Canvas local com Winx e Kimi nas três arenas novas e nas três clássicas preservadas; as seis sheets carregaram e o status apareceu.
 - `python3 tools/map_events_check.py` — mecânicas e pickups dos mapas, inclusive os três novos.
