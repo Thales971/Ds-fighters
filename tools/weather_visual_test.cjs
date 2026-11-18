@@ -160,6 +160,27 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   const dF = cx2d.getImageData(0, 0, 960, 540).data;
   const fMid = diffCount(baseF, dF, 200, 390, 100), fLow = diffCount(baseF, dF, 395, 470, 100), fHigh = diffCount(baseF, dF, 20, 120, 100);
   check('neblina cobre um pouco a visao no meio da tela, de proposito (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', fMid > 8000, '');
+
+  /* REFLEXO MOLHADO: A/B sem tick entre os renders (lutadores parados, sem
+     particulas de chuva pra nao poluir o diff) — so o reflexo muda a faixa
+     abaixo do chao (y 462..538) */
+  g.weather.set('rain'); g.weather.intensity = 0; g.weather.intensityTarget = 0; g.weather.drops.length = 0; g.weather.rings.length = 0;
+  for (let t = 0; t < 90; t++) g.tick();
+  g._wetOverride = true; g.render();
+  const wetA = cx2d.getImageData(0, 462, 960, 76).data.slice();
+  g._wetOverride = false; g.render();
+  const wetB = cx2d.getImageData(0, 462, 960, 76).data;
+  let refl = 0;
+  for (let i = 0; i < wetA.length; i += 4) { if (Math.abs(wetA[i] - wetB[i]) + Math.abs(wetA[i + 1] - wetB[i + 1]) + Math.abs(wetA[i + 2] - wetB[i + 2]) > 25) refl++; }
+  check('reflexo molhado abaixo do chao quando ta chovendo (px na faixa do chao=' + refl + ')', refl > 300, '');
+  g._wetOverride = null; g.render();
+  check('wetFloor automatico: chuva liga (' + g.wetFloor + ')', g.wetFloor === true, '');
+  g.weather.set('clear'); g.weather.intensity = 0; g.weather.drops.length = 0; g.stageDef = Object.assign({}, g.stageDef, { mech: null, swim: false });
+  for (let t = 0; t < 30; t++) g.tick();
+  g.render();
+  check('wetFloor automatico: sem chuva e sem palco de mare desliga (' + g.wetFloor + ')', g.wetFloor === false, '');
+  const gsrc = fs.readFileSync('js/engine/game.js', 'utf8');
+  check('game.js: bloco REFLEXO MOLHADO (espelho achatado + fade + brilho na linha de agua)', gsrc.indexOf('REFLEXO MOLHADO') >= 0 && gsrc.indexOf('linha d') >= 0 && gsrc.indexOf('scale(1, -0.36)') >= 0);
 }
 console.log('---');
 console.log(fails === 0 ? 'CLIMA v2: TUDO OK (' + n + ' checks)' : 'CLIMA v2: ' + fails + ' FALHAS de ' + n);
