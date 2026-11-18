@@ -89,10 +89,12 @@
   Object.assign(SIGNATURES, {
     [id]: {
       trait: 'OVERCLOCK DO FIXER',
-      desc: 'Fixer cyberpunk: monofio beam longo que sangra, soco de chassi em área, dash de overclock e ult Quebra-ICE que racha a tela (inbloqueável). Abaixo de 35% de vida entra em OVERCLOCK: +25% dano.',
+      desc: 'Fixer cyberpunk: monofio beam longo que sangra, soco de chassi em área, dash de overclock e ult Quebra-ICE que racha a tela (inbloqueável). Passivas: ESQUIVA 15% com efeito SANDEVISTAN (slowmo + rastro ciano) + OVERCLOCK abaixo de 35% de vida: +25% dano.',
       basic: {},
       ability: {},
       lowHpRage: 1.25,   /* OVERCLOCK: +25% dano abaixo de 35% de vida */
+      dodge: 0.15,       /* ESQUIVA DO FIXER: 15% dos golpes/projecteis desviam sozinhos (pesado e lento, compensa na defesa) */
+      sandevistan: true, /* esquiva aciona efeito Sandevistan: slowmo + flash ciano + rastro */
     },
   });
 })();

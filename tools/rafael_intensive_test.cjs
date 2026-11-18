@@ -37,7 +37,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         moves: f && Object.keys(f.moves), quotes: f && Object.keys(f.quotes),
         powers: kit ? kit.powers.map((p) => p.id + ':' + p.slot + ':' + p.kind + ':row' + p.row + (p.whiffRecovery ? ':WHIFF' + p.whiffRecovery : '')) : null,
         fxmap: kit ? kit.powers.map((p) => p.id + '=' + Object.keys(p.fx || {}).sort().join('+')) : null,
-        sig: sig && sig.trait, rage: sig && sig.lowHpRage,
+        sig: sig && sig.trait, rage: sig && sig.lowHpRage, dodge: sig && sig.dodge, sandevistan: !!(sig && sig.sandevistan),
         layoutFile: SPRITE_LAYOUT.files['rafael'],
         perFighter: !!(SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter['rafael']),
         artAbil: !!ART_SHEETS['abil:rafael'], artFx2: !!ART_SHEETS['fx2:rafael'],
@@ -51,6 +51,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     check('POWERS: 5 poderes (beam/blast/dash/rain/ult quake), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('beam') && R.powers[1].includes('blast') && R.powers[2].includes('dash') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('quake'), R.powers && R.powers.join(' | '));
     check('debuffs nos poderes: monofio bleed, chassi shock+slow, overclock whiff20+vuln, estilhacos bleed+slow, ult quake screen explode+bleed+vuln', R.fxmap && R.powers && R.fxmap[0].includes('bleed') && R.fxmap[1].includes('shock') && R.fxmap[1].includes('slow') && R.powers[2].includes('WHIFF20') && R.fxmap[2].includes('vuln') && R.fxmap[3].includes('bleed') && R.fxmap[3].includes('slow') && R.fxmap[4].includes('explode') && R.powers[4].includes('quake') && R.fxmap[4].includes('bleed') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
     check('passiva OVERCLOCK (lowHpRage 1.25 abaixo de 35% hp) na assinatura', R.rage === 1.25 && R.sig === 'OVERCLOCK DO FIXER', 'sig=' + R.sig + ' rage=' + R.rage);
+    check('passivas ESQUIVA 15% + SANDEVISTAN na assinatura', R.dodge === 0.15 && R.sandevistan === true, 'dodge=' + R.dodge + ' sandevistan=' + R.sandevistan);
     check('layout/art atlas/grid registrados (rafael no fim do roster) e desbloqueado', R.layoutFile === 'assets/sprites/rafael.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster === 51 && R.sig === 'OVERCLOCK DO FIXER' && R.unlocked, 'roster idx ' + R.roster + ' ' + R.rosterVersion);
   }
 
@@ -224,6 +225,22 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         const full = measure(1.0), low = measure(0.30);
         out.furia = { full, low, ratio: Math.round((low / Math.max(0.1, full)) * 100) / 100 };
       }
+      /* 5b. ESQUIVA + SANDEVISTAN: rnd=0 força o dodge — takeHit retorna false, desvia 70px, invuln, slowmo, afterimage, flash */
+      {
+        const g = mk(); const [me, op] = prep(g);
+        g.rnd = () => 0; // sempre esquiva (chance 0.15 > 0)
+        me.state = 'idle'; me.onGround = true; me.status = {};
+        const x0 = me.x, sl0 = g.slowmo || 0;
+        const landed = me.takeHit(10, { attacker: op });
+        out.esquiva = {
+          desviou: landed === false,
+          moveu: Math.abs(me.x - x0) >= 60,
+          invuln: me.has('invuln'),
+          slowmo: (g.slowmo || 0) > sl0,
+          afterimage: me.afterimage >= 28,
+          flashes: (typeof VFX !== 'undefined' && VFX.flashes.length > 0) || g.imgFx.length > 0,
+        };
+      }
       /* 6. IA dos dois lados + modos */
       const run = (opts, maxTicks) => {
         const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle(){},add(){},remove(){} } });
@@ -255,6 +272,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     check('Chuva de Estilhaços: chuva causa dano + SANGRAMENTO + LENTO', R.chuva.bleed && R.chuva.slow && R.chuva.dmg > 0, JSON.stringify(R.chuva));
     check('ULT Quebra-ICE: quake screen causa dano massivo + trava + SANGRAMENTO + VULN, gasta ultimate', R.ult.dmg >= 30 && R.ult.travou && R.ult.bleed && R.ult.vuln && R.ult.ultGasta, JSON.stringify(R.ult));
     check('OVERCLOCK: dano abaixo de 35% hp e ~1.25x o dano com vida cheia', R.furia.low > R.furia.full && R.furia.ratio > 1.15 && R.furia.ratio < 1.4, JSON.stringify(R.furia));
+    check('ESQUIVA+SANDEVISTAN: golpe desviado (sem dano) + desloca + invuln + slowmo + rastro/flash', R.esquiva.desviou && R.esquiva.moveu && R.esquiva.invuln && R.esquiva.slowmo && R.esquiva.afterimage && R.esquiva.flashes, JSON.stringify(R.esquiva));
     check('IA: 3 partidas como P1 e 3 como P2 completas sem crash', R.ia.p1 === 3 && R.ia.p2 === 3 && !R.ia.err, JSON.stringify(R.ia));
     check('modos arcade/tag/survival sem crash', R.arcade && !R.arcade.err && R.tag && !R.tag.err && R.surv && !R.surv.err, JSON.stringify({ arcade: R.arcade, tag: R.tag, surv: R.surv }));
     check('sem warning de folha do rafael', R.warn.length === 0, JSON.stringify(R.warn));

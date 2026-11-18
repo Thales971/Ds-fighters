@@ -445,6 +445,16 @@ class Fighter {
         this.afterimage = 18;
         game.floatText(this.x, this.y - 230, 'ESQUIVA!', '#00f0ff');
         game.audio.play('whoosh');
+        /* SANDEVISTAN (Rafael): na esquiva o tempo desacelera pra ele — slowmo curto
+           (letterbox do VFX) + flash ciano + rastro fantasma + texto. */
+        if (this.sig.sandevistan) {
+          game.slowmo = Math.max(game.slowmo || 0, 26);
+          this.afterimage = 30;
+          if (typeof VFX !== 'undefined') VFX.impact(this.x, this.y - 100, true, '#00f0ff', game.reduced);
+          game.spawnBurst('fx2:lightning', 2, this.x, this.y - 100, 1, 1.6);
+          game.floatText(this.x, this.y - 266, 'SANDEVISTAN!', '#7df9ff');
+          for (let k = 0; k < 3; k++) game.spawnImgFx('rastro', 'flash', this.x - sgn * (24 + k * 26), this.y - 96 - k * 14, { scale: 1.5 + k * 0.35, life: 16, alpha: 0.8, dir: -sgn });
+        }
         return false;
       }
     }
