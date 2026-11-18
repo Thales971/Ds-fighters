@@ -174,7 +174,7 @@ class Weather {
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
-      const y = this.kind === 'aurora' ? -330 + r * 130 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' || this.kind === 'confetti' ? -30 - r * 380 : this.kind === 'fireworks' ? -200 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
+      const y = this.kind === 'aurora' ? -445 + r * 150 : this.kind === 'heatwave' ? -40 - r * 55 : this.kind === 'clear' ? -300 + r * 300 : this.kind === 'fireflies' ? -210 - r * 190 : this.kind === 'leaves' || this.kind === 'confetti' ? -30 - r * 380 : this.kind === 'fireworks' ? -200 - r * 240 : this.kind === 'rainbow' ? -200 - r * 200 : -540 - r * 60;
       const roll = this.game.rnd ? this.game.rnd() : Math.random();
       const d = { x: roll * (W + 200) - 100, y, s: (this.game.rnd ? this.game.rnd() : Math.random()), ph: roll * 6.28, rot: roll * 6.28, rotV: 0.05 + roll * 0.08 };
       /* NEVE: cada floco tem design (0-5 do atlas), rotacao, camada de
@@ -246,7 +246,7 @@ class Weather {
       }
       if (this.kind === 'aurora') {
         d.x += reduced ? 0 : 0.35 + d.s * 0.7;
-        d.y = -320 + d.s * 100 + (reduced ? 0 : Math.sin((this.t + d.x) * 0.015) * 4);
+        d.y = -440 + d.s * 130 + (reduced ? 0 : Math.sin((this.t + d.x) * 0.015) * 4);
         if (d.x > W + 60) d.x = -60;
         continue;
       }
@@ -274,9 +274,12 @@ class Weather {
         continue;
       }
       if (this.kind === 'fog') {
-        /* NEBLINA: bancos grandes e macios derivando devagar. */
+        /* NEBLINA em 2 faixas: rasa perto do chao + nevoeiro alto no ceu.
+           O MEIO da tela (onde lutam os personagens) fica limpo. */
         d.x += (this.wind || 0.4) * (0.14 + d.s * 0.22);
-        d.y = -80 - d.s * 120 + Math.sin((this.t + d.s * 200) * 0.006) * 26;
+        d.y = d.s < 0.72
+          ? -6 - d.s * 50 + Math.sin((this.t + d.s * 200) * 0.006) * 7
+          : -350 - (d.s - 0.72) * 240 + Math.sin((this.t + d.s * 200) * 0.006) * 16;
         if (d.x > W + 240) d.x = -240;
         if (d.x < -240) d.x = W + 200;
         continue;
@@ -317,24 +320,59 @@ class Weather {
     if (!this.drops.length && !this.flash) return;
     ctx.save();
     if (this.kind === 'aurora') {
-      /* AURORA: cortinas verticais com gradiente (verde -> teal -> roxo ->
-         magenta), ondulando devagar, + estrelas piscando. */
+      /* AURORA BOREAL: 3 cortinas pendendo do TOPO do ceu, borda inferior
+         ondulada (dobra da cortina) + raios verticais finos. Composite
+         'lighter' soma as cores como luz de verdade — nada de faixas
+         chapadas no meio da tela. */
       const W = this.game.W;
       const reduced = this.game.reduced;
-      const bands = reduced ? 2 : 4;
-      const tops = ['rgba(96,255,214,0.34)', 'rgba(80,225,255,0.30)', 'rgba(140,130,255,0.28)', 'rgba(228,120,255,0.24)'];
-      const bots = ['rgba(30,120,110,0)', 'rgba(40,90,160,0)', 'rgba(80,60,160,0)', 'rgba(120,60,160,0)'];
-      for (let i = 0; i < bands; i++) {
-        for (let x = -20; x <= W + 40; x += 26) {
-          const base = -320 + i * 24 + (reduced ? 0 : Math.sin((x + this.t * 1.6 + i * 70) * 0.011) * 14);
-          const hgt = 130 + Math.sin((x * 0.02) + this.t * 0.01 + i) * 36;
-          const g = ctx.createLinearGradient(0, base, 0, base + hgt);
-          g.addColorStop(0, tops[i]);
-          g.addColorStop(1, bots[i]);
-          ctx.fillStyle = g;
-          ctx.fillRect(x, base, 27, hgt);
+      const t = this.t;
+      const curtains = reduced
+        ? [{ top: -545, hgt: 240, c0: 'rgba(96,255,190,0.36)', c1: 'rgba(40,200,170,0)', cr: 'rgba(96,255,190,0.14)', edge: 'rgba(190,255,230,0.40)', ph: 0 }]
+        : [
+            { top: -545, hgt: 225, c0: 'rgba(96,255,190,0.36)', c1: 'rgba(40,200,170,0)', cr: 'rgba(96,255,190,0.14)', edge: 'rgba(190,255,230,0.42)', ph: 0.0 },
+            { top: -520, hgt: 280, c0: 'rgba(80,225,255,0.30)', c1: 'rgba(60,120,220,0)', cr: 'rgba(80,225,255,0.12)', edge: 'rgba(170,235,255,0.34)', ph: 2.1 },
+            { top: -495, hgt: 190, c0: 'rgba(178,120,255,0.28)', c1: 'rgba(120,60,200,0)', cr: 'rgba(178,120,255,0.12)', edge: 'rgba(225,170,255,0.30)', ph: 4.2 },
+          ];
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const c of curtains) {
+        /* corpo da cortina: topo reto, base com duas ondas sobrepostas */
+        ctx.beginPath();
+        ctx.moveTo(-40, c.top - 12);
+        for (let x = -40; x <= W + 40; x += 24) ctx.lineTo(x, c.top + Math.sin(x * 0.011 + t * 0.6 + c.ph) * 9);
+        for (let x = W + 40; x >= -40; x -= 24) {
+          ctx.lineTo(x, c.top + c.hgt + Math.sin(x * 0.017 - t * 0.9 + c.ph * 2) * 36 + Math.sin(x * 0.041 + t * 1.3 + c.ph) * 13);
+        }
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, c.top - 12, 0, c.top + c.hgt + 60);
+        g.addColorStop(0, c.c0);
+        g.addColorStop(0.72, c.c1);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fill();
+        /* borda inferior brilhante: a aurora real tem um limite inferior
+           nitido e luminoso — e a onda da dobra fica bem visivel ai */
+        ctx.beginPath();
+        for (let x = -40; x <= W + 40; x += 24) {
+          const by = c.top + c.hgt + Math.sin(x * 0.017 - t * 0.9 + c.ph * 2) * 36 + Math.sin(x * 0.041 + t * 1.3 + c.ph) * 13;
+          if (x === -40) ctx.moveTo(x, by); else ctx.lineTo(x, by);
+        }
+        ctx.strokeStyle = c.edge;
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+        /* raios verticais finos dentro da cortina (estrutura classica) */
+        for (let x = -10; x <= W + 10; x += 30) {
+          const ry = c.top + Math.sin(x * 0.011 + t * 0.6 + c.ph) * 9;
+          const rl = c.hgt * (0.4 + 0.45 * Math.abs(Math.sin(x * 0.023 + t * 1.1 + c.ph * 3)));
+          const rg = ctx.createLinearGradient(0, ry, 0, ry + rl);
+          rg.addColorStop(0, c.cr);
+          rg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = rg;
+          ctx.fillRect(x, ry, 3, rl);
         }
       }
+      ctx.restore();
       /* estrelas piscando */
       ctx.globalAlpha = 1;
       for (const d of this.drops) {
@@ -346,8 +384,8 @@ class Weather {
       ctx.globalAlpha = 1;
     } else if (this.kind === 'heatwave') {
       /* ONDA DE CALOR: linhas de miragem + BRASAS subindo com sprite. */
-      ctx.strokeStyle = 'rgba(255,190,112,0.72)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,190,112,0.38)';
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
       for (const d of this.drops) {
         if (d.ember) continue;
@@ -425,13 +463,22 @@ class Weather {
           ctx.drawImage(sp.img, d.design * sp.cell, 0, sp.cell, sp.cell, -sp.cell * scale / 2, -sp.cell * scale / 2, sp.cell * scale, sp.cell * scale);
           ctx.restore();
         } else {
-          /* fallback vetorial (sem sprite carregado): floco em cruz */
+          /* fallback vetorial (sem sprite): floco macio com gradiente radial (cache) */
+          if (!this._flakeBlob) {
+            const c = document.createElement('canvas');
+            c.width = 32; c.height = 32;
+            const x = c.getContext('2d');
+            const g = x.createRadialGradient(16, 16, 1, 16, 16, 15);
+            g.addColorStop(0, 'rgba(255,255,255,0.95)');
+            g.addColorStop(0.45, 'rgba(238,246,255,0.55)');
+            g.addColorStop(1, 'rgba(230,242,255,0)');
+            x.fillStyle = g;
+            x.fillRect(0, 0, 32, 32);
+            this._flakeBlob = c;
+          }
+          const sz = Math.max(6, Math.round(16 * scale));
           ctx.globalAlpha = Math.min(1, alpha + 0.1);
-          ctx.fillStyle = '#f4faff';
-          const sz = Math.max(2, Math.round(4 * scale));
-          const x = Math.round(d.x), y = Math.round(d.y);
-          ctx.fillRect(x - sz, y, sz * 2 + 1, 1);
-          ctx.fillRect(x, y - sz, 1, sz * 2 + 1);
+          ctx.drawImage(this._flakeBlob, Math.round(d.x) - sz / 2, Math.round(d.y) - sz / 2, sz, sz);
           ctx.globalAlpha = 1;
         }
       }
@@ -487,8 +534,22 @@ class Weather {
           ctx.drawImage(sp.img, 4 * sp.cell, 0, sp.cell, sp.cell, -9 * sc, -9 * sc, 18 * sc, 18 * sc);
           ctx.restore();
         } else {
-          ctx.fillStyle = '#e7f4ff';
-          ctx.fillRect(Math.round(d.x), Math.round(d.y), 3, 3);
+          if (!this._hailBlob) {
+            const c = document.createElement('canvas');
+            c.width = 24; c.height = 24;
+            const x = c.getContext('2d');
+            const g = x.createRadialGradient(9, 9, 1, 12, 12, 11);
+            g.addColorStop(0, 'rgba(255,255,255,0.98)');
+            g.addColorStop(0.55, 'rgba(214,234,252,0.85)');
+            g.addColorStop(1, 'rgba(170,200,235,0.1)');
+            x.fillStyle = g;
+            x.beginPath(); x.arc(12, 12, 11, 0, 6.3); x.fill();
+            this._hailBlob = c;
+          }
+          const sz = 10 + 8 * (0.42 + d.s * 0.28);
+          ctx.globalAlpha = 0.92;
+          ctx.drawImage(this._hailBlob, Math.round(d.x) - sz / 2, Math.round(d.y) - sz / 2, sz, sz);
+          ctx.globalAlpha = 1;
         }
       }
     } else if (this.kind === 'leaves') {
@@ -543,21 +604,47 @@ class Weather {
       }
       ctx.globalAlpha = 1;
     } else {
-      ctx.strokeStyle = this.kind === 'storm' ? 'rgba(190,214,255,0.5)' : 'rgba(176,204,255,0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
+      /* CHUVA/TEMPESTADE em 2 passagens: trilha larga e transparente + nucleo claro
+         brilhante na cabeca da gota (parece vidro molhado, nao linha chapada). */
+      const storm = this.kind === 'storm';
+      const head = storm ? 'rgba(228,240,255,0.9)' : 'rgba(205,228,255,0.75)';
+      const trail = storm ? 'rgba(170,200,255,0.20)' : 'rgba(160,195,255,0.16)';
       for (const d of this.drops) {
-        ctx.moveTo(d.x, d.y);
-        ctx.lineTo(d.x - this.wind * 3, d.y - 12 - d.s * 8);
+        const len = 12 + d.s * 8;
+        // trilha (larga, sumindo pra tras)
+        ctx.strokeStyle = trail;
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.moveTo(d.x - this.wind * 3, d.y - len);
+        ctx.lineTo(d.x, d.y);
+        ctx.stroke();
+        // nucleo claro
+        ctx.strokeStyle = head;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(d.x - this.wind * 1.4, d.y - len * 0.55);
+        ctx.lineTo(d.x, d.y);
+        ctx.stroke();
+        // cabeca brilhante (2px)
+        ctx.fillStyle = head;
+        ctx.fillRect(Math.round(d.x) - 1, Math.round(d.y) - 1, 2, 2);
       }
-      ctx.stroke();
-      /* aneis de impacto no chao (elipse achatada = perspectiva), alpha decai com a vida */
+      /* aneis de impacto no chao (elipse achatada = perspectiva) + splashzinho, alpha decai com a vida */
       if (this.rings.length) {
         for (const rg of this.rings) {
-          ctx.strokeStyle = 'rgba(186,218,255,' + ((rg.life / rg.max) * 0.5).toFixed(3) + ')';
+          const a = rg.life / rg.max;
+          ctx.strokeStyle = 'rgba(196,224,255,' + (a * 0.65).toFixed(3) + ')';
+          ctx.lineWidth = 1.4;
           ctx.beginPath();
           ctx.ellipse(rg.x, 2.5, rg.r, rg.r * 0.32, 0, 0, 6.3);
           ctx.stroke();
+          if (rg.r > 6) {
+            ctx.strokeStyle = 'rgba(220,238,255,' + (a * 0.4).toFixed(3) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(rg.x, 2.5, rg.r * 0.55, rg.r * 0.18, 0, 0, 6.3);
+            ctx.stroke();
+          }
         }
       }
     }
@@ -568,7 +655,7 @@ class Weather {
       ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.16)' : 'rgba(20,40,70,0.1)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'fog') {
-      ctx.fillStyle = 'rgba(206,216,228,0.13)';
+      ctx.fillStyle = 'rgba(206,216,228,0.10)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'darkfog') {
       /* só o chão e o fundo. O centro, onde estão os lutadores, fica limpo. */
@@ -594,8 +681,23 @@ class Weather {
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, W, H * 0.58);
     } else if (this.kind === 'heatwave') {
-      ctx.fillStyle = 'rgba(255,145,65,0.07)';
-      ctx.fillRect(0, H * 0.58, W, H * 0.42);
+      /* shimmer: faixas verticais quentes que sobem ondulando (nao mais retangulo chapado) */
+      const bands = this.game.reduced ? 3 : 6;
+      for (let i = 0; i < bands; i++) {
+        const bx = (((this.t * 0.9 + i * (W / bands)) % (W + 200)) - 100) + Math.sin(this.t * 0.02 + i * 2.1) * 18;
+        const g = ctx.createLinearGradient(bx - 70, 0, bx + 70, 0);
+        g.addColorStop(0, 'rgba(255,150,70,0)');
+        g.addColorStop(0.5, 'rgba(255,165,85,0.10)');
+        g.addColorStop(1, 'rgba(255,150,70,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(bx - 70, H * 0.42, 140, H * 0.58);
+      }
+      /* brilho quente subindo do horizonte */
+      const hz = ctx.createLinearGradient(0, H * 0.55, 0, H);
+      hz.addColorStop(0, 'rgba(255,150,70,0)');
+      hz.addColorStop(1, 'rgba(255,150,70,0.09)');
+      ctx.fillStyle = hz;
+      ctx.fillRect(0, H * 0.55, W, H * 0.45);
     } else if (this.kind === 'fireflies') {
       /* noite dos vagalumes: vinheta azul escura */
       const night = ctx.createLinearGradient(0, 0, 0, H);
@@ -609,23 +711,124 @@ class Weather {
       ctx.fillStyle = 'rgba(190,120,50,0.10)';
       ctx.fillRect(0, H * 0.86, W, H * 0.14);
     } else if (this.kind === 'eclipse') {
-      /* ECLIPSE: escuridao nas bordas */
-      const dark = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.25, W / 2, H * 0.5, H * 0.85);
+      /* ECLIPSE SOLAR: disco escuro da lua no alto do ceu tapando o sol, com
+         coroa dourada brilhando ao redor (brilho radial + raios + anel de
+         fogo), alem de leve escuridao nas bordas. */
+      const ex = W * 0.5, ey = H * 0.24;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const corona = ctx.createRadialGradient(ex, ey, 18, ex, ey, 130);
+      corona.addColorStop(0, 'rgba(255,246,220,0.80)');
+      corona.addColorStop(0.22, 'rgba(255,216,140,0.34)');
+      corona.addColorStop(0.55, 'rgba(255,190,110,0.10)');
+      corona.addColorStop(1, 'rgba(255,180,100,0)');
+      ctx.fillStyle = corona;
+      ctx.fillRect(ex - 130, ey - 130, 260, 260);
+      if (!this.game.reduced) {
+        /* raios da coroa girando devagar */
+        for (let i = 0; i < 14; i++) {
+          const a = (i / 14) * Math.PI * 2 + this.t * 0.005;
+          const len = 44 + 30 * Math.abs(Math.sin(i * 2.7 + this.t * 0.012));
+          ctx.strokeStyle = 'rgba(255,232,180,0.16)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(ex + Math.cos(a) * 32, ey + Math.sin(a) * 32);
+          ctx.lineTo(ex + Math.cos(a) * (32 + len), ey + Math.sin(a) * (32 + len));
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      /* disco escuro da lua + anel de fogo na borda */
+      ctx.fillStyle = 'rgba(9,9,22,0.95)';
+      ctx.beginPath(); ctx.arc(ex, ey, 30, 0, 6.3); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,238,196,0.95)';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.arc(ex, ey, 31.6, 0, 6.3); ctx.stroke();
+      /* leve escuridao nas bordas (sombra do eclipse) */
+      const dark = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.32, W / 2, H * 0.5, H * 0.9);
       dark.addColorStop(0, 'rgba(10,8,30,0)');
-      dark.addColorStop(1, 'rgba(10,8,30,0.22)');
+      dark.addColorStop(1, 'rgba(10,8,30,0.18)');
       ctx.fillStyle = dark;
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'rainbow') {
-      /* ARCO-IRIS: banda de cores no ceu */
-      const bands = ['rgba(255,70,70,0.2)', 'rgba(255,170,50,0.2)', 'rgba(255,236,80,0.18)', 'rgba(90,220,110,0.18)', 'rgba(90,170,255,0.18)', 'rgba(180,110,255,0.18)'];
-      for (let bi = 0; bi < bands.length; bi++) {
-        ctx.fillStyle = bands[bi];
-        ctx.fillRect(0, H * 0.05 + bi * 7, W, 6);
+      /* ARCO-IRIS: arcos concentricos centrados abaixo do horizonte com 2
+         passagens por faixa (halo largo e fraco + nucleo) em 'lighter', leve
+         "respiracao" no raio, + arco secundario fraco de cores invertidas.
+         Fica so no ceu (clip). */
+      const cx = W * 0.5 + Math.sin(this.t * 0.004) * 30;
+      const cy = H * 1.08;
+      const breathe = 1 + Math.sin(this.t * 0.008) * 0.012;
+      const R = H * 1.02 * breathe;
+      const bands = [
+        ['rgba(255,70,70,0.22)', 0], ['rgba(255,170,50,0.22)', 8], ['rgba(255,236,80,0.20)', 16],
+        ['rgba(90,220,110,0.20)', 24], ['rgba(90,170,255,0.20)', 32], ['rgba(180,110,255,0.20)', 40],
+      ];
+      ctx.save();
+      if (ctx.clip) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(W, 0); ctx.lineTo(W, H * 0.8); ctx.lineTo(0, H * 0.8); ctx.closePath(); ctx.clip(); }
+      ctx.globalCompositeOperation = 'lighter';
+      for (const [col, off] of bands) {
+        /* halo largo e fraco: suaviza a borda dura do arco */
+        ctx.strokeStyle = col;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R - off, Math.PI, 2 * Math.PI);
+        ctx.stroke();
+        /* nucleo da faixa */
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R - off, Math.PI, 2 * Math.PI);
+        ctx.stroke();
       }
+      /* arco secundario: mais fraco, raio maior, cores invertidas */
+      ctx.globalAlpha = 0.42;
+      for (let i = 0; i < bands.length; i++) {
+        ctx.strokeStyle = bands[bands.length - 1 - i][0];
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R + 34 + bands[i][1], Math.PI, 2 * Math.PI);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
     }
     if (this.flash > 0 && !this.game.reduced) {
       ctx.fillStyle = `rgba(235,240,255,${0.08 * this.flash})`;
       ctx.fillRect(0, 0, W, H);
+      /* RAIO: polilinha quebrada do ceu ate o chao, so durante o flash */
+      if (!this._bolt || this._boltFlash !== this.flash) {
+        this._boltFlash = this.flash;
+        const bx = W * (0.15 + 0.7 * (this.game.rnd ? this.game.rnd() : Math.random()));
+        const pts = [[bx, -10]];
+        let px = bx, py = -10;
+        const segs = 7;
+        for (let k = 1; k <= segs; k++) {
+          py = (H + 20) * k / segs;
+          px = bx + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 90 * (k / segs);
+          pts.push([px, py]);
+        }
+        this._bolt = pts;
+      }
+      if (this._bolt) {
+        const a = Math.min(1, this.flash / 4);
+        ctx.save();
+        ctx.globalAlpha = a * 0.28;
+        ctx.strokeStyle = '#cfe4ff';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(this._bolt[0][0], this._bolt[0][1]);
+        for (const [px, py] of this._bolt) ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.globalAlpha = a;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(this._bolt[0][0], this._bolt[0][1]);
+        for (const [px, py] of this._bolt) ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 }

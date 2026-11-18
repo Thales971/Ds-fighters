@@ -36,7 +36,7 @@ const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/figh
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO', f, e.message.slice(0, 80)); } }
 vm.runInContext(`
 const canvas = createCanvas(960, 540);
-const g = new Game({ width: 960, height: 540, getContext: () => canvas.getContext('2d'), toBuffer: () => canvas.toBuffer('image/png'), classList: { remove() {}, add() {}, toggle() {} } });
+let g = new Game({ width: 960, height: 540, getContext: () => canvas.getContext('2d'), toBuffer: () => canvas.toBuffer('image/png'), classList: { remove() {}, add() {}, toggle() {} } });
 g.start({ mode: 'versus', teams: [['du'], ['stack']], stage: '06-sakura-dojo', cpu: [false, false], roundsToWin: 2, timer: 99 });
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
 let fails = 0, n = 0;
@@ -59,6 +59,101 @@ const flake = g.weather.drops.find((d) => d.design !== undefined);
 check('floco tem design (0-5)', !!flake && flake.design >= 0 && flake.design <= 5, 'design=' + (flake && flake.design));
 check('floco tem camada de profundidade', !!flake && [0, 1, 2].includes(flake.layer), 'layer=' + (flake && flake.layer));
 check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png') && fs.existsSync('assets/weather/leaf.png') && fs.existsSync('assets/weather/spark.png'), 'flakes/leaf/spark');
+
+/* ===== upgrades visuais (arco-iris em arco, chuva em 2 passagens, calor shimmer, raio na tempestade) ===== */
+{
+  // palco de ceu escuro (neon-rooftop) pra mancha do arco sobressair no diff
+  const g2 = new Game({ width: 960, height: 540, getContext: () => canvas.getContext('2d'), toBuffer: () => canvas.toBuffer('image/png'), classList: { remove() {}, add() {}, toggle() {} } });
+  g2.start({ mode: 'versus', teams: [['du'], ['stack']], stage: '01-neon-rooftop', cpu: [false, false], roundsToWin: 2, timer: 99 });
+  for (let t = 0; t < 700 && g2.roundState !== 'fight'; t++) g2.tick();
+  g = g2;
+  const cx2d = canvas.getContext('2d');
+  // baseline: mesmo palco com clima clear
+  g.weather.set('clear');
+  for (let t = 0; t < 120; t++) g.tick();
+  g.render();
+  const base = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  // rainbow: pixels que ficam MAIS saturados que o baseline = o arco
+  g.weather.set('rainbow');
+  for (let t = 0; t < 120; t++) g.tick();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-rainbow.png'), canvas.toBuffer('image/png'));
+  const d = cx2d.getImageData(0, 0, 960, 540).data;
+  const sat = (i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
+  const satB = (i) => Math.max(base[i], base[i + 1], base[i + 2]) - Math.min(base[i], base[i + 1], base[i + 2]);
+  const spanAt = (y) => {
+    let mn = 1e9, mx = -1, cnt = 0;
+    for (let x = 0; x < 960; x++) {
+      const i = (y * 960 + x) * 4;
+      if (sat(i) - satB(i) > 30) { cnt++; if (x < mn) mn = x; if (x > mx) mx = x; }
+    }
+    return mx < 0 ? 0 : mx - mn;
+  };
+  const rows = [40, 80, 120, 160, 200, 240, 280, 320].map((y) => y + ':' + spanAt(y));
+  const sTop = spanAt(100), sLow = spanAt(300);
+  check('rainbow virou ARCO: largura da mancha cresce com a profundidade (' + sTop + '->' + sLow + ')', sTop > 20 && sLow > sTop * 1.2, rows.join(' '));
+  // rain: pixels que mudaram vs baseline = gotas (trilha + nucleo)
+  g.weather.set('rain');
+  for (let t = 0; t < 120; t++) g.tick();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-rain2.png'), canvas.toBuffer('image/png'));
+  const d2 = cx2d.getImageData(0, 0, 960, 540).data;
+  let drops = 0;
+  for (let i = 0; i < d2.length; i += 4) { if (Math.abs(d2[i] - base[i]) + Math.abs(d2[i + 1] - base[i + 1]) + Math.abs(d2[i + 2] - base[i + 2]) > 60) drops++; }
+  check('rain com trilha+nucleo claro (pixels de gota vs baseline: ' + drops + ')', drops > 800, drops + ' px');
+  // codigo: arco-iris usa arc(), chuva 2 passagens, calor shimmer em faixas, tempestade desenha raio no flash
+  const wsrc = fs.readFileSync('js/engine/weather.js', 'utf8');
+  check('weather.js: rainbow usa ctx.arc (arco), rain 2 passagens, heatwave shimmer, flash raio', wsrc.indexOf('ctx.arc(cx') >= 0 && wsrc.indexOf('trilha larga') >= 0 && wsrc.indexOf('shimmer: faixas verticais') >= 0 && wsrc.indexOf('RAIO: polilinha') >= 0);
+  check('weather.js v3: aurora em cortinas no topo + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina fora do meio', wsrc.indexOf('AURORA BOREAL: 3 cortinas') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('O MEIO da tela') >= 0);
+
+  /* diffs controlados (sem tick entre baseline e clima = lutadores parados) */
+  const diffCount = (base, d, y0, y1, thr) => {
+    let c = 0;
+    for (let y = y0; y < y1; y++) for (let x = 0; x < 960; x++) {
+      const i = (y * 960 + x) * 4;
+      if (Math.abs(d[i] - base[i]) + Math.abs(d[i + 1] - base[i + 1]) + Math.abs(d[i + 2] - base[i + 2]) > thr) c++;
+    }
+    return c;
+  };
+  // AURORA: a mancha tem que estar no TOPO (ceu), nao no meio da tela
+  g.weather.set('clear'); g.weather.intensity = 1; g.weather.drops.length = 0;
+  for (let t = 0; t < 30; t++) g.weather.updateParticles();
+  g.render();
+  const baseA = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  g.weather.set('aurora'); g.weather.intensity = 1;
+  for (let t = 0; t < 40; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-aurora2.png'), canvas.toBuffer('image/png'));
+  const dA = cx2d.getImageData(0, 0, 960, 540).data;
+  const aTop = diffCount(baseA, dA, 0, 260, 40), aMid = diffCount(baseA, dA, 260, 420, 40), aTot = aTop + aMid + diffCount(baseA, dA, 420, 540, 40);
+  check('aurora pendurada no topo do ceu, fora do meio da tela (top=' + aTop + ' mid=' + aMid + ')', aTot > 4000 && aTop > aTot * 0.7 && aMid < aTot * 0.25, 'tot=' + aTot);
+  // ECLIPSE: coroa brilhante no alto + disco escuro no centro dela
+  g.weather.set('clear'); g.weather.drops.length = 0; g.render();
+  const baseE = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  g.weather.set('eclipse'); g.weather.intensity = 1;
+  for (let t = 0; t < 30; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-eclipse2.png'), canvas.toBuffer('image/png'));
+  const dE = cx2d.getImageData(0, 0, 960, 540).data;
+  let corona = 0, dark = 0;
+  for (let y = 30; y < 230; y++) for (let x = 300; x < 660; x++) {
+    const i = (y * 960 + x) * 4;
+    if (dE[i] - baseE[i] > 30 && dE[i + 1] - baseE[i + 1] > 20) corona++;
+    const dx = x - 480, dy = y - 130;
+    if (dx * dx + dy * dy < 26 * 26 && dE[i] + dE[i + 1] + dE[i + 2] < 110) dark++;
+  }
+  check('eclipse: coroa brilhante no ceu + disco escuro da lua (corona=' + corona + ' dark=' + dark + ')', corona > 800 && dark > 1200, '');
+  // NEBLINA: bancos no chao/ceu, MEIO limpo (faixa dos lutadores)
+  g.weather.set('clear'); g.weather.drops.length = 0; g.render();
+  const baseF = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  g.weather.set('fog'); g.weather.intensity = 1;
+  for (let t = 0; t < 80; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-fog2.png'), canvas.toBuffer('image/png'));
+  const dF = cx2d.getImageData(0, 0, 960, 540).data;
+  const fMid = diffCount(baseF, dF, 200, 390, 100), fLow = diffCount(baseF, dF, 395, 470, 100), fHigh = diffCount(baseF, dF, 20, 120, 100);
+  check('neblina sai do meio da tela (lutadores) e vai pro chao/ceu (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', (fLow + fHigh) > 1500 && fMid < (fLow + fHigh) * 0.5, '');
+}
 console.log('---');
 console.log(fails === 0 ? 'CLIMA v2: TUDO OK (' + n + ' checks)' : 'CLIMA v2: ' + fails + ' FALHAS de ' + n);
 `, ctx);
