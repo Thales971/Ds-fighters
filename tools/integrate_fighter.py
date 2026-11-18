@@ -532,7 +532,42 @@ DEV_VIRADO_POSES = {
     'win':     ([(0, 2, 1, True), (2, 3, 1, True), (0, 2, 1, True), (2, 3, 1, True)], 195, BASE),
 }
 
+# MILENA — cabelo roxo, jaqueta branca/preta, bastão verde; tema de janelas de
+# erro/alerta. 2 folhas 4x2 (maioria olhando pra DIREITA = sem flip; s0_r1c1 hit e
+# s1_r1c1 pulo olham pra ESQUERDA = flip=True nessas).
+# folha0: r0 = parado / parado / soco / chute | r1 = pulo / hit(L) / especial / agachado
+# folha1: r0 = parado / andando / parado / especial | r1 = parado / pulo(L) / hit / vitória
+MILENA_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 1, 0, False), (0, 0, 0, False), (0, 1, 0, False)], 195, BASE),
+    'walk':    ([(1, 1, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 0, 1, False), (1, 1, 1, True), (0, 0, 1, False), (1, 1, 1, True)], 165, AIR),
+    'crouch':  ([(0, 3, 1, False)] * 4, 125, BASE),
+    'punch':   ([(0, 2, 0, False)] * 4, 175, BASE),
+    'kick':    ([(0, 3, 0, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 3, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(0, 3, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 3, 0, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, False), (1, 3, 0, False), (0, 2, 1, False), (1, 3, 0, False)], 195, BASE),
+    'hit':     ([(0, 1, 1, True), (1, 2, 1, False), (0, 1, 1, True), (1, 2, 1, False)], 185, BASE),
+    'block':   ([(1, 0, 1, False)] * 4, 190, BASE),
+    'ko':      ([(0, 1, 1, True)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'milena': {
+        'sheets': ['Milena sprites 1.jpg', 'Milena sprites 2.jpg'],
+        'abilities': 'HabilidadesMilena.png',
+        'poses': MILENA_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # atlas de habilidades (icones de erro/alerta): 5 poderes, 1 por linha
+        'ab_map': {0: 0, 1: 4, 2: 5, 3: 6, 4: 7},
+    },
     'dev-virado': {
         'sheets': ['Dev virado sprite 1.jpg', 'Dev virado sprite 2.jpg', 'Sprite dev virado 3.jpg'],
         'abilities': 'Dev virado habilidades.jpg',
