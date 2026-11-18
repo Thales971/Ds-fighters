@@ -119,13 +119,24 @@ check('regen: dono recupera ~30 em 2s', dono.hp > hp0 + 25, Math.round(hp0) + ' 
 check('atlas bichos registrado', !!ART_SHEETS.bichos && fs.existsSync('assets/fauna/bichos.png'));
 const gF = mk('du', 'stack', 'parque-lago');
 let nasceSprite = 0;
+/* defs sinteticas COM bioma (stageFauna filtra por bioma: peixe so em agua, gato so em rua/noite) */
+const biomaJess = {
+  dog: { id: 't-rua', name: 'Rua', fauna: ['dog'] },
+  cat: { id: 't-rua', name: 'Rua', fauna: ['cat'] },
+  pigeons: { id: 't-praca', name: 'Praca', fauna: ['pigeons'] },
+  fish: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['fish'] },
+  frog: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['frog'] },
+  rabbits: { id: 't-campo', name: 'Campo', fauna: ['rabbits'] },
+  hamster: { id: 't-campo', name: 'Campo', fauna: ['hamster'] },
+  turtle: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['turtle'] },
+};
 for (const k of ['dog', 'cat', 'pigeons', 'fish', 'frog', 'rabbits', 'hamster', 'turtle']) {
-  const lf = new LiveFauna(gF, { fauna: [k] });
+  const lf = new LiveFauna(gF, biomaJess[k]);
   if (lf.animals.length > 0) nasceSprite++;
   else console.log('   NAO NASCE:', k);
 }
 check('as 8 especies em sprite nascem', nasceSprite === 8, nasceSprite + '/8');
-const lf2 = new LiveFauna(gF, { fauna: ['cat'] });
+const lf2 = new LiveFauna(gF, biomaJess.cat);
 gF.stage.liveFauna = lf2;
 const gato = lf2.animals[0];
 gF.activeOf(0).x = gato.x + 30;

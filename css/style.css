@@ -185,6 +185,8 @@ body.reduced .cell .sx.buff { animation: none; }
 .cell.picked { opacity: .55; }
 .cell.picked::after { content: '✔'; position: absolute; top: 2px; right: 3px; color: var(--lime); font-size: 10px; }
 .sel-help { margin-top: 18px; font-size: 6px; color: #9d8bc9; text-align: center; line-height: 1.8; max-width: 380px; }
+/* tag "AO VIVO · arena · clima" em cima do palco animado da selecao */
+.sel-stage-tag { position: absolute; left: 10px; bottom: 8px; z-index: 1; font-size: 7px; letter-spacing: .6px; color: #cfe0ff; background: rgba(8,6,20,.55); border: 1px solid rgba(140,170,255,.28); border-radius: 6px; padding: 4px 9px; pointer-events: none; text-shadow: 1px 1px 0 #000; }
 .sel-help b { color: var(--gold); }
 
 /* ---------- arenas ---------- */

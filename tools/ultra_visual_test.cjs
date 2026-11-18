@@ -122,7 +122,7 @@ try { for (let t = 0; t < 2400; t++) { g1.tick(); if (['win','ko','over'].includ
 globalThis.__r1 = ok1;
 /* fauna foge */
 const g2 = mk('du', 'stack', 'parque-lago');
-const lf = new LiveFauna(g2, { fauna: ['cat'] });
+const lf = new LiveFauna(g2, { id: 't-rua', name: 'Rua', fauna: ['cat'] });
 g2.stage.liveFauna = lf;
 const gato = lf.animals[0];
 g2.activeOf(0).x = gato.x + 30;

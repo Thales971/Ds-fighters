@@ -1,5 +1,58 @@
 
 /* ============================================================
+   BIOMA DA ARENA -> fauna permitida (fauna presa ao palco):
+   peixe/sapo/gaivota/libelula so em palco com agua (mare/tanque),
+   morcego so em palco escuro, gato so em rua/noite/indoor, etc.
+   stageFauna() deduplica, filtra pelo bioma e completa (palco de
+   agua sempre ganha peixe). Usado por LiveFauna, StageRenderer e
+   pela tela de arenas (preview).
+   ============================================================ */
+function stageBiome(def) {
+  /* normaliza acentos pra casar "fundição" com "fundicao", "ginásio" com "ginasio"... */
+  const hay = (((def && def.id) || '') + ' ' + ((def && def.name) || '') + ' ' + ((def && def.group) || ''))
+    .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const wx = (def && def.weather) || [];
+  const water = !!(def && (def.swim || def.bubbles || def.mech === 'tide'))
+    || /represa|lago|mangue|doca|cais|ponte do rio|rio de|abismo|submarino|underwater|copacabana|beira-mar|bonito|iguacu|praia|mar\b/.test(hay);
+  const night = /noite|night|noturna|halloween|codigocalipse|orbital|covil|cemiterio|mansao|cyberpunk|neon|datacenter|abismo|caverna|forja|fundicao|torrefa|pantano|citadel|madrugada|natal|anonovo|quermesse|arraial|junina|deploy|estudio/.test(hay)
+    || wx.includes('darkfog') || wx.includes('eclipse') || wx.includes('aurora');
+  const park = /parque|jardim|floresta|tijuca|ibirapuera|bosque|sitio|cafezal|arraial|quermesse|playground|divers|lago|mangue|sakura|colmeia|hive|pantano|escola|praca/.test(hay);
+  const urban = /rua|centro|terminal|estacao|feira|mercado|praca|lapa|santa teresa|quadra|sesi|pista|beco|paulista|teatro|largo|valinhos|senai|oficina|trabalho|hackerspace|biblioteca|pizzaria|cafe|estudio|salao|loja|copacabana|beira|telhado|ginasio|arquibancada|docker|porto|dojo|circo/.test(hay);
+  return { water, night, park, urban };
+}
+const FAUNA_RULES = {
+  fish: (b) => b.water,
+  seagull: (b) => b.water,
+  frog: (b) => b.water || b.park,
+  dragonfly: (b) => b.water || b.park,
+  bat: (b) => b.night,
+  fireflies: (b) => b.night || b.park,
+  cat: (b) => b.night || b.urban,
+  dog: (b) => b.urban || b.park,
+  pigeons: (b) => b.urban,
+  squirrel: (b) => b.park,
+  bee: (b) => b.park || (!b.night && !b.urban),
+  butterfly: (b) => b.park || b.water || !b.night,
+  butterflies: (b) => b.park || b.water || !b.night,
+  bird: () => true,
+  birds: () => true,
+};
+function stageFauna(def) {
+  const b = stageBiome(def);
+  const seen = new Set();
+  const out = [];
+  for (const k of (def && def.fauna) || []) {
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    const rule = FAUNA_RULES[k];
+    if (!rule || rule(b)) out.push(k);
+  }
+  /* NB: nao adicionamos fauna automatico — palco de mare SEM peixe (ex.: Ilha
+     Kotlin) fica com mare intermitente de proposito (permaTide desligado). */
+  return out;
+}
+
+/* ============================================================
    FAUNA — bichos de ambiente nos palcos. Reagem aos lutadores:
    pombos e passaros fogem voando, gato se assusta e corre,
    cachorro late e sai de perto, libelula flutua, vagalumes brilham.
@@ -11,7 +64,7 @@ class LiveFauna {
     this.animals = [];
     this.t = 0;
     this.liveFauna = null; /* animais vivos — setado pelo Game */
-    const kinds = (def && def.fauna) || [];
+    const kinds = stageFauna(def);
     const groundY = (typeof GROUND_Y === 'number') ? GROUND_Y : 458;
     const spawn = (k, n, opts) => { const span = game.W || 960; for (let i = 0; i < n; i++) { const a = Object.assign({ k, x: 60 + Math.random() * (span - 120), y: groundY, vx: 0, vy: 0, dir: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 6, state: 'idle', timer: 60 + Math.random() * 240, scared: 0, alert: 0, perch: 0, peck: 0, jump: 0 }, opts); a.baseY = a.y; this.animals.push(a); } };
     for (const k of kinds) {
@@ -256,7 +309,7 @@ class StageRenderer {
     this.vignette = null;
   }
   makeFauna() {
-    const list = this.def.fauna || [];
+    const list = stageFauna(this.def);
     const spriteRow = { bee: 0, bat: 2 };
     /* especies que o LiveFauna (sprites de bichos.png) ja cobre nao nascem aqui,
        senao ficavam duplicadas (2 sistemas desenhando o mesmo bicho) */
