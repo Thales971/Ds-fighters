@@ -577,7 +577,43 @@ KIRA_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
 }
 
+# CRACKER — cabelo verde, oculos, roupa preta com detalhes verdes e um laptop
+# de tela verde na mao (tema hacker). 3 folhas de poses 4x2.
+# sheet0 (sprite 1): r0 = idle/crouch/jump/ataque | r1 = ataque/hit/KO(caido)/idle — tudo pra DIREITA,
+#   exceto r1c2 (KO) e r1c3 que olham pra ESQUERDA (flip=True neles).
+# sheet1 (sprite 2): r1 olha pra ESQUERDA (flip=True), r0 pra direita.
+# sheet2 (sprite 3): tudo pra DIREITA.
+CRACKER_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 3, 1, True)] * 2, 195, BASE),
+    'walk':    ([(2, 0, 0, False), (2, 1, 0, False)] * 2, 190, BASE),
+    'jump':    ([(0, 2, 0, False)] * 4, 165, AIR),
+    'crouch':  ([(0, 1, 0, False), (2, 3, 0, False)] * 2, 125, BASE),
+    'punch':   ([(0, 3, 0, False), (1, 2, 0, False)] * 2, 175, BASE),
+    'kick':    ([(0, 0, 1, False), (2, 2, 0, False)] * 2, 165, BASE),
+    'cpunch':  ([(1, 3, 0, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, True)] * 4, 150, BASE),
+    'jpunch':  ([(2, 1, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(2, 3, 1, False)] * 4, 160, AIR),
+    'special': ([(1, 3, 1, True)] * 4, 195, BASE),
+    'hit':     ([(0, 1, 1, False), (2, 2, 1, False)] * 2, 185, BASE),
+    'block':   ([(1, 2, 1, True)] * 4, 190, BASE),
+    'ko':      ([(0, 2, 1, True)] * 4, 76, BASE),
+    'win':     ([(1, 1, 0, True)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'cracker': {
+        'sheets': ['Cracker sprite 1.jpg', 'Cracker sprite 2.jpg', 'Cracker sprite 3.jpg'],
+        'abilities': 'Cracker habilidades.jpg',
+        'poses': CRACKER_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # icones da folha de habilidades: tiro verde(0), explosao(5), onda vermelha dash(6), grid ddos(7), beam ult(2)
+        'ab_map': {0: 0, 1: 5, 2: 6, 3: 7, 4: 2},
+    },
     'kira': {
         'sheets': ['kira_poses_batalha.png', 'kira_poses_estados.png'],
         # 3 folhas de habilidades (24 icones, ordem: habilidades.png, habilidades 2, habilidades 3)

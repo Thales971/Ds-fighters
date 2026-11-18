@@ -4,9 +4,9 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v50-kira",
+  "version": "v51-cracker",
   "order": [
-    "du","iales","felipinho","stack","gitmaster","bughunter","frontend","backend","devops","qa","scrum","fullstack","kotlin","hacker","java","merc","bhm","gemini","meta","mis","dev-senior","urbano","xeon","qwen","dolynho","thl","lobao","winx-exe","dandara-query","nina-vector","dev-veterano","hana","cyber-psicopata","grika","guarda-digital","engenheira-prompt","odette","john-vibe","nimbo","emilio","nunes","ponteiro","lia","nexo","maximilian","henrico","jess","dev-virado","milena","kira"
+    "du","iales","felipinho","stack","gitmaster","bughunter","frontend","backend","devops","qa","scrum","fullstack","kotlin","hacker","java","merc","bhm","gemini","meta","mis","dev-senior","urbano","xeon","qwen","dolynho","thl","lobao","winx-exe","dandara-query","nina-vector","dev-veterano","hana","cyber-psicopata","grika","guarda-digital","engenheira-prompt","odette","john-vibe","nimbo","emilio","nunes","ponteiro","lia","nexo","maximilian","henrico","jess","dev-virado","milena","kira","cracker"
   ],
   "crops": {
     "du": {
@@ -343,6 +343,13 @@ const ROSTER_PORTRAITS = {
       "y": 42,
       "side": 136,
       "source": "assets/sprites/kira.png",
+      "frame": "idle-0"
+    },
+    "cracker": {
+      "x": 93,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/cracker.png",
       "frame": "idle-0"
     }
   }
