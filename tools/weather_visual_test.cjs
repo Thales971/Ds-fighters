@@ -104,7 +104,7 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   // codigo: arco-iris usa arc(), chuva 2 passagens, calor shimmer em faixas, tempestade desenha raio no flash
   const wsrc = fs.readFileSync('js/engine/weather.js', 'utf8');
   check('weather.js: rainbow usa ctx.arc (arco), rain 2 passagens, heatwave shimmer, flash raio', wsrc.indexOf('ctx.arc(cx') >= 0 && wsrc.indexOf('trilha larga') >= 0 && wsrc.indexOf('shimmer: faixas verticais') >= 0 && wsrc.indexOf('RAIO: polilinha') >= 0);
-  check('weather.js v3: aurora em cortinas no topo + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina fora do meio', wsrc.indexOf('AURORA BOREAL: 3 cortinas') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('O MEIO da tela') >= 0);
+  check('weather.js v3: aurora v2 em cortinas em camadas + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina densa de proposito', wsrc.indexOf('AURORA BOREAL v2') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('bancos grandes e macios') >= 0);
 
   /* diffs controlados (sem tick entre baseline e clima = lutadores parados) */
   const diffCount = (base, d, y0, y1, thr) => {
@@ -127,6 +127,13 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   const dA = cx2d.getImageData(0, 0, 960, 540).data;
   const aTop = diffCount(baseA, dA, 0, 260, 40), aMid = diffCount(baseA, dA, 260, 420, 40), aTot = aTop + aMid + diffCount(baseA, dA, 420, 540, 40);
   check('aurora pendurada no topo do ceu, fora do meio da tela (top=' + aTop + ' mid=' + aMid + ')', aTot > 4000 && aTop > aTot * 0.7 && aMid < aTot * 0.25, 'tot=' + aTot);
+  /* aurora tem que ter brilho esverdeado/teal dominante no topo (G >> R) */
+  let green = 0;
+  for (let y = 0; y < 300; y++) for (let x = 0; x < 960; x++) {
+    const i = (y * 960 + x) * 4;
+    if (dA[i + 1] > 140 && dA[i + 1] - dA[i] > 40 && dA[i + 1] - baseA[i + 1] > 25) green++;
+  }
+  check('aurora com brilho esverdeado/teal dominante no topo (pixels=' + green + ')', green > 3000, '');
   // ECLIPSE: coroa brilhante no alto + disco escuro no centro dela
   g.weather.set('clear'); g.weather.drops.length = 0; g.render();
   const baseE = cx2d.getImageData(0, 0, 960, 540).data.slice();
@@ -152,7 +159,7 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   fs.writeFileSync(path.join(outDir, 'clima-fog2.png'), canvas.toBuffer('image/png'));
   const dF = cx2d.getImageData(0, 0, 960, 540).data;
   const fMid = diffCount(baseF, dF, 200, 390, 100), fLow = diffCount(baseF, dF, 395, 470, 100), fHigh = diffCount(baseF, dF, 20, 120, 100);
-  check('neblina sai do meio da tela (lutadores) e vai pro chao/ceu (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', (fLow + fHigh) > 1500 && fMid < (fLow + fHigh) * 0.5, '');
+  check('neblina cobre um pouco a visao no meio da tela, de proposito (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', fMid > 8000, '');
 }
 console.log('---');
 console.log(fails === 0 ? 'CLIMA v2: TUDO OK (' + n + ' checks)' : 'CLIMA v2: ' + fails + ' FALHAS de ' + n);
