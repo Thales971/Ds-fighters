@@ -396,7 +396,7 @@ const UI = {
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
         <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
-        ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && f.mode === 'arcade' && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
+        ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
     }).join('') + `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
@@ -503,7 +503,7 @@ const UI = {
     if (ti === 1 && solo) {
       if (f.mode === 'arcade') {
         const nBuff = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
-        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p><p><b>${nBuff} lutadores fracos ganham BUFF automático</b> (+HP/+força) — escolha um fraco com badge BUFF!</p></div>`;
+        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
       } else el.innerHTML = `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
       return;
     }
@@ -875,7 +875,7 @@ const UI = {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
     const myBuff = typeof Balance !== 'undefined' ? Balance.buffFor(FIGHTERS.find((d) => d.id === me)) : null;
-    if (myBuff) this.toast(`BUFF DE TORNEIO: +${Math.round((myBuff.hp - 1) * 100)}% HP / +${Math.round((myBuff.power - 1) * 100)}% força (lutador fraco)!`, 4200);
+    if (myBuff) this.toast(`BUFF PERMANENTE: +${Math.round((myBuff.hp - 1) * 100)}% HP / +${Math.round((myBuff.power - 1) * 100)}% força — lutador fraco, vale em TODOS os modos!`, 4200);
     const opp = f.ladder[f.arcadeStep];
     const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
     const isBoss = f.arcadeStep >= f.ladder.length - 1; /* ultima luta = chefe */

@@ -43,7 +43,7 @@ for (const def of fighters) {
     checked++;
     // 1) CD aplicado = base x 1.4
     f.state = 'idle'; f.cast = null; f.stolen = null; f.status = {};
-    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0; f.state = 'idle';
+    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.castLock = 0; f.spamShared = 0; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0; f.state = 'idle';
     const base = p.cd || 50;
     const okCast = f.tryCast(i);
     if (!okCast) { console.log('CAST FALHOU: ' + def.id + ' #' + i + ' (' + p.id + ')'); fails++; continue; }
@@ -51,6 +51,16 @@ for (const def of fighters) {
     const floor = f.spamProfile().floor; /* piso por perfil: chain 95 / standard 130 / heavy 155 */
     const expected = Math.max(floor, base * MULT); /* multiplicador global x2 + piso do perfil */
     if (Math.abs(applied - expected) > 0.01) { console.log('CD ERRADO: ' + def.id + '/' + p.id + ' aplicado=' + applied + ' esperado=' + expected.toFixed(1)); fails++; }
+    // 1b) trava COMPARTILHADA: spamShared = piso compartilhado do perfil (anti-spam global entre simples/extras)
+    const shared = f.spamProfile().shared;
+    const sharedApplied = f.spamShared || 0;
+    if (Math.abs(sharedApplied - shared) > 0.01) { console.log('SHARED ERRADO: ' + def.id + '/' + p.id + ' aplicado=' + sharedApplied + ' esperado=' + shared); fails++; }
+    // 1c) outra habilidade simples/extra NAO pode sair enquanto spamShared > 0 (sem rotacao H1->H2->H3)
+    const j = kit.powers.findIndex((q, k) => k !== i && (q.slot === 'simple' || q.slot === 'extra'));
+    if (j >= 0) {
+      f.state = 'idle'; f.cast = null; f.castLock = 0; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0;
+      if (f.tryCast(j)) { console.log('SPAM COMPARTILHADO: ' + def.id + ' castou #' + j + ' logo apos #' + i + ' (spamShared=' + (f.spamShared || 0) + ')'); fails++; }
+    }
     // 2) pct do HUD coerente (0 <= pct <= 1)
     const ps = f.powerState(i);
     if (ps.pct < 0 || ps.pct > 1) { console.log('PCT INCOERENTE: ' + def.id + '/' + p.id + ' pct=' + ps.pct); fails++; }
@@ -61,7 +71,7 @@ for (const def of fighters) {
     if (f.tryCast(i)) { console.log('SPAM POSSIVEL: ' + def.id + '/' + p.id + ' recastou antes do CD (' + Math.floor(expected) + ' frames)'); fails++; }
     // 4) recarga conta 1/frame e libera no fim
     let ticks = 0;
-    while ((f.cd[i] > 0 || f.castLock > 0) && ticks < 2000) { g.tick(); keepAlive(); ticks++; }
+    while ((f.cd[i] > 0 || f.castLock > 0 || (f.spamShared || 0) > 0) && ticks < 2000) { g.tick(); keepAlive(); ticks++; }
     if (f.cd[i] > 0) { console.log('CD NAO ZEROU: ' + def.id + '/' + p.id); fails++; }
     f.state = 'idle'; f.cast = null; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0;
     if (!f.tryCast(i)) {

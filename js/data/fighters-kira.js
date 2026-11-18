@@ -48,30 +48,30 @@
   Object.assign(POWERS, {
     [id]: {
       element: 'metal',
-      theme: 'kira: martelo azul — pancada com shock, muralha que reduz dano, investida com o martelo, chuva de explosoes e ult de marteladas em sequencia',
+      theme: 'kira: marteleira tank — marretada que racha o ar (quake), muralha azul tank, gancho que puxa o rival, chuva de explosões e ult de marteladas',
       powers: [
         Object.assign({
           id: 'marretada', name: 'Marretada', slot: 'simple', row: 0,
-          kind: 'blast', at: 'target', dmg: 18, stun: 36, launch: -6, radius: 200, cd: 90, sfx: 'heavy',
-          fx: { shock: 40 },
-          desc: 'Martelada no alvo: 18 de dano + stun + ELETRIZADO por ~0,7s.',
+          kind: 'quake', range: 170, dmg: 20, lock: 34, kx: 20, launch: -8, cd: 95, sfx: 'explosion',
+          fx: { shock: 50 },
+          desc: 'Martelada que racha o ar: 20 de dano, trava o rival (freeze ~0,6s), arremessa longe e deixa ELETRIZADO.',
         }, visual(0, '#3B82F6')),
         Object.assign({
           id: 'muralha-azul', name: 'Muralha Azul', slot: 'simple', row: 1,
-          kind: 'aura', time: 300, defMult: 0.5, cd: 140, sfx: 'magic',
-          desc: 'Escudo azul de impacto: reduz 50% do dano recebido por 5s.',
+          kind: 'aura', time: 300, defMult: 0.5, heal: 15, cd: 140, sfx: 'magic',
+          desc: 'Escudo azul de impacto: reduz 50% do dano por 5s e cura 15 HP na hora.',
         }, visual(1, '#5EB8FF')),
         Object.assign({
-          id: 'avanco-martelo', name: 'Avanço do Martelo', slot: 'simple', row: 2,
-          kind: 'dash', dmg: 14, speed: 16, stun: 26, cd: 80, whiffRecovery: 18, sfx: 'dash',
-          fx: { shock: 24 },
-          desc: 'Investida com o martelo: 14 de dano + stun + ELETRIZADO. Errou? recovery longo (punição).',
+          id: 'gancho-do-martelo', name: 'Gancho do Martelo', slot: 'simple', row: 2,
+          kind: 'pull', range: 380, dmg: 10, stun: 46, cd: 80, sfx: 'dash',
+          fx: { vuln: 120, shock: 40 },
+          desc: 'Gancho que puxa o rival até perto de você: 10 de dano + stun + VULNERÁVEL + ELETRIZADO.',
         }, visual(2, '#93C5FD')),
         Object.assign({
           id: 'erupcao', name: 'Erupção', slot: 'charge', meter: 0, row: 3,
           kind: 'rain', count: 6, dmg: 24, cd: 120, sfx: 'explosion',
-          fx: { burn: 160 },
-          desc: 'Seis explosoes de martelo caem no rival (~24 de dano total) e ele fica QUEIMANDO por ~2,7s.',
+          fx: { burn: 160, shock: 80 },
+          desc: 'Seis explosões de martelo caem no rival (~24 de dano): QUEIMANDO (~2,7s) + ELETRIZADO.',
         }, visual(3, '#F59E0B')),
         Object.assign({
           id: 'martelada-final', name: 'Martelada Final', slot: 'ultimate', row: 4,
@@ -88,7 +88,7 @@
   Object.assign(SIGNATURES, {
     [id]: {
       trait: 'A MARTELEIRA',
-      desc: 'Bruiser pesada: pancadas de martelo que atordoam mais (stun x1,2), muralha azul (-50% dano) e ult de marteladas em sequencia com explosao final.',
+      desc: 'Bruiser tank: marretada em área que trava e arremessa, muralha azul (-50% dano + cura), gancho que puxa o rival para perto e ult de marteladas em sequência. stun x1,2.',
       basic: {},
       ability: {},
       stunMult: 1.2,   /* martelo atordoa mais que o normal */

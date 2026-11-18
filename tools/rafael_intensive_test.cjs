@@ -1,6 +1,6 @@
 // INTENSIVO RAFAEL: registro, sprites recortados das 3 folhas do dono (sem magenta/vazios/duplicados,
 // todas as celulas olham pra direita -> flip=False em tudo), habilidades bruiser de espadona (golpe de
-// lamina bleed, slam no chao shock+slow, investida brutal vuln+whiffRecovery, chuva de laminas bleed+slow,
+// monofio beam bleed, soco de chassi shock+slow, dash overclock vuln+whiffRecovery, chuva de estilhacos bleed+slow,
 // ult impacto devastador rush+explode+bleed+vuln), passiva FURIA (lowHpRage +25% abaixo de 35% hp),
 // render real, IA e modos.
 const fs = require('fs'); const vm = require('vm');
@@ -37,7 +37,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         moves: f && Object.keys(f.moves), quotes: f && Object.keys(f.quotes),
         powers: kit ? kit.powers.map((p) => p.id + ':' + p.slot + ':' + p.kind + ':row' + p.row + (p.whiffRecovery ? ':WHIFF' + p.whiffRecovery : '')) : null,
         fxmap: kit ? kit.powers.map((p) => p.id + '=' + Object.keys(p.fx || {}).sort().join('+')) : null,
-        sig: sig && sig.trait, rage: sig && sig.lowHpRage,
+        sig: sig && sig.trait, rage: sig && sig.lowHpRage, dodge: sig && sig.dodge, sandevistan: !!(sig && sig.sandevistan),
         layoutFile: SPRITE_LAYOUT.files['rafael'],
         perFighter: !!(SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter['rafael']),
         artAbil: !!ART_SHEETS['abil:rafael'], artFx2: !!ART_SHEETS['fx2:rafael'],
@@ -47,11 +47,12 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       });
     })()`, ctx);
     const R = JSON.parse(r);
-    check('registrado no FIGHTERS (RAFAEL / A Lâmina Pesada / hp210 power1.3 weight1.3)', R.found && R.name === 'RAFAEL' && R.title === 'A Lâmina Pesada' && R.stats.hp === 210 && R.stats.power === 1.3 && R.stats.weight === 1.3 && R.stats.speed === 0.85 && R.moves.join(',') === 'punch,kick' && R.quotes.includes('super'), JSON.stringify({ name: R.name, title: R.title, stats: R.stats }));
-    check('POWERS: 5 poderes (blast/blast/dash/rain/ult rush), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('blast') && R.powers[1].includes('blast') && R.powers[2].includes('dash') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('rush'), R.powers && R.powers.join(' | '));
-    check('debuffs nos poderes: golpe bleed, slam shock+slow, investida whiff20+vuln, chuva bleed+slow, ult whiff20+explode+bleed+vuln', R.fxmap && R.powers && R.fxmap[0].includes('bleed') && R.fxmap[1].includes('shock') && R.fxmap[1].includes('slow') && R.powers[2].includes('WHIFF20') && R.fxmap[2].includes('vuln') && R.fxmap[3].includes('bleed') && R.fxmap[3].includes('slow') && R.powers[4].includes('WHIFF20') && R.fxmap[4].includes('explode') && R.fxmap[4].includes('bleed') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
-    check('passiva FÚRIA (lowHpRage 1.25 abaixo de 35% hp) na assinatura', R.rage === 1.25 && R.sig === 'FÚRIA DA LÂMINA', 'sig=' + R.sig + ' rage=' + R.rage);
-    check('layout/art atlas/grid registrados (rafael no fim do roster) e desbloqueado', R.layoutFile === 'assets/sprites/rafael.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster === 51 && R.sig === 'FÚRIA DA LÂMINA' && R.unlocked, 'roster idx ' + R.roster + ' ' + R.rosterVersion);
+    check('registrado no FIGHTERS (RAFAEL / O Fixer de Night City / hp210 power1.3 weight1.3)', R.found && R.name === 'RAFAEL' && R.title === 'O Fixer de Night City' && R.stats.hp === 210 && R.stats.power === 1.3 && R.stats.weight === 1.3 && R.stats.speed === 0.85 && R.moves.join(',') === 'punch,kick' && R.quotes.includes('super'), JSON.stringify({ name: R.name, title: R.title, stats: R.stats }));
+    check('POWERS: 5 poderes (beam/blast/dash/rain/ult quake), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('beam') && R.powers[1].includes('blast') && R.powers[2].includes('dash') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('quake'), R.powers && R.powers.join(' | '));
+    check('debuffs nos poderes: monofio bleed, chassi shock+slow, overclock whiff20+vuln, estilhacos bleed+slow, ult quake screen explode+bleed+vuln', R.fxmap && R.powers && R.fxmap[0].includes('bleed') && R.fxmap[1].includes('shock') && R.fxmap[1].includes('slow') && R.powers[2].includes('WHIFF20') && R.fxmap[2].includes('vuln') && R.fxmap[3].includes('bleed') && R.fxmap[3].includes('slow') && R.fxmap[4].includes('explode') && R.powers[4].includes('quake') && R.fxmap[4].includes('bleed') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
+    check('passiva OVERCLOCK (lowHpRage 1.25 abaixo de 35% hp) na assinatura', R.rage === 1.25 && R.sig === 'OVERCLOCK DO FIXER', 'sig=' + R.sig + ' rage=' + R.rage);
+    check('passivas ESQUIVA 15% + SANDEVISTAN na assinatura', R.dodge === 0.15 && R.sandevistan === true, 'dodge=' + R.dodge + ' sandevistan=' + R.sandevistan);
+    check('layout/art atlas/grid registrados (rafael no fim do roster) e desbloqueado', R.layoutFile === 'assets/sprites/rafael.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster === 51 && R.sig === 'OVERCLOCK DO FIXER' && R.unlocked, 'roster idx ' + R.roster + ' ' + R.rosterVersion);
   }
 
   // ===== 2. SPRITES EM DISCO =====
@@ -144,14 +145,23 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       };
       const prep = (g) => { const me = g.activeOf(0), op = g.activeOf(1); me.x = 300; op.x = 460; me.dir = 1; op.status = {}; op.guardUp = false; me.cd = [0,0,0,0,0]; me.castLock = 0; me.state = 'idle'; me.cast = null; return [me, op]; };
       const out = { bad, flip: { n1, n2, diff } };
-      /* 1. Golpe de Lamina (blast no alvo): dano + stun + BLEED */
+      /* 1. Monofio (beam 270px): dano + stun + BLEED + beam desenhado */
       {
         const g = mk(); const [me, op] = prep(g);
         const hp0 = op.hp;
         me.tryCast(0);
-        let bleed = false, stun = 0;
-        for (let t = 0; t < 160; t++) { g.tick(); if (op.has('bleed')) bleed = true; if (op.stun > 0 || op.state === 'hit') stun++; }
-        out.golpe = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stunTicks: stun, bleed };
+        let bleed = false, stun = 0, beam = false;
+        for (let t = 0; t < 160; t++) { g.tick(); if (op.has('bleed')) bleed = true; if (op.stun > 0 || op.state === 'hit') stun++; if (g.beams.some((b) => b.owner === me)) beam = true; }
+        out.golpe = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stunTicks: stun, bleed, beam };
+      }
+      /* 1b. Monofio com alvo FORA do range (270): nao acerta */
+      {
+        const g = mk(); const [me, op] = prep(g);
+        op.x = 300 + 400;
+        const hp0 = op.hp;
+        me.tryCast(0);
+        for (let t = 0; t < 120; t++) g.tick();
+        out.golpeLonge = { semDano: op.hp >= hp0, dmg: Math.round((hp0 - op.hp) * 10) / 10 };
       }
       /* 2. Slam no Chao (blast em area no self): dano + shock + slow */
       {
@@ -191,15 +201,16 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         dmg = Math.round((hp0 - op.hp) * 10) / 10;
         out.chuva = { bleed, slow, dmg };
       }
-      /* 5. ULT Impacto Devastador (rush 4 hits): dano + bleed + vuln, gasta ultimate */
+      /* 5. ULT Quebra-ICE (quake screen, range 460): dano massivo + trava + bleed + vuln, gasta ultimate */
       {
         const g = mk(); const [me, op] = prep(g);
+        op.x = 300 + 300; // dentro do range 460 da ult
         const hp0 = op.hp;
         me.ultimate = 100;
         me.tryCast(4);
-        let rushState = false, bleed = false, vuln = false, ultGasta = me.ultimate === 0;
-        for (let t = 0; t < 260; t++) { g.tick(); if (me.state === 'rush') rushState = true; if (op.has('bleed')) bleed = true; if (op.has('vuln')) vuln = true; }
-        out.ult = { rushState, bleed, vuln, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta };
+        let travou = false, bleed = false, vuln = false, ultGasta = me.ultimate === 0, opXMax = 0;
+        for (let t = 0; t < 260; t++) { g.tick(); if (op.has('freeze') || op.quakeHold) travou = true; if (op.has('bleed')) bleed = true; if (op.has('vuln')) vuln = true; opXMax = Math.max(opXMax, Math.round(op.x)); }
+        out.ult = { travou, bleed, vuln, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta, opXMax };
       }
       /* 6. Passiva FURIA: dano do golpe com vida cheia vs abaixo de 35% (lowHpRage 1.25) */
       {
@@ -213,6 +224,22 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         };
         const full = measure(1.0), low = measure(0.30);
         out.furia = { full, low, ratio: Math.round((low / Math.max(0.1, full)) * 100) / 100 };
+      }
+      /* 5b. ESQUIVA + SANDEVISTAN: rnd=0 força o dodge — takeHit retorna false, desvia 70px, invuln, slowmo, afterimage, flash */
+      {
+        const g = mk(); const [me, op] = prep(g);
+        g.rnd = () => 0; // sempre esquiva (chance 0.15 > 0)
+        me.state = 'idle'; me.onGround = true; me.status = {};
+        const x0 = me.x, sl0 = g.slowmo || 0;
+        const landed = me.takeHit(10, { attacker: op });
+        out.esquiva = {
+          desviou: landed === false,
+          moveu: Math.abs(me.x - x0) >= 60,
+          invuln: me.has('invuln'),
+          slowmo: (g.slowmo || 0) > sl0,
+          afterimage: me.afterimage >= 28,
+          flashes: (typeof VFX !== 'undefined' && VFX.flashes.length > 0) || g.imgFx.length > 0,
+        };
       }
       /* 6. IA dos dois lados + modos */
       const run = (opts, maxTicks) => {
@@ -237,13 +264,15 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const R = JSON.parse(r);
     check('blit renderiza as 15 poses no canvas real', R.bad.length === 0, R.bad.join(',') || 'ok');
     check('flip dir=-1 espelha e mantem conteudo', R.flip.n1 > 5000 && R.flip.n2 > 5000 && R.flip.diff > 1000, JSON.stringify(R.flip));
-    check('Golpe de Lâmina: blast no alvo causa dano + stun + SANGRAMENTO', R.golpe.dmg > 0 && R.golpe.stunTicks > 5 && R.golpe.bleed, JSON.stringify(R.golpe));
-    check('Slam no Chão: blast em área causa dano + ELETRIZADO + LENTO', R.slam.dmg > 0 && R.slam.shock && R.slam.slow, JSON.stringify(R.slam));
-    check('Investida Brutal acertando: dano + VULNERÁVEL', R.investidaHit.dmg > 0 && R.investidaHit.vuln, JSON.stringify(R.investidaHit));
-    check('Investida ERRADA: whiffRecovery aplica hitstun >= 20', R.investidaWhiff.hitstunMax >= 20, JSON.stringify(R.investidaWhiff));
-    check('Chuva de Lâminas: chuva causa dano + SANGRAMENTO + LENTO', R.chuva.bleed && R.chuva.slow && R.chuva.dmg > 0, JSON.stringify(R.chuva));
-    check('ULT Impacto Devastador: rush + dano + SANGRAMENTO + VULN, gasta ultimate', R.ult.rushState && R.ult.dmg >= 15 && R.ult.bleed && R.ult.vuln && R.ult.ultGasta, JSON.stringify(R.ult));
-    check('FÚRIA: dano abaixo de 35% hp e ~1.25x o dano com vida cheia', R.furia.low > R.furia.full && R.furia.ratio > 1.15 && R.furia.ratio < 1.4, JSON.stringify(R.furia));
+    check('Monofio (beam): dano + stun + SANGRAMENTO + beam no alvo', R.golpe.dmg > 0 && R.golpe.stunTicks > 5 && R.golpe.bleed && R.golpe.beam, JSON.stringify(R.golpe));
+    check('Monofio com alvo fora do range (270px) nao causa dano', R.golpeLonge.semDano, JSON.stringify(R.golpeLonge));
+    check('Soco de Chassi: área causa dano + ELETRIZADO + LENTO', R.slam.dmg > 0 && R.slam.shock && R.slam.slow, JSON.stringify(R.slam));
+    check('Dash de Overclock acertando: dano + VULNERÁVEL', R.investidaHit.dmg > 0 && R.investidaHit.vuln, JSON.stringify(R.investidaHit));
+    check('Dash ERRADO: whiffRecovery aplica hitstun >= 20', R.investidaWhiff.hitstunMax >= 20, JSON.stringify(R.investidaWhiff));
+    check('Chuva de Estilhaços: chuva causa dano + SANGRAMENTO + LENTO', R.chuva.bleed && R.chuva.slow && R.chuva.dmg > 0, JSON.stringify(R.chuva));
+    check('ULT Quebra-ICE: quake screen causa dano massivo + trava + SANGRAMENTO + VULN, gasta ultimate', R.ult.dmg >= 30 && R.ult.travou && R.ult.bleed && R.ult.vuln && R.ult.ultGasta, JSON.stringify(R.ult));
+    check('OVERCLOCK: dano abaixo de 35% hp e ~1.25x o dano com vida cheia', R.furia.low > R.furia.full && R.furia.ratio > 1.15 && R.furia.ratio < 1.4, JSON.stringify(R.furia));
+    check('ESQUIVA+SANDEVISTAN: golpe desviado (sem dano) + desloca + invuln + slowmo + rastro/flash', R.esquiva.desviou && R.esquiva.moveu && R.esquiva.invuln && R.esquiva.slowmo && R.esquiva.afterimage && R.esquiva.flashes, JSON.stringify(R.esquiva));
     check('IA: 3 partidas como P1 e 3 como P2 completas sem crash', R.ia.p1 === 3 && R.ia.p2 === 3 && !R.ia.err, JSON.stringify(R.ia));
     check('modos arcade/tag/survival sem crash', R.arcade && !R.arcade.err && R.tag && !R.tag.err && R.surv && !R.surv.err, JSON.stringify({ arcade: R.arcade, tag: R.tag, surv: R.surv }));
     check('sem warning de folha do rafael', R.warn.length === 0, JSON.stringify(R.warn));

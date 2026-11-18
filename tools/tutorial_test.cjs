@@ -82,14 +82,16 @@ for (let k = 0; k < 3; k++) { f.startAttack('punch'); for (let t = 0; t < 34; t+
 T.chains = 2; // detector de chain exige acerto real; forca o estado
 g.tick(); UI.tick({});
 check('passo COMBO concluido', T.step >= 6, 'step=' + T.step);
-// passo 7: habilidades
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100,100]; f.ultimate = 100; f.state = 'idle';
+// passo 7: habilidades (anti-spam compartilhado: espera o piso entre os casts, como um jogador real)
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.charge = [100,100]; f.ultimate = 100; f.state = 'idle';
 f.tryCast(0); for (let t = 0; t < 20; t++) { g.tick(); UI.tick({}); }
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle';
+for (let t = 0; t < 200 && (f.spamShared > 0 || f.cd[1] > 0); t++) { g.tick(); UI.tick({}); } // espera o anti-spam liberar
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle';
 f.tryCast(1); for (let t = 0; t < 20; t++) { g.tick(); UI.tick({}); }
 check('passo HABILIDADE concluido', T.step >= 7, 'step=' + T.step + ' casts=' + T.casts);
 // passo 8: ultimate
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.ultimate = 100; f.state = 'idle';
+for (let t = 0; t < 200 && (f.spamShared > 0); t++) { g.tick(); UI.tick({}); }
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.ultimate = 100; f.state = 'idle';
 f.tryCast(4);
 for (let t = 0; t < 100; t++) { g.tick(); UI.tick({}); }
 check('passo ULTIMATE concluido', T.step >= 8, 'step=' + T.step + ' ults=' + T.ults);

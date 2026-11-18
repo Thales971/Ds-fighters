@@ -10,6 +10,7 @@ const WALK_SPEED = 3.25;
 // Vida-base é definida no catálogo e recebe esta escala uma única vez aqui.
 // Assim overrides já feitos (IALES/1155) não são multiplicados novamente.
 const HEALTH_MULTIPLIER = 3.00;
+const HP_LIMIT = 500; /* limite de HP do jogo = 500 (pedido do dono) */
 /* Anti-spam: todas as habilidades recarregam o DOBRO em qualquer modo
    (o 1.4x ainda deixava spam — pedido do dono). */
 const ABILITY_CD_MULT = 2.0;
@@ -48,14 +49,15 @@ class Fighter {
     this.vx = 0;
     this.vy = 0;
     this.dir = dir;
-    this.maxHp = Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER));
-    /* TORNEIO (arcade): lutadores fracos ganham buff automatico (Balance.buffFor) */
-    this.tourneyBuff = null;
-    if (game && game.mode === 'arcade' && typeof Balance !== 'undefined' && Balance.buffFor) {
+    this.maxHp = Math.min(HP_LIMIT, Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER)));
+    /* Balanceamento geral: lutadores fracos ganham buff em TODOS os modos
+       (classificacao em Balance.buffFor); HP segue limitado a HP_LIMIT. */
+    this.balanceBuff = null;
+    if (typeof Balance !== 'undefined' && Balance.buffFor) {
       const b = Balance.buffFor(def);
       if (b) {
-        this.tourneyBuff = b;
-        this.maxHp = Math.max(1, Math.round(this.maxHp * b.hp));
+        this.balanceBuff = b;
+        this.maxHp = Math.min(HP_LIMIT, Math.max(1, Math.round(this.maxHp * b.hp)));
       }
     }
     this.hp = this.maxHp;
@@ -66,6 +68,8 @@ class Fighter {
     this.kit = (typeof POWERS !== 'undefined' && POWERS[def.id]) || null;
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.castLock = 0;
+    this.spamShared = 0; /* anti-spam GLOBAL entre habilidades simples/extras */
     this.status = {};
     this.statusCapWindows = {};
     this.statusSource = {};
@@ -287,7 +291,7 @@ class Fighter {
     return m;
   }
   dmgMult(p) {
-    let m = (this.def.stats.power || 1) * (this.tourneyBuff ? this.tourneyBuff.power : 1);
+    let m = (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
@@ -441,6 +445,16 @@ class Fighter {
         this.afterimage = 18;
         game.floatText(this.x, this.y - 230, 'ESQUIVA!', '#00f0ff');
         game.audio.play('whoosh');
+        /* SANDEVISTAN (Rafael): na esquiva o tempo desacelera pra ele — slowmo curto
+           (letterbox do VFX) + flash ciano + rastro fantasma + texto. */
+        if (this.sig.sandevistan) {
+          game.slowmo = Math.max(game.slowmo || 0, 26);
+          this.afterimage = 30;
+          if (typeof VFX !== 'undefined') VFX.impact(this.x, this.y - 100, true, '#00f0ff', game.reduced);
+          game.spawnBurst('fx2:lightning', 2, this.x, this.y - 100, 1, 1.6);
+          game.floatText(this.x, this.y - 266, 'SANDEVISTAN!', '#7df9ff');
+          for (let k = 0; k < 3; k++) game.spawnImgFx('rastro', 'flash', this.x - sgn * (24 + k * 26), this.y - 96 - k * 14, { scale: 1.5 + k * 0.35, life: 16, alpha: 0.8, dir: -sgn });
+        }
         return false;
       }
     }
@@ -675,7 +689,7 @@ class Fighter {
     if (p.slot === 'simple' || p.slot === 'extra') {
       const prof = this.spamProfile();
       const total = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT);
-      return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
+      return { ready: this.cd[i] <= 0 && (this.spamShared || 0) <= 0, pct: 1 - this.cd[i] / total, p };
     }
     if (p.slot === 'charge') {
       const v = this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter];
@@ -694,10 +708,10 @@ class Fighter {
     if (this._spam == null) {
       const prof = (POWERS[this.def.id] && POWERS[this.def.id].spamProfile) || 'standard';
       this._spam = prof === 'chain'
-        ? { castLock: 34, floor: 95 }
+        ? { castLock: 34, floor: 95, shared: 34 }
         : prof === 'heavy'
-          ? { castLock: 60, floor: 155 }
-          : { castLock: 50, floor: 130 };
+          ? { castLock: 60, floor: 155, shared: 155 }
+          : { castLock: 50, floor: 130, shared: 130 };
     }
     return this._spam;
   }
@@ -743,6 +757,9 @@ class Fighter {
       /* passiva "Última Caneca" (Dev Virado): abaixo de 25% de vida, dashes custam 5f a menos */
       const caneca = this.sig.lowHpDash && this.hp < this.maxHp * 0.25 && p.kind === 'dash' ? 5 : 0;
       this.cd[i] = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1) - caneca);
+      /* anti-spam reforcado: o PISO vale entre TODAS as simples/extras (qualquer modo),
+         nao so por habilidade — sem mais rotacao H1->H2->H3 a cada 50f */
+      this.spamShared = Math.max(this.spamShared || 0, prof.shared);
     }
     /* BUG FIX (anti-spam furado em certos modos): habilidades de CARGA e
        ULTIMATE dependiam só do medidor — no treino (medidores infinitos) e
@@ -1336,6 +1353,7 @@ class Fighter {
     if (this.flash && this.now > this.flashUntil) this.flash = null;
     if (this.flashWhite) this.flashWhite--;
     if (this.castLock > 0) this.castLock--;
+    if (this.spamShared > 0) this.spamShared--;
     for (let i = 0; i < this.cd.length; i++) if (this.cd[i] > 0) this.cd[i]--;
     Object.keys(this.buf).forEach((k) => { if (this.buf[k]) this.buf[k]--; });
     if (this.quakeHold) {
@@ -2183,7 +2201,7 @@ class Fighter {
   }
   /* estado serializável (online) */
   snap() {
-    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound];
+    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound, this.spamShared || 0, this.castLock || 0];
   }
   applySnap(s) {
     /* NETCODE VISUAL: se o salto do snapshot for grande (lag), esconde o
@@ -2214,5 +2232,7 @@ class Fighter {
     this.statusPulse = s[23] || {};
     this.hardControl = Object.assign({ last: -Infinity, chain: 0, dizzyLast: -Infinity, dizzyCount: 0 }, s[24] || {});
     if (s[25] != null) this._controlRound = s[25];
+    if (s[26] != null) this.spamShared = s[26];
+    if (s[27] != null) this.castLock = s[27];
   }
 }

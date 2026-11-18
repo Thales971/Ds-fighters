@@ -647,7 +647,8 @@ FIGHTERS = {
         'ab_rows': [(0, 448), (448, 896)],
         'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
         # idx na lista concatenada: 27=corte vermelho(a4), 3=explosao(a0), 29=onda azul dash(a4), 10=explosao amarela(a1), 28=impacto no chao rachado ult(a4)
-        'ab_map': {0: 27, 1: 3, 2: 29, 3: 10, 4: 28},
+        # row0=chicote vermelho(27), row1=explosao amarela(3), row2=onda azul dash(29), row3=explosao(10), row4 ult=explosao vermelha grande(2) — todas celulas de SOLO EFEITO
+        'ab_map': {0: 27, 1: 3, 2: 29, 3: 10, 4: 2},
     },
     'cracker': {
         'sheets': ['Cracker sprite 1.jpg', 'Cracker sprite 2.jpg', 'Cracker sprite 3.jpg'],
@@ -658,8 +659,12 @@ FIGHTERS = {
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
         'ab_rows': [(0, 448), (448, 896)],
         'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
-        # icones da folha de habilidades: tiro verde(0), explosao(5), onda vermelha dash(6), grid ddos(7), beam ult(2)
-        'ab_map': {0: 0, 1: 5, 2: 6, 3: 7, 4: 2},
+        # so existem 2 celulas de efeito puro na folha (#3 fluxo de dados, #7 cubo de dados);
+        # as outras bring o personagem inteiro -> row0 usa ab_fx pra extrair o burst verde do soco,
+        # e as demais reaproveitam as celulas puras com tint (terminal hacker: verde/ciano/dourado/magenta)
+        'ab_map': {0: 0, 1: 3, 2: 7, 3: 3, 4: 7},
+        'ab_tint': {1: 60, 2: 130, 4: 180},
+        'ab_fx': {'hue': [80, 180], 'sat': 0.25, 'val': 0.50, 'min_comp': 200, 'min_total': 1500},
     },
     'kira': {
         'sheets': ['kira_poses_batalha.png', 'kira_poses_estados.png'],
@@ -671,8 +676,10 @@ FIGHTERS = {
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
         'ab_rows': [(0, 448), (448, 896)],
         'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
-        # ab_map sobre os 24 icones concatenados: martelo(idx0), escudo(idx1), seta/dash(idx3), explosao(idx7), burst final ult(idx23)
-        'ab_map': {0: 0, 1: 1, 2: 3, 3: 7, 4: 23},
+        # ab_map sobre os 24 icones concatenados usando SOMENTE celulas de efeito puro (#8..#23),
+        # senao o atlas fica com o personagem inteiro dentro do icone (sprite gigante/duplicado em luta):
+        # marretada=explosao azul(12), muralha=anel roxo(10), avanco dash=circulo azul-roxo(14), erupcao=explosao laranja(11), ult=burst roxo(23)
+        'ab_map': {0: 12, 1: 10, 2: 14, 3: 11, 4: 23},
     },
     'milena': {
         'sheets': ['Milena sprites 1.jpg', 'Milena sprites 2.jpg'],
@@ -832,7 +839,50 @@ def build_sheet(cells, pose_map):
     return sheet
 
 
-def build_abilities(paths, row_bands=None, col_bands=None, ab_map=None):
+def fx_only(fig, ab_fx):
+    """Remove o personagem da celula e mantem so o EFEITO (pixel vivo na faixa de
+    matiz do ab_fx). Se a extracao ficar pequena demais, devolve a figura original
+    (celula ja era so efeito)."""
+    h0, h1 = ab_fx.get('hue', [100, 170])
+    sat = ab_fx.get('sat', 0.55)
+    val = ab_fx.get('val', 0.75)
+    min_comp = ab_fx.get('min_comp', 150)
+    min_total = ab_fx.get('min_total', 400)
+    arr = np.array(fig).astype('float32')
+    a = arr[:, :, 3] > 8
+    r, g, b = arr[:, :, 0] / 255, arr[:, :, 1] / 255, arr[:, :, 2] / 255
+    mx = np.maximum(np.maximum(r, g), b); mn = np.minimum(np.minimum(r, g), b)
+    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    denom = np.maximum(mx - mn, 1e-6)
+    hr = np.where(mx == r, ((g - b) / denom) % 6, np.where(mx == g, (b - r) / denom + 2, (r - g) / denom + 4))
+    hdeg = hr * 60
+    keep = a & (hdeg >= h0) & (hdeg <= h1) & (s > sat) & (mx > val)
+    lab, n = ndimage.label(keep)
+    if n:
+        sizes = ndimage.sum(keep, lab, range(1, n + 1))
+        k = np.zeros(n + 1, bool); k[1:] = sizes >= min_comp
+        keep = k[lab]
+    if keep.sum() < min_total:
+        return fig
+    out = np.zeros_like(arr)
+    out[:, :, :3] = arr[:, :, :3]
+    out[:, :, 3] = np.where(keep, arr[:, :, 3], 0)
+    return Image.fromarray(out.astype('uint8'), 'RGBA')
+
+
+def tint(fig, shift):
+    """Desloca o matiz em `shift` graus preservando alpha (icones temáticos)."""
+    if not shift:
+        return fig
+    hsv = fig.convert('HSV')
+    h, sv, v = hsv.split()
+    h = h.point(lambda x: (x + int(round(shift / 360 * 255))) % 255)
+    out = Image.merge('HSV', (h, sv, v)).convert('RGB')
+    out.putalpha(fig.split()[3])
+    return out
+
+
+def build_abilities(paths, row_bands=None, col_bands=None, ab_map=None, ab_fx=None, ab_tint=None):
     # aceita 1 caminho ou uma lista de folhas de habilidades (icones concatenados)
     if isinstance(paths, (str,)) or hasattr(paths, 'read_text'):
         paths = [paths]
@@ -850,8 +900,15 @@ def build_abilities(paths, row_bands=None, col_bands=None, ab_map=None):
                 continue
             _, (crop, mask, bg) = items[idx]
             fig = figure_rgba(crop, mask, bg)
+            if ab_fx:
+                fig = fx_only(fig, ab_fx)  # tira o personagem: so o efeito vira icone
+            if ab_tint and ab_tint.get(row):
+                fig = tint(fig, ab_tint[row])
             bbox = fig.split()[3].getbbox()
             if bbox:
+                bw, bh = bbox[2] - bbox[0], bbox[3] - bbox[1]
+                if bh > 0 and bh / max(bw, 1) > 1.8:
+                    print(f'  AVISO: celula ab row{row} idx{idx} parece PERSONAGEM inteiro (aspect {bh/max(bw,1):.2f})')
                 fig = fig.crop(bbox)
             fig = fig.resize((128, 128), Image.LANCZOS)
             for c in range(4):
@@ -902,7 +959,7 @@ def main():
         if not cfg.get('abilities_keep'):
             ab = cfg['abilities']
             ab_paths = [SRC / p for p in ab] if isinstance(ab, list) else [SRC / ab]
-            atlas = build_abilities(ab_paths, row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'), ab_map=cfg.get('ab_map'))
+            atlas = build_abilities(ab_paths, row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'), ab_map=cfg.get('ab_map'), ab_fx=cfg.get('ab_fx'), ab_tint=cfg.get('ab_tint'))
             atlas.save(ROOT / f'assets/abilities/{fid}.png')
         face, port = build_ui(cells, cfg['ui_cell'])
         face.save(ROOT / f'assets/ui/face-{fid}.png')

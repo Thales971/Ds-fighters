@@ -1,7 +1,8 @@
-// BUFF DOS FRACOS NO TORNEIO (arcade existente): classificacao de forca (Balance),
-// buff aplicado no Fighter SO no modo arcade (nao mexe no versus), badge BUFF no
-// grid do arcade, toast no launchArcade, anti-spam continua segurando no arcade,
-// e o torneio arcade segue intacto (6 rivais + chefe).
+// BUFF DOS FRACOS NO JOGO INTEIRO + LIMITE DE HP 500:
+// Balance classifica a forca dos lutadores; os fracos ganham buff PERMANENTE em
+// TODOS os modos (versus incluso). HP_LIMIT = 500: nenhum Fighter passa de 500 HP
+// (com ou sem buff). Badge BUFF no grid de selecao em todos os modos, arcade intacto,
+// anti-spam continua segurando.
 const fs = require('fs'); const vm = require('vm');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
@@ -31,7 +32,6 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const buffed = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
     const top = rank[0], bottom = rank[n - 1];
     const iales = rank.find((e) => e.id === 'iales');
-    // fraco extremo pega buff forte, topo nao pega nada
     const bottomDef = FIGHTERS.find((d) => d.id === bottom.id);
     const topDef = FIGHTERS.find((d) => d.id === top.id);
     return JSON.stringify({
@@ -52,7 +52,6 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
 {
   const r = vm.runInContext(`
   (function(){
-    // replica a logica do buildArcade (ui.js) sem DOM: mesma funcao score
     const score = (d) => Balance.score(d);
     const me = 'kira';
     const rivais = FIGHTERS.filter((d) => d.id !== me && d.id !== 'boneco-treino' && !d.secret)
@@ -66,7 +65,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   check('arcade segue intacto: 6 rivais em ordem crescente + chefe IALES no fim', R.n === 7 && R.last === 'iales' && R.ladder.length === 7, JSON.stringify(R.ladder));
 }
 
-// ===== 3. Buff aplicado no Fighter SO no modo arcade (torneio) + dmgMult =====
+// ===== 3. Buff global (todos os modos) + cap de HP 500 + dmgMult =====
 {
   const r = vm.runInContext(`
   (function(){
@@ -80,25 +79,48 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const rank = Balance.ranking();
     const weakId = rank[rank.length - 1].id, strongId = rank[0].id;
     const weakDef = FIGHTERS.find((d) => d.id === weakId), strongDef = FIGHTERS.find((d) => d.id === strongId);
-    const baseWeakHp = Math.round((weakDef.stats.hp || 100) * HEALTH_MULTIPLIER);
+    const weakBasePower = (weakDef.stats.power || 1);
+    const baseWeakHp = Math.min(HP_LIMIT, Math.round((weakDef.stats.hp || 100) * HEALTH_MULTIPLIER));
     const g1 = mk('arcade', weakId, strongId);
     const fw = g1.activeOf(0), fs = g1.activeOf(1);
     const g2 = mk('versus', weakId, strongId);
     const fw2 = g2.activeOf(0);
+    const gS = mk('survival', weakId, 'du');
+    const fwS = gS.activeOf(0);
+    // fraco com HP base abaixo do cap: buff de HP tem que aparecer de verdade
+    const underDef = rank.map((e) => FIGHTERS.find((d) => d.id === e.id)).find((d) => d && d.id !== 'boneco-treino' && Balance.buffFor(d) && Math.min(HP_LIMIT, Math.round((d.stats.hp || 100) * HEALTH_MULTIPLIER)) < 500);
+    const gU = mk('versus', underDef.id, 'du');
+    const fu = gU.activeOf(0);
+    const underBase = Math.min(HP_LIMIT, Math.round((underDef.stats.hp || 100) * HEALTH_MULTIPLIER));
     const out = {
-      weakId, strongId,
-      weakBuff: fw.tourneyBuff, strongBuff: fs.tourneyBuff,
-      weakHpArcade: fw.maxHp, weakHpVersus: fw2.maxHp, weakHpBase: baseWeakHp,
-      weakDmgTorneio: Math.round(fw.dmgMult() * 100) / 100, weakDmgVersus: Math.round(fw2.dmgMult() * 100) / 100,
-      strongHpArcade: fs.maxHp, strongHpBase: Math.round((strongDef.stats.hp || 100) * HEALTH_MULTIPLIER),
+      weakId, strongId, weakBasePower,
+      weakBuff: fw.balanceBuff, weakBuffV: fw2.balanceBuff, weakBuffS: fwS.balanceBuff, strongBuff: fs.balanceBuff,
+      weakHpArcade: fw.maxHp, weakHpVersus: fw2.maxHp, weakHpSurvival: fwS.maxHp, weakHpBase: baseWeakHp,
+      weakDmgArcade: Math.round(fw.dmgMult() * 1000) / 1000, weakDmgVersus: Math.round(fw2.dmgMult() * 1000) / 1000,
+      strongHpArcade: fs.maxHp, strongHpBase: Math.min(HP_LIMIT, Math.round((strongDef.stats.hp || 100) * HEALTH_MULTIPLIER)),
+      underId: underDef.id, underBase, underHp: fu.maxHp, underBuff: fu.balanceBuff,
     };
-    // partida torneio completa sem crash (IA nos dois lados)
+    // CAP DE HP: constroi TODOS os lutadores em game versus E em game arcade e confere maxHp <= 500
+    const allOverCap = [], modeMismatch = [];
+    let biggestId = null, biggestHpStat = -1, bigHpInGame = -1;
+    for (const d of FIGHTERS) {
+      if (d.stats.hp > biggestHpStat) { biggestHpStat = d.stats.hp; biggestId = d.id; }
+      const fV = new Fighter(d, 200, 1, g2, { team: 0, slot: 0 });
+      const fA = new Fighter(d, 200, 1, g1, { team: 0, slot: 0 });
+      if (fV.maxHp > 500 || fA.maxHp > 500) allOverCap.push(d.id + ':' + fV.maxHp + '/' + fA.maxHp);
+      if (fV.maxHp !== fA.maxHp) modeMismatch.push(d.id);
+      if (fV.maxHp > bigHpInGame) bigHpInGame = fV.maxHp;
+    }
+    out.allOverCap = allOverCap; out.modeMismatch = modeMismatch;
+    out.biggestId = biggestId; out.biggestHpStat = biggestHpStat; out.bigHpInGame = bigHpInGame;
+    out.bigRaw = Math.round(biggestHpStat * HEALTH_MULTIPLIER);
+    // partida arcade completa sem crash (IA nos dois lados)
     const g3 = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle(){},add(){},remove(){} } });
     g3.start({ mode: 'arcade', teams: [['kira'], ['rafael']], stage: 'random', cpu: [true, true], roundsToWin: 1, timer: 60, difficulty: 1 });
     let t = 0; let err = null;
     try { for (; t < 9000 && !g3.matchOver; t++) g3.tick(); } catch (e) { err = e.message; }
     out.match = { over: g3.matchOver, ticks: t, err };
-    // anti-spam no modo torneio: H1 do du repetido, intervalo min >= piso do perfil
+    // anti-spam no arcade: H1 do du repetido, intervalo min >= piso do perfil
     const g4 = mk('arcade', 'du', 'stack');
     const f4 = g4.activeOf(0);
     f4.cd = [0,0,0,0,0,0,0,0,0,0]; f4.castLock = 0; f4.state = 'idle'; f4.charge = [100,100]; f4.ultimate = 100;
@@ -113,11 +135,14 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     return JSON.stringify(out);
   })()`, ctx);
   const R = JSON.parse(r);
-  check(`fraco (${R.weakId}) no TORNEIO (arcade) ganha buff e HP sobe; no versus nao muda`, R.weakBuff && R.weakHpArcade > R.weakHpBase && R.weakHpVersus === R.weakHpBase, `hp base=${R.weakHpBase} arcade=${R.weakHpArcade} versus=${R.weakHpVersus} buff=` + JSON.stringify(R.weakBuff));
-  check(`dmgMult reflete o buff de forca so no arcade (${R.weakDmgTorneio} vs ${R.weakDmgVersus})`, R.weakDmgTorneio > R.weakDmgVersus * 1.1, '');
-  check(`forte (${R.strongId}) nao ganha buff no arcade`, R.strongBuff === null && R.strongHpArcade === R.strongHpBase, `hp=${R.strongHpArcade} base=${R.strongHpBase}`);
+  const expWeakHp = Math.min(500, Math.max(1, Math.round(R.weakHpBase * (R.weakBuff ? R.weakBuff.hp : 1))));
+  check(`fraco (${R.weakId}) ganha buff em TODOS os modos (arcade/versus/survival) e HP segue o cap`, R.weakBuff && R.weakBuffV && R.weakBuffS && R.weakBuff.hp === R.weakBuffV.hp && R.weakHpVersus === expWeakHp && R.weakHpArcade === R.weakHpVersus && R.weakHpSurvival === R.weakHpVersus && R.weakHpVersus <= 500, `hp base=${R.weakHpBase} -> versus=${R.weakHpVersus} arcade=${R.weakHpArcade} surv=${R.weakHpSurvival} buff=` + JSON.stringify(R.weakBuff));
+  check(`buff de HP aparece de verdade abaixo do cap (${R.underId}: ${R.underBase} -> ${R.underHp})`, R.underHp > R.underBase && R.underHp <= 500 && R.underBuff && R.underHp === Math.min(500, Math.round(R.underBase * R.underBuff.hp)), `buff=` + JSON.stringify(R.underBuff));
+  check(`dmgMult reflete o buff de forca em todos os modos (${R.weakDmgVersus} = power ${R.weakBasePower} x ${R.weakBuff ? R.weakBuff.power : 1})`, Math.abs(R.weakDmgVersus - R.weakBasePower * R.weakBuff.power) < 0.011 && R.weakDmgArcade === R.weakDmgVersus && R.weakDmgVersus > R.weakBasePower * 1.1, '');
+  check(`forte (${R.strongId}) nao ganha buff e tambem respeita o cap`, R.strongBuff === null && R.strongHpArcade === R.strongHpBase && R.strongHpBase <= 500, `hp=${R.strongHpArcade} base=${R.strongHpBase}`);
+  check(`LIMITE DE HP 500: nenhum dos ${'lutadores'} passa de 500 HP em NENHUM modo (maior stat ${R.biggestId}=${R.biggestHpStat} -> ${R.bigRaw} bruto -> ${R.bigHpInGame} in-game)`, R.allOverCap.length === 0 && R.modeMismatch.length === 0 && R.bigHpInGame <= 500 && R.bigHpInGame === 500, 'over=' + JSON.stringify(R.allOverCap) + ' mismatch=' + JSON.stringify(R.modeMismatch));
   check('partida em modo arcade (IA x IA) completa sem crash', R.match.over && !R.match.err, JSON.stringify(R.match));
-  check('anti-spam continua segura no arcade (intervalo min >= piso do perfil)', R.antispamArcade.minGap >= R.antispamArcade.floor - 10, JSON.stringify(R.antispamArcade));
+  check('anti-spam continua seguro no arcade (intervalo min >= piso do perfil)', R.antispamArcade.minGap >= R.antispamArcade.floor - 10, JSON.stringify(R.antispamArcade));
 }
 
 // ===== 4. Wiring de UI =====
@@ -125,13 +150,14 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   const html = fs.readFileSync('index.html', 'utf8');
   const ui = fs.readFileSync('js/ui/ui.js', 'utf8');
   const css = fs.readFileSync('css/style.css', 'utf8');
-  check('index.html: SEM botao de modo torneio novo (torneio existente intacto) + script balance.js', !/data-go="torneio"/.test(html) && /js\/data\/balance\.js/.test(html) && /data-go="arcade"/.test(html));
-  check('ui.js: arcade intacto (buildArcade/launchArcade) + badge BUFF no grid do arcade + toast de buff no launchArcade', /buildArcade/.test(ui) && /launchArcade/.test(ui) && !/buildTorneio/.test(ui) && /f\.mode === 'arcade' && typeof Balance/.test(ui) && /BUFF DE TORNEIO/.test(ui));
-  check('ui.js: card do arcade menciona buff dos fracos', /ganham BUFF autom/.test(ui));
+  const fig = fs.readFileSync('js/engine/fighter.js', 'utf8');
+  check('index.html: SEM botao de modo torneio novo (torneio existente intacto) + script balance.js antes do fighter.js', !/data-go="torneio"/.test(html) && /js\/data\/balance\.js/.test(html) && /data-go="arcade"/.test(html) && html.indexOf('balance.js') < html.indexOf('engine/fighter.js'));
+  check('ui.js: arcade intacto (buildArcade/launchArcade, sem buildTorneio) + badge BUFF no grid em TODOS os modos + toast BUFF PERMANENTE', /buildArcade/.test(ui) && /launchArcade/.test(ui) && !/buildTorneio/.test(ui) && /Balance\.buffFor\(d\)/.test(ui) && /BUFF PERMANENTE/.test(ui));
+  check('ui.js: badge BUFF sem condicao de modo arcade + card do arcade fala em buff permanente em qualquer modo', !/f\.mode === 'arcade' && typeof Balance/.test(ui) && /BUFF permanente/.test(ui));
   check('css: badge .sx.buff com estilo', /\.cell \.sx\.buff/.test(css));
-  check('fighter.js: buff aplicado so quando game.mode === arcade', /game\.mode === 'arcade'/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')) && /tourneyBuff/.test(fs.readFileSync('js/engine/fighter.js', 'utf8')));
+  check('fighter.js: HP_LIMIT=500 no cap do maxHp (com e sem buff) e buff global balanceBuff sem condicao de modo', /HP_LIMIT = 500/.test(fig) && (fig.match(/Math\.min\(HP_LIMIT/g) || []).length >= 2 && /balanceBuff/.test(fig) && !/game\.mode === 'arcade'/.test(fig));
 }
 
 console.log('---');
-console.log('BUFF FRACOS NO TORNEIO (arcade): ' + (fails ? fails + ' FALHAS de ' + n : 'TUDO OK (' + n + ' checks)'));
+console.log('BUFF FRACOS GLOBAL + HP LIMIT 500: ' + (fails ? fails + ' FALHAS de ' + n : 'TUDO OK (' + n + ' checks)'));
 process.exit(fails ? 1 : 0);

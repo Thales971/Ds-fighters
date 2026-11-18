@@ -48,7 +48,7 @@
   Object.assign(POWERS, {
     [id]: {
       element: 'veneno',
-      theme: 'cracker: invasao hacker — pacote venenoso, exploit (vuln), dash intangivel, chuva de requisicoes (DDoS) e ult rootkit (lock + glitch)',
+      theme: 'cracker: hacker de controle — pacote venenoso (shot), roubo de kit (steal), blink (teleporte), firewall (zona) e ult DDoS massivo (barrage)',
       powers: [
         Object.assign({
           id: 'pacote-suspeito', name: 'Pacote Suspeito', slot: 'simple', row: 0,
@@ -57,29 +57,29 @@
           desc: 'Projétil verde de dados: 9 de dano + VENENO (~2,3s) + LENTO.',
         }, visual(0, '#39FF6A')),
         Object.assign({
-          id: 'exploit', name: 'Exploit', slot: 'simple', row: 1,
-          kind: 'blast', at: 'target', dmg: 15, stun: 30, radius: 180, cd: 95, sfx: 'heavy',
-          fx: { vuln: 150, glitch: 80 },
-          desc: 'Quebra a defesa do alvo: 15 de dano + stun + VULNERÁVEL (+20% dano, 2,5s) + tela glitch.',
-        }, visual(1, '#FF4B4B')),
+          id: 'roubo-de-dados', name: 'Roubo de Dados', slot: 'simple', row: 1,
+          kind: 'steal', range: 150, dmg: 8, time: 420, blockable: true, cd: 95, sfx: 'steal',
+          fx: { glitch: 120 },
+          desc: 'Invasão a curta distância: 8 de dano e ROUBA O KIT do rival por 7s (você usa os poderes dele) + TRAVAMENTO na tela.',
+        }, visual(1, '#FFD24D')),
         Object.assign({
-          id: 'invasao', name: 'Invasão', slot: 'simple', row: 2,
-          kind: 'dash', dmg: 12, speed: 19, phase: true, iFrames: 10, cd: 60, sfx: 'dash',
-          fx: { shock: 30 },
-          desc: 'Dash intangível (10f de invuln) atravessando o rival: 12 de dano + ELETRIZADO.',
-        }, visual(2, '#FF6A6A')),
+          id: 'blink', name: 'Blink', slot: 'simple', row: 2,
+          kind: 'shadowport', burstDmg: 14, cd: 70, sfx: 'magic',
+          fx: { glitch: 60 },
+          desc: 'Teleporte hacker: some e reaparece atrás (ou em cima) do rival; cair em cima dá 14 de dano + TRAVAMENTO.',
+        }, visual(2, '#4AE3FF')),
         Object.assign({
-          id: 'ddos', name: 'Ataque DDoS', slot: 'charge', meter: 0, row: 3,
-          kind: 'rain', count: 6, dmg: 18, cd: 120, sfx: 'hazard',
-          fx: { blind: 120, slow: 140 },
-          desc: 'Seis pacotes caem em cima do rival (~18 de dano): fica CEGO (~2s) + LENTO (~2,3s) pela sobrecarga.',
+          id: 'firewall', name: 'Firewall', slot: 'charge', meter: 0, row: 3,
+          kind: 'zone', time: 320, dmg: 0.12, slow: 50, burn: 140, cd: 120, sfx: 'hazard',
+          fx: { burn: 220, slow: 90 },
+          desc: 'Zona de firewall no rival por ~5s: dano contínuo + QUEIMANDO + LENTO enquanto estiver dentro.',
         }, visual(3, '#B9FF4A')),
         Object.assign({
-          id: 'rootkit', name: 'Rootkit', slot: 'ultimate', row: 4,
-          kind: 'rush', hits: 4, dmg: 22, teleport: true, cd: 150, sfx: 'ultimate',
-          fx: { lock: 130, glitch: 160, vuln: 200 },
-          desc: 'Sequência de 4 golpes de laptop que atravessa a tela: rival fica SEM PODERES (~2,2s) + TRAVAMENTO + VULNERÁVEL (3,3s).',
-        }, visual(4, '#7DFFB0')),
+          id: 'ddos-massivo', name: 'DDoS Massivo', slot: 'ultimate', row: 4,
+          kind: 'barrage', count: 12, dmg: 3, seek: true, cd: 150, sfx: 'ultimate',
+          fx: { lock: 150, glitch: 200, blind: 120 },
+          desc: '12 pacotes teleguiados caem no rival (~36 de dano): rival fica SEM PODERES (~2,5s) + TRAVAMENTO + CEGO.',
+        }, visual(4, '#FF6AFF')),
       ],
     },
   });
@@ -89,7 +89,7 @@
   Object.assign(SIGNATURES, {
     [id]: {
       trait: 'MALWARE',
-      desc: 'Hacker de invasão: pacote venenoso, exploit que deixa vulnerável, dash intangível, chuva de pacotes (cego + lento) e a ult rootkit que trava os poderes do rival (lock) com glitch na tela.',
+      desc: 'Hacker de controle: pacote venenoso de longe, rouba o kit do rival de perto, blink pra trás do alvo, firewall de zona e ult DDoS massivo (lock + glitch + cego).',
       basic: {},
       ability: {},
     },

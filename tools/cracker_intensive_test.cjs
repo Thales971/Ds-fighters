@@ -1,6 +1,6 @@
 // INTENSIVO CRACKER: registro, sprites recortados das 3 folhas do dono (sem magenta/vazios/duplicados,
-// flip só nas células que olham pra esquerda), habilidades (pacote shot poison+slow, exploit blast
-// vuln+glitch, invasao dash iFrames+shock, ddos rain blind+slow, ult rootkit rush lock+glitch+vuln),
+// flip só nas células que olham pra esquerda), habilidades (pacote shot poison+slow, roubo steal glitch,
+// blink shadowport, firewall zone burn+slow, ult ddos-massivo barrage lock+glitch+blind),
 // render real, IA e modos. Aba de opções coberta em opcoes_responsivas_test.cjs.
 const fs = require('fs'); const vm = require('vm');
 function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
@@ -47,8 +47,8 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     })()`, ctx);
     const R = JSON.parse(r);
     check('registrado no FIGHTERS (CRACKER / O Hacker / hp175 power1.1)', R.found && R.name === 'CRACKER' && R.title === 'O Hacker' && R.stats.hp === 175 && R.stats.power === 1.1 && R.stats.speed === 1.12 && R.moves.join(',') === 'punch,kick' && R.quotes.includes('super'), JSON.stringify({ name: R.name, title: R.title, stats: R.stats }));
-    check('POWERS: 5 poderes (shot/blast/dash/rain/ult rush), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('shot') && R.powers[1].includes('blast') && R.powers[2].includes('dash') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('rush'), R.powers && R.powers.join(' | '));
-    check('debuffs nos poderes: pacote poison+slow, exploit vuln+glitch, invasao shock, ddos blind+slow, ult lock+glitch+vuln', R.fxmap && R.fxmap[0].includes('poison') && R.fxmap[0].includes('slow') && R.fxmap[1].includes('vuln') && R.fxmap[1].includes('glitch') && R.fxmap[2].includes('shock') && R.fxmap[3].includes('blind') && R.fxmap[3].includes('slow') && R.fxmap[4].includes('lock') && R.fxmap[4].includes('glitch') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
+    check('POWERS: 5 poderes (shot/steal/shadowport/zone/ult barrage), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('shot') && R.powers[1].includes('steal') && R.powers[2].includes('shadowport') && R.powers[3].includes('zone') && R.powers[4].includes('ultimate') && R.powers[4].includes('barrage'), R.powers && R.powers.join(' | '));
+    check('debuffs nos poderes: pacote poison+slow, roubo glitch, blink glitch, firewall burn+slow, ult lock+glitch+blind', R.fxmap && R.fxmap[0].includes('poison') && R.fxmap[0].includes('slow') && R.fxmap[1].includes('glitch') && R.fxmap[2].includes('glitch') && R.fxmap[3].includes('burn') && R.fxmap[3].includes('slow') && R.fxmap[4].includes('lock') && R.fxmap[4].includes('glitch') && R.fxmap[4].includes('blind'), JSON.stringify(R.fxmap));
     check('layout/art atlas/grid registrados (cracker no fim do roster) e desbloqueado', R.layoutFile === 'assets/sprites/cracker.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster === 50 && R.sig === 'MALWARE' && R.unlocked, 'roster idx ' + R.roster + ' ' + R.rosterVersion);
   }
 
@@ -151,44 +151,55 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
         for (let t = 0; t < 220; t++) { g.tick(); if (op.has('poison')) poison = true; if (op.has('slow')) slow = true; }
         out.pacote = { dmg: Math.round((hp0 - op.hp) * 10) / 10, poison, slow };
       }
-      /* 2. Exploit (blast no alvo): dano + stun + vuln + glitch */
+      /* 2. Roubo de Dados (steal, curta distancia): dano + ROUBA O KIT (stolen) + glitch */
       {
         const g = mk(); const [me, op] = prep(g);
+        op.x = 300 + 100; // dentro do range 150
         const hp0 = op.hp;
         me.tryCast(1);
-        let stun = 0, vuln = false, glitch = false;
-        for (let t = 0; t < 160; t++) { g.tick(); if (op.stun > 0 || op.state === 'hit') stun++; if (op.has('vuln')) vuln = true; if (op.has('glitch')) glitch = true; }
-        out.exploit = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stunTicks: stun, vuln, glitch };
+        let glitch = false, stolen = false;
+        for (let t = 0; t < 160; t++) { g.tick(); if (op.has('glitch')) glitch = true; if (me.stolen) stolen = true; }
+        out.roubo = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stolen, stolenFrom: me.stolen ? me.stolen.from : null, kitSize: me.stolen ? me.stolen.powers.length : 0, glitch };
       }
-      /* 3. Invasao (dash phase): iFrames + dano + shock */
+      /* 2b. Roubo com alvo FORA do range (150): nao rouba */
       {
         const g = mk(); const [me, op] = prep(g);
-        me.x = 300; op.x = 420;
-        const hp0 = op.hp;
-        me.tryCast(2);
-        let inv = false, shock = false;
-        for (let t = 0; t < 90; t++) { g.tick(); if (me.has('invuln')) inv = true; if (op.has('shock')) shock = true; }
-        out.invasao = { invuln: inv, shock, dmg: Math.round((hp0 - op.hp) * 10) / 10 };
+        op.x = 300 + 400;
+        me.tryCast(1);
+        for (let t = 0; t < 120; t++) g.tick();
+        out.rouboLonge = { naoRoubou: !me.stolen };
       }
-      /* 4. DDoS (rain): dano + blind + slow */
+      /* 3. Blink (shadowport): teleporta (muda de posicao/esconde) + invuln + dano de slam + glitch */
+      {
+        const g = mk(); const [me, op] = prep(g);
+        me.x = 300; op.x = 460;
+        g.rnd = () => 0.1; /* força o blink 'por cima' (above) pra slam dar dano */
+        const hp0 = op.hp, x0 = me.x;
+        me.tryCast(2);
+        let inv = false, teleportou = false, glitch = false;
+        for (let t = 0; t < 120; t++) { g.tick(); if (me.has('invuln')) inv = true; if (op.has('glitch')) glitch = true; if (Math.abs(me.x - x0) > 30 || me.hidden) teleportou = true; }
+        out.blink = { invuln: inv, teleportou, glitch, dmg: Math.round((hp0 - op.hp) * 10) / 10, meX: Math.round(me.x) };
+      }
+      /* 4. Firewall (zone no alvo): zona criada + dano continuo + burn + slow */
       {
         const g = mk(); const [me, op] = prep(g);
         me.cd = [0,0,0,0,0]; me.charge = [100, 100]; me.castLock = 0; me.state = 'idle'; me.cast = null;
+        g.zones.length = 0;
         me.tryCast(3);
-        let blind = false, slow = false, dmg = 0; const hp0 = op.hp;
-        for (let t = 0; t < 300; t++) { g.tick(); if (op.has('blind')) blind = true; if (op.has('slow')) slow = true; }
+        let zona = false, burn = false, slow = false, dmg = 0; const hp0 = op.hp;
+        for (let t = 0; t < 300; t++) { g.tick(); if (g.zones.some((z) => z.owner === me)) zona = true; if (op.has('burn')) burn = true; if (op.has('slow')) slow = true; }
         dmg = Math.round((hp0 - op.hp) * 10) / 10;
-        out.ddos = { blind, slow, dmg };
+        out.firewall = { zona, burn, slow, dmg };
       }
-      /* 5. ULT Rootkit (rush 4 hits): dano massivo + locked + glitch + vuln, gasta ultimate */
+      /* 5. ULT DDoS Massivo (barrage 12 pacotes): projeteis + dano + locked + glitch + blind, gasta ultimate */
       {
         const g = mk(); const [me, op] = prep(g);
         const hp0 = op.hp;
         me.ultimate = 100;
         me.tryCast(4);
-        let rushState = false, locked = false, glitch = false, vuln = false, ultGasta = me.ultimate === 0;
-        for (let t = 0; t < 260; t++) { g.tick(); if (me.state === 'rush') rushState = true; if (op.has('locked')) locked = true; if (op.has('glitch')) glitch = true; if (op.has('vuln')) vuln = true; }
-        out.ult = { rushState, locked, glitch, vuln, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta };
+        let maxProj = 0, locked = false, glitch = false, blind = false, ultGasta = me.ultimate === 0;
+        for (let t = 0; t < 300; t++) { g.tick(); maxProj = Math.max(maxProj, g.projectiles.length); if (op.has('locked')) locked = true; if (op.has('glitch')) glitch = true; if (op.has('blind')) blind = true; }
+        out.ult = { maxProj, locked, glitch, blind, dmg: Math.round((hp0 - op.hp) * 10) / 10, ultGasta };
       }
       /* 6. IA dos dois lados + modos */
       const run = (opts, maxTicks) => {
@@ -214,10 +225,11 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     check('blit renderiza as 15 poses no canvas real', R.bad.length === 0, R.bad.join(',') || 'ok');
     check('flip dir=-1 espelha e mantem conteudo', R.flip.n1 > 5000 && R.flip.n2 > 5000 && R.flip.diff > 1000, JSON.stringify(R.flip));
     check('Pacote Suspeito: projétil causa dano + VENENO + LENTO', R.pacote.dmg > 0 && R.pacote.poison && R.pacote.slow, JSON.stringify(R.pacote));
-    check('Exploit: blast no alvo causa dano + stun + VULN + GLITCH', R.exploit.dmg > 0 && R.exploit.stunTicks > 5 && R.exploit.vuln && R.exploit.glitch, JSON.stringify(R.exploit));
-    check('Invasao: dash com iFrames causa dano + ELETRIZADO', R.invasao.invuln && R.invasao.dmg > 0 && R.invasao.shock, JSON.stringify(R.invasao));
-    check('Ataque DDoS: chuva de pacotes causa dano + CEGO + LENTO', R.ddos.blind && R.ddos.slow && R.ddos.dmg > 0, JSON.stringify(R.ddos));
-    check('ULT Rootkit: rush + dano + SEM PODERES(lock) + glitch + vuln, gasta ultimate', R.ult.rushState && R.ult.dmg >= 15 && R.ult.locked && R.ult.glitch && R.ult.vuln && R.ult.ultGasta, JSON.stringify(R.ult));
+    check('Roubo de Dados (steal): dano + ROUBA O KIT do rival (stolen) + GLITCH', R.roubo.dmg > 0 && R.roubo.stolen && R.roubo.kitSize >= 5 && R.roubo.glitch, JSON.stringify(R.roubo));
+    check('Roubo com alvo fora do range (150px) nao rouba', R.rouboLonge.naoRoubou, JSON.stringify(R.rouboLonge));
+    check('Blink (shadowport): teleporta + invuln + dano de slam + GLITCH', R.blink.teleportou && R.blink.invuln && R.blink.dmg > 0 && R.blink.glitch, JSON.stringify(R.blink));
+    check('Firewall (zone): zona criada no alvo + dano continuo + QUEIMANDO + LENTO', R.firewall.zona && R.firewall.burn && R.firewall.slow && R.firewall.dmg > 0, JSON.stringify(R.firewall));
+    check('ULT DDoS Massivo: barrage solta projeteis + dano + SEM PODERES(lock) + glitch + cego, gasta ultimate', R.ult.maxProj >= 3 && R.ult.dmg > 0 && R.ult.locked && R.ult.glitch && R.ult.blind && R.ult.ultGasta, JSON.stringify(R.ult));
     check('IA: 3 partidas como P1 e 3 como P2 completas sem crash', R.ia.p1 === 3 && R.ia.p2 === 3 && !R.ia.err, JSON.stringify(R.ia));
     check('modos arcade/tag/survival sem crash', R.arcade && !R.arcade.err && R.tag && !R.tag.err && R.surv && !R.surv.err, JSON.stringify({ arcade: R.arcade, tag: R.tag, surv: R.surv }));
     check('sem warning de folha do cracker', R.warn.length === 0, JSON.stringify(R.warn));
