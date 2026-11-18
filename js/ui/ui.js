@@ -49,7 +49,12 @@ const UI = {
     this.$('btn-pause-moves').addEventListener('click', () => this.show('moves', true));
     this.$('btn-pause-opts').addEventListener('click', () => this.show('options', true));
     this.$('btn-again').addEventListener('click', () => this.rematch());
-    this.$('btn-next').addEventListener('click', () => (this.flow && this.flow.mode === 'survival' ? this.survivalNext() : this.arcadeNext()));
+    this.$('btn-next').addEventListener('click', () => {
+      const m = this.flow && this.flow.mode;
+      if (m === 'survival') return this.survivalNext();
+      if (m === 'torneio') return this.torneioNext();
+      this.arcadeNext();
+    });
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
     this.$('btn-res-menu').addEventListener('click', () => this.toMenu());
     this.$('redeem-form').addEventListener('submit', (e) => { e.preventDefault(); this.redeem(); });
@@ -250,7 +255,7 @@ const UI = {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
     if (go === 'events') { this.applyEventSkin(); return this.show('events'); }
-    if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
+    if (['arcade', 'torneio', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
 
@@ -383,7 +388,7 @@ const UI = {
   enter_select() {
     const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
+    const modeNames = { arcade: 'ARCADE', torneio: 'TORNEIO LOCAL', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
     this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
     const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
     grid.innerHTML = roster.map((d) => {
@@ -396,7 +401,7 @@ const UI = {
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
         <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
-        ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}
+        ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && f.mode === 'torneio' && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
     }).join('') + `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
@@ -486,7 +491,7 @@ const UI = {
     cells.forEach((c) => {
       const slot = this.cellSlot(c);
       c.classList.toggle('p1', f.cursor[0] === slot && !f.done[0]);
-      c.classList.toggle('p2', f.cursor[1] === slot && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online');
+      c.classList.toggle('p2', f.cursor[1] === slot && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online' && f.mode !== 'torneio');
       const picked = f.picks[0].includes(slot) || f.picks[1].includes(slot);
       c.classList.toggle('picked', picked);
     });
@@ -499,9 +504,13 @@ const UI = {
   renderCard(ti) {
     const f = this.flow;
     const el = this.$('card-' + ti);
-    const solo = f.mode === 'arcade' || f.mode === 'online';
+    const solo = f.mode === 'arcade' || f.mode === 'online' || f.mode === 'torneio';
     if (ti === 1 && solo) {
-      el.innerHTML = f.mode === 'arcade' ? `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p></div>` : `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
+      if (f.mode === 'arcade') el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p></div>`;
+      else if (f.mode === 'torneio') {
+        const nBuff = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
+        el.innerHTML = `<div class="card-empty"><b>TORNEIO LOCAL</b><p>Chaveamento eliminatório de 8 lutadores (oitavas → final).<br><b>${nBuff} lutadores fracos ganham BUFF automático</b> (+HP/+força) — você pode ser um deles!</p></div>`;
+      } else el.innerHTML = `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
       return;
     }
     const idx = f.cursor[ti];
@@ -610,7 +619,7 @@ const UI = {
     AudioSys.play('whoosh', { vol: 0.5 });
     AudioSys.sayCharacter(d.name);
     if (f.picks[who].length >= f.need) f.done[who] = true;
-    if (f.mode === 'arcade' || f.mode === 'online') {
+    if (f.mode === 'arcade' || f.mode === 'online' || f.mode === 'torneio') {
       if (f.done[0]) return this.afterSelect();
     } else if (f.mode === 'training') {
       if (f.p2Human) { if (f.done[0] && f.done[1]) return this.afterSelect(); }
@@ -678,6 +687,7 @@ const UI = {
     const f = this.flow;
     if (f.mode === 'online') { Net.pickFighters(f.picks[0].map((k) => FIGHTERS[k].id)); this.show('online'); return; }
     if (f.mode === 'arcade') { this.buildArcade(); return this.launchArcade(); }
+    if (f.mode === 'torneio') { this.buildTorneio(); return this.launchTorneio(); }
     if (f.mode === 'survival') { return this.launchSurvival(); }
     setTimeout(() => this.show('stage'), 250);
   },
@@ -868,6 +878,58 @@ const UI = {
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]], roundsToWin: 1, timer: 99,
     });
   },
+  /* ---------- torneio local (chaveamento de 8, fracos ganham buff) ---------- */
+  buildTorneio() {
+    const f = this.flow;
+    const me = FIGHTERS[f.picks[0][0]].id;
+    f.torneio = buildTourneyBracket(me, 8);
+    f.torneio.round = 0;
+    f.torneio.pairs = null;
+  },
+  torneioCurrent() {
+    const f = this.flow;
+    const me = FIGHTERS[f.picks[0][0]].id;
+    if (!f.torneio.pairs) f.torneio.pairs = tourneyRoundPairings(f.torneio.chave, me).pairs;
+    const pr = tourneyRoundPairings(f.torneio.chave, me);
+    return { me, opp: pr.myOpp, roundName: f.torneio.roundsNames[f.torneio.round] || 'FINAL', round: f.torneio.round, size: f.torneio.chave.length };
+  },
+  launchTorneio() {
+    const f = this.flow;
+    const cur = this.torneioCurrent();
+    if (!cur.opp) { this.onTorneioChampion(); return; }
+    const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    const isFinal = cur.size <= 2;
+    this.launch({
+      mode: 'torneio', teams: [[cur.me], [cur.opp]], stage: st.id, weather: 'random',
+      difficulty: Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + Math.floor(cur.round / 2)),
+      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]],
+      roundsToWin: isFinal ? 2 : 1, timer: isFinal ? 180 : 99,
+      music: isFinal ? 'boss' : 'battle',
+    });
+    const myBuff = Balance.buffFor(FIGHTERS.find((d) => d.id === cur.me));
+    const opBuff = Balance.buffFor(FIGHTERS.find((d) => d.id === cur.opp));
+    this.toast(`TORNEIO · ${cur.roundName} vs ${FIGHTERS.find((d) => d.id === cur.opp).name}` +
+      (myBuff ? ` · seu BUFF: +${Math.round((myBuff.hp - 1) * 100)}% HP / +${Math.round((myBuff.power - 1) * 100)}% força` : '') +
+      (opBuff ? ` · rival fraco com BUFF` : ''), 4200);
+  },
+  torneioNext() {
+    const f = this.flow;
+    const cur = this.torneioCurrent();
+    const me = cur.me;
+    /* avanca a chave: venceu o round atual */
+    f.torneio.chave = tourneyResolveRound(f.torneio.pairs, me, true);
+    f.torneio.round++;
+    f.torneio.pairs = null;
+    if (f.torneio.chave.length <= 1) { this.onTorneioChampion(); return; }
+    this.launchTorneio();
+  },
+  onTorneioChampion() {
+    Profile.record('bestTorneio', 1);
+    Profile.grantAchievement('torneio-campeao');
+    this.$('res-title').textContent = '🏆 CAMPEÃO DO TORNEIO!';
+    this.$('btn-next').hidden = true;
+    this.$('btn-again').textContent = 'NOVO TORNEIO';
+  },
   launchArcade() {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
@@ -938,6 +1000,21 @@ const UI = {
         title = `CAIU! Placar: ${f.survivalWins || 0} vitórias`;
       }
       this.$('btn-again').textContent = 'REVANCHE';
+    } else if (game.mode === 'torneio') {
+      const cur = this.torneioCurrent ? this.torneioCurrent() : null;
+      if (res.winner === 0) {
+        const nextSize = Math.max(1, (cur ? cur.size : 8) / 2);
+        if (nextSize <= 1) { title = '🏆 CAMPEÃO DO TORNEIO!'; Profile.record('bestTorneio', 1); Profile.grantAchievement('torneio-campeao'); }
+        else {
+          const names = f.torneio.roundsNames;
+          const nextName = names[Math.min(f.torneio.round + 1, names.length - 1)];
+          title = `VITÓRIA! Classificado para ${nextName}!`;
+          next.hidden = false;
+        }
+      } else {
+        title = `ELIMINADO NA ${cur ? cur.roundName : 'FASE'} — boa campanha no torneio!`;
+      }
+      this.$('btn-again').textContent = res.winner === 0 ? 'PRÓXIMA LUTA' : 'NOVO TORNEIO';
     } else this.$('btn-again').textContent = 'REVANCHE';
     this.$('res-title').textContent = title;
     const wt = res.winner < 0 ? 0 : res.winner;
@@ -950,7 +1027,7 @@ const UI = {
       <table class="res-table"><thead><tr><th>Time</th><th>Lutador</th><th>Dano</th><th>Acertos</th><th>Combo</th><th>ULTs</th></tr></thead><tbody>
       ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td><td>${m.ults || 0}</td></tr>`).join('')).join('')}
       </tbody></table>
-      <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
+      <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'torneio' && f.torneio ? ` · Torneio ${f.torneio.roundsNames[Math.min(f.torneio.round, f.torneio.roundsNames.length - 1)]} · sobram ${f.torneio.chave.length} lutadores` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
     this.$('stage-wrap').classList.remove('on');
     this.buildMenuSide();
     setTimeout(() => this.show('results'), 900);

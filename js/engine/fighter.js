@@ -49,6 +49,15 @@ class Fighter {
     this.vy = 0;
     this.dir = dir;
     this.maxHp = Math.max(1, Math.round((def.stats.hp || 100) * HEALTH_MULTIPLIER));
+    /* TORNEIO LOCAL: lutadores fracos ganham buff automatico (Balance.buffFor) */
+    this.tourneyBuff = null;
+    if (game && game.mode === 'torneio' && typeof Balance !== 'undefined' && Balance.buffFor) {
+      const b = Balance.buffFor(def);
+      if (b) {
+        this.tourneyBuff = b;
+        this.maxHp = Math.max(1, Math.round(this.maxHp * b.hp));
+      }
+    }
     this.hp = this.maxHp;
     this.redHp = this.maxHp;
     this.charge = [0, 0];
@@ -278,7 +287,7 @@ class Fighter {
     return m;
   }
   dmgMult(p) {
-    let m = this.def.stats.power || 1;
+    let m = (this.def.stats.power || 1) * (this.tourneyBuff ? this.tourneyBuff.power : 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;

@@ -17,7 +17,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/vfx.js', 'js/engine/weather.js', 'js/engine/game.js'];
+const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/powers-balance-v12.js', 'js/data/powers-balance-v13.js', 'js/data/fighters-pack.js', 'js/data/fighters-henrico.js', 'js/data/fighters-jess.js', 'js/data/fighters-dev-virado.js', 'js/data/fighters-milena.js', 'js/data/fighters-kira.js', 'js/data/fighters-cracker.js', 'js/data/fighters-rafael.js', 'js/data/balance.js', 'js/data/roster-portraits.js', 'js/data/stages-v21.js', 'js/data/stages-brasil.js', 'js/data/stages-events.js', 'js/data/voice-book.js', 'js/data/achievements.js', 'js/data/pets.js', 'js/data/stages.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/fighter.js', 'js/engine/vfx.js', 'js/engine/weather.js', 'js/engine/game.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO ao carregar', f, e.message.slice(0, 60)); } }
 
 vm.runInContext(`
@@ -43,12 +43,13 @@ for (const def of fighters) {
     checked++;
     // 1) CD aplicado = base x 1.4
     f.state = 'idle'; f.cast = null; f.stolen = null; f.status = {};
-    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6;
+    f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.afo = 6; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0; f.state = 'idle';
     const base = p.cd || 50;
     const okCast = f.tryCast(i);
     if (!okCast) { console.log('CAST FALHOU: ' + def.id + ' #' + i + ' (' + p.id + ')'); fails++; continue; }
     const applied = f.cd[i];
-    const expected = Math.max(130, base * MULT); /* piso anti-spam de 130 frames */
+    const floor = f.spamProfile().floor; /* piso por perfil: chain 95 / standard 130 / heavy 155 */
+    const expected = Math.max(floor, base * MULT); /* multiplicador global x2 + piso do perfil */
     if (Math.abs(applied - expected) > 0.01) { console.log('CD ERRADO: ' + def.id + '/' + p.id + ' aplicado=' + applied + ' esperado=' + expected.toFixed(1)); fails++; }
     // 2) pct do HUD coerente (0 <= pct <= 1)
     const ps = f.powerState(i);
@@ -56,13 +57,13 @@ for (const def of fighters) {
     // 3) impossivel recastar antes de expirar
     const keepAlive = () => { const a = g.activeOf(0), b = g.activeOf(1); if (a) { a.hp = a.maxHp; a.alive = true; } if (b) { b.hp = b.maxHp; b.alive = true; } };
     for (let t = 0; t < Math.floor(expected) - 2; t++) { g.tick(); keepAlive(); }
-    f.state = 'idle'; f.cast = null; f.castLock = 0;
+    f.state = 'idle'; f.cast = null; f.castLock = 0; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0;
     if (f.tryCast(i)) { console.log('SPAM POSSIVEL: ' + def.id + '/' + p.id + ' recastou antes do CD (' + Math.floor(expected) + ' frames)'); fails++; }
     // 4) recarga conta 1/frame e libera no fim
     let ticks = 0;
     while ((f.cd[i] > 0 || f.castLock > 0) && ticks < 2000) { g.tick(); keepAlive(); ticks++; }
     if (f.cd[i] > 0) { console.log('CD NAO ZEROU: ' + def.id + '/' + p.id); fails++; }
-    f.state = 'idle'; f.cast = null;
+    f.state = 'idle'; f.cast = null; f.y = 0; f.vy = 0; f.onGround = true; f.hitstun = 0; f.stun = 0;
     if (!f.tryCast(i)) {
       const kitNow = f.currentKit();
       console.log('NAO RECARREGOU: ' + def.id + '/' + p.id + ' apos ' + ticks + ' frames | state=' + f.state + ' onGround=' + f.onGround + ' y=' + f.y + ' cd[' + i + ']=' + f.cd[i] + ' kit[' + i + ']=' + (kitNow[i] ? kitNow[i].id : 'NULO') + ' kitSize=' + kitNow.length + ' stolen=' + (f.stolen ? f.stolen.from : 'nao'));
