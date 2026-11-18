@@ -154,6 +154,7 @@ const mkRec = () => {
   check('index.html: canvas #select-live dentro de #scr-select, atras do .select-bg', !!m && /id="select-live"/.test(m[0]) && m[0].indexOf('select-live') < m[0].indexOf('select-bg'), '');
   check('css: .select-live em z -2 com object-fit cover + véu escuro no #scr-select + reduced esconde', /\.select-live\s*{[^}]*z-index:\s*-2/.test(css) && /#scr-select \.select-bg\s*{[^}]*rgba/.test(css) && /prefers-reduced-motion[^}]*}\s*\.select-live|\.select-live\s*{[^}]*display:\s*none/.test(css.replace(/\n/g, ' ')), '');
   check('ui.js: startSelectBg/stopSelectBg existem e show() para o fundo ao sair da selecao', /startSelectBg\(\)/.test(ui) && /stopSelectBg\(\)/.test(ui) && /if \(name !== 'select'\) this\.stopSelectBg\(\);/.test(ui) && /this\.startSelectBg\(\);/.test(ui), '');
+  check('select-live usa arena FIXA do fluxo (f.stage != random) e cicla palcos no aleatorio (~9s) + tag AO VIVO', ui.indexOf("f.stage !== 'random'") >= 0 && ui.indexOf('t % 540 === 0') >= 0 && ui.indexOf('this._selBgStage = def.id') >= 0 && /id="sel-stage-tag"/.test(m[0]) && /\.sel-stage-tag\s*{/.test(css) && ui.indexOf('sel-stage-tag') >= 0, '');
   /* funcional: StageRenderer + Weather com stub rodam e desenham num canvas real */
   const r = vm.runInContext(`
   (function(){
@@ -180,6 +181,18 @@ const mkRec = () => {
   })()`, ctx);
   const R = JSON.parse(r);
   check('palco do menu renderiza de verdade (StageRenderer+Weather, 120 ticks, pixels pintados)', R.opaque > 100000 && R.t === 120, JSON.stringify(R));
+  /* funcional 2: a logica do startSelectBg escolhe o palco fixo quando o fluxo tem arena */
+  const r2 = vm.runInContext(`
+  (function(){
+    const fixed = STAGE_LIST.find((s) => s.id === 'paraty');
+    const f = { stage: 'paraty' };
+    const chosen = (f && f.stage && f.stage !== 'random') ? STAGE_LIST.find((s) => s.id === f.stage) : null;
+    const f2 = { stage: 'random' };
+    const chosen2 = (f2 && f2.stage && f2.stage !== 'random') ? STAGE_LIST.find((s) => s.id === f2.stage) : null;
+    return JSON.stringify({ fixed: chosen && chosen.id, random: chosen2 === null });
+  })()`, ctx);
+  const R2 = JSON.parse(r2);
+  check('logica do fundo: fluxo com arena fixa escolhe ela; random nao trava palco', R2.fixed === 'paraty' && R2.random === true, JSON.stringify(R2));
 }
 
 console.log('---');

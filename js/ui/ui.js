@@ -421,22 +421,42 @@ const UI = {
     const W = 960, H = 540;
     cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
-    const def = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
-    const stage = new StageRenderer(def, W, H, Math.round(H * 0.85));
-    const stub = {
-      W, H, rnd: Math.random, reduced: Profile.reducedMotion(), stageDef: def,
-      audio: { loop() {}, play() {}, voice() {} },
-      announce() {}, splash() {}, floatText() {},
-      fighters: () => [], strikes: [], onWeather: null,
-    };
-    stage.game = stub;
-    const weather = new Weather(stub, def);
-    weather.roll();
-    const reduced = stub.reduced;
+    const f = this.flow;
+    /* Palco ao vivo atras da selecao: se o fluxo ja tem arena FIXA (voltou da
+       tela de arenas, ou modo treino), mostra ela direto; se for "random",
+       cicla entre os palcos a cada ~9s para mostrar o jogo inteiro. */
+    const fixed = (f && f.stage && f.stage !== 'random') ? STAGE_LIST.find((s) => s.id === f.stage) : null;
+    let def = fixed || STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    let stage = null, weather = null;
+    const reduced = Profile.reducedMotion();
     const q = (typeof Profile !== 'undefined' && Profile.setting('quality')) || 'medium';
+    const tag = this.$('sel-stage-tag');
+    const build = () => {
+      stage = new StageRenderer(def, W, H, Math.round(H * 0.85));
+      const stub = {
+        W, H, rnd: Math.random, reduced, stageDef: def,
+        audio: { loop() {}, play() {}, voice() {} },
+        announce() {}, splash() {}, floatText() {},
+        fighters: () => [], strikes: [], onWeather: null,
+      };
+      stage.game = stub;
+      weather = new Weather(stub, def);
+      weather.roll();
+      this._selBgStage = def.id;
+      if (tag) {
+        const wi = (typeof WEATHER_INFO !== 'undefined' && WEATHER_INFO[weather.kind]) || null;
+        tag.textContent = '▶ AO VIVO · ' + def.name + (wi ? ' · ' + wi.icon + ' ' + wi.name : '');
+      }
+    };
+    build();
     let t = 0;
     const paint = () => {
       t++;
+      if (!fixed && q !== 'low' && t % 540 === 0) {
+        /* arena aleatoria: troca de palco a cada ~9s */
+        def = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+        build();
+      }
       try {
         weather.update(false);
         stage.update(weather);
@@ -458,7 +478,7 @@ const UI = {
       paint();
     };
     this._selBg = true;
-    if (q === 'low') paint(); /* qualidade baixa: 1 frame estatico, sem gastar rAF */
+    if (q === 'low' || reduced) paint(); /* qualidade baixa/reduzido: 1 frame estatico, sem gastar rAF */
     else this._selBgRaf = requestAnimationFrame(draw);
   },
   stopSelectBg() {
@@ -722,7 +742,7 @@ const UI = {
       bat: 'morcegos', fish: 'peixes', pigeons: 'pombos', cat: 'gato', dog: 'cachorro',
       dragonfly: 'libélulas', fireflies: 'vagalumes', squirrel: 'esquilo', seagull: 'gaivotas', frog: 'sapo',
     };
-    const fz = [...new Set(s.fauna || [])].map((k) => fauna[k]).join(', ');
+    const fz = [...new Set(typeof stageFauna === 'function' ? stageFauna(s) : (s.fauna || []))].map((k) => fauna[k]).filter(Boolean).join(', ');
     el.innerHTML = `<div class="sp-img ${s.sheet ? 'anim' : ''}" style="${img}"></div>
       <h3>${s.name}</h3>
       <p class="mech">${s.mech ? MECH_INFO[s.mech] || '' : 'Arena clássica.'}</p>

@@ -1193,6 +1193,37 @@ class Game {
     const fs = this.fighters().concat(this.allFighters().filter((m) => m.assistT > 0)).sort((p, q) => busy(p) - busy(q));
     fs.forEach((f) => f.drawBack(ctx));
     fs.forEach((f) => f.draw(ctx));
+    /* REFLEXO MOLHADO no chao: chuva/tempestade ou palco de mare/agua — os
+       lutadores espelham achatados abaixo da linha do chao e o reflexo some com
+       um gradiente de profundidade + filete de brilho na linha d'agua.
+       Desligado na qualidade baixa e com movimento reduzido. */
+    const wet = (this._wetOverride != null) ? this._wetOverride
+      : !!(this.weather && (this.weather.kind === 'rain' || this.weather.kind === 'storm')) || !!(this.stageDef && (this.stageDef.mech === 'tide' || this.stageDef.swim));
+    this.wetFloor = wet;
+    if (wet && this.qFxOn !== false && !this.reduced) {
+      ctx.save();
+      ctx.scale(1, -0.36);
+      ctx.globalAlpha = 0.17;
+      for (const f of fs) {
+        if (f.alive === false) continue;
+        try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+      }
+      ctx.restore();
+      const fade = ctx.createLinearGradient(0, 0, 0, 100);
+      fade.addColorStop(0, 'rgba(8,10,22,0)');
+      fade.addColorStop(0.65, 'rgba(8,10,22,0.38)');
+      fade.addColorStop(1, 'rgba(8,10,22,0.62)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(-20, 0, W + 40, 100);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const shine = ctx.createLinearGradient(0, -2, 0, 10);
+      shine.addColorStop(0, 'rgba(190,220,255,0.15)');
+      shine.addColorStop(1, 'rgba(190,220,255,0)');
+      ctx.fillStyle = shine;
+      ctx.fillRect(-20, -2, W + 40, 12);
+      ctx.restore();
+    }
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
     this.drawBeams(ctx);

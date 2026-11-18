@@ -116,8 +116,19 @@ check('unlockPitoco idempotente', Profile.unlockPitoco() === false);
 const gF = mk('du', 'stack', 'parque-lago');
 let fogemSpr = 0, comportamSpr = 0;
 const mapaSpr = { dog: 'dog', cat: 'cat', pigeons: 'pigeon', fish: 'fish', frog: 'frog', rabbits: 'rabbit', hamster: 'hamster', turtle: 'turtle' };
+/* defs sinteticas COM bioma (stageFauna filtra por bioma: peixe so em agua, etc.) */
+const biomaSpr = {
+  dog: { id: 't-rua', name: 'Rua', fauna: ['dog'] },
+  cat: { id: 't-rua', name: 'Rua', fauna: ['cat'] },
+  pigeons: { id: 't-praca', name: 'Praca', fauna: ['pigeons'] },
+  fish: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['fish'] },
+  frog: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['frog'] },
+  rabbits: { id: 't-campo', name: 'Campo', fauna: ['rabbits'] },
+  hamster: { id: 't-campo', name: 'Campo', fauna: ['hamster'] },
+  turtle: { id: 't-rio', name: 'Rio', mech: 'tide', fauna: ['turtle'] },
+};
 for (const [kk, especie] of Object.entries(mapaSpr)) {
-  const lf = new LiveFauna(gF, { fauna: [kk] });
+  const lf = new LiveFauna(gF, biomaSpr[kk] || { fauna: [kk] });
   gF.stage.liveFauna = lf;
   const a = lf.animals[0];
   if (!a) { console.log('   NAO NASCE:', kk); continue; }
@@ -125,7 +136,7 @@ for (const [kk, especie] of Object.entries(mapaSpr)) {
   try { for (let t = 0; t < 300; t++) lf.update(); } catch (e) { crash = true; }
   if (!crash) comportamSpr++;
   if (['dog', 'cat', 'pigeon', 'frog', 'rabbit', 'hamster', 'turtle'].includes(especie)) {
-    const lf3 = new LiveFauna(gF, { fauna: [kk] });
+    const lf3 = new LiveFauna(gF, biomaSpr[kk] || { fauna: [kk] });
     gF.stage.liveFauna = lf3;
     const b = lf3.animals[0];
     gF.activeOf(0).x = b.x + 30;

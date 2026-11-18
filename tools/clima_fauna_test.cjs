@@ -75,10 +75,24 @@ check('arco-iris em 1 palco', comRainbow.length >= 1, comRainbow.map((s) => s.id
 // ==== 4. AS 11 FAUNAS nascem, se comportam e fogem ====
 const especies = ['pigeon', 'bird', 'cat', 'dog', 'dragonfly', 'firefly', 'butterfly', 'fish', 'squirrel', 'seagull', 'frog'];
 const defFauna = { pigeons: 'pigeon', birds: 'bird', cat: 'cat', dog: 'dog', dragonfly: 'dragonfly', fireflies: 'firefly', butterflies: 'butterfly', fish: 'fish', squirrel: 'squirrel', seagull: 'seagull', frog: 'frog' };
+/* defs sinteticas COM bioma (stageFauna filtra por bioma — peixe so em agua, etc.) */
+const defBioma = {
+  fish: { id: 't-agua', name: 'Tanque', swim: true, fauna: ['fish'] },
+  seagull: { id: 't-mar', name: 'Beira Mar', mech: 'tide', fauna: ['seagull'] },
+  frog: { id: 't-lago', name: 'Lago', mech: 'tide', fauna: ['frog'] },
+  dragonfly: { id: 't-lago', name: 'Lago', mech: 'tide', fauna: ['dragonfly'] },
+  fireflies: { id: 't-noite', name: 'Floresta a Noite', weather: ['darkfog'], fauna: ['fireflies'] },
+  butterflies: { id: 't-parque', name: 'Parque', fauna: ['butterflies'] },
+  squirrel: { id: 't-parque', name: 'Parque', fauna: ['squirrel'] },
+  cat: { id: 't-rua', name: 'Rua', fauna: ['cat'] },
+  dog: { id: 't-rua', name: 'Rua', fauna: ['dog'] },
+  pigeons: { id: 't-praca', name: 'Praca', fauna: ['pigeons'] },
+  birds: { id: 't-campo', name: 'Campo', fauna: ['birds'] },
+};
 const gF = mk('parque-lago');
 let nascem = 0, comportam = 0, fogem = 0;
 for (const k of Object.keys(defFauna)) {
-  const lf = new LiveFauna(gF, { fauna: [k] });
+  const lf = new LiveFauna(gF, defBioma[k] || { fauna: [k] });
   const a = lf.animals[0];
   if (!a || a.k !== defFauna[k]) { console.log('   ' + k + ' NAO nasce'); continue; }
   nascem++;
@@ -89,7 +103,7 @@ for (const k of Object.keys(defFauna)) {
   if (!crash) comportam++;
   /* terrestres fogem do lutador */
   if (['pigeon', 'cat', 'dog', 'squirrel', 'frog'].includes(a.k)) {
-    const lf2 = new LiveFauna(gF, { fauna: [k] });
+    const lf2 = new LiveFauna(gF, defBioma[k] || { fauna: [k] });
     gF.stage.liveFauna = lf2; /* o tick atualiza a fauna do palco */
     const b = lf2.animals[0];
     const du = gF.activeOf(0);
@@ -106,7 +120,7 @@ check('as 5 terrestres FOGEM do lutador', fogem === 5, fogem + '/5');
 // ==== 5. SONS: fauna foge com som (tone nao explode) e climas tocam ====
 let sonsOk = 0;
 try {
-  const lf3 = new LiveFauna(gF, { fauna: ['dog', 'cat', 'seagull', 'frog', 'squirrel'] });
+  const lf3 = new LiveFauna(gF, { id: 't-misto', name: 'Praca a Beira Rio', mech: 'tide', fauna: ['dog', 'cat', 'seagull', 'frog', 'squirrel'] });
   gF.stage.liveFauna = lf3;
   const du = gF.activeOf(0);
   for (const a of lf3.animals) {

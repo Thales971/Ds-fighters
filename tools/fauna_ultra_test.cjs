@@ -67,10 +67,18 @@ check('nenhum palco com animal DUPLICADO nos 2 sistemas (makeFauna pula o que o 
 
 // ===== 3. CADA especie: 600 ticks sem crash, posicao dentro da tela, ciclo de estados =====
 const TODAS = ['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle'];
+/* defs sinteticas COM bioma (stageFauna filtra por bioma: peixe so em agua, morcego so a noite...) */
+const defTeste = (k) => {
+  if (['fish', 'seagull', 'frog', 'dragonfly', 'turtle'].includes(k)) return { id: 't-rio', name: 'Rio', mech: 'tide', fauna: [k] };
+  if (['bat', 'fireflies'].includes(k)) return { id: 't-noite', name: 'Floresta a Noite', weather: ['darkfog'], fauna: [k] };
+  if (['cat', 'dog', 'pigeons'].includes(k)) return { id: 't-praca', name: 'Praca Urbana', fauna: [k] };
+  if (['squirrel', 'bee', 'butterflies', 'butterfly'].includes(k)) return { id: 't-parque', name: 'Parque Floresta', fauna: [k] };
+  return { id: 't-campo', name: 'Campo', fauna: [k] };
+};
 const g0 = mk('parque-lago');
 let okEsp = 0; const badEsp = [];
 for (const k of TODAS) {
-  const lf = new LiveFauna(g0, { fauna: [k], id: 'teste' });
+  const lf = new LiveFauna(g0, defTeste(k));
   g0.stage.liveFauna = lf;
   if (!lf.animals.length) { badEsp.push(k + ':nao nasce'); continue; }
   let crash = null; const estados = new Set();
@@ -170,8 +178,9 @@ Art.images['fx2:birds'] = { naturalWidth: 256, naturalHeight: 64 };
 Art.images['fx2:firefly'] = { naturalWidth: 96, naturalHeight: 32 };
 // palco sintetico com TODAS as especies
 const gAll = mk('parque-lago');
-gAll.stage.liveFauna = new LiveFauna(gAll, { id: 'all', fauna: ['pigeons','birds','bird','cat','dog','dragonfly','fireflies','butterflies','butterfly','squirrel','seagull','frog','fish','rabbits','hamster','turtle','bat','bee'] });
+gAll.stage.liveFauna = new LiveFauna(gAll, { id: 'all', name: 'Praca Parque Floresta Rio a Noite', mech: 'tide', weather: ['darkfog'], fauna: ['pigeons','birds','bird','cat','dog','dragonfly','fireflies','butterflies','butterfly','squirrel','seagull','frog','fish','rabbits','hamster','turtle','bat','bee'] });
 gAll.stage.def.fauna = ['pigeons','birds','bird','cat','dog','dragonfly','fireflies','butterflies','butterfly','squirrel','seagull','frog','fish','rabbits','hamster','turtle','bat','bee'];
+gAll.stage.def.weather = ['darkfog']; /* bioma noturno p/ stageFauna nao filtrar morcego */
 gAll.stage.makeFauna();
 for (let t = 0; t < 120; t++) { gAll.stage.liveFauna.update(); gAll.render(); }
 Art.cell = origCell;
@@ -185,7 +194,7 @@ check('render usou fauna vetorial p/ bird/bat/bee (linhas fauna.png + fx2:birds)
 
 // ===== 8. COMPORTAMENTOS NOVOS: alerta assiste a luta, borboleta pousa na flor, pombo bica, peixe espirra =====
 const gN = mk('parque-lago');
-const lfN = new LiveFauna(gN, { id: 'teste', fauna: ['pigeons', 'butterflies', 'fish'] });
+const lfN = new LiveFauna(gN, { id: 't-misto', name: 'Praca Parque Rio', mech: 'tide', fauna: ['pigeons', 'butterflies', 'fish'] });
 gN.stage.liveFauna = lfN;
 check('spawn inicializa alert/perch/peck/jump em 0', lfN.animals.every((a) => a.alert === 0 && a.perch === 0 && a.peck === 0 && a.jump === 0));
 const fN = gN.activeOf(0);

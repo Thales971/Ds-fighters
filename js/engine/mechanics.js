@@ -231,8 +231,8 @@ const MECHS = {
     init(g) {
       this.wave = 0; this.dir = 1;
       /* palco COM peixe = maré alta CONSTANTE (sempre alta, sem religar) */
-      const fauna = g && g.stage && g.stage.def && g.stage.def.fauna;
-      this.permaTide = !!(fauna && fauna.indexOf('fish') >= 0);
+      const fauna = (typeof stageFauna === 'function' && g && g.stage && g.stage.def) ? stageFauna(g.stage.def) : (g && g.stage && g.stage.def && g.stage.def.fauna) || [];
+      this.permaTide = fauna.indexOf('fish') >= 0;
       if (this.permaTide) this.wave = 130;
     },
     every: 480,

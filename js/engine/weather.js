@@ -274,12 +274,10 @@ class Weather {
         continue;
       }
       if (this.kind === 'fog') {
-        /* NEBLINA em 2 faixas: rasa perto do chao + nevoeiro alto no ceu.
-           O MEIO da tela (onde lutam os personagens) fica limpo. */
+        /* NEBLINA: bancos grandes e macios derivando devagar — cobre um pouco
+           a visao no meio da tela de proposito (clima denso). */
         d.x += (this.wind || 0.4) * (0.14 + d.s * 0.22);
-        d.y = d.s < 0.72
-          ? -6 - d.s * 50 + Math.sin((this.t + d.s * 200) * 0.006) * 7
-          : -350 - (d.s - 0.72) * 240 + Math.sin((this.t + d.s * 200) * 0.006) * 16;
+        d.y = -80 - d.s * 120 + Math.sin((this.t + d.s * 200) * 0.006) * 26;
         if (d.x > W + 240) d.x = -240;
         if (d.x < -240) d.x = W + 200;
         continue;
@@ -320,66 +318,86 @@ class Weather {
     if (!this.drops.length && !this.flash) return;
     ctx.save();
     if (this.kind === 'aurora') {
-      /* AURORA BOREAL: 3 cortinas pendendo do TOPO do ceu, borda inferior
-         ondulada (dobra da cortina) + raios verticais finos. Composite
-         'lighter' soma as cores como luz de verdade — nada de faixas
-         chapadas no meio da tela. */
+      /* AURORA BOREAL v2: cortinas em CAMADAS pendendo do topo do ceu.
+         Cada cortina = caminho com borda inferior dupla-ondulada + gradiente
+         vertical no padrao da aurora real (roxo em cima -> teal no meio ->
+         VERDE BRILHANTE na borda inferior) + dezenas de raios verticais
+         cintilando (intensidade varia no espaco e no tempo) + linha luminosa
+         na borda. Composite 'lighter' soma tudo como luz. */
       const W = this.game.W;
       const reduced = this.game.reduced;
       const t = this.t;
-      const curtains = reduced
-        ? [{ top: -545, hgt: 240, c0: 'rgba(96,255,190,0.36)', c1: 'rgba(40,200,170,0)', cr: 'rgba(96,255,190,0.14)', edge: 'rgba(190,255,230,0.40)', ph: 0 }]
+      /* [top sumindo, meio, borda brilhante, base do raio, linha da borda] */
+      const COL = [
+        ['rgba(150,90,255,0.10)', 'rgba(60,235,190,0.22)', 'rgba(110,255,160,0.50)', 'rgba(225,255,240,0.95)', 'rgba(200,255,225,0.62)'],
+        ['rgba(90,140,255,0.10)', 'rgba(60,215,255,0.22)', 'rgba(100,240,255,0.42)', 'rgba(215,250,255,0.95)', 'rgba(180,246,255,0.55)'],
+        ['rgba(160,80,255,0.12)', 'rgba(120,120,255,0.20)', 'rgba(150,160,255,0.36)', 'rgba(235,225,255,0.95)', 'rgba(214,196,255,0.46)'],
+        ['rgba(255,90,180,0.08)', 'rgba(200,110,255,0.16)', 'rgba(235,130,255,0.30)', 'rgba(255,225,250,0.95)', 'rgba(255,195,246,0.38)'],
+      ];
+      const defs = reduced
+        ? [{ top: -560, hgt: 210, hue: 0, ph: 0.0 }, { top: -530, hgt: 300, hue: 2, ph: 3.4 }]
         : [
-            { top: -545, hgt: 225, c0: 'rgba(96,255,190,0.36)', c1: 'rgba(40,200,170,0)', cr: 'rgba(96,255,190,0.14)', edge: 'rgba(190,255,230,0.42)', ph: 0.0 },
-            { top: -520, hgt: 280, c0: 'rgba(80,225,255,0.30)', c1: 'rgba(60,120,220,0)', cr: 'rgba(80,225,255,0.12)', edge: 'rgba(170,235,255,0.34)', ph: 2.1 },
-            { top: -495, hgt: 190, c0: 'rgba(178,120,255,0.28)', c1: 'rgba(120,60,200,0)', cr: 'rgba(178,120,255,0.12)', edge: 'rgba(225,170,255,0.30)', ph: 4.2 },
+            { top: -560, hgt: 200, hue: 0, ph: 0.0 },
+            { top: -548, hgt: 255, hue: 1, ph: 1.7 },
+            { top: -536, hgt: 305, hue: 2, ph: 3.4 },
+            { top: -522, hgt: 235, hue: 1, ph: 5.1 },
+            { top: -508, hgt: 175, hue: 3, ph: 6.3 },
           ];
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      for (const c of curtains) {
-        /* corpo da cortina: topo reto, base com duas ondas sobrepostas */
+      for (const c of defs) {
+        const col = COL[c.hue];
+        const sway = t * (0.35 + (c.ph % 1) * 0.22);
+        const edgeY = (x) => c.top + c.hgt + Math.sin(x * 0.013 - sway * 1.4 + c.ph * 2) * 34 + Math.sin(x * 0.031 + sway * 2.2 + c.ph) * 13;
+        /* corpo da cortina: topo reto (fora da tela), base dupla-ondulada */
         ctx.beginPath();
-        ctx.moveTo(-40, c.top - 12);
-        for (let x = -40; x <= W + 40; x += 24) ctx.lineTo(x, c.top + Math.sin(x * 0.011 + t * 0.6 + c.ph) * 9);
-        for (let x = W + 40; x >= -40; x -= 24) {
-          ctx.lineTo(x, c.top + c.hgt + Math.sin(x * 0.017 - t * 0.9 + c.ph * 2) * 36 + Math.sin(x * 0.041 + t * 1.3 + c.ph) * 13);
-        }
+        ctx.moveTo(-40, c.top - 14);
+        for (let x = -40; x <= W + 40; x += 20) ctx.lineTo(x, c.top + Math.sin(x * 0.010 + sway + c.ph) * 10);
+        for (let x = W + 40; x >= -40; x -= 20) ctx.lineTo(x, edgeY(x));
         ctx.closePath();
-        const g = ctx.createLinearGradient(0, c.top - 12, 0, c.top + c.hgt + 60);
-        g.addColorStop(0, c.c0);
-        g.addColorStop(0.72, c.c1);
+        const g = ctx.createLinearGradient(0, c.top - 14, 0, c.top + c.hgt + 55);
+        g.addColorStop(0, col[0]);
+        g.addColorStop(0.55, col[1]);
+        g.addColorStop(0.92, col[2]);
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.fill();
-        /* borda inferior brilhante: a aurora real tem um limite inferior
-           nitido e luminoso — e a onda da dobra fica bem visivel ai */
+        /* borda inferior luminosa e nitida (a parte mais viva da aurora) */
         ctx.beginPath();
-        for (let x = -40; x <= W + 40; x += 24) {
-          const by = c.top + c.hgt + Math.sin(x * 0.017 - t * 0.9 + c.ph * 2) * 36 + Math.sin(x * 0.041 + t * 1.3 + c.ph) * 13;
-          if (x === -40) ctx.moveTo(x, by); else ctx.lineTo(x, by);
-        }
-        ctx.strokeStyle = c.edge;
-        ctx.lineWidth = 2.4;
+        for (let x = -40; x <= W + 40; x += 20) { const by = edgeY(x); if (x === -40) ctx.moveTo(x, by); else ctx.lineTo(x, by); }
+        ctx.strokeStyle = col[4];
+        ctx.lineWidth = 2.6;
         ctx.stroke();
-        /* raios verticais finos dentro da cortina (estrutura classica) */
-        for (let x = -10; x <= W + 10; x += 30) {
-          const ry = c.top + Math.sin(x * 0.011 + t * 0.6 + c.ph) * 9;
-          const rl = c.hgt * (0.4 + 0.45 * Math.abs(Math.sin(x * 0.023 + t * 1.1 + c.ph * 3)));
+        /* raios verticais cintilando dentro da cortina */
+        const nRays = reduced ? 16 : 56;
+        for (let i = 0; i < nRays; i++) {
+          const x = -20 + (i / nRays) * (W + 40) + Math.sin(i * 12.9898) * 18;
+          const tw = 0.5 + 0.5 * Math.sin(x * 0.05 + t * (0.8 + (i % 5) * 0.23) + c.ph * 3 + i);
+          if (tw < 0.25) continue;
+          const ry = c.top + Math.sin(x * 0.010 + sway + c.ph) * 10;
+          const rl = c.hgt * (0.35 + 0.55 * tw);
           const rg = ctx.createLinearGradient(0, ry, 0, ry + rl);
-          rg.addColorStop(0, c.cr);
+          rg.addColorStop(0, col[3]);
           rg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = 0.14 + 0.42 * tw;
           ctx.fillStyle = rg;
-          ctx.fillRect(x, ry, 3, rl);
+          ctx.fillRect(x, ry, 4 + 4 * tw, rl);
         }
+        ctx.globalAlpha = 1;
       }
       ctx.restore();
-      /* estrelas piscando */
+      /* estrelas piscando (as maiores fazem um brilinho em cruz) */
       ctx.globalAlpha = 1;
       for (const d of this.drops) {
-        const tw = 0.35 + 0.65 * Math.abs(Math.sin((this.t + d.s * 240) * 0.03));
+        const tw = 0.5 + 0.5 * Math.abs(Math.sin((this.t + d.s * 240) * 0.03));
         ctx.globalAlpha = tw;
-        ctx.fillStyle = d.s > 0.5 ? '#c8fff2' : '#dcc9ff';
-        ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+        ctx.fillStyle = d.s > 0.5 ? '#d8fff5' : '#e6d9ff';
+        const s = d.s > 0.82 ? 3 : 2;
+        ctx.fillRect(Math.round(d.x), Math.round(d.y), s, s);
+        if (d.s > 0.82 && tw > 0.8) {
+          ctx.fillRect(Math.round(d.x) - 2, Math.round(d.y), s + 4, 1);
+          ctx.fillRect(Math.round(d.x), Math.round(d.y) - 2, 1, s + 4);
+        }
       }
       ctx.globalAlpha = 1;
     } else if (this.kind === 'heatwave') {
@@ -578,31 +596,64 @@ class Weather {
     } else if (this.kind === 'rainbow') {
       /* o arco fica no overlay, longe dos lutadores */
     } else if (this.kind === 'confetti') {
-      const cols = ['#ffd23a', '#ff4f8b', '#7ec8ff', '#7dff6a', '#fff'];
+      /* CONFETE de papel: papelzinho colorido com faixa clara em cima (brilho),
+         tamanho varia com a profundidade, girando enquanto cai. */
+      const cols = ['#ffd23a', '#ff4f8b', '#7ec8ff', '#7dff6a', '#c9a2ff', '#fff'];
+      const hi = ['#fff3b0', '#ffb3cf', '#d9efff', '#ccffbb', '#e9dcff', '#ffffff'];
       for (const d of this.drops) {
+        const w = 4 + d.s * 4.5;
+        const h = d.s > 0.6 ? 3 : 2;
+        const ci = (d.design || 0) % cols.length;
         ctx.save();
         ctx.translate(Math.round(d.x), Math.round(d.y));
         ctx.rotate(d.ph || 0);
-        ctx.fillStyle = cols[(d.design || 0) % cols.length];
-        ctx.fillRect(-3, -1, 6, 2);
+        ctx.fillStyle = cols[ci];
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+        ctx.fillStyle = hi[ci];
+        ctx.fillRect(-w / 2, -h / 2, w, 1);
         ctx.restore();
       }
     } else if (this.kind === 'fireworks') {
-      const cols = ['#ffe27a', '#ff4f8b', '#7ec8ff', '#fff', '#ff9a3c'];
+      /* FOGOS: faísca radial em 'lighter' (brilho aditivo, blob em cache por cor)
+         + 4 pontinhos de fagulha ao redor — parece fogo de artifício, nao cruz. */
+      const cols = [
+        ['rgba(255,255,255,0.95)', 'rgba(255,226,122,0.55)'],
+        ['rgba(255,255,255,0.95)', 'rgba(255,79,139,0.55)'],
+        ['rgba(255,255,255,0.95)', 'rgba(126,200,255,0.55)'],
+        ['rgba(255,255,255,0.90)', 'rgba(255,255,255,0.40)'],
+        ['rgba(255,255,255,0.95)', 'rgba(255,154,60,0.55)'],
+      ];
+      this._sparkBlobs = this._sparkBlobs || {};
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
       for (const d of this.drops) {
-        const x = Math.round(d.x);
-        const y = Math.round(d.y);
-        ctx.globalAlpha = 0.9;
-        ctx.fillStyle = cols[(d.design || 0) % cols.length];
-        ctx.fillRect(x, y, 2, 2);
-        if (Math.sin((d.ph || 0) * 2) > 0) {
-          ctx.fillRect(x - 4, y, 2, 2);
-          ctx.fillRect(x + 4, y, 2, 2);
-          ctx.fillRect(x, y - 4, 2, 2);
-          ctx.fillRect(x, y + 4, 2, 2);
+        const ci = (d.design || 0) % cols.length;
+        let blob = this._sparkBlobs[ci];
+        if (!blob) {
+          const c = document.createElement('canvas');
+          c.width = 22; c.height = 22;
+          const x = c.getContext('2d');
+          const g = x.createRadialGradient(11, 11, 1, 11, 11, 10.5);
+          g.addColorStop(0, cols[ci][0]);
+          g.addColorStop(0.4, cols[ci][1]);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          x.fillStyle = g;
+          x.fillRect(0, 0, 22, 22);
+          blob = this._sparkBlobs[ci] = c;
         }
+        const x = Math.round(d.x), y = Math.round(d.y);
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(blob, x - 11, y - 11);
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = cols[ci][1];
+        const s = Math.sin((d.ph || 0) * 2) > 0 ? 5 : 3;
+        ctx.fillRect(x - s, y, 2, 2);
+        ctx.fillRect(x + s - 2, y, 2, 2);
+        ctx.fillRect(x, y - s, 2, 2);
+        ctx.fillRect(x, y + s - 2, 2, 2);
       }
       ctx.globalAlpha = 1;
+      ctx.restore();
     } else {
       /* CHUVA/TEMPESTADE em 2 passagens: trilha larga e transparente + nucleo claro
          brilhante na cabeca da gota (parece vidro molhado, nao linha chapada). */
@@ -655,7 +706,7 @@ class Weather {
       ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.16)' : 'rgba(20,40,70,0.1)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'fog') {
-      ctx.fillStyle = 'rgba(206,216,228,0.10)';
+      ctx.fillStyle = 'rgba(206,216,228,0.13)';
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'darkfog') {
       /* só o chão e o fundo. O centro, onde estão os lutadores, fica limpo. */
@@ -674,12 +725,16 @@ class Weather {
       ctx.fillStyle = fog;
       ctx.fillRect(0, H * 0.72, W, H * 0.28);
     } else if (this.kind === 'aurora') {
-      const glow = ctx.createLinearGradient(0, 0, 0, H * 0.58);
-      glow.addColorStop(0, 'rgba(70,235,205,0.09)');
-      glow.addColorStop(0.55, 'rgba(137,104,255,0.07)');
+      /* brilho ambiente do ceu inteiro em 'lighter' (reforca as cortinas) */
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const glow = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+      glow.addColorStop(0, 'rgba(80,255,210,0.11)');
+      glow.addColorStop(0.5, 'rgba(140,110,255,0.09)');
       glow.addColorStop(1, 'rgba(20,25,70,0)');
       ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H * 0.58);
+      ctx.fillRect(0, 0, W, H * 0.62);
+      ctx.restore();
     } else if (this.kind === 'heatwave') {
       /* shimmer: faixas verticais quentes que sobem ondulando (nao mais retangulo chapado) */
       const bands = this.game.reduced ? 3 : 6;

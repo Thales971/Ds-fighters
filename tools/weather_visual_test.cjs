@@ -45,7 +45,7 @@ const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' +
 g.weather.sprites.flakes = { img: WEATHER_IMGS.flakes, cell: 28 };
 g.weather.sprites.leaf = { img: WEATHER_IMGS.leaf, cell: 16 };
 g.weather.sprites.spark = { img: WEATHER_IMGS.spark, cell: 8 };
-const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave'];
+const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave', 'confetti', 'fireworks', 'eclipse', 'rainbow', 'fog', 'darkfog', 'leaves', 'hail', 'fireflies'];
 for (const kind of KINDS) {
   g.weather.set(kind);
   for (let t = 0; t < 180; t++) { g.tick(); if (t < 60) g.weather.updateParticles(); }
@@ -104,7 +104,34 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   // codigo: arco-iris usa arc(), chuva 2 passagens, calor shimmer em faixas, tempestade desenha raio no flash
   const wsrc = fs.readFileSync('js/engine/weather.js', 'utf8');
   check('weather.js: rainbow usa ctx.arc (arco), rain 2 passagens, heatwave shimmer, flash raio', wsrc.indexOf('ctx.arc(cx') >= 0 && wsrc.indexOf('trilha larga') >= 0 && wsrc.indexOf('shimmer: faixas verticais') >= 0 && wsrc.indexOf('RAIO: polilinha') >= 0);
-  check('weather.js v3: aurora em cortinas no topo + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina fora do meio', wsrc.indexOf('AURORA BOREAL: 3 cortinas') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('O MEIO da tela') >= 0);
+  check('weather.js v3: aurora v2 em cortinas em camadas + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina densa de proposito', wsrc.indexOf('AURORA BOREAL v2') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('bancos grandes e macios') >= 0);
+  check('weather.js v4: confete de papel two-tone + fogos com faisca radial aditiva em cache', wsrc.indexOf('CONFETE de papel') >= 0 && wsrc.indexOf('FOGOS: fa') >= 0 && wsrc.indexOf('_sparkBlobs') >= 0);
+  /* fogos: brilho aditivo no ceu (pixels bem claros acima dos lutadores) vs baseline clear */
+  g.weather.set('clear'); g.weather.intensity = 0; g.weather.drops.length = 0; g.render();
+  const baseW = cx2d.getImageData(0, 0, 960, 540).data.slice();
+  g.weather.set('fireworks'); g.weather.intensity = 1;
+  for (let t = 0; t < 60; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-fireworks2.png'), canvas.toBuffer('image/png'));
+  const dW = cx2d.getImageData(0, 0, 960, 540).data;
+  let glow = 0;
+  for (let y = 0; y < 300; y++) for (let x = 0; x < 960; x++) {
+    const i = (y * 960 + x) * 4;
+    if (dW[i] + dW[i + 1] + dW[i + 2] > 560 && dW[i] + dW[i + 1] + dW[i + 2] - (baseW[i] + baseW[i + 1] + baseW[i + 2]) > 90) glow++;
+  }
+  check('fogos com brilho aditivo no ceu (pixels brilhantes=' + glow + ')', glow > 150, '');
+  /* confete: varias cores distintas no ar */
+  g.weather.set('confetti'); g.weather.intensity = 1;
+  for (let t = 0; t < 60; t++) g.weather.updateParticles();
+  g.render();
+  fs.writeFileSync(path.join(outDir, 'clima-confetti2.png'), canvas.toBuffer('image/png'));
+  const dC = cx2d.getImageData(0, 0, 960, 540).data;
+  const hues = new Set();
+  for (let i = 0; i < dC.length; i += 4) {
+    const r = dC[i], gg = dC[i + 1], b = dC[i + 2];
+    if (r + gg + b > 420 && Math.max(r, gg, b) - Math.min(r, gg, b) > 60) hues.add(((r >> 4) << 8) | ((gg >> 4) << 4) | (b >> 4));
+  }
+  check('confete com variety de cores (cores distintas=' + hues.size + ')', hues.size >= 4, '');
 
   /* diffs controlados (sem tick entre baseline e clima = lutadores parados) */
   const diffCount = (base, d, y0, y1, thr) => {
@@ -127,6 +154,13 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   const dA = cx2d.getImageData(0, 0, 960, 540).data;
   const aTop = diffCount(baseA, dA, 0, 260, 40), aMid = diffCount(baseA, dA, 260, 420, 40), aTot = aTop + aMid + diffCount(baseA, dA, 420, 540, 40);
   check('aurora pendurada no topo do ceu, fora do meio da tela (top=' + aTop + ' mid=' + aMid + ')', aTot > 4000 && aTop > aTot * 0.7 && aMid < aTot * 0.25, 'tot=' + aTot);
+  /* aurora tem que ter brilho esverdeado/teal dominante no topo (G >> R) */
+  let green = 0;
+  for (let y = 0; y < 300; y++) for (let x = 0; x < 960; x++) {
+    const i = (y * 960 + x) * 4;
+    if (dA[i + 1] > 140 && dA[i + 1] - dA[i] > 40 && dA[i + 1] - baseA[i + 1] > 25) green++;
+  }
+  check('aurora com brilho esverdeado/teal dominante no topo (pixels=' + green + ')', green > 3000, '');
   // ECLIPSE: coroa brilhante no alto + disco escuro no centro dela
   g.weather.set('clear'); g.weather.drops.length = 0; g.render();
   const baseE = cx2d.getImageData(0, 0, 960, 540).data.slice();
@@ -152,7 +186,28 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   fs.writeFileSync(path.join(outDir, 'clima-fog2.png'), canvas.toBuffer('image/png'));
   const dF = cx2d.getImageData(0, 0, 960, 540).data;
   const fMid = diffCount(baseF, dF, 200, 390, 100), fLow = diffCount(baseF, dF, 395, 470, 100), fHigh = diffCount(baseF, dF, 20, 120, 100);
-  check('neblina sai do meio da tela (lutadores) e vai pro chao/ceu (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', (fLow + fHigh) > 1500 && fMid < (fLow + fHigh) * 0.5, '');
+  check('neblina cobre um pouco a visao no meio da tela, de proposito (mid=' + fMid + ' low=' + fLow + ' high=' + fHigh + ')', fMid > 8000, '');
+
+  /* REFLEXO MOLHADO: A/B sem tick entre os renders (lutadores parados, sem
+     particulas de chuva pra nao poluir o diff) — so o reflexo muda a faixa
+     abaixo do chao (y 462..538) */
+  g.weather.set('rain'); g.weather.intensity = 0; g.weather.intensityTarget = 0; g.weather.drops.length = 0; g.weather.rings.length = 0;
+  for (let t = 0; t < 90; t++) g.tick();
+  g._wetOverride = true; g.render();
+  const wetA = cx2d.getImageData(0, 462, 960, 76).data.slice();
+  g._wetOverride = false; g.render();
+  const wetB = cx2d.getImageData(0, 462, 960, 76).data;
+  let refl = 0;
+  for (let i = 0; i < wetA.length; i += 4) { if (Math.abs(wetA[i] - wetB[i]) + Math.abs(wetA[i + 1] - wetB[i + 1]) + Math.abs(wetA[i + 2] - wetB[i + 2]) > 25) refl++; }
+  check('reflexo molhado abaixo do chao quando ta chovendo (px na faixa do chao=' + refl + ')', refl > 300, '');
+  g._wetOverride = null; g.render();
+  check('wetFloor automatico: chuva liga (' + g.wetFloor + ')', g.wetFloor === true, '');
+  g.weather.set('clear'); g.weather.intensity = 0; g.weather.drops.length = 0; g.stageDef = Object.assign({}, g.stageDef, { mech: null, swim: false });
+  for (let t = 0; t < 30; t++) g.tick();
+  g.render();
+  check('wetFloor automatico: sem chuva e sem palco de mare desliga (' + g.wetFloor + ')', g.wetFloor === false, '');
+  const gsrc = fs.readFileSync('js/engine/game.js', 'utf8');
+  check('game.js: bloco REFLEXO MOLHADO (espelho achatado + fade + brilho na linha de agua)', gsrc.indexOf('REFLEXO MOLHADO') >= 0 && gsrc.indexOf('linha d') >= 0 && gsrc.indexOf('scale(1, -0.36)') >= 0);
 }
 console.log('---');
 console.log(fails === 0 ? 'CLIMA v2: TUDO OK (' + n + ' checks)' : 'CLIMA v2: ' + fails + ' FALHAS de ' + n);
