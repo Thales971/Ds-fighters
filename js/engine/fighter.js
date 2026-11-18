@@ -68,6 +68,8 @@ class Fighter {
     this.kit = (typeof POWERS !== 'undefined' && POWERS[def.id]) || null;
     this.element = this.kit ? this.kit.element : 'arcano';
     this.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.castLock = 0;
+    this.spamShared = 0; /* anti-spam GLOBAL entre habilidades simples/extras */
     this.status = {};
     this.statusCapWindows = {};
     this.statusSource = {};
@@ -677,7 +679,7 @@ class Fighter {
     if (p.slot === 'simple' || p.slot === 'extra') {
       const prof = this.spamProfile();
       const total = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT);
-      return { ready: this.cd[i] <= 0, pct: 1 - this.cd[i] / total, p };
+      return { ready: this.cd[i] <= 0 && (this.spamShared || 0) <= 0, pct: 1 - this.cd[i] / total, p };
     }
     if (p.slot === 'charge') {
       const v = this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter];
@@ -696,10 +698,10 @@ class Fighter {
     if (this._spam == null) {
       const prof = (POWERS[this.def.id] && POWERS[this.def.id].spamProfile) || 'standard';
       this._spam = prof === 'chain'
-        ? { castLock: 34, floor: 95 }
+        ? { castLock: 34, floor: 95, shared: 34 }
         : prof === 'heavy'
-          ? { castLock: 60, floor: 155 }
-          : { castLock: 50, floor: 130 };
+          ? { castLock: 60, floor: 155, shared: 155 }
+          : { castLock: 50, floor: 130, shared: 130 };
     }
     return this._spam;
   }
@@ -745,6 +747,9 @@ class Fighter {
       /* passiva "Última Caneca" (Dev Virado): abaixo de 25% de vida, dashes custam 5f a menos */
       const caneca = this.sig.lowHpDash && this.hp < this.maxHp * 0.25 && p.kind === 'dash' ? 5 : 0;
       this.cd[i] = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT * (this.has('phoenix') ? 0.9 : 1) - caneca);
+      /* anti-spam reforcado: o PISO vale entre TODAS as simples/extras (qualquer modo),
+         nao so por habilidade — sem mais rotacao H1->H2->H3 a cada 50f */
+      this.spamShared = Math.max(this.spamShared || 0, prof.shared);
     }
     /* BUG FIX (anti-spam furado em certos modos): habilidades de CARGA e
        ULTIMATE dependiam só do medidor — no treino (medidores infinitos) e
@@ -1338,6 +1343,7 @@ class Fighter {
     if (this.flash && this.now > this.flashUntil) this.flash = null;
     if (this.flashWhite) this.flashWhite--;
     if (this.castLock > 0) this.castLock--;
+    if (this.spamShared > 0) this.spamShared--;
     for (let i = 0; i < this.cd.length; i++) if (this.cd[i] > 0) this.cd[i]--;
     Object.keys(this.buf).forEach((k) => { if (this.buf[k]) this.buf[k]--; });
     if (this.quakeHold) {
@@ -2185,7 +2191,7 @@ class Fighter {
   }
   /* estado serializável (online) */
   snap() {
-    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound];
+    return [Math.round(this.x), Math.round(this.y), this.dir, this.state, this.stateTime, Math.round(this.hp * 10) / 10, Math.round(this.charge[0]), Math.round(this.charge[1]), Math.round(this.ultimate), this.frame, this.walkPhase, this.attack ? this.attack.kind : 0, this.status, this.stolen ? { from: this.stolen.from, until: this.stolen.until, total: this.stolen.total } : 0, this.cd, this.afo, this.aura ? this.aura.id : 0, this.flash || 0, this.benched ? 1 : 0, this.flashWhite || 0, this.redHp, this.shield, Math.round(this.stunGauge), this.statusPulse, this.hardControl, this._controlRound, this.spamShared || 0, this.castLock || 0];
   }
   applySnap(s) {
     /* NETCODE VISUAL: se o salto do snapshot for grande (lag), esconde o
@@ -2216,5 +2222,7 @@ class Fighter {
     this.statusPulse = s[23] || {};
     this.hardControl = Object.assign({ last: -Infinity, chain: 0, dizzyLast: -Infinity, dizzyCount: 0 }, s[24] || {});
     if (s[25] != null) this._controlRound = s[25];
+    if (s[26] != null) this.spamShared = s[26];
+    if (s[27] != null) this.castLock = s[27];
   }
 }

@@ -1,6 +1,6 @@
 // INTENSIVO KIRA: registro, sprites recortados das 3 folhas do dono (sem magenta/vazios/duplicados),
-// habilidades (marretada blast+shock, muralha azul aura -50% dano, avanco dash com whiffRecovery,
-// erupcao rain+burn, ult martelada final rush+explode+shock+vuln), render real, IA e modos.
+// habilidades (marretada quake trava+arremessa+shock, muralha aura -50% dano+cura, gancho pull que puxa+vuln+shock,
+// erupcao rain burn+shock, ult martelada final rush+explode+shock+vuln), render real, IA e modos.
 const fs = require('fs'); const vm = require('vm');
 function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
 const { createCanvas, loadImage } = req('canvas');
@@ -46,8 +46,8 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     })()`, ctx);
     const R = JSON.parse(r);
     check('registrada no FIGHTERS (KIRA / A Marteleira / hp200 power1.25)', R.found && R.name === 'KIRA' && R.title === 'A Marteleira' && R.stats.hp === 200 && R.stats.power === 1.25 && R.stats.weight === 1.25 && R.moves.join(',') === 'punch,kick' && R.quotes.includes('super'), JSON.stringify({ name: R.name, title: R.title, stats: R.stats }));
-    check('POWERS: 5 poderes (blast/aura/dash/rain/ult rush), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('blast') && R.powers[1].includes('aura') && R.powers[2].includes('dash') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('rush'), R.powers && R.powers.join(' | '));
-    check('debuffs/defesa nos poderes: marretada shock, muralha def0.5, avanco whiff18+shock, erupcao burn, ult explode+shock+vuln', R.fxmap && R.powers && R.fxmap[0].includes('shock') && R.fxmap[1].includes('def0.5') && R.powers[2].includes('WHIFF18') && R.fxmap[2].includes('shock') && R.fxmap[3].includes('burn') && R.fxmap[4].includes('explode') && R.fxmap[4].includes('shock') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
+    check('POWERS: 5 poderes (quake/aura/pull/rain/ult rush), rows 0-4', R.powers && R.powers.length === 5 && R.powers[0].includes('quake') && R.powers[1].includes('aura') && R.powers[2].includes('pull') && R.powers[3].includes('rain') && R.powers[4].includes('ultimate') && R.powers[4].includes('rush'), R.powers && R.powers.join(' | '));
+    check('debuffs/defesa nos poderes: marretada shock, muralha def0.5, gancho vuln+shock, erupcao burn+shock, ult explode+shock+vuln', R.fxmap && R.powers && R.fxmap[0].includes('shock') && R.fxmap[1].includes('def0.5') && R.fxmap[2].includes('vuln') && R.fxmap[2].includes('shock') && R.fxmap[3].includes('burn') && R.fxmap[3].includes('shock') && R.fxmap[4].includes('explode') && R.fxmap[4].includes('shock') && R.fxmap[4].includes('vuln'), JSON.stringify(R.fxmap));
     check('layout/art atlas/grid registrados (kira no fim do roster) e desbloqueada', R.layoutFile === 'assets/sprites/kira.png' && R.perFighter && R.artAbil && R.artFx2 && R.roster === 49 && R.sig === 'A MARTELEIRA' && R.stunMult === 1.2 && R.unlocked, 'roster idx ' + R.roster + ' ' + R.rosterVersion);
   }
 
@@ -137,52 +137,54 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       };
       const prep = (g) => { const me = g.activeOf(0), op = g.activeOf(1); me.x = 300; op.x = 460; me.dir = 1; op.status = {}; op.guardUp = false; me.cd = [0,0,0,0,0]; me.castLock = 0; me.state = 'idle'; me.cast = null; return [me, op]; };
       const out = { bad, flip: { n1, n2, diff } };
-      /* 1. Marretada (blast no alvo): dano + stun + SHOCK */
+      /* 1. Marretada (quake no alvo perto): dano + trava (freeze/quakeHold) + SHOCK */
       {
         const g = mk(); const [me, op] = prep(g);
+        op.x = 300 + 140;
         const hp0 = op.hp;
         me.tryCast(0);
-        let shock = false, stun = 0;
-        for (let t = 0; t < 160; t++) { g.tick(); if (op.has('shock')) shock = true; if (op.stun > 0 || op.state === 'hit') stun++; }
-        out.marretada = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stunTicks: stun, shock };
+        let shock = false, travou = false, stun = 0;
+        for (let t = 0; t < 160; t++) { g.tick(); if (op.has('shock')) shock = true; if (op.has('freeze') || op.quakeHold) travou = true; if (op.stun > 0 || op.state === 'hit') stun++; }
+        out.marretada = { dmg: Math.round((hp0 - op.hp) * 10) / 10, stunTicks: stun, shock, travou };
       }
-      /* 2. Muralha Azul (aura): status aura + defMult cai ~50% */
+      /* 2. Muralha Azul (aura): status aura + defMult cai ~50% + cura 15 */
       {
         const g = mk(); const [me, op] = prep(g);
+        me.hp = me.maxHp - 50;
         const base = me.defMult();
         me.tryCast(1);
-        let aura = false, defAura = 1;
-        for (let t = 0; t < 60; t++) { g.tick(); if (me.has('aura')) { aura = true; defAura = me.defMult(); } }
-        out.muralha = { aura, base: Math.round(base * 100) / 100, defAura: Math.round(defAura * 100) / 100 };
+        let aura = false, defAura = 1, healed = false;
+        for (let t = 0; t < 60; t++) { g.tick(); if (me.has('aura')) { aura = true; defAura = me.defMult(); } if (me.hp >= me.maxHp - 35) healed = true; }
+        out.muralha = { aura, base: Math.round(base * 100) / 100, defAura: Math.round(defAura * 100) / 100, healed };
       }
-      /* 3a. Avanco do Martelo (dash) ACERTANDO: dano + shock */
+      /* 3a. Gancho do Martelo (pull) acertando: dano + PUXA o rival + vuln/shock */
       {
         const g = mk(); const [me, op] = prep(g);
-        me.x = 300; op.x = 420;
-        const hp0 = op.hp;
+        me.x = 300; op.x = 460;
+        const hp0 = op.hp, x0 = op.x;
         me.tryCast(2);
-        let shock = false;
-        for (let t = 0; t < 90; t++) { g.tick(); if (op.has('shock')) shock = true; }
-        out.avancoHit = { dmg: Math.round((hp0 - op.hp) * 10) / 10, shock };
+        let vuln = false, shock = false;
+        for (let t = 0; t < 90; t++) { g.tick(); if (op.has('vuln')) vuln = true; if (op.has('shock')) shock = true; }
+        out.ganchoHit = { dmg: Math.round((hp0 - op.hp) * 10) / 10, puxou: op.x < x0 - 40, opX: Math.round(op.x), vuln, shock };
       }
-      /* 3b. Avanco ERRADO (alvo longe): whiffRecovery pune com hitstun */
+      /* 3b. Gancho com alvo FORA do alcance (380): nao puxa */
       {
         const g = mk(); const [me, op] = prep(g);
         me.x = 120; op.x = 880; op.status = {};
+        const x0 = op.x;
         me.tryCast(2);
-        let hs = 0;
-        for (let t = 0; t < 120; t++) { g.tick(); hs = Math.max(hs, me.hitstun); }
-        out.avancoWhiff = { hitstunMax: hs };
+        for (let t = 0; t < 90; t++) g.tick();
+        out.ganchoLonge = { naoPuxou: op.x > x0 - 40, opX: Math.round(op.x) };
       }
       /* 4. Erupcao (rain): dano + BURN */
       {
         const g = mk(); const [me, op] = prep(g);
         me.cd = [0,0,0,0,0]; me.charge = [100, 100]; me.castLock = 0; me.state = 'idle'; me.cast = null;
         me.tryCast(3);
-        let burn = false, dmg = 0; const hp0 = op.hp;
-        for (let t = 0; t < 300; t++) { g.tick(); if (op.has('burn')) burn = true; }
+        let burn = false, shock = false, dmg = 0; const hp0 = op.hp;
+        for (let t = 0; t < 300; t++) { g.tick(); if (op.has('burn')) burn = true; if (op.has('shock')) shock = true; }
         dmg = Math.round((hp0 - op.hp) * 10) / 10;
-        out.erupcao = { burn, dmg };
+        out.erupcao = { burn, shock, dmg };
       }
       /* 5. ULT Martelada Final (rush 4 hits): dano massivo + shock/vuln, gasta ultimate */
       {
@@ -217,11 +219,11 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     const R = JSON.parse(r);
     check('blit renderiza as 15 poses no canvas real', R.bad.length === 0, R.bad.join(',') || 'ok');
     check('flip dir=-1 espelha e mantem conteudo', R.flip.n1 > 5000 && R.flip.n2 > 5000 && R.flip.diff > 1000, JSON.stringify(R.flip));
-    check('Marretada: blast no alvo causa dano + stun + ELETRIZADO', R.marretada.dmg > 0 && R.marretada.stunTicks > 5 && R.marretada.shock, JSON.stringify(R.marretada));
-    check('Muralha Azul: aura liga e defMult cai ~50%', R.muralha.aura && R.muralha.defAura < R.muralha.base * 0.65, JSON.stringify(R.muralha));
-    check('Avanco do Martelo acertando: dano + ELETRIZADO', R.avancoHit.dmg > 0 && R.avancoHit.shock, JSON.stringify(R.avancoHit));
-    check('Avanco ERRADO: whiffRecovery aplica hitstun >= 18', R.avancoWhiff.hitstunMax >= 18, JSON.stringify(R.avancoWhiff));
-    check('Erupcao: chuva de explosoes causa dano + QUEIMANDO', R.erupcao.burn && R.erupcao.dmg > 0, JSON.stringify(R.erupcao));
+    check('Marretada (quake): dano + trava o rival + ELETRIZADO', R.marretada.dmg > 0 && R.marretada.stunTicks > 5 && R.marretada.shock && R.marretada.travou, JSON.stringify(R.marretada));
+    check('Muralha Azul: aura liga, defMult cai ~50% e cura 15 HP', R.muralha.aura && R.muralha.defAura < R.muralha.base * 0.65 && R.muralha.healed, JSON.stringify(R.muralha));
+    check('Gancho do Martelo acertando: dano + PUXA o rival + VULN + ELETRIZADO', R.ganchoHit.dmg > 0 && R.ganchoHit.puxou && R.ganchoHit.vuln && R.ganchoHit.shock, JSON.stringify(R.ganchoHit));
+    check('Gancho com alvo fora do alcance (380px) nao puxa', R.ganchoLonge.naoPuxou, JSON.stringify(R.ganchoLonge));
+    check('Erupcao: chuva de explosoes causa dano + QUEIMANDO + ELETRIZADO', R.erupcao.burn && R.erupcao.shock && R.erupcao.dmg > 0, JSON.stringify(R.erupcao));
     check('ULT Martelada Final: rush (state rush) + dano massivo + shock/vuln, gasta ultimate', R.ult.rushState && R.ult.dmg >= 30 && R.ult.shock && R.ult.vuln && R.ult.ultGasta, JSON.stringify(R.ult));
     check('IA: 3 partidas como P1 e 3 como P2 completas sem crash', R.ia.p1 === 3 && R.ia.p2 === 3 && !R.ia.err, JSON.stringify(R.ia));
     check('modos arcade/tag/survival sem crash', R.arcade && !R.arcade.err && R.tag && !R.tag.err && R.surv && !R.surv.err, JSON.stringify({ arcade: R.arcade, tag: R.tag, surv: R.surv }));

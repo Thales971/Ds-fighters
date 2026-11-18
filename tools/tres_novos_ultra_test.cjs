@@ -3,7 +3,7 @@
 // pe na baseline, sem pose congelada/duplicada, SEM SPRITE EXTRA (componente de borda = respingo
 // da celula vizinha, o bug da Jess/Rafael/Cracker), atlas de habilidades, rosto/retrato no grid,
 // render real + flip, cada poder em luta real (dano + status medidos), aura (kira), whiff punido
-// (kira/rafael), FURIA do rafael (lowHpRage nos limites 35%), combo poder->soco, KO pela ult,
+// (kira/rafael), OVERCLOCK do rafael (lowHpRage nos limites 35%), combo poder->soco, KO pela ult,
 // IA dos dois lados, arcade/tag/survival/treino, qualidade baixa, sem warnings de folha.
 const fs = require('fs'); const vm = require('vm');
 function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
@@ -60,14 +60,14 @@ function cellComponents(img, px0, py0) {
 
 const FIGHTERS_CFG = {
   kira: { title: 'A Marteleira', stats: { hp: 200, power: 1.25, speed: 0.95, weight: 1.25 }, rosterIdx: 49,
-    powers: ['blast', 'aura', 'dash', 'rain', 'rush'],
-    expect: [ { st: ['shock'], dmg: 15 }, { aura: true }, { st: ['shock'], dmg: 10, whiff: 18 }, { st: ['burn'], dmg: 10 }, { st: ['shock', 'vuln'], dmg: 25, ult: true, whiffUlt: 20 } ] },
+    powers: ['quake', 'aura', 'pull', 'rain', 'rush'],
+    expect: [ { st: ['shock'], dmg: 15, quake: true }, { aura: true }, { st: ['vuln', 'shock'], dmg: 8, pull: true }, { st: ['burn', 'shock'], dmg: 10 }, { st: ['shock', 'vuln'], dmg: 25, ult: true, rush: true } ] },
   cracker: { title: 'O Hacker', stats: { hp: 175, power: 1.1, speed: 1.12, weight: 0.95 }, rosterIdx: 50,
-    powers: ['shot', 'blast', 'dash', 'rain', 'rush'],
-    expect: [ { st: ['poison', 'slow'], dmg: 8 }, { st: ['vuln', 'glitch'], dmg: 10 }, { st: ['shock'], dmg: 8, invuln: true }, { st: ['blind', 'slow'], dmg: 8 }, { st: ['locked', 'glitch', 'vuln'], dmg: 12, ult: true } ] },
-  rafael: { title: 'A Lâmina Pesada', stats: { hp: 210, power: 1.3, speed: 0.85, weight: 1.3 }, rosterIdx: 51,
-    powers: ['blast', 'blast', 'dash', 'rain', 'rush'],
-    expect: [ { st: ['bleed'], dmg: 20 }, { st: ['shock', 'slow'], dmg: 10 }, { st: ['vuln'], dmg: 12, whiff: 20 }, { st: ['bleed', 'slow'], dmg: 12 }, { st: ['bleed', 'vuln'], dmg: 25, ult: true, whiffUlt: 20 } ],
+    powers: ['shot', 'steal', 'shadowport', 'zone', 'barrage'],
+    expect: [ { st: ['poison', 'slow'], dmg: 8 }, { st: ['glitch'], dmg: 5, steal: true }, { st: ['glitch'], dmg: 8, invuln: true, blink: true }, { st: ['burn', 'slow'], dmg: 8, zone: true }, { st: ['locked', 'glitch', 'blind'], dmg: 10, ult: true, barrage: true } ] },
+  rafael: { title: 'O Fixer de Night City', stats: { hp: 210, power: 1.3, speed: 0.85, weight: 1.3 }, rosterIdx: 51,
+    powers: ['beam', 'blast', 'dash', 'rain', 'quake'],
+    expect: [ { st: ['bleed'], dmg: 15, beam: true }, { st: ['shock', 'slow'], dmg: 10 }, { st: ['vuln'], dmg: 12, whiff: 20 }, { st: ['bleed', 'slow'], dmg: 12 }, { st: ['bleed', 'vuln'], dmg: 30, ult: true, quake: true } ],
     rage: true },
 };
 
@@ -181,7 +181,7 @@ const FIGHTERS_CFG = {
           if (Math.abs(d2[i]-d2[j]) + Math.abs(d2[i+1]-d2[j+1]) + Math.abs(d2[i+2]-d2[j+2]) > 30) diff++;
         }
         const fake2d = () => ({ canvas: null, save(){}, restore(){}, clearRect(){}, fillRect(){}, strokeRect(){}, drawImage(){}, translate(){}, scale(){}, rotate(){}, beginPath(){}, moveTo(){}, lineTo(){}, closePath(){}, quadraticCurveTo(){}, ellipse(){}, arc(){}, fill(){}, stroke(){}, fillText(){}, strokeText(){}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop(){} }), createRadialGradient: () => ({ addColorStop(){} }), createPattern: () => ({}), getImageData: () => ({ data: new Uint8ClampedArray(4) }), putImageData(){} });
-        const WATCH = ['bleed','shock','vuln','slow','poison','blind','glitch','burn','locked','chill'];
+        const WATCH = ['bleed','shock','vuln','slow','poison','blind','glitch','burn','locked','chill','freeze'];
         const mk = (opts) => {
           const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle(){},add(){},remove(){} } });
           g.start(Object.assign({ mode: 'versus', teams: [['${fid}'], ['du']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 1, timer: 99 }, opts || {}));
@@ -191,9 +191,12 @@ const FIGHTERS_CFG = {
         const prep = (g) => { const me = g.activeOf(0), op = g.activeOf(1); me.x = 380; op.x = 450; me.dir = 1; op.status = {}; op.guardUp = false; me.cd = [0,0,0,0,0]; me.charge = [100,100]; me.castLock = 0; me.state = 'idle'; me.cast = null; return [me, op]; };
         const castAndWatch = (row, ticks) => {
           const g = mk(); const [me, op] = prep(g);
-          const hp0 = op.hp;
+          const hp0 = op.hp, x0 = op.x, mx0 = me.x;
+          if (row === 2 && '${fid}' === 'cracker') g.rnd = () => 0.1; // blink por cima -> slam
+          if (row === 2 && '${fid}' === 'kira') op.x = me.x + 300; // alvo longe dentro do range do pull (380)
           me.tryCast(row);
           const seen = {}; let inv = false, rush = false, stun = 0, aura = false, defA = 1, defB = 1;
+          let beam = false, zona = false, travou = false, maxProj = 0, puxou = false, roubou = false, teleportou = false;
           defB = me.defMult();
           for (let t = 0; t < ticks; t++) {
             g.tick();
@@ -202,12 +205,19 @@ const FIGHTERS_CFG = {
             if (me.state === 'rush') rush = true;
             if (me.has('aura')) { aura = true; defA = me.defMult(); }
             if (op.stun > 0 || op.state === 'hit') stun++;
+            if (g.beams.some((b) => b.owner === me)) beam = true;
+            if (g.zones.some((z) => z.owner === me)) zona = true;
+            if (op.has('freeze') || op.quakeHold) travou = true;
+            maxProj = Math.max(maxProj, g.projectiles.length);
+            if (Math.abs(op.x - mx0) < 100 && op.x !== x0) puxou = true;
+            if (me.stolen) roubou = true;
+            if (Math.abs(me.x - mx0) > 30 || me.hidden) teleportou = true;
           }
-          return { dmg: Math.round((hp0 - op.hp) * 10) / 10, seen, inv, rush, stun, aura, defA, defB };
+          return { dmg: Math.round((hp0 - op.hp) * 10) / 10, seen, inv, rush, stun, aura, defA, defB, beam, zona, travou, maxProj, puxou, roubou, teleportou };
         };
         const out = { bad, flip: { n1, n2, diff }, powers: [] };
         for (let row = 0; row < 5; row++) {
-          if (row === 4) { const g = mk(); const [me, op] = prep(g); const hp0 = op.hp; me.ultimate = 100; me.tryCast(4); const gasta = me.ultimate === 0; const seen = {}; let rush = false; for (let t = 0; t < 300; t++) { g.tick(); for (const s of WATCH) if (op.has(s)) seen[s] = true; if (me.state === 'rush') rush = true; } out.powers.push({ row, dmg: Math.round((hp0 - op.hp) * 10) / 10, seen, rush, ultGasta: gasta }); }
+          if (row === 4) { const g = mk(); const [me, op] = prep(g); const hp0 = op.hp; me.ultimate = 100; me.tryCast(4); const gasta = me.ultimate === 0; const seen = {}; let rush = false, travou = false, maxProj = 0; for (let t = 0; t < 300; t++) { g.tick(); for (const s of WATCH) if (op.has(s)) seen[s] = true; if (me.state === 'rush') rush = true; if (op.has('freeze') || op.quakeHold) travou = true; maxProj = Math.max(maxProj, g.projectiles.length); } out.powers.push({ row, dmg: Math.round((hp0 - op.hp) * 10) / 10, seen, rush, travou, maxProj, ultGasta: gasta }); }
           else out.powers.push(Object.assign({ row }, castAndWatch(row, 260)));
         }
         /* whiff do dash (row 2) e da ult (row 4) quando o poder tem whiffRecovery */
@@ -276,12 +286,21 @@ const FIGHTERS_CFG = {
       check(`${fid}: flip dir=-1 espelha e mantem conteudo`, R.flip.n1 > 5000 && R.flip.n2 > 5000 && R.flip.diff > 1000, JSON.stringify(R.flip));
       for (let row = 0; row < 5; row++) {
         const ex = cfg.expect[row], got = R.powers[row];
+        const extras = [];
+        if (ex.quake) extras.push(['quake trava', got.travou]);
+        if (ex.pull) extras.push(['pull puxou o rival', got.puxou]);
+        if (ex.steal) extras.push(['steal roubou o kit', got.roubou]);
+        if (ex.blink) extras.push(['blink teleportou', got.teleportou]);
+        if (ex.zone) extras.push(['zone criada', got.zona]);
+        if (ex.beam) extras.push(['beam desenhado', got.beam]);
+        if (ex.barrage) extras.push(['barrage soltou projeteis', got.maxProj >= 3]);
+        if (ex.rush) extras.push(['estado rush', got.rush]);
         if (ex.aura) {
           check(`${fid}: poder row${row} (aura) liga aura e derruba defMult`, got.aura && got.defA < got.defB * 0.7, JSON.stringify(got));
         } else if (ex.ult) {
-          check(`${fid}: ULT row4 rush com dano >= ${ex.dmg} + status ${ex.st.join('+')} + gasta ultimate`, got.rush && got.ultGasta && got.dmg >= ex.dmg && ex.st.every((s) => got.seen[s]), JSON.stringify(got));
+          check(`${fid}: ULT row4 com dano >= ${ex.dmg} + status ${ex.st.join('+')} + gasta ultimate + [${extras.map((e) => e[0]).join(',')}]`, got.ultGasta && got.dmg >= ex.dmg && ex.st.every((s) => got.seen[s]) && extras.every((e) => e[1]), JSON.stringify(got));
         } else {
-          check(`${fid}: poder row${row} causa dano >= ${ex.dmg} + status ${ex.st.join('+')}${ex.invuln ? ' + iFrames' : ''}`, got.dmg >= ex.dmg && ex.st.every((s) => got.seen[s]) && (!ex.invuln || got.inv), JSON.stringify(got));
+          check(`${fid}: poder row${row} causa dano >= ${ex.dmg} + status ${ex.st.join('+')}${ex.invuln ? ' + iFrames' : ''}${extras.length ? ' + ' + extras.map((e) => e[0]).join(',') : ''}`, got.dmg >= ex.dmg && ex.st.every((s) => got.seen[s]) && (!ex.invuln || got.inv) && extras.every((e) => e[1]), JSON.stringify(got));
         }
         if (ex.whiff) check(`${fid}: dash row${row} ERRADO pune com hitstun >= ${ex.whiff}`, R.whiffDash >= ex.whiff, 'hitstun=' + R.whiffDash);
       }

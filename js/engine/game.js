@@ -171,6 +171,7 @@ class Game {
         f.overclockUntil = 0;
         f.queue = [];
         f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        f.castLock = 0; f.spamShared = 0;
         f.afo = 0;
         f.stunGauge = 0;
         f.benched = k !== 0;
@@ -546,8 +547,7 @@ class Game {
     m.dir = cur.dir;
     m.state = 'idle';
     m.stateTime = 0;
-    m.startCast(0, st.p);
-    m.cd[0] = 0;
+    m.startCast(0, st.p); /* cd[0] fica no piso do anti-spam — assist tambem respeita */
     this.spawnBurst('arcane', 3, m.x, -90, 1, 2.2);
     if (this.mode !== 'demo') UI.toast(m.def.name + ': ASSIST!', 1100);
   }
