@@ -22,7 +22,7 @@
       bio: 'Cabelo roxo, jaqueta branca e o bastão verde na mão: ela aparece quando o sistema chia. Zoner de suporte que joga janelas de alerta no rival, varre com o bastão e, na ultimate, derruba a tela azul inteira em cima dele.',
       colors: { skin: '#F5DFC8', hair: '#7C3AED', shirt: '#F5F5F5', pants: '#17171C', shoes: '#EDEDED', accent: '#7DFF5E' },
       traits: {},
-      stats: { power: 1.05, speed: 1.08, weight: 1.0, hp: 170, meterRate: 1.1 },
+      stats: { power: 1.12, speed: 1.08, weight: 1.0, hp: 170, meterRate: 1.15 },
       secret: false,
       quotes: {
         intro: ['Erro 404: resistência não encontrada.', 'Alerta do sistema: invasor detectado.'],
@@ -52,29 +52,32 @@
         Object.assign({
           id: 'alerta', name: 'Alerta do Sistema', slot: 'simple', row: 0,
           kind: 'shot', dmg: 10, speed: 9, cd: 55, sfx: 'magic',
-          fx: { slow: 100 },
-          desc: 'Janela de alerta amarela (projétil). Aplica LENTO por ~1,7s no impacto.',
+          fx: { slow: 100, vuln: 150 },
+          desc: 'Janela de alerta amarela (projétil). Aplica LENTO por ~1,7s + VULNERÁVEL (+20% dano, 2,5s) no impacto.',
         }, visual(0, '#FFE14D')),
         Object.assign({
           id: 'varredura-verde', name: 'Varredura Verde', slot: 'simple', row: 1,
           kind: 'blast', at: 'target', dmg: 16, stun: 30, radius: 170, cd: 100, sfx: 'heavy',
-          desc: 'Giro do bastão verde no alvo: 16 de dano + stun.',
+          fx: { chill: 180 },
+          desc: 'Giro do bastão verde no alvo: 16 de dano + stun + GELANDO (dano extra de fogo/choque, ~3s).',
         }, visual(1, '#7DFF5E')),
         Object.assign({
           id: 'fuga-do-erro', name: 'Fuga do Erro', slot: 'simple', row: 2,
           kind: 'dash', dmg: 10, speed: 18, phase: true, iFrames: 12, cd: 55, sfx: 'dash',
-          desc: 'Dash azul intangível (12f de invuln) atravessando o rival: 10 de dano.',
+          fx: { vuln: 90 },
+          desc: 'Dash azul intangível (12f de invuln) atravessando o rival: 10 de dano + VULNERÁVEL por 1,5s.',
         }, visual(2, '#5EB8FF')),
         Object.assign({
           id: 'erros-em-cascata', name: 'Erros em Cascata', slot: 'charge', meter: 0, row: 3,
           kind: 'rain', count: 5, dmg: 14, cd: 120, sfx: 'hazard',
-          fx: { glitch: 140 },
-          desc: 'Cinco janelas de erro caem em cima do rival: dano + tela glitch por ~2,3s.',
+          fx: { glitch: 140, blind: 100, poison: 160 },
+          desc: 'Cinco janelas de erro caem no rival: dano + TRAVAMENTO (~2,3s) + CEGO (~1,7s) + VENENO (~2,7s).',
         }, visual(3, '#FF4B4B')),
         Object.assign({
           id: 'tela-azul', name: 'Tela Azul de Kernel', slot: 'ultimate', row: 4,
           kind: 'blast', at: 'target', dmg: 30, stun: 40, radius: 260, kernel: true, cd: 150, sfx: 'ultimate',
-          desc: 'KERNEL PANIC no rival: 30 de dano + stun + a tela dele vira azul (BSOD) e glitch por ~1,3s.',
+          fx: { bleed: 300, blind: 60 },
+          desc: 'KERNEL PANIC no rival: 30 de dano + stun + tela azul (BSOD) + SANGRAMENTO (~5s) + CEGO (~1s).',
         }, visual(4, '#3B6CFF')),
       ],
     },
@@ -85,7 +88,7 @@
   Object.assign(SIGNATURES, {
     [id]: {
       trait: 'ALERTA DO SISTEMA',
-      desc: 'Zoner de suporte: alerta que deixa lento, bastão que atordoa, dash intangível e a ultimate que derruba a tela azul (kernel panic) no rival.',
+      desc: 'Zoner de suporte com debuffs em cascata: alerta (lento + vulnerável), bastão (stun + gelando), dash intangível (vulnerável), chuva de erros (travamento + cego + veneno) e a ult tela azul (BSOD + sangramento + cego).',
       basic: {},
       ability: {},
     },

@@ -264,10 +264,13 @@ body.reduced .pet-spr { animation: none; }
 @keyframes rfIn { from { transform: translateY(-60px) scale(.4); opacity: 0; } }
 
 /* ---------- opções ---------- */
-.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; text-align: left; font-size: 8px; margin: 10px 0; }
-.opts label { display: flex; flex-direction: column; gap: 6px; }
-.opts label.chk { flex-direction: row; align-items: center; }
-.opts input[type=range] { accent-color: var(--gold); }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; text-align: left; font-size: 8px; margin: 10px 0; }
+.opts label { display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.opts label.chk { flex-direction: row; align-items: center; flex-wrap: wrap; }
+.opts input[type=range] { accent-color: var(--gold); width: 100%; max-width: 100%; }
+/* controles nunca podem estourar a coluna do grid (select com texto longo quebrava o painel) */
+.opts select, .opts input[type=text] { width: 100%; max-width: 100%; min-width: 0; }
+#scr-options .sub.small, #scr-options .panel .btn { overflow-wrap: anywhere; max-width: 100%; }
 
 /* ---------- lista de golpes ---------- */
 .moves-keys table { width: 100%; border-collapse: collapse; font-size: 6px; text-align: left; }

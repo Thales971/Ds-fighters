@@ -38,7 +38,12 @@ body.mobile .account-card { font: 14px/1.6 system-ui, sans-serif; padding: 14px;
 body.mobile .account-card h3 { font: 12px/1.6 'Press Start 2P', monospace; }
 body.mobile .account-help, body.mobile .account-error, body.mobile .account-state, body.mobile .account-cloud-status { font: 14px/1.6 system-ui, sans-serif; overflow-wrap: anywhere; }
 body.mobile .account-action { min-height: 44px; font: 11px/1.5 'Press Start 2P', monospace; padding: 12px; }
-body.mobile .opts { grid-template-columns: 1fr; gap: 18px; font: 14px/1.6 system-ui, sans-serif; }
+body.mobile .opts { grid-template-columns: minmax(0, 1fr); gap: 18px; font: 14px/1.6 system-ui, sans-serif; }
+body.mobile .opts label { min-width: 0; overflow-wrap: anywhere; }
+body.mobile .opts label.chk { flex-wrap: wrap; gap: 10px; }
+body.mobile .opts select, body.mobile .opts input[type=text], body.mobile .opts input[type=range] { width: 100%; max-width: 100%; min-width: 0; }
+body.mobile #scr-options .panel { margin: 0 0 28px; padding-bottom: 20px; }
+body.mobile #scr-options .panel .btn { width: 100%; }
 body.mobile .custom-rules { flex-direction: column; align-items: stretch; gap: 16px; margin: 18px 0; }
 body.mobile .custom-rules label { font: 14px/1.6 system-ui, sans-serif; flex-wrap: wrap; }
 body.mobile .custom-rules select { flex: 1; min-width: 160px; }

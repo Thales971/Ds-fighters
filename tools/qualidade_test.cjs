@@ -42,7 +42,7 @@ const mkRec = () => {
   const html = fs.readFileSync('index.html', 'utf8');
   const ui = fs.readFileSync('js/ui/ui.js', 'utf8');
   const prof = fs.readFileSync('js/core/profile.js', 'utf8');
-  const sel = html.match(/<select data-set="quality">[\s\S]*?<\/select>/);
+  const sel = html.match(/<select data-set="quality"[^>]*>[\s\S]*?<\/select>/);
   check('index.html: select data-set=quality com baixo/medio/alto e medium selecionado', !!sel && /value="low"/.test(sel[0]) && /value="medium" selected/.test(sel[0]) && /value="high"/.test(sel[0]), '');
   check('profile.js: default quality = medium', /settings:\s*{[^}]*quality:\s*'medium'/.test(prof), '');
   check('ui.js: trocar qualidade chama game.applyQuality() na hora', /k === 'quality' && this\.game && this\.game\.applyQuality/.test(ui), '');
