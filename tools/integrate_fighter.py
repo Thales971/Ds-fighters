@@ -39,6 +39,27 @@ def bands(profile, thr):
     return out
 
 
+
+def drop_edge_slivers(sub, min_sz):
+    """Remove respingos da celula vizinha: componentes que tocam a borda
+    ESQUERDA ou DIREITA da celula e sao bem menores que o maior componente
+    (figura real pode tocar a borda; resto de figura alheia fica numa quina)."""
+    lab, n = ndimage.label(sub)
+    keep = np.zeros_like(sub)
+    if not n:
+        return keep
+    sizes = [int(s2) for s2 in ndimage.sum(sub, lab, range(1, n + 1))]
+    maxs = max(sizes)
+    for i in range(n):
+        if sizes[i] <= min_sz:
+            continue
+        comp = lab == i + 1
+        touches_edge = comp[:, 0].any() or comp[:, -1].any()
+        if touches_edge and sizes[i] < maxs * 0.25:
+            continue
+        keep |= comp
+    return keep
+
 def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     """Detecta bg pelas bordas e o grid por projecao; extrai figuras."""
     im = Image.open(path).convert('RGB')
@@ -59,13 +80,7 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
         for ri, (y0, y1) in enumerate(rb):
             for ci, (x0, x1) in enumerate(cb):
                 sub = fg[y0:y1, x0:x1]
-                lab, n = ndimage.label(sub)
-                keep = np.zeros_like(sub)
-                if n:
-                    sizes = [int(s2) for s2 in ndimage.sum(sub, lab, range(1, n + 1))]
-                    for i in range(n):
-                        if sizes[i] > min_sz:
-                            keep |= lab == i + 1
+                keep = drop_edge_slivers(sub, min_sz)
                 if not keep.any():
                     continue
                 yy, xx = np.where(keep)
@@ -100,13 +115,7 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     for ri, (y0, y1) in enumerate(rb):
         for ci, (x0, x1) in enumerate(cb):
             sub = fg[y0:y1, x0:x1]
-            lab, n = ndimage.label(sub)
-            keep = np.zeros_like(sub)
-            if n:
-                sizes = [int(s) for s in ndimage.sum(sub, lab, range(1, n + 1))]
-                for i in range(n):
-                    if sizes[i] > min_sz:
-                        keep |= lab == i + 1
+            keep = drop_edge_slivers(sub, min_sz)
             if not keep.any():
                 continue
             yy, xx = np.where(keep)
@@ -601,7 +610,45 @@ CRACKER_POSES = {
     'win':     ([(1, 1, 0, True)] * 4, 195, BASE),
 }
 
+# RAFAEL — cabelo loiro curto, outfit verde-escuro sem manga com armadura preta
+# e uma arma preta pesada (espadona/machado) segurada com as duas maos.
+# 3 folhas de poses 4x2: TODAS as celulas olham pra DIREITA (verificado por
+# correlacao espelhada entre poses iguais + leitura de nariz em zoom alto),
+# entao flip=False em tudo. Celulas vazias na folha de habilidades sao
+# descartadas pelo load_sheet, shifting os indices — ab_map usa os indices
+# reais da lista concatenada (31 itens).
+RAFAEL_POSES = {
+    'idle':    ([(0, 3, 0, False), (1, 3, 1, False)] * 2, 195, BASE),
+    'walk':    ([(2, 0, 0, False), (2, 1, 0, False)] * 2, 190, BASE),
+    'jump':    ([(1, 2, 1, False)] * 4, 165, AIR),
+    'crouch':  ([(1, 3, 0, False), (2, 1, 1, False)] * 2, 125, BASE),
+    'punch':   ([(0, 0, 1, False), (1, 0, 0, False)] * 2, 175, BASE),
+    'kick':    ([(2, 3, 0, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 1, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(2, 2, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, 0, False)] * 4, 160, AIR),
+    'special': ([(0, 0, 0, False)] * 4, 195, BASE),
+    'hit':     ([(0, 2, 1, False)] * 4, 185, BASE),
+    'block':   ([(1, 1, 0, False)] * 4, 190, BASE),
+    'ko':      ([(1, 2, 0, False)] * 4, 76, BASE),
+    'win':     ([(0, 3, 1, False)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'rafael': {
+        'sheets': ['Rafael sprites 1.jpg', 'Rafael sprites 2.jpg', 'Rafael sprites 3.jpg'],
+        # 5 folhas de habilidades (31 icones uteis apos descartar celulas vazias)
+        'abilities': ['Rafael habilidades 1.jpg', 'Rafael habilidades 2.jpg', 'Rafael habilidades 4.jpg', 'Rafel habilidades 3.jpg', 'habilidades rafael 5.jpg'],
+        'poses': RAFAEL_POSES,
+        'ui_cell': (0, 3, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # idx na lista concatenada: 27=corte vermelho(a4), 3=explosao(a0), 29=onda azul dash(a4), 10=explosao amarela(a1), 28=impacto no chao rachado ult(a4)
+        'ab_map': {0: 27, 1: 3, 2: 29, 3: 10, 4: 28},
+    },
     'cracker': {
         'sheets': ['Cracker sprite 1.jpg', 'Cracker sprite 2.jpg', 'Cracker sprite 3.jpg'],
         'abilities': 'Cracker habilidades.jpg',

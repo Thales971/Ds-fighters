@@ -22,6 +22,8 @@ const ART_SHEETS = {
   'fx2:kira': { src: 'assets/abilities/kira.png', size: 128, cols: 4, rows: 5 },
   'abil:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
   'fx2:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
+  'abil:rafael': { src: 'assets/abilities/rafael.png', size: 128, cols: 4, rows: 5 },
+  'fx2:rafael': { src: 'assets/abilities/rafael.png', size: 128, cols: 4, rows: 5 },
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff
