@@ -506,7 +506,153 @@ HENRICO_POSES = {
     'win':     ([(3, 1, 4, False), (3, 1, 4, False), (3, 1, 4, False), (3, 1, 4, False)], 200, BASE),
 }
 
+# DEV VIRADO — "O Que Virou a Noite" (3 folhas de poses 4x2 + 1 atlas de
+# habilidades 4x2, TODAS as células olhando pra ESQUERDA -> flip=True em tudo).
+# folha0 "Dev virado sprite 1": r0 = soco x3 + chute | r1 = hit / KO / vitória / especial
+# folha1 "Dev virado sprite 2": r0 = parado / parado-energia / agachado / combate-papel
+#                               r1 = correndo / energia-ar / chute / vitória-copo
+# folha2 "Sprite dev virado 3" (estados): r0 = canetada / socos / esquiva-guarda / hit
+#                                         r1 = agarrão (célula 5) / afterimage-esquiva (célula 6) /
+#                                              rasteira (célula 7) / vitória-copo
+DEV_VIRADO_POSES = {
+    'idle':    ([(1, 0, 0, True), (1, 1, 0, True), (1, 0, 0, True), (1, 1, 0, True)], 195, BASE),
+    'walk':    ([(1, 0, 1, True), (1, 3, 0, True), (1, 0, 1, True), (1, 3, 0, True)], 190, BASE),
+    'jump':    ([(1, 1, 1, True)] * 4, 165, AIR),
+    'crouch':  ([(1, 2, 0, True)] * 4, 125, BASE),
+    'punch':   ([(2, 0, 0, True), (2, 1, 0, True), (2, 0, 0, True), (2, 1, 0, True)], 175, BASE),
+    'kick':    ([(0, 3, 0, True), (1, 2, 1, True), (0, 3, 0, True), (1, 2, 1, True)], 165, BASE),
+    'cpunch':  ([(1, 2, 0, True)] * 4, 130, BASE),
+    'ckick':   ([(2, 2, 1, True)] * 4, 150, BASE),
+    'jpunch':  ([(2, 1, 1, True)] * 4, 170, AIR),
+    'jkick':   ([(1, 2, 1, True)] * 4, 160, AIR),
+    'special': ([(2, 0, 1, True)] * 4, 195, BASE),
+    'hit':     ([(0, 1, 0, True), (2, 3, 0, True), (0, 1, 0, True), (2, 3, 0, True)], 185, BASE),
+    'block':   ([(2, 2, 0, True)] * 4, 190, BASE),
+    'ko':      ([(0, 1, 1, True)] * 4, 76, BASE),
+    'win':     ([(0, 2, 1, True), (2, 3, 1, True), (0, 2, 1, True), (2, 3, 1, True)], 195, BASE),
+}
+
+# MILENA — cabelo roxo, jaqueta branca/preta, bastão verde; tema de janelas de
+# erro/alerta. 2 folhas 4x2 (maioria olhando pra DIREITA = sem flip; s0_r1c1 hit e
+# s1_r1c1 pulo olham pra ESQUERDA = flip=True nessas).
+# folha0: r0 = parado / parado / soco / chute | r1 = pulo / hit(L) / especial / agachado
+# folha1: r0 = parado / andando / parado / especial | r1 = parado / pulo(L) / hit / vitória
+MILENA_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 1, 0, False), (0, 0, 0, False), (0, 1, 0, False)], 195, BASE),
+    'walk':    ([(1, 1, 0, False)] * 4, 190, BASE),
+    'jump':    ([(0, 0, 1, False), (1, 1, 1, True), (0, 0, 1, False), (1, 1, 1, True)], 165, AIR),
+    'crouch':  ([(0, 3, 1, False)] * 4, 125, BASE),
+    'punch':   ([(0, 2, 0, False)] * 4, 175, BASE),
+    'kick':    ([(0, 3, 0, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 3, 1, False)] * 4, 130, BASE),
+    'ckick':   ([(0, 3, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 3, 0, False)] * 4, 160, AIR),
+    'special': ([(0, 2, 1, False), (1, 3, 0, False), (0, 2, 1, False), (1, 3, 0, False)], 195, BASE),
+    'hit':     ([(0, 1, 1, True), (1, 2, 1, False), (0, 1, 1, True), (1, 2, 1, False)], 185, BASE),
+    'block':   ([(1, 0, 1, False)] * 4, 190, BASE),
+    'ko':      ([(0, 1, 1, True)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
+# KIRA — cabelo azul longo, casaco preto, martelo azul com simbolo de seta.
+# 2 folhas de poses 4x2, TODAS olhando pra DIREITA (sem flip).
+# folha0 (batalha): r0 = parado / andando / andando / parado | r1 = pulo / especial(martelo) / especial / parado
+# folha1 (estados): r0 = parado / block / hit / chute | r1 = KO / esquiva / agarrão / parado(vitoria)
+KIRA_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 3, 0, False), (0, 0, 0, False), (0, 3, 0, False)], 195, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 2, 0, False), (0, 1, 0, False), (0, 2, 0, False)], 190, BASE),
+    'jump':    ([(0, 0, 1, False)] * 4, 165, AIR),
+    'crouch':  ([(1, 1, 0, False)] * 4, 125, BASE),
+    'punch':   ([(0, 1, 1, False), (0, 2, 1, False), (0, 1, 1, False), (0, 2, 1, False)], 175, BASE),
+    'kick':    ([(1, 3, 0, False)] * 4, 165, BASE),
+    'cpunch':  ([(0, 3, 0, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 0, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(1, 3, 0, False)] * 4, 160, AIR),
+    'special': ([(1, 2, 1, False)] * 4, 195, BASE),
+    'hit':     ([(1, 2, 0, False)] * 4, 185, BASE),
+    'block':   ([(1, 1, 0, False)] * 4, 190, BASE),
+    'ko':      ([(1, 0, 1, False)] * 4, 76, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+}
+
+# CRACKER — cabelo verde, oculos, roupa preta com detalhes verdes e um laptop
+# de tela verde na mao (tema hacker). 3 folhas de poses 4x2.
+# sheet0 (sprite 1): r0 = idle/crouch/jump/ataque | r1 = ataque/hit/KO(caido)/idle — tudo pra DIREITA,
+#   exceto r1c2 (KO) e r1c3 que olham pra ESQUERDA (flip=True neles).
+# sheet1 (sprite 2): r1 olha pra ESQUERDA (flip=True), r0 pra direita.
+# sheet2 (sprite 3): tudo pra DIREITA.
+CRACKER_POSES = {
+    'idle':    ([(0, 0, 0, False), (0, 3, 1, True)] * 2, 195, BASE),
+    'walk':    ([(2, 0, 0, False), (2, 1, 0, False)] * 2, 190, BASE),
+    'jump':    ([(0, 2, 0, False)] * 4, 165, AIR),
+    'crouch':  ([(0, 1, 0, False), (2, 3, 0, False)] * 2, 125, BASE),
+    'punch':   ([(0, 3, 0, False), (1, 2, 0, False)] * 2, 175, BASE),
+    'kick':    ([(0, 0, 1, False), (2, 2, 0, False)] * 2, 165, BASE),
+    'cpunch':  ([(1, 3, 0, False)] * 4, 130, BASE),
+    'ckick':   ([(1, 1, 1, True)] * 4, 150, BASE),
+    'jpunch':  ([(2, 1, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(2, 3, 1, False)] * 4, 160, AIR),
+    'special': ([(1, 3, 1, True)] * 4, 195, BASE),
+    'hit':     ([(0, 1, 1, False), (2, 2, 1, False)] * 2, 185, BASE),
+    'block':   ([(1, 2, 1, True)] * 4, 190, BASE),
+    'ko':      ([(0, 2, 1, True)] * 4, 76, BASE),
+    'win':     ([(1, 1, 0, True)] * 4, 195, BASE),
+}
+
 FIGHTERS = {
+    'cracker': {
+        'sheets': ['Cracker sprite 1.jpg', 'Cracker sprite 2.jpg', 'Cracker sprite 3.jpg'],
+        'abilities': 'Cracker habilidades.jpg',
+        'poses': CRACKER_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # icones da folha de habilidades: tiro verde(0), explosao(5), onda vermelha dash(6), grid ddos(7), beam ult(2)
+        'ab_map': {0: 0, 1: 5, 2: 6, 3: 7, 4: 2},
+    },
+    'kira': {
+        'sheets': ['kira_poses_batalha.png', 'kira_poses_estados.png'],
+        # 3 folhas de habilidades (24 icones, ordem: habilidades.png, habilidades 2, habilidades 3)
+        'abilities': ['kira_habilidades.png', 'kira habilidades 2.jpg', 'Kira habilidades 3.jpg'],
+        'poses': KIRA_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # ab_map sobre os 24 icones concatenados: martelo(idx0), escudo(idx1), seta/dash(idx3), explosao(idx7), burst final ult(idx23)
+        'ab_map': {0: 0, 1: 1, 2: 3, 3: 7, 4: 23},
+    },
+    'milena': {
+        'sheets': ['Milena sprites 1.jpg', 'Milena sprites 2.jpg'],
+        'abilities': 'HabilidadesMilena.png',
+        'poses': MILENA_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # atlas de habilidades (icones de erro/alerta): 5 poderes, 1 por linha
+        'ab_map': {0: 0, 1: 4, 2: 5, 3: 6, 4: 7},
+    },
+    'dev-virado': {
+        'sheets': ['Dev virado sprite 1.jpg', 'Dev virado sprite 2.jpg', 'Sprite dev virado 3.jpg'],
+        'abilities': 'Dev virado habilidades.jpg',
+        'poses': DEV_VIRADO_POSES,
+        'ui_cell': (1, 0, 0, True),
+        # folhas 1184x896 = grade exata 4x2 de 296x448 (projecao erra em celula vazia)
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'ab_rows': [(0, 448), (448, 896)],
+        'ab_cols': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        # atlas de habilidades: 5 poderes, 1 por linha do atlas 4x5 (ícone na
+        # coluna 1 = o que a UI lê; cópias nas colunas 0/2/3 viram frames de anim)
+        'ab_map': {0: 0, 1: 6, 2: 5, 3: 4, 4: 7},
+    },
     'henrico': {
         'sheets': ['henrico-sprite-1.jpg', 'henrico-sprite-2.jpg', 'henrico-sprite-3.jpg', 'henrico-sprite-5.jpg', 'henrico-sprite-6.jpg', 'henrico-abilities-1.jpg', 'henrico-abilities-2.jpg'],
         'abilities': 'henrico-abilities-3.jpg',
@@ -639,11 +785,31 @@ def build_sheet(cells, pose_map):
     return sheet
 
 
-def build_abilities(path, row_bands=None, col_bands=None):
-    cells = load_sheet(path, min_sz=80, row_bands=row_bands, col_bands=col_bands, flood=False)
-    # ordena por (linha, coluna) e agrupa em 5 linhas x 4 cols
-    items = sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0]))
+def build_abilities(paths, row_bands=None, col_bands=None, ab_map=None):
+    # aceita 1 caminho ou uma lista de folhas de habilidades (icones concatenados)
+    if isinstance(paths, (str,)) or hasattr(paths, 'read_text'):
+        paths = [paths]
+    items = []
+    for p in paths:
+        cells = load_sheet(p, min_sz=80, row_bands=row_bands, col_bands=col_bands, flood=False)
+        items.extend(sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])))
     atlas = Image.new('RGBA', (512, 640), (0, 0, 0, 0))
+    if ab_map:
+        # mapeamento custom: {linha do atlas: indice do item fonte} — o ícone
+        # vai na coluna 1 (a que a UI lê) e é duplicado nas colunas 0/2/3
+        # para virar frames de animação no combate.
+        for row, idx in ab_map.items():
+            if idx >= len(items):
+                continue
+            _, (crop, mask, bg) = items[idx]
+            fig = figure_rgba(crop, mask, bg)
+            bbox = fig.split()[3].getbbox()
+            if bbox:
+                fig = fig.crop(bbox)
+            fig = fig.resize((128, 128), Image.LANCZOS)
+            for c in range(4):
+                atlas.paste(fig, (c * 128, row * 128))
+        return atlas
     for k, (_, (crop, mask, bg)) in enumerate(items[:20]):
         fig = figure_rgba(crop, mask, bg)
         bbox = fig.split()[3].getbbox()
@@ -687,7 +853,9 @@ def main():
         sheet = build_sheet(cells, cfg['poses'])
         sheet.save(ROOT / f'assets/sprites/{fid}.png')
         if not cfg.get('abilities_keep'):
-            atlas = build_abilities(SRC / cfg['abilities'], row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'))
+            ab = cfg['abilities']
+            ab_paths = [SRC / p for p in ab] if isinstance(ab, list) else [SRC / ab]
+            atlas = build_abilities(ab_paths, row_bands=cfg.get('ab_rows'), col_bands=cfg.get('ab_cols'), ab_map=cfg.get('ab_map'))
             atlas.save(ROOT / f'assets/abilities/{fid}.png')
         face, port = build_ui(cells, cfg['ui_cell'])
         face.save(ROOT / f'assets/ui/face-{fid}.png')

@@ -433,10 +433,9 @@ const UI = {
     const weather = new Weather(stub, def);
     weather.roll();
     const reduced = stub.reduced;
+    const q = (typeof Profile !== 'undefined' && Profile.setting('quality')) || 'medium';
     let t = 0;
-    const draw = () => {
-      if (!this._selBg || this.screen !== 'select') return;
-      this._selBgRaf = requestAnimationFrame(draw);
+    const paint = () => {
       t++;
       try {
         weather.update(false);
@@ -448,13 +447,19 @@ const UI = {
         ctx.translate(0, stage.groundY);
         weather.draw(ctx);
         ctx.restore();
-        if (stage.drawForeground) stage.drawForeground(ctx, camX);
+        if (stage.drawForeground && q !== 'low') stage.drawForeground(ctx, camX);
         stage.drawAmbient(ctx);
         stage.drawVignette(ctx);
       } catch (e) { /* fundo do menu nunca pode quebrar a selecao */ }
     };
+    const draw = () => {
+      if (!this._selBg || this.screen !== 'select') return;
+      this._selBgRaf = requestAnimationFrame(draw);
+      paint();
+    };
     this._selBg = true;
-    this._selBgRaf = requestAnimationFrame(draw);
+    if (q === 'low') paint(); /* qualidade baixa: 1 frame estatico, sem gastar rAF */
+    else this._selBgRaf = requestAnimationFrame(draw);
   },
   stopSelectBg() {
     if (this._selBgRaf) cancelAnimationFrame(this._selBgRaf);
@@ -1047,6 +1052,7 @@ const UI = {
         Profile.setting(k, val);
         AudioSys.applyVolumes();
         if (k === 'touch') this.updateTouch();
+        if (k === 'quality' && this.game && this.game.applyQuality) this.game.applyQuality(); /* aplica na hora */
         if (k === 'serverUrl') this.$('net-url').value = val;
         document.body.classList.toggle('reduced', Profile.reducedMotion());
       });

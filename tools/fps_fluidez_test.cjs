@@ -12,9 +12,9 @@ const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' +
 
 // ===== 1. opcoes de FPS no HTML =====
 const html = fs.readFileSync('index.html', 'utf8');
-const m = html.match(/data-set="fpsCap">([^<]*(?:<option[^>]*>[^<]*<\/option>)+)/);
-const sel = html.match(/<select data-set="fpsCap">([\s\S]*?)<\/select>/);
-check('select de limite de FPS existe com "Sem limite" como primeira opcao (default = ilimitado)', !!sel && /value="0">Sem limite/.test(sel[1]) && sel[1].indexOf('value="0"') < sel[1].indexOf('value="60"'), sel ? sel[1].replace(/\s+/g, ' ').slice(0, 120) : 'sem select');
+const m = html.match(/data-set="fpsCap"[^>]*>([^<]*(?:<option[^>]*>[^<]*<\/option>)+)/);
+const sel = html.match(/<select data-set="fpsCap"[^>]*>([\s\S]*?)<\/select>/);
+check('select de limite de FPS existe com "Sem limite" como primeira opcao (default = ilimitado)', !!sel && /value="0"[^>]*>Sem limite/.test(sel[1]) && sel[1].indexOf('value="0"') < sel[1].indexOf('value="60"'), sel ? sel[1].replace(/\s+/g, ' ').slice(0, 120) : 'sem select');
 check('tem opcao 240 alem de 60/120/144', !!sel && /value="240"/.test(sel[1]) && /value="144"/.test(sel[1]) && /value="120"/.test(sel[1]) && /value="60"/.test(sel[1]));
 check('mostrar FPS existe (showFps)', /data-set="showFps"/.test(html));
 

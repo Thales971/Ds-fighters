@@ -107,7 +107,7 @@ check('mapa natural (parque-lago) tem camada foreground; urbano (treino-dojo) NA
 check('foreground desenha tufos GRANDES do atlas de flora (scale > 1)', R.fgCells >= 4 && R.fgScales.every((s) => s > 1), 'cells=' + R.fgCells + ' scales=' + R.fgScales.map((s) => s.toFixed(2)).join(','));
 check('foreground balanca com o tempo (vento/sway)', R.fgSway === true, '');
 const gSrc = fs.readFileSync('js/engine/game.js', 'utf8');
-check('renderScene chama stage.drawForeground sobre os lutadores e abaixo do clima', /drawForeground\(ctx, camX\)[\s\S]{0,40}weather\.draw/.test(gSrc), '');
+check('renderScene chama stage.drawForeground sobre os lutadores e abaixo do clima', /drawForeground\(ctx, camX\)[\s\S]{0,140}weather\.draw/.test(gSrc), '');
 
 // ghost HP
 check('apos dano o redHp fica ENTRE hp e max (trilha vermelha) e drena devagar', R.ghostOk, '');

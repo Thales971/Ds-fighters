@@ -14,6 +14,14 @@ const ART_SHEETS = {
   'fx2:henrico': { src: 'assets/abilities/henrico.png', size: 128, cols: 4, rows: 5 },
   'abil:jess': { src: 'assets/abilities/jess.png', size: 128, cols: 4, rows: 5 },
   'fx2:jess': { src: 'assets/abilities/jess.png', size: 128, cols: 4, rows: 5 },
+  'abil:dev-virado': { src: 'assets/abilities/dev-virado.png', size: 128, cols: 4, rows: 5 },
+  'fx2:dev-virado': { src: 'assets/abilities/dev-virado.png', size: 128, cols: 4, rows: 5 },
+  'abil:milena': { src: 'assets/abilities/milena.png', size: 128, cols: 4, rows: 5 },
+  'fx2:milena': { src: 'assets/abilities/milena.png', size: 128, cols: 4, rows: 5 },
+  'abil:kira': { src: 'assets/abilities/kira.png', size: 128, cols: 4, rows: 5 },
+  'fx2:kira': { src: 'assets/abilities/kira.png', size: 128, cols: 4, rows: 5 },
+  'abil:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
+  'fx2:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
     .map((id) => ['abil:' + id, { src: 'assets/abilities/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   // pacote retrô nativ18-balance: rebalanceamento geral + cromo buff

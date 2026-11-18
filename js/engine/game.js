@@ -77,6 +77,7 @@ class Game {
     this.fightFrames = 0;
     this.netRole = this.cfg.netRole || null;
     this.reduced = Profile.reducedMotion();
+    this.applyQuality(); /* qualidade dos graficos: low / medium / high */
     this.stageDef = this.pickStage(this.cfg.stage);
     this.cfg.stage = this.stageDef.id;
     this.stage = new StageRenderer(this.stageDef, W, H, GROUND_Y);
@@ -201,6 +202,20 @@ class Game {
     this._ultPulse = false;
     this._drama = false;
     this._lb = 0; /* letterbox (barras de cinema) no drama — 0..1 */
+    this.applyQuality(); /* qualidade dos graficos vem do perfil (low/medium/high) */
+  }
+  /* QUALIDADE DOS GRAFICOS (opcoes): medium = como sempre foi; low tira os
+     efeitos pesados (rim light, chroma, letterbox, foreground, halos pulsando,
+     menos particulas/clima/ambiente); high estica tudo pra embelezar. */
+  applyQuality() {
+    const q = (typeof Profile !== 'undefined' && Profile.setting('quality')) || 'medium';
+    this.quality = q === 'low' || q === 'high' ? q : 'medium';
+    const low = this.quality === 'low', high = this.quality === 'high';
+    this.qFx = low ? 0.45 : high ? 1.6 : 1;       /* particulas: sparks, poeira, faíscas */
+    this.qWeather = low ? 0.45 : high ? 1.45 : 1;  /* gotas de clima + aneis de chuva */
+    this.qAmb = low ? 0.4 : high ? 1.5 : 1;        /* motes/ambiente do palco */
+    this.qRim = low ? 0 : high ? 1.5 : 1;          /* rim light (0 = desligado) */
+    this.qFxOn = !low;                             /* chroma, letterbox, foreground, pulso das luzes */
   }
   updateMusicIntensity() {
     if (typeof AudioSys === 'undefined' || !AudioSys.driveIntensity) return;
@@ -295,7 +310,7 @@ class Game {
     this.spawnBurst(key, row, x, y, owner.dir, p.big ? 1.3 : 0.9);
     const sheets = p.impactSheets || (p.impactSheet ? [p.impactSheet] : (p.visualSheet ? [] : [fx.sheet]));
     sheets.forEach((sheet) => this.spawnBurst(sheet, 3, x, y, owner.dir, 2.2));
-    for (let k = 0; k < (this.reduced ? 4 : 10); k++) this.spark(x, y, p.impactColor || fx.color);
+    for (let k = 0; k < Math.max(1, Math.round((this.reduced ? 4 : 10) * (this.qFx || 1))); k++) this.spark(x, y, p.impactColor || fx.color);
   }
   spark(x, y, color, opts = {}) {
     if (this.sparks.length > 220) return;
@@ -318,7 +333,7 @@ class Game {
     }
   }
   dust(x, color = 'rgba(220,210,190,0.7)', count = null) {
-    const n = count || (this.reduced ? 3 : 8);
+    const n = Math.max(1, Math.round((count || (this.reduced ? 3 : 8)) * (this.qFx || 1)));
     for (let k = 0; k < n; k++) {
       const ang = (Math.random() * Math.PI * 2);
       const spd = (this.rnd ? this.rnd() : Math.random()) * 2.5 + 0.5;
@@ -409,10 +424,15 @@ class Game {
   }
   registerHit(atk, victim, d, blocked, hitstop, counter) {
     this.hitstop = Math.max(this.hitstop, this.reduced ? Math.min(3, hitstop) : hitstop);
-    /* golpe pesado: hit-stop maior + aberracao cromatica na tela */
-    if (!blocked && d >= 20) {
-      this.chroma = Math.max(this.chroma, this.reduced ? 4 : (d >= 26 ? 9 : 6));
-      if (d >= 26 && !this.reduced) this.hitstop = Math.max(this.hitstop, 7);
+    /* golpe pesado: hit-stop maior + aberracao cromatica na tela
+       (qualidade baixa desliga; alta liga ate em golpe medio e mais forte) */
+    if (!blocked && this.qFxOn !== false) {
+      const thr = this.quality === 'high' ? 16 : 20;
+      if (d >= thr) {
+        const base = this.reduced ? 4 : (d >= 26 ? 9 : 6);
+        this.chroma = Math.max(this.chroma, this.quality === 'high' ? Math.min(12, base + 2) : base);
+        if (d >= 26 && !this.reduced) this.hitstop = Math.max(this.hitstop, 7);
+      }
     }
     if (!blocked) {
       if (victim.redHp < victim.hp) victim.redHp = victim.hp;
@@ -461,7 +481,7 @@ class Game {
     this.audio.voice(perfect ? 'perfect' : 'ko');
     this.audio.play('crowd', { vol: 0.6 });
     this.shake(14);
-    if (!this.reduced) this.chroma = 12; /* K.O.: RGB split forte por alguns frames */
+    if (!this.reduced && this.qFxOn !== false) this.chroma = 12; /* K.O.: RGB split forte por alguns frames */
   }
   tagIn(ti, idx, forced) {
     const t = this.teams[ti];
@@ -1212,7 +1232,7 @@ class Game {
     this.drawCracks(ctx);
     /* foreground do palco (grama alta na frente dos lutadores) fica sobre os
        lutadores mas abaixo da chuva/clima */
-    if (this.stage.drawForeground) this.stage.drawForeground(ctx, camX);
+    if (this.stage.drawForeground && this.qFxOn !== false) this.stage.drawForeground(ctx, camX); /* foreground desligado na qualidade baixa */
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
@@ -1261,7 +1281,7 @@ class Game {
     /* LETTERBOX de cinema: 2 barras pretas entram deslizando quando o drama liga
        (HP baixo, ou round final de partida com mais de 1 round) — junto com a
        vinheta escura vira cena de final. Em melhor-de-1 so entra com HP baixo. */
-    const lbT = this._drama && (low || (this.cfg.roundsToWin || 2) > 1) ? 1 : 0;
+    const lbT = this.qFxOn === false ? 0 : (this._drama && (low || (this.cfg.roundsToWin || 2) > 1) ? 1 : 0); /* letterbox off na qualidade baixa */
     this._lb += (lbT - this._lb) * (this.reduced ? 1 : 0.08);
     if (this._lb > 0.01) {
       const bh = Math.round(H * 0.085 * this._lb);
