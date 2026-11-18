@@ -1,169 +1,85 @@
-# DS FIGHTERS
+# 🥊 DS FIGHTERS
 
-Jogo de luta 2D arcade no navegador — pixel art, JS/HTML/CSS puro, sem engine. Publicado em <https://ds-fighters.vercel.app>.
+Jogo de luta 2D arcade no navegador — pixel art, JS/HTML/CSS puro, **sem engine**.
 
-**Edição V20 · 46 lutadores no código (45 na grade, incluindo um secreto extra, + boneco de treino oculto) · 67 arenas**
+▶️ **Jogar agora:** <https://ds-fighters.vercel.app>
 
-O selo da tela de título e o `<title>` leem esses números dos dados (`FIGHTERS` e `STAGE_LIST`) e a edição do maior `fighters-vN.js` carregado. O cantinho `build …` repete o cache-buster das folhas (`v36-balance13` em `SpriteGen.url`). Assim a contagem não fica presa num texto antigo.
+**52 lutadores na grade** (+ boneco de treino oculto e 4 personagens secretos por código) · **94 arenas** · **16 climas**.
+A tela de título lê esses números direto dos dados (`FIGHTERS` / `STAGE_LIST`), então eles nunca ficam desatualizados.
 
-O `stats.power` abaixo é o valor **depois** dos arquivos de balanceamento, não o número original do catálogo.
+## ✨ O que tem no jogo
 
-## Lutadores
+- **Modos:** Versus local (2 jogadores no mesmo teclado) ou contra CPU · 2×2 por equipes com troca · **Arcade "Torneio até o Chefe"** (escada de chefes fortes que termina no boss **Iales**, com música de AMV na luta final) · Survival · Morte Súbita · Treino com boneco configurável · Tutorial guiado · Regras personalizadas (rounds, tempo, vida infinita) · Online P2P até 4 jogadores · Torneio com chave (Redis na Vercel).
+- **Arenas vivas:** cada uma tem **clima aleatório** (chuva com anéis no chão, tempestade com raio, nevasca, aurora boreal, eclipse solar, arco-íris, neblina, onda de calor, granizo, ventania, chuva de folhas, vagalumes, confete, fogos...), **fauna reagindo à luta** (pombos que fogem, gato que se assusta, peixes na água, morcegos à noite — sempre no bioma certo) e **mecânica própria** (maré alta, lava, baixa gravidade, raio, esteira, …).
+- **Gráficos:** palcos com arte própria, iluminação com halos, vignette de drama, letterbox de cinema no round final, reflexo molhado no chão na chuva/maré, aberração cromática no golpe pesado/KO, qualidade gráfica (Baixo/Médio/Alto) e limite de FPS ajustável.
+- **Progressão local:** perfil no navegador, conquistas, mascotes com bônus, skins e códigos secretos para desbloquear lutadores extras.
 
-Código `S` = só entra com código secreto (não vale procurar no README). Os outros 39 selecionáveis entram sem código. O boneco de treino existe no código e não aparece na grade.
-
-| # | Nome | id | Power | Poderes | |
-|---|---|---|---:|---:|---|
-| 1 | DU MAGMA | `du` | 1.58 | 5 | S |
-| 2 | IALES OMEGA | `iales` | 2.60 | 10 | S |
-| 3 | FELIPINHO HYDRO | `felipinho` | 1.62 | 5 | S |
-| 4 | ET 1155 | `stack` | 1.54 | 5 | |
-| 5 | KAGE COMMIT | `gitmaster` | 1.42 | 5 | |
-| 6 | LYRA TRACE | `bughunter` | 1.40 | 5 | |
-| 7 | MIRA PIXEL | `frontend` | 1.44 | 5 | |
-| 8 | TITAN 500 | `backend` | 1.16 | 5 | |
-| 9 | CID PIPE | `devops` | 1.42 | 5 | |
-| 10 | ADA ASSERT | `qa` | 1.26 | 5 | |
-| 11 | KAIRO SPRINT | `scrum` | 1.50 | 5 | |
-| 12 | OMNI STACK | `fullstack` | 1.14 | 5 | |
-| 13 | YUMI LAMBDA | `kotlin` | 1.52 | 5 | |
-| 14 | ROOT PHANTOM | `hacker` | 1.42 | 5 | |
-| 15 | KAEL JVM | `java` | 1.02 | 5 | |
-| 16 | CROMO VX | `merc` | 1.52 | 5 | |
-| 17 | BHM NOIR | `bhm` | 1.50 | 5 | |
-| 18 | GEMINI TWINBYTE | `gemini` | 1.54 | 5 | |
-| 19 | META | `meta` | 1.54 | 5 | |
-| 20 | MIS, A BRASA MISTRAL | `mis` | 1.52 | 5 | |
-| 21 | DEV SENIOR, ENGENHEIRO DE NANOS | `dev-senior` | 1.50 | 5 | |
-| 22 | URBANO TREMOR | `urbano` | 1.56 | 5 | |
-| 23 | XEON | `xeon` | 1.45 | 5 | |
-| 24 | QWEN ASTRA | `qwen` | 1.46 | 5 | |
-| 25 | DOLYNHO | `dolynho` | 1.40 | 5 | |
-| 26 | VIGILANTE | `thl` | 1.54 | 5 | |
-| 27 | LOBÃO | `lobao` | 1.34 | 5 | |
-| 28 | WINX.EXE | `winx-exe` | 1.52 | 5 | |
-| 29 | DANDARA QUERY | `dandara-query` | 1.50 | 5 | |
-| 30 | NINA VECTOR | `nina-vector` | 1.48 | 5 | |
-| 31 | DEV VETERANO | `dev-veterano` | 1.52 | 5 | |
-| 32 | HANA | `hana` | 1.24 | 5 | |
-| 33 | CYBER-PSICOPATA | `cyber-psicopata` | 1.50 | 5 | |
-| 34 | GRIKA, A SONHADORA SOMBRIA | `grika` | 1.52 | 5 | |
-| 35 | GUARDA DIGITAL | `guarda-digital` | 1.50 | 5 | |
-| 36 | ENGENHEIRA DE PROMPT | `engenheira-prompt` | 1.52 | 5 | |
-| 37 | ODETTE | `odette` | 1.52 | 5 | |
-| 38 | JOHN THE VIBE CODER | `john-vibe` | 1.36 | 5 | |
-| 39 | NIMBO | `nimbo` | 1.44 | 5 | |
-| 40 | EMILIO | `emilio` | 1.62 | 5 | |
-| 41 | NUNES | `nunes` | 1.66 | 5 | |
-| 42 | PONTEIRO | `ponteiro` | 1.34 | 5 | |
-| — | BONECO DE TREINO | `boneco-treino` | 0.80 | 5 | oculto |
-
-DU MAGMA, IALES OMEGA e FELIPINHO HYDRO são os secretos de propósito mais fortes (o IALES chega a 10 habilidades). QWEN e WINX.EXE são lutadores normais. O restante do elenco foi pensado para ficar equilibrado; os passes `powers-balance-v*.js` já alteraram vários números — a tabela mostra o que o jogo aplica hoje.
-
-Cada lutador normal tem 5 poderes: 2 simples (teclas 1–2), 2 de carga (3–4) e 1 ultimate (5). O IALES usa ainda 6–9 e 0.
-
-## Arenas (47)
-
-| Grupo | Arenas |
-|---|---|
-| Clássicos animados (14) | Centro de Dados, Chuva de Código, Laboratório 95, Neon City.exe, Fight.exe, Fábrica de Bugs, Placa-Mãe, Startup 3am, Deploy nas Nuvens, Arena Git, Oficina das Latas, Terminal Fósforo, Metrô de Pacotes, Catedral SQL |
-| Pacote retrô (10) | Telhado Neon, Forja Vulcânica, Laboratório Submarino, Templo da Tempestade, Cidadela do Caos, Dojo Sakura, Ilhas do Céu, Caverna de Cristal, Núcleo Orbital, Floresta Digital |
-| Tecnologia (6) | Floresta Spring Boot, Colmeia JavaScript, Porto dos Containers, Ártico do Kernel, Fundição Rust, Pântano Python |
-| Expansão Turbo (4) | Ilha Kotlin, Covil do Kali, Torrefação JVM, Cidade Cromada |
-| Expansão V4 (3) | Quadra SESI Valinhos, Pátio SESI Valinhos, Oficina SENAI Valinhos |
-| Expansão V5 (2) | Jardim do Sol Nascente, Distrito Neon 2077 |
-| Novos V6 (4) | Dojo à Noite, Dojo de Treino, Circo Abandonado, Pizzaria à Noite |
-| Expansão V7 (3) | Área de Trabalho, Abismo das Baleias, Vale do Cache |
-| Expansão V8 (1) | Pós-Codigocalipse |
-
-Cada arena tem clima possível, fauna e uma mecânica em `js/engine/mechanics.js`. O jogador pode forçar o clima na tela de arena.
-
-## Modos
-
-| Modo | Descrição |
-|---|---|
-| Arcade | Escada de 7 lutas contra a CPU |
-| Versus | 1×1 local ou CPU |
-| 2×2 Equipes | Duplas com troca (R / L) |
-| Survival | Lute até cair |
-| Morte súbita | Paredes de fogo fecham a arena |
-| Treino | Dojo, boneco configurável, medidores e cura |
-| Treino guiado | Passo a passo para quem ainda não jogou |
-| Personalizado | Rounds, tempo, vida infinita, medidores cheios |
-| Online | Salas com código, até 4 jogadores (P2P ou servidor) |
-| Torneio | 2–32 pessoas, só com Redis ligado na Vercel |
-| Mascotes | Companheiro com bônus, salvo no perfil |
-| Skins | Desligado — a tela diz EM BREVE |
-| Resgatar código | Libera os secretos neste navegador (os códigos são segredo do dono) |
-
-## Controles
+## 🎮 Controles
 
 | Ação | Jogador 1 | Jogador 2 |
 |---|---|---|
-| Mover / pular / agachar | WASD | Setas |
-| Soco | Botão esquerdo do mouse | J |
-| Chute | Botão direito do mouse | K |
-| Poderes 1 a 5 | Teclas `1` `2` `3` `4` `5` | Numpad `1`–`5` |
-| Poderes 6 a 10 (IALES) | `6` `7` `8` `9` `0` | Numpad `6`–`9` e `0` |
-| Troca no 2×2 | R | L |
+| Mover / pular / agachar | `WASD` | Setas |
+| Soco / chute | Botão esquerdo / direito do mouse | `J` / `K` |
+| Poderes 1–5 | `1` `2` `3` `4` `5` | Numpad `1`–`5` |
+| Poderes 6–10 (só alguns lutadores) | `6` `7` `8` `9` `0` | Numpad `6`–`9`, `0` |
+| Trocar de lutador (2×2) | `R` | `L` |
 | Defender | Segurar para trás | Segurar para trás |
-| Pausa | Esc ou P | Esc ou P |
+| Pausa | `Esc` ou `P` | — |
 
-Na seleção: WASD ou setas movem, Enter confirma, Backspace volta. No versus local, o jogador 2 entra apertando J.
+Também dá pra jogar no **controle (gamepad, padrão PS4)**. Na seleção: `WASD`/setas movem, `Enter` confirma, `Backspace` volta. No versus local, o jogador 2 entra apertando `J`.
 
-## Códigos
-
-- Existem códigos secretos no jogo. Eles NÃO estão escritos aqui — descubra com o dono ou jogando. 🤫
-- O IALES OMEGA (10 habilidades) e os outros secretos só entram com código.
-- WINX.EXE e QWEN não usam código. O selo SECRETO na grade só aparece em quem tem `secret: true` e já está liberado.
-
-## Online e torneio
-
-Salas normais são P2P (PeerJS) ou um servidor WebSocket opcional em `online-server/`. Até 4 jogadores. Ver [HOSPEDAGEM.md](HOSPEDAGEM.md).
-
-O torneio (2–32) grava a chave em Redis. Sem o Redis a Vercel responde 503 `storage_not_configured` e um servidor estático local responde 404 em `/api/tournaments`. O jogo esconde criar/entrar e explica o que falta, em vez de quebrar o menu.
-
-Para ligar, no projeto da Vercel:
-
-1. **Integrations → Marketplace → [Upstash Redis](https://vercel.com/integrations/upstash)** e conecte a integração a este projeto (guia: <https://upstash.com/docs/redis/howto/vercelintegration>).
-2. Confira as variáveis no ambiente de Production (a integração escreve; não commite os valores):
-   - `UPSTASH_REDIS_REST_URL`
-   - `UPSTASH_REDIS_REST_TOKEN`
-   - Nomes antigos também aceitos: `KV_REST_API_URL` e `KV_REST_API_TOKEN`.
-3. Redeploy. `GET /api/tournaments?health=1` deve voltar `{ "ok": true }`.
-
-## Login com Google
-
-O cartão de conta usa o Supabase do projeto `ownxbuailthavxgfxtem`. O jogo funciona sem login; o progresso fica no navegador.
-
-- Se o provedor Google está desligado, o botão fica **GOOGLE AGUARDANDO CONFIGURAÇÃO**.
-- Se o host não responde (projeto pausado, DNS, conexão fechada), o botão fica **NUVEM INDISPONÍVEL**, com **TENTAR DE NOVO**. Nada disso impede de jogar.
-
-Para o login valer de verdade: projeto Supabase ativo, provedor Google ligado com Client ID/Secret só no painel, e a URL `https://ds-fighters.vercel.app/` na lista de Redirect URLs. Passo a passo em [SUPABASE.md](SUPABASE.md).
-
-## Rodar local
+## ▶️ Rodar local
 
 ```bash
 python3 -m http.server 8080
+# abra http://localhost:8080
 ```
 
-Abra <http://localhost:8080>. O torneio fica oculto (não há Function `/api` nesse servidor).
+Sem build, sem dependências: é só servir os arquivos. (Nesse servidor local o torneio fica oculto, porque não existe a Function `/api`.)
 
-## Testes
+## 🗂️ Estrutura
+
+```
+index.html          tela única; carrega os scripts na ordem certa
+css/style.css       tema retrô (fonte Press Start 2P, painéis, animações)
+js/engine/          game.js (loop/sim 60Hz + render), fighter.js, stage.js (palco+clima+fauna),
+                    weather.js (16 climas), mechanics.js (mecânicas de arena), vfx.js, ai.js, net/
+js/data/            lutadores, poderes, palcos, balanceamento, conquistas, mascotes (arquivos vN = expansões)
+js/ui/              telas (menu, seleção, arenas, opções, HUD...), conta/login
+js/core/            profile.js (progresso local + resgatar código), input.js, audio.js
+assets/             sprites, mapas, climas, fauna, músicas, fx (pixel art gerada em tools/)
+tools/              ~60 suítes de teste em Node (vm) + geradores de sprites/atlas
+online-server/      servidor WebSocket opcional p/ online
+api/                Functions Vercel (torneio com Redis)
+docs/               CONTENT-PIPELINE.md: como adicionar lutador/arena/clima
+```
+
+## 🧪 Testes
 
 ```bash
-node tools/combat_regressions.mjs
-node tools/modes_test.js
-node tools/hitbox_test.js
-node tools/championship.js
-python3 tools/sprite_audit.py
-npm test --prefix online-server
+for f in tools/*_test.cjs; do printf '%-32s ' "$f"; node "$f" 2>&1 | tail -1; done
 ```
 
-## Deploy
+Cada suite imprime `TUDO OK (N checks)`. Algumas suites legadas exigem `jsdom` (não instalado) ou têm falhas pré-existentes — rode no `main` para comparar.
 
-Vercel, site estático. `vercel.json` deixa `framework` nulo, sem comando de build. Cada push em `main` publica de novo. Detalhes em [HOSPEDAGEM.md](HOSPEDAGEM.md).
+## 🤫 Códigos secretos
 
-Como adicionar lutador, arena ou clima: [docs/CONTENT-PIPELINE.md](docs/CONTENT-PIPELINE.md).
+ Existem códigos que desbloqueiam lutadores e mascotes secretos. Eles **não estão escritos em nenhum arquivo público** — nem neste README, nem em comentários de código, nem na mensagem de erro quando você digita errado. Descubra jogando ou pergunte ao dono. 😉
 
-Arte, código e efeitos originais. Músicas do proprietário. Jogo gratuito.
+## 🌐 Online, torneio e login
+
+- **Online (salas até 4):** P2P via PeerJS, ou servidor WebSocket próprio em `online-server/`.
+- **Torneio (2–32):** chave gravada em Redis (Upstash na Vercel). Sem Redis configurado, o menu explica o que falta em vez de quebrar. Detalhes em [HOSPEDAGEM.md](HOSPEDAGEM.md).
+- **Login com Google:** Supabase; o jogo funciona 100% offline no navegador mesmo sem login. Guia em [SUPABASE.md](SUPABASE.md).
+
+## 🚀 Deploy
+
+Vercel, site estático: `vercel.json` com `framework: null` e sem build — cada push na `main` publica de novo. Variáveis de ambiente (Upstash/Supabase) só no painel da Vercel, nunca no código. Detalhes em [HOSPEDAGEM.md](HOSPEDAGEM.md).
+
+## ➕ Como adicionar conteúdo
+
+Lutador, arena, clima, poder, mascote, evento sazonal: passo a passo com testes em [docs/CONTENT-PIPELINE.md](docs/CONTENT-PIPELINE.md).
+
+---
+
+Arte, código e efeitos originais. Músicas do proprietário. Jogo gratuito. 🥊

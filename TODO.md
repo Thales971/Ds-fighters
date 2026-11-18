@@ -1,7 +1,7 @@
 # DS Fighters — refinamento V4
 
 - [x] Sprites e animações: Urbano de jaqueta preta e 1155 de boné/óculos/camisa estampada conforme fotos; Qwen lilás/azul e roupa branca; efeitos de Xeon distintos. Figuras inteiras, folhas integradas, retratos e quatro fases por pose nos três refinados. Transparência e 60 células verificadas por folha.
-- [x] Combate: +12% vida global uma única vez; reforço do 1155 e preservação da força/segunda ultimate do IALES; soco Urbano trava e arremessa sem punir bloqueio com segundo golpe inevitável; Xeon gelo/fogo e bônus térmico preparado; Qwen por Batata. Dez grupos de regressão passaram.
+- [x] Combate: +12% vida global uma única vez; reforço do 1155 e preservação da força/segunda ultimate do IALES; soco Urbano trava e arremessa sem punir bloqueio com segundo golpe inevitável; Xeon gelo/fogo e bônus térmico preparado; Qwen por código legado. Dez grupos de regressão passaram.
 - [x] Personalizados e online (implementação): tela local personalizada, vida infinita sem KO, pontuação incluindo bloqueio e DOT, medidores infinitos e até nove vitórias/17 rounds. Diretório de salas reais no servidor dedicado, entrada por código/lista, regras autoritativas, snapshots/inputs ordenados e reconexão sem reiniciar o anfitrião. Testes Chromium 2p/4p passaram; reload do host não restaura a simulação.
 - [x] Conta (implementação): Firebase opcional e Supabase preferencial, perfis isolados por provedor/projeto/UID, anônimo preservado, configurações de dispositivo locais, autosave e respostas stale protegidas. Testes VM e SDK real no navegador com Auth/REST simulados passaram.
 - [x] Mapas: Kotlin, Kali, JVM, Cidade Cromada e quadra SESI refinados; pátio SESI com fontes públicas e oficina SENAI com fotos do proprietário. Redução de movimento e fallback testados.
@@ -10,7 +10,7 @@
 ## Continuação — SENAI / Qwen / Supabase
 
 - [x] SENAI separado, selecionável, animado; quatro artes SESI preservadas byte a byte.
-- [x] Qwen terceira no poder permanente, mantendo Batata, cinco habilidades e Astra. Poder 1,39 entre Felipinho 1,40 e BHM 1,34; contratos de ranking/Astra passaram.
+- [x] Qwen terceira no poder permanente, mantendo o código legado, cinco habilidades e Astra. Poder 1,39 entre Felipinho 1,40 e BHM 1,34; contratos de ranking/Astra passaram.
 - [x] Reativar Supabase autorizado: `supabase-aero-ball`, `ownxbuailthavxgfxtem`, `ACTIVE_HEALTHY`.
 - [x] Criar somente `ds_fighters_profiles` e objetos próprios, com RLS por proprietário, sem acesso anônimo e sem alterar tabelas antigas. Trigger sem SECURITY DEFINER; timestamps do servidor; desbloqueios/estatísticas não regridem.
 - [x] Integrar chave publicável e SDK local 2.118.0. Validar fallback, namespace, merge, autosave, escrita em curso, offline/retorno, logout local e Google desativado. API real recusou leitura anônima (HTTP 401).
@@ -77,9 +77,9 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 
 ## Expansão V7 — novos lutadores e arenas
 - [x] Adicionar três mapas (Área de Trabalho, Abismo das Baleias e Vale do Cache) com imagem e loops ambientais de 24 quadros; preservar as arenas existentes.
-- [x] Adicionar Winx.EXE secreta por `WINX`/`WINX.EXE`, Kimi, DeepSeek e Dandara Query como normais e livres; sheets 4×8 e faces de cut-in integrados.
+- [x] Adicionar Winx.EXE secreta por `código antigo`/`código antigo`, Kimi, DeepSeek e Dandara Query como normais e livres; sheets 4×8 e faces de cut-in integrados.
 - [x] Implementar `TRAVAMENTO` visual, determinístico, breve, com retorno de controles e limite anti-loop; Winx tem força 1,38 igual a DU, sem alterar o top 3.
-- [x] Permitir os quatro IDs no protocolo online; Batata continua desbloqueando somente DU, IALES, Felipinho e Qwen.
+- [x] Permitir os quatro IDs no protocolo online; o código legado continua desbloqueando somente DU, IALES, Felipinho e Qwen.
 - [x] Testes: `v7_regressions.cjs`, `selection_ui_check.py` (8 casos), `v7_browser_check.py` (3 mapas novos + dojo/circo/pizzaria), `map_events_check.py`, `mobile_check.py` (0 falhas), `v5_check.py`, `combat_regressions.mjs`, `audio_mix_test.js` e `npm test --prefix online-server` (38 verificações).
 - [x] Contagem conferida no jogo carregado: 30 lutadores e 45 arenas.
 - [x] Manter os sheets animados de `dojo-noite`, `circo` e `pizzaria`; proteger as entradas no gerador de manifest.
@@ -92,7 +92,7 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [x] Os cinco ataques Winx deixam de usar atlas/ícones genéricos de IA; o atlas exclusivo 4×5 carrega e aparece na HUD e nos efeitos efetivos de combate/projéteis.
 - [x] Nina Vector é lutadora normal, livre e compatível com salas online: piloto adulta de cabelo curto e óculos, mecha original Kestrel-09 e cinco golpes/efeitos próprios.
 - [x] Arena selecionável **Pós-Codigocalipse**, arte original de ruínas de código e cenário de infraestrutura digital colapsada, piso livre e loop animado de 24 quadros.
-- [x] Preservar Winx secreta pelo código atual, Batata, os outros 30 lutadores antes da nova e as 45 arenas anteriores; total pós-expansão: 31 lutadores e 46 arenas.
+- [x] Preservar Winx secreta pelo código atual e o legado, os outros 30 lutadores antes da nova e as 45 arenas anteriores; total pós-expansão: 31 lutadores e 46 arenas.
 - [x] Reproduzir o defeito Winx antes da correção; testar linhas 4×15, atlas exclusivo, cinco ataques no Canvas, Nina/mecha/sem código, arena animada, regressões de combate e protocolo online.
 
 
@@ -133,7 +133,7 @@ Veja `SUPABASE.md`, `SENAI-QWEN.md`, `REFINAMENTO-V4.md`, `FIREBASE.md` e `HOSPE
 - [ ] Refinar habilidades visuais próprias de Urbano, Xeon e Caçador de Bugs (THL); na ultimate do ET 1155, o carro precisa atropelar e acertar o adversário, não aparecer só como adereço.
 - [ ] Pesquisar a sensação visual de Quake Awakening de Blox Fruits e criar para Urbano fraturas/onda sísmica originais, sem copiar assets ou sequências.
 - [ ] Refazer por completo sprites, poses e identidade visual de Katya Queue, Rin Shader e Ash Vault, preservando IDs internos e saves.
-- [ ] Renomear o texto público de THL para **Caçador de Bugs**, preservando `id: 'thl'`, unlock Batata, saves e salas existentes.
+- [ ] Renomear o texto público de THL para **Caçador de Bugs**, preservando `id: 'thl'`, unlock por código legado, saves e salas existentes.
 
 ## Próxima leva — 10 arenas animadas
 - [ ] Adicionar dez arenas originais com folhas/sprites ambientais animados; preservar as 46 arenas atuais e levar o total a 56.

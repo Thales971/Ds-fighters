@@ -66,9 +66,11 @@ check("redeem('PITOCO') maiusculo tambem (already)", r1b.ok === true && r1b.alre
 const r1c = Profile.redeem('pitoco ');
 check("redeem('pitoco ') com espaco (trim)", r1c.ok === true && r1c.already === true);
 
-// 2b. codigo invalido menciona PITOCO
+// 2b. codigo invalido recusado e a msg NAO vaza nenhum codigo (anti-leak, pedido do dono)
 const rBad = Profile.redeem('naoexiste');
-check('codigo invalido recusado e msg lista PITOCO', rBad.ok === false && /PITOCO/.test(rBad.msg), rBad.msg);
+const pad = ' ' + String(rBad.msg || '').toLowerCase() + ' ';
+const vaza = [' pitoco ', ' adm ', ' batata ', ' relogio '].some((w) => pad.indexOf(w) >= 0);
+check('codigo invalido recusado e msg NAO lista codigos (anti-vazamento)', rBad.ok === false && !vaza, rBad.msg);
 
 // 2c. codigos de lutadores continuam funcionando (sem regressao)
 const rAdm = Profile.redeem('adm');

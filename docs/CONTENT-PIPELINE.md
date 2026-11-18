@@ -41,7 +41,7 @@ O cache-buster atual da maior parte dos scripts e das folhas de lutador/habilida
 | Busto da grade de seleção | célula do atlas `assets/ui/roster-portraits.png` |
 | Id aceito na sala online | `FIGHTER_IDS` em `js/net/room-core.js` **e** a cópia `online-server/room-core.js` |
 
-`secret: true` só pinta o selo SECRETO e, junto com `Profile.SECRET_IDS`, tranca o lutador até o código. Hoje a lista é `du`, `iales`, `felipinho`. WINX.EXE tem `secret: false` e não está nessa lista: é lutadora normal. O QWEN também. `batata` e `adm` liberam o mesmo trio (`Profile.BATATA_IDS`).
+`secret: true` só pinta o selo SECRETO e, junto com `Profile.SECRET_IDS`, tranca o lutador até o código. Hoje a lista é `du`, `iales`, `felipinho`. WINX.EXE tem `secret: false` e não está nessa lista: é lutadora normal. O QWEN também. códigos legados liberam o mesmo trio (`Profile.LEGACY_IDS`).
 
 Os três secretos são de propósito mais fortes. O IALES tem 10 habilidades (`a0`…`a9`, teclas 1–0). Lutador normal: 2 simples, 2 de carga, 1 ultimate.
 

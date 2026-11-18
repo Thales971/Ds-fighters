@@ -6,7 +6,7 @@ O pacote retrô da etapa anterior foi enviado ao GitHub no commit `8f3c6b43972e2
 
 A estética permanece arcade retrô, inspirada em jogos de luta do início dos anos 1990, com arte e código originais. A tela de seleção, menus, personalização, resgate, salas e HUD passam a HTML/CSS; apenas a arena precisa de uma superfície gráfica. A HUD mostra vida, dano fantasma, rounds, tempo, estado de clima, buffs, cinco habilidades e a tecla abaixo de cada habilidade. Haverá foco visível, suporte a teclado/controle/toque e opção de reduzir flashes e movimento.
 
-Preservar o elenco e os sprites atuais, exceto as mudanças pedidas: remover Senpai; aprimorar DU, IALES e Felipinho/Maprim. Interpretação a confirmar: Felipinho/Maprim é o terceiro personagem resgatável, com poderes de água e React. O código único `Batata` desbloqueia os três juntos. O resgate persiste no perfil local; esse código público não deve ser apresentado como sistema seguro de licenças ou proteção contra cliente modificado.
+Preservar o elenco e os sprites atuais, exceto as mudanças pedidas: remover Senpai; aprimorar DU, IALES e Felipinho/Maprim. Interpretação a confirmar: Felipinho/Maprim é o terceiro personagem resgatável, com poderes de água e React. O código único legado desbloqueia os três juntos. O resgate persiste no perfil local; esse código público não deve ser apresentado como sistema seguro de licenças ou proteção contra cliente modificado.
 
 ## Combate e personagens
 

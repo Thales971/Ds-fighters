@@ -10,7 +10,7 @@ O fundo possui uma faixa livre de combate e piso estável. A folha animada tem 2
 
 ## Qwen
 
-A ordem de força solicitada é registrada no ranking **permanente de poder** do elenco, com Qwen em terceiro lugar e sem empate. Suas cinco habilidades, código `Batata` e transformação Astra são preservados. Transformações temporárias, vantagens de matchup, clima, mascotes e habilidade do jogador podem mudar o resultado de uma luta; o ranking não promete uma taxa universal de vitória.
+A ordem de força solicitada é registrada no ranking **permanente de poder** do elenco, com Qwen em terceiro lugar e sem empate. Suas cinco habilidades, código legado e transformação Astra são preservados. Transformações temporárias, vantagens de matchup, clima, mascotes e habilidade do jogador podem mudar o resultado de uma luta; o ranking não promete uma taxa universal de vitória.
 
 ## Supabase
 
@@ -22,4 +22,4 @@ O cliente Supabase está integrado e testado, preservando Firebase/offline como 
 
 A ordem permanente passou a **IALES 1,50 → Felipinho 1,40 → Qwen 1,39 → BHM 1,34 → DU 1,30**. As duas primeiras posições não foram alteradas. A Qwen mantém sua transformação temporária e kit completo.
 
-`python3 tools/senai_check.py` confirmou imagem base 960 × 540, folha 6 × 4 com quadros 640 × 360, as quatro artes SESI byte a byte, SENAI selecionável, ranking da Qwen, kit/Batata/Astra e renderização com pulso elétrico. Não houve erro JavaScript nos cenários verificados.
+`python3 tools/senai_check.py` confirmou imagem base 960 × 540, folha 6 × 4 com quadros 640 × 360, as quatro artes SESI byte a byte, SENAI selecionável, ranking da Qwen, kit legado/Astra e renderização com pulso elétrico. Não houve erro JavaScript nos cenários verificados.

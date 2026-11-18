@@ -12,7 +12,7 @@ Os cinco golpes foram separados visual e mecanicamente:
 - **Cursor Sweep** — arco que cruza o piso, reduz mobilidade e interfere nos comandos.
 - **Task Manager** — cinco projéteis convergem num finalizador curto.
 
-Winx continua secreta pelos códigos `WINX` e `WINX.EXE`, com força-base **1,38**, igual a DU. O grupo antigo do código Batata não foi alterado.
+Winx continua secreta pelos códigos `código antigo` e `código antigo`, com força-base **1,38**, igual a DU. O grupo antigo do código legado não foi alterado.
 
 ## Nina Vector e Kestrel-09
 
@@ -40,7 +40,7 @@ A referência é anime de piloto/mecha em caráter geral; o Kestrel tem silhueta
 ## Verificações executadas
 
 - `python3 tools/winx_art_check.py` — 15 linhas de pose distintas, sheet 4×15, atlas HUD/FX exclusivo, cinco impactos diferenciados e força 1,38.
-- `python3 tools/selection_ui_check.py` — código Winx, Nina normal, retratos completos no desktop/mobile, volta das skins e locução de nomes.
+- `python3 tools/selection_ui_check.py` — código antigo (inativo), Nina normal, retratos completos no desktop/mobile, volta das skins e locução de nomes.
 - `python3 tools/v8_browser_check.py` — partida no Canvas com Winx e Nina; ambos os atlases carregados, TRAVAMENTO aplicado e mapa 24 quadros renderizado.
 - `npm test --prefix online-server` — sala WebSocket real com escolhas Winx/Nina e arena Pós-Codigocalipse, além das regressões do protocolo.
 - `node tools/v7_regressions.cjs`, `node tools/combat_regressions.mjs`, `node tools/audio_mix_test.js`, `python3 tools/mobile_check.py`, `python3 tools/map_events_check.py`, `python3 tools/v5_check.py` e `python3 tools/v7_browser_check.py` — aprovados; a regressão anterior mantém os seis mapas V7/clássicos.
