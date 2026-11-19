@@ -2,10 +2,51 @@
    DS FIGHTERS — Inicialização e loop principal (60 Hz fixo).
    ============================================================ */
 /* Pré-carrega as folhas principais com progresso real antes de liberar o título. */
-function preloadAll() {
-  const urls = new Set(Object.values(ART_SHEETS).map((s) => Art.url(s.src)));
+/* Lista COMPLETA do que precisa estar em cache antes de liberar o jogo:
+   sprites dos lutadores, atlas de habilidades/fx/fauna/pets, mapas e camadas
+   de TODAS as arenas, props, torcida e sprites de clima. Antes eles carregavam
+   na hora da luta (mapa/personagem faltando ao entrar) — agora o loader segura
+   ate 100% para o jogo entrar pronto. */
+function buildPreloadUrls() {
+  const urls = new Set();
+  Object.values(ART_SHEETS).forEach((s) => urls.add(Art.url(s.src)));
   Object.keys((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((id) => urls.add(SpriteGen.url(id)));
-  const list = [...urls];
+  /* mapas (jpg ou spritesheet) + camadas parallax de todas as arenas */
+  (typeof STAGE_LIST !== 'undefined' ? STAGE_LIST : []).forEach((s) => {
+    if (s.image) urls.add(s.image);
+    if (s.sheet) urls.add(s.sheet);
+    (s.layers || []).forEach((l) => urls.add(String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1')));
+  });
+  urls.add('assets/fx/stage-props.png?v=v36-amb1');
+  urls.add('assets/fx/rain-streaks.png?v=v36-amb1');
+  urls.add('assets/fx/mare.png?v=v47-maresprites');
+  urls.add('assets/fauna/torcida.png?v=v47-maresprites');
+  urls.add('assets/weather/petals.png?v=v36-balance13');
+  urls.add('assets/weather/neon.png?v=v36-balance13');
+  urls.add('assets/weather/snowflakes.png?v=v33-weather');
+  urls.add('assets/weather/leaf.png?v=v33-weather');
+  urls.add('assets/weather/spark.png?v=v33-weather');
+  urls.add('assets/pets/pitoco.png?v=v47-maresprites');
+  return [...urls];
+}
+
+/* Texto do HUD de rede na luta (opcao "Mostrar ping e rede na luta"). */
+function netHudText() {
+  const N = typeof Net !== 'undefined' ? Net : null;
+  const g = window.DSGame;
+  if (!g || g.mode !== 'online' || !N || !N.room) return '🌐 offline · partida local';
+  const ping = N.ping > 0 ? Math.round(N.ping) + ' ms' : 'medindo…';
+  const code = (N.room && N.room.code) || '—';
+  const role = (typeof N.isHost === 'function' && N.isHost()) ? 'anfitrião' : 'convidado';
+  const tr = N.transport === 'ws' ? 'WS' : 'P2P';
+  const pl = (N.room.players && N.room.players.length) || (N.room.config && N.room.config.players) || 1;
+  return '🌐 ' + ping + ' · sala ' + code + ' · ' + tr + ' · ' + role + ' · ' + pl + ' jog.';
+}
+
+/* Pré-carrega TUDO com progresso real antes de liberar o título. Se algum
+   arquivo falhar, mostra retry — o jogo NAO entra com asset faltando. */
+function preloadAll() {
+  const list = buildPreloadUrls();
   const fill = document.getElementById('ld-fill');
   const text = document.getElementById('ld-text');
   const retry = document.getElementById('ld-retry');
@@ -13,13 +54,12 @@ function preloadAll() {
   let done = 0; const failed = [];
   const step = () => {
     const pct = Math.round((done / list.length) * 100);
-    fill.style.width = pct + '%';
-    text.textContent = 'Carregando sprites… ' + pct + '%';
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = 'Carregando ' + done + '/' + list.length + ' assets (' + pct + '%)';
     if (done < list.length) return;
     if (failed.length) {
-      text.textContent = 'Falha ao carregar ' + failed.length + ' arquivo(s). Verifique a conexão.';
-      retry.hidden = false;
-      retry.onclick = () => location.reload();
+      if (text) text.textContent = 'Falha ao carregar ' + failed.length + ' arquivo(s) — ' + String(failed[0]).split('?')[0] + '. Verifique a conexão.';
+      if (retry) { retry.hidden = false; retry.onclick = () => location.reload(); }
     } else {
       box.classList.add('done');
       setTimeout(() => box.remove(), 400);
@@ -90,6 +130,13 @@ function preloadAll() {
       if (fpsEl) {
         fpsEl.textContent = Math.round((fpsFrames * 1000) / (now - fpsT)) + ' FPS';
         fpsEl.hidden = !Profile.data.settings.showFps;
+      }
+      /* HUD de ping/rede na luta (opcao showNet) */
+      const netEl = document.getElementById('net-hud');
+      if (netEl) {
+        const show = !!(Profile.data && Profile.data.settings && Profile.data.settings.showNet) && UI.screen === 'fight';
+        netEl.hidden = !show;
+        if (show) netEl.textContent = netHudText();
       }
       fpsFrames = 0;
       fpsT = now;

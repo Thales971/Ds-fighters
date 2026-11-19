@@ -99,6 +99,7 @@
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
+        <button class="nav mm" data-go="acc"><span>ACESSÓRIOS</span><small>🎅 para todos os lutadores</small></button>
         <button class="nav mm" data-go="conquistas"><span>CONQUISTAS</span><small>Medalhas e recordes</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
@@ -152,7 +153,17 @@
       <div class="sel-layout">
         <aside class="sel-card p1" id="card-0"></aside>
         <div class="sel-grid-wrap">
+          <div class="sel-tools">
+            <input id="sel-search" type="text" placeholder="Buscar lutador… (tecla /)" maxlength="24" autocomplete="off" spellcheck="false" aria-label="Buscar lutador" />
+            <div class="sel-chips" id="sel-chips">
+              <button type="button" class="chip on" data-f="all">TODOS</button>
+              <button type="button" class="chip" data-f="unlocked">LIBERADOS</button>
+              <button type="button" class="chip" data-f="secret">SECRETOS</button>
+              <button type="button" class="chip" data-f="fav">★ FAV</button>
+            </div>
+          </div>
           <div class="sel-grid" id="sel-grid" role="grid" aria-label="Lutadores"></div>
+          <div class="sel-empty" id="sel-empty" hidden>Nenhum lutador encontrado — limpa a busca (Esc)</div>
           <div class="sel-help" id="sel-help"></div>
         </div>
         <aside class="sel-card p2" id="card-1"></aside>
@@ -191,6 +202,7 @@
       <div class="panel">
         <h2>PAUSA</h2>
         <button class="nav btn" id="btn-resume">CONTINUAR</button>
+        <button class="nav btn" id="btn-photo" type="button">\ud83d\udcf7 MODO FOTO</button>
         <button class="nav btn" id="btn-pause-moves">LISTA DE GOLPES</button>
         <button class="nav btn" id="btn-pause-opts">OPÇÕES</button>
         <button class="nav btn danger" id="btn-quit">SAIR DA LUTA</button>
@@ -233,6 +245,20 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-acc" data-screen="acc">
+      <div class="select-bg"></div>
+      <div class="panel wide">
+        <h2>ACESSÓRIOS</h2>
+        <p class="sub">Acessórios universais — quando ligados, aparecem em <b>TODOS</b> os lutadores na luta.</p>
+        <div class="acc-list" id="acc-list"></div>
+        <div class="row">
+          <button class="nav btn" id="acc-all-on" type="button">LIGAR TODOS</button>
+          <button class="nav btn" id="acc-all-off" type="button">DESLIGAR TODOS</button>
+        </div>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
     <section class="screen" id="scr-conquistas" data-screen="conquistas">
       <div class="wrap">
         <h2>CONQUISTAS &amp; RECORDES</h2>
@@ -269,6 +295,7 @@
           <label>Limite de FPS <select data-set="fpsCap" title="Sem limite usa a taxa do monitor (120/144/240+)"><option value="0" title="Taxa do monitor: 120/144/240+">Sem limite</option><option value="60">60</option><option value="120">120</option><option value="144">144</option><option value="240">240</option></select></label>
           <label class="chk"><input type="checkbox" data-set="smooth" /> Movimento suavizado (interpolação acima de 60 FPS)</label>
           <label class="chk"><input type="checkbox" data-set="showFps" /> Mostrar FPS</label>
+          <label class="chk"><input type="checkbox" data-set="showNet" /> Mostrar ping e rede na luta</label>
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
@@ -386,7 +413,17 @@
       </div>
     </section>
 
+    <div id="photo-bar" class="photo-bar" hidden>
+      <button class="nav btn tiny" id="btn-photo-save" type="button">\ud83d\udcf7 SALVAR PNG (Enter)</button>
+      <button class="nav btn tiny" id="btn-photo-zout" type="button">\u2212 zoom</button>
+      <span id="photo-zoom-lbl">100%</span>
+      <button class="nav btn tiny" id="btn-photo-zin" type="button">+ zoom</button>
+      <button class="nav btn tiny" id="btn-photo-fighters" type="button">\ud83d\udc41 LUTADORES: ON (F)</button>
+      <button class="nav btn tiny" id="btn-photo-exit" type="button">SAIR (Esc)</button>
+      <span class="photo-hint">WASD/setas movem \u00b7 rodinha/+- zoom \u00b7 0 reseta</span>
+    </div>
     <div id="fps" class="fps" hidden>-- FPS</div>
+    <div id="net-hud" class="fps net-hud" hidden>🌐 —</div>
     <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
@@ -488,6 +525,7 @@
   <script src="js/data/fighters-rafael.js?v=v52-rafael"></script>
   <script src="js/data/balance.js?v=v53-torneio"></script>
   <script src="js/data/pets.js?v=v47-maresprites"></script>
+  <script src="js/data/accessories.js?v=v47-maresprites"></script>
   <script src="js/data/stages.js?v=v47-maresprites"></script>
   <script src="js/data/stages-v21.js?v=v47-maresprites"></script>
   <script src="js/data/events.js?v=v47-maresprites"></script>

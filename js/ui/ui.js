@@ -7,6 +7,30 @@ const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
 const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
 const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 — nenhuma usa mais o size 800%
 
+/* ===== BUSCA/FILTRO NA GRADE DE SELECAO ===== */
+/* normaliza acentos: "crianca" acha "Crianças", "cafe" acha "Café" */
+function normSelText(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+/* Slots exibidos na grade dado texto/filtro/favoritos. O slot ALEATORIA
+   (list.length) fica SEMPRE no fim. */
+function selFilterSlots(list, query, filter, favs, isUnlocked) {
+  const q = normSelText(query);
+  const fav = new Set(favs || []);
+  const fl = filter || 'all';
+  const slots = [];
+  list.forEach((d, i) => {
+    if (!d || d.id === 'boneco-treino') return;
+    if (fl === 'unlocked' && !isUnlocked(d.id)) return;
+    if (fl === 'secret' && !d.secret) return;
+    if (fl === 'fav' && !fav.has(d.id)) return;
+    if (q && normSelText(d.name + ' ' + d.id + ' ' + (d.title || '')).indexOf(q) < 0) return;
+    slots.push(i);
+  });
+  slots.push(list.length);
+  return slots;
+}
+
 /* Busto do atlas gerado (tools/build_roster_portraits.py). A célula da
    seleção tem 48px; cada retrato no atlas tem 96px. */
 function rosterPortraitStyle(id, px) {
@@ -48,6 +72,18 @@ const UI = {
     this.$('btn-quit').addEventListener('click', () => this.quitFight());
     this.$('btn-pause-moves').addEventListener('click', () => this.show('moves', true));
     this.$('btn-pause-opts').addEventListener('click', () => this.show('options', true));
+    this.$('btn-photo').addEventListener('click', () => this.enterPhoto());
+    this.$('btn-photo-save').addEventListener('click', () => this.savePhoto());
+    this.$('btn-photo-exit').addEventListener('click', () => this.exitPhoto());
+    this.$('btn-photo-fighters').addEventListener('click', () => this.togglePhotoFighters());
+    this.$('btn-photo-zin').addEventListener('click', () => this.photoZoom(0.15));
+    this.$('btn-photo-zout').addEventListener('click', () => this.photoZoom(-0.15));
+    /* zoom com a rodinha do mouse no modo foto */
+    if (this.game && this.game.canvas) this.game.canvas.addEventListener('wheel', (e) => {
+      if (!this.photoMode) return;
+      e.preventDefault();
+      this.photoZoom(e.deltaY < 0 ? 0.12 : -0.12);
+    }, { passive: false });
     this.$('btn-again').addEventListener('click', () => this.rematch());
     this.$('btn-next').addEventListener('click', () => (this.flow && this.flow.mode === 'survival' ? this.survivalNext() : this.arcadeNext()));
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
@@ -93,6 +129,7 @@ const UI = {
     else if (!push) this.stack = [];
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.dataset.screen === name));
     this.screen = name;
+    if (name !== 'fight' && this.photoMode) this.exitPhoto(false);
     if (name !== 'select') this.stopSelectBg();
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
@@ -382,12 +419,25 @@ const UI = {
   },
   enter_select() {
     const f = this.flow;
+    this._selFilter = this._selFilter || 'all';
+    this._selQuery = '';
+    this.buildSelGrid();
+    this.bindSelTools();
+    this.renderSelect();
+    this.startSelectBg();
+  },
+  /* Monta a grade de lutadores ja aplicando busca/filtro/favoritos. */
+  buildSelGrid() {
+    const f = this.flow;
     const grid = this.$('sel-grid');
-    const modeNames = { arcade: 'ARCADE', versus: 'VERSUS', tag: '2 × 2 EQUIPES', training: 'TREINO', online: 'ONLINE', survival: 'SURVIVAL' };
-    this.$('sel-mode').textContent = (f.customRules ? 'PERSONALIZADO' : modeNames[f.mode]) + (f.mode === 'tag' ? ' · escolha 2 lutadores' : '');
-    const roster = FIGHTERS.filter((d) => d.id !== 'boneco-treino');
-    grid.innerHTML = roster.map((d) => {
-      const i = FIGHTERS.indexOf(d);
+    if (!grid) return;
+    const slots = this.selectSlots();
+    const favs = new Set(Profile.setting('favFighters') || []);
+    grid.innerHTML = slots.map((i) => {
+      if (i >= FIGHTERS.length) {
+        return `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
+      }
+      const d = FIGHTERS[i];
       const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
          interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
@@ -396,10 +446,13 @@ const UI = {
       return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
         <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
-        ${lock ? '<span class="lk">🔒<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
+        ${lock ? '<span class="lk">&#128274;<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
+        <button type="button" class="favbtn${favs.has(d.id) ? ' on' : ''}" data-fav="${d.id}" title="Favoritar (tecla F)" aria-label="Favoritar ${d.id}">★</button>
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
-    }).join('') + `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
+    }).join('');
+    const empty = this.$('sel-empty');
+    if (empty) empty.hidden = slots.length > 1;
     grid.querySelectorAll('.cell').forEach((c) => {
       c.addEventListener('click', () => {
         const i = +c.dataset.i;
@@ -409,8 +462,47 @@ const UI = {
       });
       c.addEventListener('mouseenter', () => { const who = this.selWho(); f.cursor[who] = +c.dataset.i < 0 ? FIGHTERS.length : +c.dataset.i; this.renderSelect(); });
     });
+    grid.querySelectorAll('.favbtn').forEach((b) => {
+      b.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); this.toggleFav(b.dataset.fav); this.refreshSelGrid(); });
+    });
+  },
+  /* Barra de busca + chips de filtro (todos/liberados/secretos/favoritos). */
+  bindSelTools() {
+    const search = this.$('sel-search');
+    if (search) {
+      search.value = this._selQuery || '';
+      search.addEventListener('input', () => { this._selQuery = search.value; this.refreshSelGrid(); });
+    }
+    const chips = this.$('sel-chips');
+    if (chips) {
+      chips.querySelectorAll('.chip').forEach((ch) => {
+        ch.classList.toggle('on', ch.dataset.f === (this._selFilter || 'all'));
+        ch.addEventListener('click', () => {
+          this._selFilter = ch.dataset.f;
+          chips.querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === ch));
+          AudioSys.cursor();
+          this.refreshSelGrid();
+        });
+      });
+    }
+  },
+  /* Reaplica busca/filtro e garante que o cursor aponte pra uma celula visivel. */
+  refreshSelGrid() {
+    const f = this.flow;
+    if (!f) return;
+    const slots = this.selectSlots();
+    [0, 1].forEach((who) => { if (!slots.includes(f.cursor[who])) f.cursor[who] = slots[0]; });
+    this.buildSelGrid();
     this.renderSelect();
-    this.startSelectBg();
+  },
+  toggleFav(id) {
+    const set = new Set(Profile.setting('favFighters') || []);
+    const adding = !set.has(id);
+    if (adding) set.add(id); else set.delete(id);
+    Profile.setting('favFighters', [...set]);
+    AudioSys.select();
+    const d = FIGHTERS.find((x) => x.id === id);
+    this.toast((adding ? '★ ' : '☆ ') + (d ? d.name : id) + (adding ? ' entrou nos favoritos' : ' saiu dos favoritos'));
   },
   /* Palco real animado atras da selecao: StageRenderer + Weather num canvas
      proprio com rAF proprio (o loop principal so renderiza durante a luta). */
@@ -512,7 +604,7 @@ const UI = {
     });
     this.scrollSelectCursor(this.selWho());
     [0, 1].forEach((ti) => this.renderCard(ti));
-    const keys = f.p2Human ? 'P1: WASD + Enter confirma, Backspace volta · P2: setas + J confirma, K volta' : 'WASD ou controle movem · Enter, Espaço ou ✕ confirma · Backspace ou ○ volta';
+    const keys = f.p2Human ? 'P1: WASD + Enter confirma, Backspace volta · P2: setas + J confirma, K volta' : 'WASD ou controle movem · Enter confirma · Backspace volta · <b>/</b> busca · <b>F</b> favorito';
     this.$('sel-help').innerHTML = keys + (f.mode === 'versus' || f.mode === 'tag' ? (f.p2Human ? '' : ' · <b>Jogador 2: aperte J para entrar</b>') : '') + ' · <b>Esc</b> menu';
     if (document.body.classList.contains('mobile')) this.$('sel-help').textContent = 'Toque no lutador para escolher. A próxima escolha será o adversário ou parceiro, conforme o modo.';
   },
@@ -568,10 +660,7 @@ const UI = {
     return i < 0 ? FIGHTERS.length : i;
   },
   selectSlots() {
-    const slots = [];
-    FIGHTERS.forEach((d, i) => { if (d.id !== 'boneco-treino') slots.push(i); });
-    slots.push(FIGHTERS.length);
-    return slots;
+    return selFilterSlots(FIGHTERS, this._selQuery || '', this._selFilter || 'all', Profile.setting('favFighters') || [], (id) => Profile.isUnlocked(id));
   },
   selectCols() {
     const grid = this.$('sel-grid');
@@ -664,6 +753,18 @@ const UI = {
   },
   selectKeys(m) {
     const f = this.flow;
+    /* digitando na busca: so o Esc tira o foco (WASD nao move o cursor) */
+    const ae = document.activeElement;
+    if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) {
+      if (Input.hit(['Escape'])) ae.blur();
+      return;
+    }
+    if (Input.hit(['Slash'])) { const si = this.$('sel-search'); if (si) { si.focus(); si.select(); } return; }
+    if (Input.hit(['KeyF'])) {
+      const i = f.cursor[this.selWho()];
+      if (i < FIGHTERS.length && FIGHTERS[i] && FIGHTERS[i].id !== 'boneco-treino') { this.toggleFav(FIGHTERS[i].id); this.refreshSelGrid(); }
+      return;
+    }
     const P = Input.p2;
     const p0 = Input.pad(0);
     const p1 = Input.pad(1);
@@ -911,6 +1012,105 @@ const UI = {
     const f = this.flow;
     f.arcadeStep++;
     this.launchArcade();
+  },
+
+  /* ---------- ACESSORIOS universais (gorro de natal etc.) ---------- */
+  enter_acc() {
+    const el = this.$('acc-list');
+    if (!el || typeof ACC_LIST === 'undefined') return;
+    el.innerHTML = ACC_LIST.map((a) => `
+      <div class="acc-row${accOn(a.id) ? ' on' : ''}">
+        <img class="acc-img" src="${a.src}?v=v47-maresprites" alt="" aria-hidden="true" />
+        <div class="acc-info"><b>${a.icon} ${a.name}</b><small>${a.desc}</small></div>
+        <button type="button" class="nav btn tiny acc-toggle" data-acc="${a.id}">${accOn(a.id) ? 'LIGADO ✓' : 'DESLIGADO'}</button>
+      </div>`).join('') || '<p class="sub">Nenhum acessorio disponivel ainda.</p>';
+    el.querySelectorAll('.acc-toggle').forEach((b) => b.addEventListener('click', () => { this.toggleAcc(b.dataset.acc); this.enter_acc(); }));
+    const on = this.$('acc-all-on'), off = this.$('acc-all-off');
+    if (on) on.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, true)); this.enter_acc(); };
+    if (off) off.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, false)); this.enter_acc(); };
+  },
+  setAcc(id, v) {
+    const s = Object.assign({}, Profile.setting('acc') || {});
+    s[id] = !!v;
+    Profile.setting('acc', s);
+    AudioSys.select();
+  },
+  toggleAcc(id) { this.setAcc(id, !accOn(id)); },
+
+  /* ---------- MODO FOTO (na pausa): camera livre + salvar PNG ---------- */
+  enterPhoto() {
+    const g = this.game;
+    if (!g || !g.running) return;
+    this.photoMode = true;
+    g.photo = { x: 0, y: 0, z: 1, hideF: false };
+    if (typeof HUD !== 'undefined') HUD.hide();
+    document.body.classList.add('photo');
+    const bar = this.$('photo-bar');
+    if (bar) bar.hidden = false;
+    this.syncPhotoBar();
+    this.show('fight', false);
+    AudioSys.select();
+  },
+  exitPhoto(toPause = true) {
+    const g = this.game;
+    this.photoMode = false;
+    if (g) g.photo = null;
+    document.body.classList.remove('photo');
+    const bar = this.$('photo-bar');
+    if (bar) bar.hidden = true;
+    if (typeof HUD !== 'undefined') HUD.show();
+    if (toPause && this.screen === 'fight') this.show('pause');
+  },
+  savePhoto() {
+    try {
+      const a = document.createElement('a');
+      a.href = this.game.canvas.toDataURL('image/png');
+      a.download = 'ds-fighters-foto-' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      this.toast('\ud83d\udcf7 Foto salva!');
+      AudioSys.select();
+    } catch (e) { this.toast('Nao consegui salvar a foto'); }
+  },
+  photoZoom(d) {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    g.photo.z += d;
+    g.photoClamp();
+    this.syncPhotoBar();
+  },
+  togglePhotoFighters() {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    g.photo.hideF = !g.photo.hideF;
+    AudioSys.cursor();
+    this.syncPhotoBar();
+  },
+  syncPhotoBar() {
+    const g = this.game;
+    const b = this.$('btn-photo-fighters');
+    if (b && g && g.photo) b.textContent = g.photo.hideF ? '\ud83d\udc41 LUTADORES: OFF' : '\ud83d\udc41 LUTADORES: ON';
+    const z = this.$('photo-zoom-lbl');
+    if (z && g && g.photo) z.textContent = Math.round(g.photo.z * 100) + '%';
+  },
+  photoKeys(m) {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    const p = g.photo;
+    const sp = 7 / p.z;
+    if (m.left) p.x -= sp;
+    if (m.right) p.x += sp;
+    if (m.up) p.y -= sp;
+    if (m.down) p.y += sp;
+    if (Input.hit(['Equal', 'NumpadAdd'])) p.z += 0.12;
+    if (Input.hit(['Minus', 'NumpadSubtract'])) p.z -= 0.12;
+    if (Input.hit(['Digit0'])) { p.x = 0; p.y = 0; p.z = 1; }
+    if (Input.hit(['KeyF'])) this.togglePhotoFighters();
+    if (Input.hit(['Enter', 'Space'])) this.savePhoto();
+    if (Input.hit(['Escape', 'KeyP'])) this.exitPhoto();
+    g.photoClamp();
+    this.syncPhotoBar();
   },
 
   /* ---------- pausa / fim ---------- */
@@ -1207,6 +1407,7 @@ const UI = {
   },
   tick() {
     const m = Input.menu();
+    if (this.photoMode) { this.photoKeys(m); return; }
     const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if (this.screen === 'title') {
       if (Input.hit(['Enter', 'Space']) || m.confirm || m.start) this.pressStart();

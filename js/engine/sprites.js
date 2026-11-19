@@ -131,6 +131,40 @@ const SpriteGen = {
     return i < 0 ? Math.max(0, this.POSES.indexOf(pose)) : i;
   },
 
+  /* Âncora da CABEÇA na célula da pose: primeira linha com pixel opaco,
+     centro horizontal dela. Cacheada por lutador+pose (frame 0 basta).
+     Fallback = centro-topo da célula. Usada pra pendurar acessórios
+     universais (gorro de natal...) em qualquer lutador sem ajuste manual. */
+  headAnchor(id, pose) {
+    const key = id + '|' + pose;
+    if (this._headCache && this._headCache[key]) return this._headCache[key];
+    const L = SPRITE_LAYOUT;
+    let a = { x: L.frameW / 2, y: 34 };
+    const img = this.images[id];
+    if (img && img.naturalWidth && typeof document !== 'undefined') {
+      try {
+        const row = Math.min(Math.max(0, this.rowOf(pose, id)), (L.poses ? L.poses.length : this.POSES.length) - 1);
+        const c = document.createElement('canvas');
+        c.width = L.frameW; c.height = L.frameH;
+        const x = c.getContext('2d');
+        if (x && x.getImageData) {
+          x.drawImage(img, 0 * L.frameW, row * L.frameH, L.frameW, L.frameH, 0, 0, L.frameW, L.frameH);
+          const d = x.getImageData(0, 0, L.frameW, L.frameH).data;
+          scan:
+          for (let yy = 0; yy < L.frameH; yy++) {
+            let mn = -1, mx = -1;
+            for (let xx = 0; xx < L.frameW; xx++) {
+              if (d[(yy * L.frameW + xx) * 4 + 3] > 12) { if (mn < 0) mn = xx; mx = xx; }
+            }
+            if (mn >= 0) { a = { x: (mn + mx) / 2, y: yy }; break scan; }
+          }
+        }
+      } catch (e) { /* sem canvas/readback: usa o fallback */ }
+    }
+    (this._headCache = this._headCache || {})[key] = a;
+    return a;
+  },
+
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
     const L = SPRITE_LAYOUT;
     // poseScale por lutador (ex.: hit compacto da Mis/Kimi, pivô no pé).

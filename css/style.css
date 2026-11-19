@@ -156,6 +156,17 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .card-empty b { color: var(--gold); font-size: 11px; }
 .sel-grid-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 0; height: 100%; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; scrollbar-width: thin; }
 .sel-grid { display: grid; grid-template-columns: repeat(7, 54px); gap: 5px; }
+/* barra de busca + filtros acima da grade */
+.sel-tools { display: flex; align-items: center; gap: 8px; margin: 6px 0 8px; flex-wrap: wrap; justify-content: center; }
+#sel-search { font-family: 'Press Start 2P', monospace; font-size: 8px; color: #ffe9a8; background: #120a24; border: 3px solid #3a2766; padding: 7px 10px; width: 220px; max-width: 100%; outline: none; }
+#sel-search:focus { border-color: var(--gold, #ffd76a); box-shadow: 0 0 0 2px #000, 0 0 14px rgba(255, 215, 106, .35); }
+.sel-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip { font-family: 'Press Start 2P', monospace; font-size: 7px; color: #c9b8ff; background: #1d1240; border: 2px solid #3a2766; padding: 5px 8px; cursor: pointer; }
+.chip.on { color: #1b1030; background: var(--gold, #ffd76a); border-color: #000; font-weight: bold; }
+.sel-empty { margin-top: 10px; font-size: 8px; color: #ff9a8a; text-shadow: 1px 1px 0 #000; }
+/* estrelinha de favorito no canto da celula */
+.favbtn { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; padding: 0; font-size: 10px; line-height: 1; color: #6f6a86; background: #120a24; border: 2px solid #3a2766; border-radius: 50%; cursor: pointer; z-index: 2; }
+.favbtn.on { color: #ffd76a; border-color: #ffd76a; text-shadow: 0 0 6px rgba(255, 215, 106, .8); }
 .cell { position: relative; width: 54px; height: 70px; padding: 0; border: 3px solid #3a2766; background: linear-gradient(#2a1650, #120a24); cursor: pointer; color: #fff; overflow: visible; }
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
 .cell .face.roster-portrait { background-color: transparent; image-rendering: pixelated; animation: none; }
@@ -507,6 +518,7 @@ body.reduced.shocked .skills .skill .key { animation: none; }
 .net-url-row.hidden { display: none; }
 .fps { position: fixed; top: 6px; right: 8px; z-index: 99; font-size: 9px; color: #7dff5e; background: rgba(0,0,0,.6); padding: 3px 6px; pointer-events: none; }
 .fps[hidden] { display: none; }
+.net-hud { top: 30px; color: #7ec8ff; }
 .build { position: fixed; left: 6px; bottom: 4px; z-index: 99; font-size: 8px; color: #6f6a86; background: rgba(0,0,0,.45); padding: 2px 5px; border-radius: 3px; pointer-events: none; }
 @media (max-width: 900px) { .lobby-players.four { grid-template-columns: 1fr 1fr; } }
 /* cartão da seleção: bio curta + 5 habilidades + frases (tela de bio do lutador) */
@@ -657,3 +669,20 @@ body[data-event="anonovo"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffe14a;
 #fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
 @keyframes eventFall { to { background-position: 0 540px; } }
 body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
+/* tela de ACESSORIOS universais */
+.acc-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.acc-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 3px solid #3a2766; background: #1d1240; text-align: left; }
+.acc-row.on { border-color: var(--gold, #ffd76a); box-shadow: inset 0 0 18px rgba(255, 215, 106, .12); }
+.acc-img { width: 44px; height: 40px; object-fit: contain; image-rendering: pixelated; background: #120a24; border: 2px solid #3a2766; }
+.acc-info { flex: 1; min-width: 0; }
+.acc-info b { display: block; font-size: 9px; color: #ffe9a8; }
+.acc-info small { font-size: 7px; color: #c9b8ff; line-height: 1.5; }
+.acc-toggle { flex-shrink: 0; }
+/* MODO FOTO (pausa): barra de ferramentas embaixo + esconde HUD/controles */
+.photo-bar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 99; display: flex; gap: 6px; align-items: center; background: rgba(8,5,18,.85); border: 3px solid #3a2766; padding: 6px 10px; flex-wrap: wrap; justify-content: center; max-width: 96vw; }
+.photo-bar[hidden] { display: none; }
+.photo-bar .btn.tiny { font-size: 7px; white-space: nowrap; }
+#photo-zoom-lbl { font-size: 8px; color: var(--gold, #ffd76a); min-width: 36px; text-align: center; }
+.photo-hint { font-size: 6px; color: #9d8bc9; }
+body.photo #touch-controls { display: none !important; }
+body.photo #banner, body.photo #cutin { display: none !important; }
