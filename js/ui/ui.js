@@ -72,6 +72,18 @@ const UI = {
     this.$('btn-quit').addEventListener('click', () => this.quitFight());
     this.$('btn-pause-moves').addEventListener('click', () => this.show('moves', true));
     this.$('btn-pause-opts').addEventListener('click', () => this.show('options', true));
+    this.$('btn-photo').addEventListener('click', () => this.enterPhoto());
+    this.$('btn-photo-save').addEventListener('click', () => this.savePhoto());
+    this.$('btn-photo-exit').addEventListener('click', () => this.exitPhoto());
+    this.$('btn-photo-fighters').addEventListener('click', () => this.togglePhotoFighters());
+    this.$('btn-photo-zin').addEventListener('click', () => this.photoZoom(0.15));
+    this.$('btn-photo-zout').addEventListener('click', () => this.photoZoom(-0.15));
+    /* zoom com a rodinha do mouse no modo foto */
+    if (this.game && this.game.canvas) this.game.canvas.addEventListener('wheel', (e) => {
+      if (!this.photoMode) return;
+      e.preventDefault();
+      this.photoZoom(e.deltaY < 0 ? 0.12 : -0.12);
+    }, { passive: false });
     this.$('btn-again').addEventListener('click', () => this.rematch());
     this.$('btn-next').addEventListener('click', () => (this.flow && this.flow.mode === 'survival' ? this.survivalNext() : this.arcadeNext()));
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
@@ -117,6 +129,7 @@ const UI = {
     else if (!push) this.stack = [];
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.dataset.screen === name));
     this.screen = name;
+    if (name !== 'fight' && this.photoMode) this.exitPhoto(false);
     if (name !== 'select') this.stopSelectBg();
     this.screenEl = document.querySelector(`.screen[data-screen="${name}"]`);
     document.body.dataset.screen = name;
@@ -1024,6 +1037,82 @@ const UI = {
   },
   toggleAcc(id) { this.setAcc(id, !accOn(id)); },
 
+  /* ---------- MODO FOTO (na pausa): camera livre + salvar PNG ---------- */
+  enterPhoto() {
+    const g = this.game;
+    if (!g || !g.running) return;
+    this.photoMode = true;
+    g.photo = { x: 0, y: 0, z: 1, hideF: false };
+    if (typeof HUD !== 'undefined') HUD.hide();
+    document.body.classList.add('photo');
+    const bar = this.$('photo-bar');
+    if (bar) bar.hidden = false;
+    this.syncPhotoBar();
+    this.show('fight', false);
+    AudioSys.select();
+  },
+  exitPhoto(toPause = true) {
+    const g = this.game;
+    this.photoMode = false;
+    if (g) g.photo = null;
+    document.body.classList.remove('photo');
+    const bar = this.$('photo-bar');
+    if (bar) bar.hidden = true;
+    if (typeof HUD !== 'undefined') HUD.show();
+    if (toPause && this.screen === 'fight') this.show('pause');
+  },
+  savePhoto() {
+    try {
+      const a = document.createElement('a');
+      a.href = this.game.canvas.toDataURL('image/png');
+      a.download = 'ds-fighters-foto-' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      this.toast('\ud83d\udcf7 Foto salva!');
+      AudioSys.select();
+    } catch (e) { this.toast('Nao consegui salvar a foto'); }
+  },
+  photoZoom(d) {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    g.photo.z += d;
+    g.photoClamp();
+    this.syncPhotoBar();
+  },
+  togglePhotoFighters() {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    g.photo.hideF = !g.photo.hideF;
+    AudioSys.cursor();
+    this.syncPhotoBar();
+  },
+  syncPhotoBar() {
+    const g = this.game;
+    const b = this.$('btn-photo-fighters');
+    if (b && g && g.photo) b.textContent = g.photo.hideF ? '\ud83d\udc41 LUTADORES: OFF' : '\ud83d\udc41 LUTADORES: ON';
+    const z = this.$('photo-zoom-lbl');
+    if (z && g && g.photo) z.textContent = Math.round(g.photo.z * 100) + '%';
+  },
+  photoKeys(m) {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    const p = g.photo;
+    const sp = 7 / p.z;
+    if (m.left) p.x -= sp;
+    if (m.right) p.x += sp;
+    if (m.up) p.y -= sp;
+    if (m.down) p.y += sp;
+    if (Input.hit(['Equal', 'NumpadAdd'])) p.z += 0.12;
+    if (Input.hit(['Minus', 'NumpadSubtract'])) p.z -= 0.12;
+    if (Input.hit(['Digit0'])) { p.x = 0; p.y = 0; p.z = 1; }
+    if (Input.hit(['KeyF'])) this.togglePhotoFighters();
+    if (Input.hit(['Enter', 'Space'])) this.savePhoto();
+    if (Input.hit(['Escape', 'KeyP'])) this.exitPhoto();
+    g.photoClamp();
+    this.syncPhotoBar();
+  },
+
   /* ---------- pausa / fim ---------- */
   pause() {
     const g = this.game;
@@ -1318,6 +1407,7 @@ const UI = {
   },
   tick() {
     const m = Input.menu();
+    if (this.photoMode) { this.photoKeys(m); return; }
     const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if (this.screen === 'title') {
       if (Input.hit(['Enter', 'Space']) || m.confirm || m.start) this.pressStart();

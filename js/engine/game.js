@@ -203,6 +203,7 @@ class Game {
     this._ultPulse = false;
     this._drama = false;
     this._lb = 0; /* letterbox (barras de cinema) no drama — 0..1 */
+    this.photo = null; /* MODO FOTO: {x, y, z, hideF} ou null — camera livre sobre a cena pausada */
     this.applyQuality(); /* qualidade dos graficos vem do perfil (low/medium/high) */
   }
   /* QUALIDADE DOS GRAFICOS (opcoes): medium = como sempre foi; low tira os
@@ -1072,7 +1073,16 @@ class Game {
         e.y = e._py + dy * alpha;
       }
     }
+    /* MODO FOTO: camera livre (pan/zoom) sobre a cena — o jogo continua pausado */
+    const pc = this.photo;
+    if (pc) {
+      ctx.save();
+      ctx.translate(this.W / 2, this.H / 2);
+      ctx.scale(pc.z, pc.z);
+      ctx.translate(-(this.W / 2 + pc.x), -(this.H / 2 + pc.y));
+    }
     try { this.renderScene(ctx); } finally { for (const [e, x, y] of lerped) { e.x = x; e.y = y; } }
+    if (pc) ctx.restore();
     // cegueira: embaça a tela de quem está cego
     const lt = this.localTeams();
     // com 2 humanos na mesma tela não dá para embaçar só um: o efeito fica no lutador (status CEGO)
@@ -1148,6 +1158,15 @@ class Game {
     ctx.fillStyle = 'rgba(255,110,210,0.07)';
     ctx.fillRect(0, 0, W, H);
   }
+  /* MODO FOTO: limita pan/zoom pra camera nao ir pro vazio */
+  photoClamp() {
+    const p = this.photo;
+    if (!p) return;
+    p.z = Math.max(0.6, Math.min(3.2, p.z));
+    p.x = Math.max(-260, Math.min(260, p.x));
+    p.y = Math.max(-150, Math.min(90, p.y));
+  }
+
   renderScene(ctx) {
     const [a, b] = this.activePair();
     const mid = a && b ? (a.x + b.x) / 2 : W / 2;
@@ -1191,8 +1210,10 @@ class Game {
     if (guest) this.drawNetPickups(ctx); else this.pickups.forEach((p) => p.draw(ctx));
     const busy = (f) => (f.state === 'attack' || f.state === 'cast' || f.state === 'rush' ? 1 : 0);
     const fs = this.fighters().concat(this.allFighters().filter((m) => m.assistT > 0)).sort((p, q) => busy(p) - busy(q));
-    fs.forEach((f) => f.drawBack(ctx));
-    fs.forEach((f) => f.draw(ctx));
+    if (!(this.photo && this.photo.hideF)) {
+      fs.forEach((f) => f.drawBack(ctx));
+      fs.forEach((f) => f.draw(ctx));
+    }
     /* REFLEXO MOLHADO no chao: chuva/tempestade ou palco de mare/agua — os
        lutadores espelham achatados abaixo da linha do chao e o reflexo some com
        um gradiente de profundidade + filete de brilho na linha d'agua.
@@ -1204,9 +1225,11 @@ class Game {
       ctx.save();
       ctx.scale(1, -0.36);
       ctx.globalAlpha = 0.17;
-      for (const f of fs) {
-        if (f.alive === false) continue;
-        try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+      if (!(this.photo && this.photo.hideF)) {
+        for (const f of fs) {
+          if (f.alive === false) continue;
+          try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+        }
       }
       ctx.restore();
       const fade = ctx.createLinearGradient(0, 0, 0, 100);

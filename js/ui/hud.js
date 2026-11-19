@@ -85,6 +85,7 @@ const HUD = {
     this.sayT[ti] = performance.now() + 4200;
   },
   hide() { this.$('hud').classList.add('hidden'); },
+  show() { this.$('hud').classList.remove('hidden'); },
   update(game) {
     if (!this.built || !game.teams) return;
     const now = performance.now();

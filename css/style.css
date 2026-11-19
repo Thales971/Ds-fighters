@@ -678,3 +678,11 @@ body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
 .acc-info b { display: block; font-size: 9px; color: #ffe9a8; }
 .acc-info small { font-size: 7px; color: #c9b8ff; line-height: 1.5; }
 .acc-toggle { flex-shrink: 0; }
+/* MODO FOTO (pausa): barra de ferramentas embaixo + esconde HUD/controles */
+.photo-bar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 99; display: flex; gap: 6px; align-items: center; background: rgba(8,5,18,.85); border: 3px solid #3a2766; padding: 6px 10px; flex-wrap: wrap; justify-content: center; max-width: 96vw; }
+.photo-bar[hidden] { display: none; }
+.photo-bar .btn.tiny { font-size: 7px; white-space: nowrap; }
+#photo-zoom-lbl { font-size: 8px; color: var(--gold, #ffd76a); min-width: 36px; text-align: center; }
+.photo-hint { font-size: 6px; color: #9d8bc9; }
+body.photo #touch-controls { display: none !important; }
+body.photo #banner, body.photo #cutin { display: none !important; }

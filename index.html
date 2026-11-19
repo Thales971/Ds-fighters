@@ -202,6 +202,7 @@
       <div class="panel">
         <h2>PAUSA</h2>
         <button class="nav btn" id="btn-resume">CONTINUAR</button>
+        <button class="nav btn" id="btn-photo" type="button">\ud83d\udcf7 MODO FOTO</button>
         <button class="nav btn" id="btn-pause-moves">LISTA DE GOLPES</button>
         <button class="nav btn" id="btn-pause-opts">OPÇÕES</button>
         <button class="nav btn danger" id="btn-quit">SAIR DA LUTA</button>
@@ -412,6 +413,15 @@
       </div>
     </section>
 
+    <div id="photo-bar" class="photo-bar" hidden>
+      <button class="nav btn tiny" id="btn-photo-save" type="button">\ud83d\udcf7 SALVAR PNG (Enter)</button>
+      <button class="nav btn tiny" id="btn-photo-zout" type="button">\u2212 zoom</button>
+      <span id="photo-zoom-lbl">100%</span>
+      <button class="nav btn tiny" id="btn-photo-zin" type="button">+ zoom</button>
+      <button class="nav btn tiny" id="btn-photo-fighters" type="button">\ud83d\udc41 LUTADORES: ON (F)</button>
+      <button class="nav btn tiny" id="btn-photo-exit" type="button">SAIR (Esc)</button>
+      <span class="photo-hint">WASD/setas movem \u00b7 rodinha/+- zoom \u00b7 0 reseta</span>
+    </div>
     <div id="fps" class="fps" hidden>-- FPS</div>
     <div id="net-hud" class="fps net-hud" hidden>🌐 —</div>
     <div id="build" class="build">build v36-balance13</div>
