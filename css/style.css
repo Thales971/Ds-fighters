@@ -686,3 +686,23 @@ body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
 .photo-hint { font-size: 6px; color: #9d8bc9; }
 body.photo #touch-controls { display: none !important; }
 body.photo #banner, body.photo #cutin { display: none !important; }
+
+/* ===== aba de CONQUISTAS: progresso + cartoes de medalha + recordes ===== */
+.cq-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cq-head h3 { margin: 0; font-size: 10px; letter-spacing: 1px; }
+.cq-bar { flex: 1; height: 14px; background: #120a24; border: 2px solid #3a2766; image-rendering: pixelated; }
+.cq-bar i { display: block; height: 100%; background: linear-gradient(90deg, #7dff5e, #ffd76a); transition: width .4s; }
+.cq-pct { font-size: 8px; color: var(--gold, #ffd76a); white-space: nowrap; }
+.medals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+.medal { display: flex; gap: 8px; align-items: center; background: #120a24; border: 3px solid #3a2766; padding: 6px; opacity: .45; filter: grayscale(.6); }
+.medal.on { opacity: 1; filter: none; border-color: var(--gold, #ffd76a); box-shadow: 0 0 10px rgba(255, 215, 106, .25); background: linear-gradient(#241040, #120a24); }
+.medal .mi { font-size: 16px; line-height: 1; }
+.medal b { display: block; font-size: 8px; color: #fff; }
+.medal small { display: block; font-size: 6px; color: #b9aedb; line-height: 1.4; margin-top: 2px; }
+.cq-rec { background: #120a24; border: 3px solid #3a2766; padding: 8px 10px; }
+.cq-rec h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: 1px; }
+.cq-rec h4 { margin: 8px 0 3px; font-size: 7px; color: var(--gold, #ffd76a); }
+.rec { font-size: 7px; margin: 2px 0; color: #cfc4ee; }
+.tops { margin: 0; padding-left: 12px; font-size: 7px; line-height: 1.8; color: #cfc4ee; }
+/* mascote secreto travado aparece como SILHUETA (igual lutador ??? na grade) */
+.pet-spr.sil { animation: none; display: grid; place-items: center; background: #0a0618; border: 3px solid #3a2766; font-size: 30px; font-weight: bold; color: var(--gold, #ffd76a); }

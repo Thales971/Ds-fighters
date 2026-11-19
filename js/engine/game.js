@@ -450,6 +450,7 @@ class Game {
         if (this.combo.count === 6) this.audio.voice('combo');
         if (this.combo.count >= 10) Profile.grantAchievement('combo-10');
         if (this.combo.count >= 20) Profile.grantAchievement('combo-20');
+        if (this.combo.count >= 30) Profile.grantAchievement('combo-30');
         if (!this.firstHit) { this.firstHit = true; this.floatText(victim.x, victim.y - 250, 'PRIMEIRO GOLPE!', '#ffe14d'); }
       }
     }
@@ -821,6 +822,10 @@ class Game {
       Profile.record('fights');
       if (winner === humanTeam) {
         Profile.record('wins');
+        { const wT = (Profile.data.stats && Profile.data.stats.wins) || 0;
+          if (wT >= 10) Profile.grantAchievement('vitoria-10');
+          if (wT >= 50) Profile.grantAchievement('vitoria-50'); }
+        if (this.cfg && this.cfg.stage && Profile.recordStage) Profile.recordStage(this.cfg.stage);
         Profile.grantAchievement('primeiro-ko');
         /* PERFEITO: round sem tomar dano */
         const vencedores = this.teams[humanTeam].members;

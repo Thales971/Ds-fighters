@@ -1,6 +1,6 @@
 /* DS Fighters V9-balance — pedido do dono: melhorar os personagens ruins.
-   Os 12 piores do campeonato (kotlin, xeon, merc, guarda-digital, hacker,
-   nina-vector, dolynho, bughunter, devops, scrum, gitmaster e urbano) com
+   Os piores do campeonato (kotlin, xeon, merc, guarda-digital, hacker,
+   nina-vector, bughunter, devops, scrum, gitmaster e urbano) com
    stats de mid-tier e kits com muito mais dano. Carregado depois do v8. */
 (() => {
   FIGHTERS.forEach((f) => {
@@ -11,7 +11,6 @@
       'guarda-digital': { power: 1.45, speed: 1.20, weight: 1.06, hp: 150, meterRate: 1.32 },
       hacker:         { power: 1.42, speed: 1.26, weight: 0.94, hp: 134, meterRate: 1.30 },
       'nina-vector':  { power: 1.42, speed: 1.28, weight: 0.96, hp: 138, meterRate: 1.30 },
-      dolynho:        { power: 1.40, speed: 1.16, weight: 1.10, hp: 140, meterRate: 1.28 },
       bughunter:      { power: 1.40, speed: 1.18, weight: 0.98, hp: 130, meterRate: 1.28 },
       devops:         { power: 1.42, speed: 1.10, weight: 1.12, hp: 136, meterRate: 1.26 },
       scrum:          { power: 1.40, speed: 1.18, weight: 0.96, hp: 132, meterRate: 1.30 },

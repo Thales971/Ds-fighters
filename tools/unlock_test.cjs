@@ -24,6 +24,7 @@ Profile.data = { unlocked: [], settings: {}, stats: {} };
 check('Du travado por padrao', Profile.isUnlocked('du') === false);
 check('Iales travado por padrao', Profile.isUnlocked('iales') === false);
 check('Felipinho travado por padrao', Profile.isUnlocked('felipinho') === false);
+check('Dolynho travado por padrao', Profile.isUnlocked('dolynho') === false);
 // 2) Winx e Qwen NORMAIS (destravadas)
 check('Qwen destravada (normal)', Profile.isUnlocked('qwen') === true);
 check('Winx destravada (normal)', Profile.isUnlocked('winx-exe') === true);
@@ -37,6 +38,11 @@ check('Felipinho liberado', Profile.isUnlocked('felipinho') === true);
 // 4) ADM de novo = ja liberado
 const r2 = Profile.redeem('adm');
 check('ADM repetido avisa', r2.ok === true && r2.already === true, r2.msg);
+// 4b) codigo proprio do Dolynho desbloqueia so ele (ADM nao pega ele)
+check('ADM nao desbloqueia Dolynho', Profile.isUnlocked('dolynho') === false);
+const rd = Profile.redeem('DOLLY');
+check('codigo do Dolynho (case-insensitive) desbloqueia', rd.ok === true && Profile.isUnlocked('dolynho') === true, rd.msg);
+check('codigo do Dolynho repetido avisa already', Profile.redeem('dolly').already === true);
 // 5) codigos antigos invalidos
 const rb = Profile.redeem('batata');
 check('codigo BATATA legado (informativo)', rb.ok === true, rb.msg);
@@ -45,7 +51,7 @@ check('codigo WINX invalido agora', rw.ok === false, rw.msg);
 // 6) ANTI-VAZAMENTO: codigo errado NAO pode listar os codigos validos na msg
 const rx = Profile.redeem('xyz-errado-123');
 const msgPad = ' ' + String(rx.msg || '').toLowerCase() + ' ';
-const vaza = [' adm ', ' batata ', ' relogio ', ' pitoco '].some((w) => msgPad.indexOf(w) >= 0);
+const vaza = [' adm ', ' batata ', ' relogio ', ' pitoco ', ' dolly '].some((w) => msgPad.indexOf(w) >= 0);
 check('msg de codigo invalido NAO vaza os codigos validos', rx.ok === false && !vaza, JSON.stringify(rx.msg));
 const psrc = fs.readFileSync('js/core/profile.js', 'utf8');
 const NL = String.fromCharCode(10);
@@ -56,7 +62,7 @@ console.log(fails === 0 ? 'UNLOCK: TUDO OK' : 'UNLOCK: ' + fails + ' FALHAS');
 /* 7) README e arquivos publicos nao podem conter os codigos secretos */
 {
   const leakers = [];
-  const CODEWORDS = ['adm', 'batata', 'relogio'];
+  const CODEWORDS = ['adm', 'batata', 'relogio', 'dolly'];
   const hasCode = (s) => {
     const t = ' ' + s.toLowerCase().replace(/[^a-zà-ú ]/g, ' ') + ' ';
     return CODEWORDS.some((w) => t.indexOf(' ' + w + ' ') >= 0);
@@ -67,7 +73,7 @@ console.log(fails === 0 ? 'UNLOCK: TUDO OK' : 'UNLOCK: ' + fails + ' FALHAS');
   }
   if (hasCode(fs.readFileSync('index.html', 'utf8'))) leakers.push('index.html');
   // comentarios de codigo nao podem citar os codigos (linhas // ou /* ... */)
-  for (const f of ['js/ui/ui.js', 'js/data/fighters-pack.js', 'js/core/profile.js', 'js/data/pets.js']) {
+  for (const f of ['js/ui/ui.js', 'js/data/fighters-pack.js', 'js/core/profile.js', 'js/data/pets.js', 'js/data/fighters-dolynho.js']) {
     const s = fs.readFileSync(f, 'utf8');
     const commentLines = s.split('\n').filter((l) => l.trim().startsWith('//') || l.trim().startsWith('/*') || l.indexOf('/*') >= 0);
     if (commentLines.some(hasCode)) leakers.push(f + ' (comentario)');

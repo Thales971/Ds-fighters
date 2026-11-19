@@ -472,6 +472,8 @@ class Fighter {
     const canBlock = this.onGround && !unblockable && ['idle', 'walk', 'block', 'crouchblock', 'blockstun'].includes(this.state);
     const blocked = canBlock && ((height === 'high' && standBlock) || (height === 'low' && lowBlock) || (height === 'mid' && (standBlock || lowBlock)));
     if (blocked) {
+      this._blocked = (this._blocked || 0) + 1;
+      if (this._blocked >= 25) Profile.grantAchievement('bloqueio-25');
       const chip = d * (o.projectile || o.ability ? 0.16 : 0.05);
       this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(o.ability ? 0 : 1, this.hp - chip);
       if (atk) atk.stats.dmg += chip;
@@ -781,6 +783,7 @@ class Fighter {
     this.hasHit = false;
     if (p.slot === 'ultimate') {
       this._ultsMatch = (this._ultsMatch || 0) + 1;
+      if (this._ultsMatch >= 1) Profile.grantAchievement('ultimate-1');
       if (this._ultsMatch >= 5) Profile.grantAchievement('ultimate-5');
     }
     this.blocking = false;

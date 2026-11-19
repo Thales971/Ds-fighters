@@ -7,11 +7,11 @@ const Profile = {
   ACCOUNT_KEY_PREFIX: 'dsfighters.profile.account.v1.',
   DEVICE_SETTINGS_KEY: 'dsfighters.profile.device-settings.v1',
   SKINS_ENABLED: false,
-  /* Du, Iales, Felipinho e Maximilian sao SECRETOS: so entram com codigo.
+  /* Du, Iales, Felipinho, Maximilian e Dolynho sao SECRETOS: so entram com codigo.
      Os codigos em si ficam so nas comparacoes abaixo — nunca em comentarios,
      README ou mensagens de erro (anti-vazamento, pedido do dono).
      Winx.exe e Qwen sao personagens NORMAIS (sem codigo). */
-  SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian'],
+  SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian', 'dolynho'],
   LEGACY_IDS: ['du', 'iales', 'felipinho'],
   data: null,
   accountUid: null,
@@ -237,6 +237,14 @@ const Profile = {
       this.save();
       return { ok: true, msg: 'Desbloqueado: MAXIMILIAN!', ids: fresh };
     }
+    if (c === 'dolly') {
+      const ids = ['dolynho'];
+      const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
+      if (!fresh.length) return { ok: true, already: true, msg: 'DOLYNHO j\u00e1 est\u00e1 liberado.', ids };
+      this.data.unlocked.push(...fresh);
+      this.save();
+      return { ok: true, msg: 'Desbloqueado: DOLYNHO!', ids: fresh };
+    }
     if (c === 'adm' || c === 'batata') {
       const ids = c === 'adm' ? this.LEGACY_IDS.concat(['maximilian']) : this.LEGACY_IDS.slice();
       const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
@@ -306,6 +314,7 @@ const Profile = {
     if (this.data.pitocoUnlocked) return false;
     this.data.pitocoUnlocked = true;
     this.save();
+    this.grantAchievement('pitoco-1');
     return true;
   },
   hasPitoco() {
@@ -341,6 +350,15 @@ const Profile = {
       e[element] = (e[element] || 0) + 1;
     }
     this.save();
+  },
+  /* palcos vencidos (para a conquista de turista) */
+  recordStage(stageId) {
+    if (!stageId) return;
+    this.data = this._normalize(this.data || this.load());
+    const w = this.data.winStage || (this.data.winStage = {});
+    w[stageId] = (w[stageId] || 0) + 1;
+    this.save();
+    if (Object.keys(w).length >= 10) this.grantAchievement('estagios-10');
   },
   record(stat, v) {
     this.data = this._normalize(this.data || this.load());

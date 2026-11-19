@@ -4,7 +4,7 @@ Jogo de luta 2D arcade no navegador — pixel art, JS/HTML/CSS puro, **sem engin
 
 ▶️ **Jogar agora:** <https://ds-fighters.vercel.app>
 
-**52 lutadores na grade** (+ boneco de treino oculto e 4 personagens secretos por código) · **94 arenas** · **16 climas**.
+**53 lutadores na grade** (+ boneco de treino oculto e 5 personagens secretos por código) · **94 arenas** · **16 climas**.
 A tela de título lê esses números direto dos dados (`FIGHTERS` / `STAGE_LIST`), então eles nunca ficam desatualizados.
 
 ## ✨ O que tem no jogo
