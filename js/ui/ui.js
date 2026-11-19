@@ -151,7 +151,7 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
+    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
