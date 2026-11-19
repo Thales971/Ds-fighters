@@ -2150,6 +2150,31 @@ class Fighter {
     SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
     ctx.restore();
+    /* ACESSÓRIO universal ligado (ex.: gorro de natal) — pendurado na cabeça
+       pela âncora automática do sprite (1ª linha opaca da célula da pose),
+       com flip na direção e um balançozinho. Funciona em qualquer lutador. */
+    if (typeof ACC_LIST !== 'undefined' && typeof accAnyOn === 'function' && accAnyOn()) {
+      const L = SPRITE_LAYOUT;
+      const ownL = L.perFighter && L.perFighter[this.spriteKey()];
+      const sc = (ownL && ownL.poseScale && ownL.poseScale[pose]) || L.drawScale || 1;
+      const a = SpriteGen.headAnchor(this.spriteKey(), pose);
+      const top = this.y - L.baseline * sc;
+      const hx = this.x + (a.x - L.frameW / 2) * sc * this.dir;
+      const hy = top + a.y * sc;
+      for (const acc of ACC_LIST) {
+        if (typeof accOn === 'function' && !accOn(acc.id)) continue;
+        const img = (typeof ACC_IMAGES !== 'undefined') && ACC_IMAGES[acc.id];
+        if (!img || !(img.complete && img.naturalWidth)) continue;
+        const s = (acc.scale || 1) * sc;
+        const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+        ctx.save();
+        ctx.translate(Math.round(hx), Math.round(hy + Math.sin(this.frame * 0.12) * 1.4));
+        if (this.dir < 0) ctx.scale(-1, 1);
+        ctx.rotate(Math.sin(this.frame * 0.09) * 0.05);
+        ctx.drawImage(img, -Math.round(w / 2), -h + 4, w, h); /* base do acessório assenta na cabeça */
+        ctx.restore();
+      }
+    }
     if (this.has('glitch') && !game.reduced && this.frame % 24 < 5) {
       const jitter = (this.frame % 4) - 1.5;
       ctx.save();

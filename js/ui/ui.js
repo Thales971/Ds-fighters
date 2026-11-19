@@ -1001,6 +1001,29 @@ const UI = {
     this.launchArcade();
   },
 
+  /* ---------- ACESSORIOS universais (gorro de natal etc.) ---------- */
+  enter_acc() {
+    const el = this.$('acc-list');
+    if (!el || typeof ACC_LIST === 'undefined') return;
+    el.innerHTML = ACC_LIST.map((a) => `
+      <div class="acc-row${accOn(a.id) ? ' on' : ''}">
+        <img class="acc-img" src="${a.src}?v=v47-maresprites" alt="" aria-hidden="true" />
+        <div class="acc-info"><b>${a.icon} ${a.name}</b><small>${a.desc}</small></div>
+        <button type="button" class="nav btn tiny acc-toggle" data-acc="${a.id}">${accOn(a.id) ? 'LIGADO ✓' : 'DESLIGADO'}</button>
+      </div>`).join('') || '<p class="sub">Nenhum acessorio disponivel ainda.</p>';
+    el.querySelectorAll('.acc-toggle').forEach((b) => b.addEventListener('click', () => { this.toggleAcc(b.dataset.acc); this.enter_acc(); }));
+    const on = this.$('acc-all-on'), off = this.$('acc-all-off');
+    if (on) on.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, true)); this.enter_acc(); };
+    if (off) off.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, false)); this.enter_acc(); };
+  },
+  setAcc(id, v) {
+    const s = Object.assign({}, Profile.setting('acc') || {});
+    s[id] = !!v;
+    Profile.setting('acc', s);
+    AudioSys.select();
+  },
+  toggleAcc(id) { this.setAcc(id, !accOn(id)); },
+
   /* ---------- pausa / fim ---------- */
   pause() {
     const g = this.game;

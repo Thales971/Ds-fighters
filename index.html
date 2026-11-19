@@ -99,6 +99,7 @@
         <button class="nav mm" data-go="online"><span>ONLINE</span><small>Salas com código de convite</small></button>
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
+        <button class="nav mm" data-go="acc"><span>ACESSÓRIOS</span><small>🎅 para todos os lutadores</small></button>
         <button class="nav mm" data-go="conquistas"><span>CONQUISTAS</span><small>Medalhas e recordes</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
@@ -239,6 +240,20 @@
         <h2>SKINS — EM BREVE</h2>
         <p class="sub">As skins estão desativadas enquanto aprimoramos o recurso. Todos os lutadores usam seu visual original.</p>
         <p class="sub small">Suas preferências antigas foram preservadas. Nenhuma paleta alternativa é aplicada nas lutas.</p>
+        <button class="nav btn" data-back>VOLTAR</button>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-acc" data-screen="acc">
+      <div class="select-bg"></div>
+      <div class="panel wide">
+        <h2>ACESSÓRIOS</h2>
+        <p class="sub">Acessórios universais — quando ligados, aparecem em <b>TODOS</b> os lutadores na luta.</p>
+        <div class="acc-list" id="acc-list"></div>
+        <div class="row">
+          <button class="nav btn" id="acc-all-on" type="button">LIGAR TODOS</button>
+          <button class="nav btn" id="acc-all-off" type="button">DESLIGAR TODOS</button>
+        </div>
         <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
@@ -500,6 +515,7 @@
   <script src="js/data/fighters-rafael.js?v=v52-rafael"></script>
   <script src="js/data/balance.js?v=v53-torneio"></script>
   <script src="js/data/pets.js?v=v47-maresprites"></script>
+  <script src="js/data/accessories.js?v=v47-maresprites"></script>
   <script src="js/data/stages.js?v=v47-maresprites"></script>
   <script src="js/data/stages-v21.js?v=v47-maresprites"></script>
   <script src="js/data/events.js?v=v47-maresprites"></script>
