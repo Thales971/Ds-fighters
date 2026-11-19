@@ -152,7 +152,17 @@
       <div class="sel-layout">
         <aside class="sel-card p1" id="card-0"></aside>
         <div class="sel-grid-wrap">
+          <div class="sel-tools">
+            <input id="sel-search" type="text" placeholder="Buscar lutador… (tecla /)" maxlength="24" autocomplete="off" spellcheck="false" aria-label="Buscar lutador" />
+            <div class="sel-chips" id="sel-chips">
+              <button type="button" class="chip on" data-f="all">TODOS</button>
+              <button type="button" class="chip" data-f="unlocked">LIBERADOS</button>
+              <button type="button" class="chip" data-f="secret">SECRETOS</button>
+              <button type="button" class="chip" data-f="fav">★ FAV</button>
+            </div>
+          </div>
           <div class="sel-grid" id="sel-grid" role="grid" aria-label="Lutadores"></div>
+          <div class="sel-empty" id="sel-empty" hidden>Nenhum lutador encontrado — limpa a busca (Esc)</div>
           <div class="sel-help" id="sel-help"></div>
         </div>
         <aside class="sel-card p2" id="card-1"></aside>

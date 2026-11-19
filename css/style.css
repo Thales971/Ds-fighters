@@ -156,6 +156,17 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .card-empty b { color: var(--gold); font-size: 11px; }
 .sel-grid-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 0; height: 100%; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; scrollbar-width: thin; }
 .sel-grid { display: grid; grid-template-columns: repeat(7, 54px); gap: 5px; }
+/* barra de busca + filtros acima da grade */
+.sel-tools { display: flex; align-items: center; gap: 8px; margin: 6px 0 8px; flex-wrap: wrap; justify-content: center; }
+#sel-search { font-family: 'Press Start 2P', monospace; font-size: 8px; color: #ffe9a8; background: #120a24; border: 3px solid #3a2766; padding: 7px 10px; width: 220px; max-width: 100%; outline: none; }
+#sel-search:focus { border-color: var(--gold, #ffd76a); box-shadow: 0 0 0 2px #000, 0 0 14px rgba(255, 215, 106, .35); }
+.sel-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip { font-family: 'Press Start 2P', monospace; font-size: 7px; color: #c9b8ff; background: #1d1240; border: 2px solid #3a2766; padding: 5px 8px; cursor: pointer; }
+.chip.on { color: #1b1030; background: var(--gold, #ffd76a); border-color: #000; font-weight: bold; }
+.sel-empty { margin-top: 10px; font-size: 8px; color: #ff9a8a; text-shadow: 1px 1px 0 #000; }
+/* estrelinha de favorito no canto da celula */
+.favbtn { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; padding: 0; font-size: 10px; line-height: 1; color: #6f6a86; background: #120a24; border: 2px solid #3a2766; border-radius: 50%; cursor: pointer; z-index: 2; }
+.favbtn.on { color: #ffd76a; border-color: #ffd76a; text-shadow: 0 0 6px rgba(255, 215, 106, .8); }
 .cell { position: relative; width: 54px; height: 70px; padding: 0; border: 3px solid #3a2766; background: linear-gradient(#2a1650, #120a24); cursor: pointer; color: #fff; overflow: visible; }
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
 .cell .face.roster-portrait { background-color: transparent; image-rendering: pixelated; animation: none; }

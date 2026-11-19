@@ -149,3 +149,7 @@ body.mobile .hud-stage, body.mobile .speech { display: none; }
 body.mobile .tbtns button { position: relative; }
 .touch-key { position: absolute; bottom: 1px; right: 2px; color: #fff; background: rgba(0,0,0,.85); padding: 2px 3px; border-radius: 4px; }
 body.mobile .mobile-landscape-hint { max-width: 42%; }
+/* busca/filtro na grade de selecao no mobile: ferramentas empilham e o campo ocupa a largura */
+body.mobile .sel-tools { flex-direction: column; align-items: stretch; width: 100%; }
+body.mobile #sel-search { width: 100%; }
+body.mobile .sel-chips { justify-content: center; }
