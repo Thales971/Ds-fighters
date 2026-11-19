@@ -204,6 +204,7 @@ class Game {
     this._drama = false;
     this._lb = 0; /* letterbox (barras de cinema) no drama — 0..1 */
     this.photo = null; /* MODO FOTO: {x, y, z, hideF} ou null — camera livre sobre a cena pausada */
+    this.perfLevel = 0; this._perfToast = -1; /* modo performance automatico (watchdog de fps) */
     this.applyQuality(); /* qualidade dos graficos vem do perfil (low/medium/high) */
   }
   /* QUALIDADE DOS GRAFICOS (opcoes): medium = como sempre foi; low tira os
@@ -646,7 +647,7 @@ class Game {
     const fighting = this.roundState === 'fight';
     this.stage.update(this.weather);
     this.weather.update(fighting);
-    if (this.stage && this.stage.liveFauna && this.roundState === 'fight') this.stage.liveFauna.update();
+    if (this.stage && this.stage.liveFauna && this.roundState === 'fight' && this.perfLevel < 2) this.stage.liveFauna.update();
     if (typeof VFX !== 'undefined') VFX.update(W, H);
     this.mech.tick(fighting);
     if (this.bsod > 0) this.bsod--;
@@ -1122,19 +1123,35 @@ class Game {
   applyChroma(ctx, W, H) {
     if (this.chroma <= 0 || this.reduced) return;
     if (typeof ctx.getImageData !== 'function' || typeof ctx.putImageData !== 'function') return;
-    const d = this.chroma >= 10 ? 2 : 1; /* 2px so no K.O.; golpe pesado fica sutil (1px) */
-    const img = ctx.getImageData(0, 0, W, H);
+    /* readback em MEIA RESOLUCAO: getImageData/putImageData em tela cheia e o
+       gargalo no celular (leitura GPU->CPU por frame); 480x270 = 4x menos
+       pixels e a volta e so um drawImage com smoothing (fica na GPU). */
+    const w2 = Math.max(2, (W * 0.5) | 0), h2 = Math.max(2, (H * 0.5) | 0);
+    if (!this._chromaCv || !this._chromaOx) {
+      this._chromaCv = document.createElement('canvas');
+      this._chromaOx = this._chromaCv.getContext('2d');
+    }
+    const cv = this._chromaCv, ox = this._chromaOx;
+    if (cv.width !== w2 || cv.height !== h2) { cv.width = w2; cv.height = h2; }
+    ox.clearRect(0, 0, w2, h2);
+    ox.drawImage(this.canvas, 0, 0, w2, h2);
+    const img = ox.getImageData(0, 0, w2, h2);
     const s = img.data;
     const src = new Uint8ClampedArray(s);
-    for (let y = 0; y < H; y++) {
-      const row = y * W * 4;
-      for (let x = 0; x < W; x++) {
+    const d = this.chroma >= 10 ? 2 : 1; /* 2px na meia-res = ~4px na tela cheia so no K.O. */
+    for (let y = 0; y < h2; y++) {
+      const row = y * w2 * 4;
+      for (let x = 0; x < w2; x++) {
         const i = row + x * 4;
         s[i] = src[x > d ? i - d * 4 : row];                 /* canal R deslocado */
-        s[i + 2] = src[x < W - 1 - d ? i + d * 4 + 2 : row + 2]; /* canal B deslocado */
+        s[i + 2] = src[x < w2 - 1 - d ? i + d * 4 + 2 : row + 2]; /* canal B deslocado */
       }
     }
-    ctx.putImageData(img, 0, 0);
+    ox.putImageData(img, 0, 0);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(cv, 0, 0, W, H);
+    ctx.restore();
   }
   drawDaltonicGas(ctx, W, H) {
     if (!this._gasBlob) {
@@ -1163,6 +1180,29 @@ class Game {
     ctx.fillStyle = 'rgba(255,110,210,0.07)';
     ctx.fillRect(0, 0, W, H);
   }
+  /* MODO PERFORMANCE AUTOMATICO: o loop principal (main.js) mede o fps e chama
+     isso quando o aparelho esta sofrendo. Nivel 1 = sem chroma/reflexo/molhado/
+     foreground/letterbox + clima com 45% das particulas + CSS leve (perf-low).
+     Nivel 2 = alem disso clima e vinheta desligados, fauna viva parada (perf-xlow).
+     Nivel 0 restaura conforme a qualidade escolhida nas opcoes. */
+  applyPerf(level) {
+    level = Math.max(0, Math.min(2, level | 0));
+    this.perfLevel = level;
+    this.qFxOn = !(this.quality === 'low' || level >= 1);
+    if (this.weather) { this.weather.perfScale = level >= 1 ? 0.45 : 1; this.weather.perfOff = level >= 2; }
+    if (this.stage) this.stage.perfVignetteOff = level >= 2;
+    const body = (typeof document !== 'undefined' && document.body) || null;
+    if (body && body.classList) {
+      body.classList.toggle('perf-low', level >= 1);
+      body.classList.toggle('perf-xlow', level >= 2);
+    }
+    if (level >= 1 && this._perfToast !== level && typeof UI !== 'undefined' && UI.toast) {
+      this._perfToast = level;
+      try { UI.toast('\u26a1 Modo performance ligado (fps baixo detectado)', 2600); } catch (e) {}
+    }
+    if (level === 0) this._perfToast = -1;
+  }
+
   /* MODO FOTO: limita pan/zoom pra camera nao ir pro vazio */
   photoClamp() {
     const p = this.photo;

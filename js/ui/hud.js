@@ -96,26 +96,41 @@ const HUD = {
       const f = t.members[t.active];
       const side = document.querySelector(`#hud .side[data-team="${ti}"]`);
       if (!side || !f) return;
-      const q = (s) => side.querySelector(s);
+      if (!side._r) {
+        /* refs cacheadas: querySelector por frame x 60fps e caro demais */
+        side._r = {
+          fill: side.querySelector('.fill'), red: side.querySelector('.red'), shield: side.querySelector('.shield'),
+          num: side.querySelector('.lifenum'), life: side.querySelector('.life'),
+          ult: side.querySelector('.ult i'), ultP: side.querySelector('.ult'),
+          ca: side.querySelector('.ca i'), caP: side.querySelector('.ca'),
+          cb: side.querySelector('.cb i'), cbP: side.querySelector('.cb'),
+          stun: side.querySelector('.stun i'), pips: side.querySelectorAll('.pips i'),
+          statuses: side.querySelector('.statuses'), partner: side.querySelector('.partner'),
+          plife: side.querySelector('.plife i'), ptag: side.querySelector('.ptag'),
+        };
+      }
+      const R = side._r;
+      const setW = (el, v) => { if (el && el._w !== v) { el._w = v; el.style.width = v; } };
+      const setT = (el, v) => { if (el && el._t !== v) { el._t = v; el.textContent = v; } };
       const hpPct = Math.max(0, f.hp / f.maxHp) * 100;
-      q('.fill').style.width = hpPct + '%';
-      q('.red').style.width = Math.max(0, f.redHp / f.maxHp) * 100 + '%';
-      q('.shield').style.width = Math.min(100, ((f.shield || 0) / f.maxHp) * 100 * 3) + '%';
-      q('.lifenum').textContent = game.cfg.infiniteLife ? '∞' : Math.ceil(Math.max(0, f.hp));
+      setW(R.fill, hpPct + '%');
+      setW(R.red, Math.max(0, f.redHp / f.maxHp) * 100 + '%');
+      setW(R.shield, Math.min(100, ((f.shield || 0) / f.maxHp) * 100 * 3) + '%');
+      setT(R.num, game.cfg.infiniteLife ? '\u221e' : String(Math.ceil(Math.max(0, f.hp))));
       /* flash branco na barra quando leva dano (ghost vermelho drena depois) */
       if (this._prevHp[ti] === undefined) this._prevHp[ti] = f.hp;
       if (f.hp < this._prevHp[ti] - 0.01) this._hitT[ti] = now + 140;
       this._prevHp[ti] = f.hp;
-      q('.life').classList.toggle('hit', now < (this._hitT[ti] || 0));
-      q('.life').classList.toggle('low', hpPct < 25);
-      q('.ult i').style.width = f.ultimate + '%';
-      q('.ult').classList.toggle('full', f.ultimate >= 100);
-      q('.ca i').style.width = f.charge[0] + '%';
-      q('.ca').classList.toggle('full', f.charge[0] >= 100);
-      q('.cb i').style.width = f.charge[1] + '%';
-      q('.cb').classList.toggle('full', f.charge[1] >= 100);
-      q('.stun i').style.width = Math.min(100, f.stunGauge || 0) + '%';
-      side.querySelectorAll('.pips i').forEach((p, k) => p.classList.toggle('won', k < game.teamWins[ti]));
+      R.life.classList.toggle('hit', now < (this._hitT[ti] || 0));
+      R.life.classList.toggle('low', hpPct < 25);
+      setW(R.ult, f.ultimate + '%');
+      R.ultP.classList.toggle('full', f.ultimate >= 100);
+      setW(R.ca, f.charge[0] + '%');
+      R.caP.classList.toggle('full', f.charge[0] >= 100);
+      setW(R.cb, f.charge[1] + '%');
+      R.cbP.classList.toggle('full', f.charge[1] >= 100);
+      setW(R.stun, Math.min(100, f.stunGauge || 0) + '%');
+      R.pips.forEach((p, k) => p.classList.toggle('won', k < game.teamWins[ti]));
       // status
       const chips = [];
       for (const k of Object.keys(f.status || {})) {
@@ -127,16 +142,16 @@ const HUD = {
       if (f.afo) chips.push(`<span style="--c:#b26bff">ALL FOR ONE ×${f.afo}</span>`);
       if (f.has && f.has('dizzy')) chips.push(`<span class="big" style="--c:#ffe14d">TONTO!</span>`);
       const html = chips.join('');
-      const st = q('.statuses');
+      const st = R.statuses;
       if (st.dataset.h !== html) { st.innerHTML = html; st.dataset.h = html; }
       // parceiro
       const partner = t.members.find((m, k) => k !== t.active);
-      if (partner && q('.partner')) {
-        q('.plife i').style.width = Math.max(0, partner.hp / partner.maxHp) * 100 + '%';
-        q('.partner').classList.toggle('dead', !partner.alive);
+      if (partner && R.partner) {
+        setW(R.plife, Math.max(0, partner.hp / partner.maxHp) * 100 + '%');
+        R.partner.classList.toggle('dead', !partner.alive);
         const keys = this.keyLabels(game, ti);
-        q('.ptag').textContent = !partner.alive ? 'K.O.' : t.tagCd > 0 ? Math.ceil(t.tagCd / 60) + 's' : 'TROCA ' + (keys ? keys.tag : '');
-        q('.partner').classList.toggle('ready', partner.alive && t.tagCd <= 0);
+        setT(R.ptag, !partner.alive ? 'K.O.' : t.tagCd > 0 ? Math.ceil(t.tagCd / 60) + 's' : 'TROCA ' + (keys ? keys.tag : ''));
+        R.partner.classList.toggle('ready', partner.alive && t.tagCd <= 0);
       }
       // habilidades
       const sk = this.$('skills-' + ti);

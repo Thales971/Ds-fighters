@@ -170,7 +170,8 @@ class Weather {
     }
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const want = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const want = Math.max(0, Math.round(wantBase * (this.perfScale || 1))); /* perfScale: modo performance reduz particulas */
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
       const r = this.game.rnd ? this.game.rnd() : Math.random();
@@ -315,6 +316,7 @@ class Weather {
     }
   }
   draw(ctx) {
+    if (this.perfOff) return; /* modo performance nivel 2: clima desligado */
     if (!this.drops.length && !this.flash) return;
     ctx.save();
     if (this.kind === 'aurora') {
@@ -343,9 +345,10 @@ class Weather {
             { top: -522, hgt: 235, hue: 1, ph: 5.1 },
             { top: -508, hgt: 175, hue: 3, ph: 6.3 },
           ];
+      const useDefs = defs.slice(0, Math.max(2, Math.round(defs.length * (this.perfScale || 1))));
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      for (const c of defs) {
+      for (const c of useDefs) {
         const col = COL[c.hue];
         const sway = t * (0.35 + (c.ph % 1) * 0.22);
         const edgeY = (x) => c.top + c.hgt + Math.sin(x * 0.013 - sway * 1.4 + c.ph * 2) * 34 + Math.sin(x * 0.031 + sway * 2.2 + c.ph) * 13;
@@ -369,7 +372,7 @@ class Weather {
         ctx.lineWidth = 2.6;
         ctx.stroke();
         /* raios verticais cintilando dentro da cortina */
-        const nRays = reduced ? 16 : 56;
+        const nRays = Math.max(6, Math.round((reduced ? 16 : 56) * (this.perfScale || 1)));
         for (let i = 0; i < nRays; i++) {
           const x = -20 + (i / nRays) * (W + 40) + Math.sin(i * 12.9898) * 18;
           const tw = 0.5 + 0.5 * Math.sin(x * 0.05 + t * (0.8 + (i % 5) * 0.23) + c.ph * 3 + i);
