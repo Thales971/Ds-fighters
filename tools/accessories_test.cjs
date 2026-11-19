@@ -104,6 +104,44 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   check('sprites.js: headAnchor com scan de alpha + cache + fallback', spr.indexOf('headAnchor(id, pose)') >= 0 && spr.indexOf('_headCache') >= 0 && spr.indexOf('getImageData') >= 0);
   check('css: .acc-list/.acc-row/.acc-img/.acc-toggle', /\.acc-list\s*\{/.test(css) && /\.acc-row\s*\{/.test(css) && /\.acc-img\s*\{/.test(css) && /\.acc-toggle\s*\{/.test(css));
 
+  // ===== 6. navegacao: VOLTAR (data-back/Esc) funciona na tela de acessorios =====
+  check('ui.js: back() inclui a tela acc na lista que volta pro menu + binding [data-back] + Esc chama back()', /\['acc', 'custom'[^\]]*\]\.includes\(this\.screen\)/.test(ui) && ui.indexOf("[data-back]').forEach") >= 0 && /m\.back \|\| Input\.hit\(\['Escape', 'Backspace'\]\)/.test(ui));
+  {
+    const ctx3 = {
+      console, Math, Date, JSON, fs,
+      localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+      location: { hash: '' }, window: {},
+      Input: { init() {}, read: () => ({}), hit: () => false, menu: () => ({}), releaseAll() {} },
+      AudioSys: new Proxy({}, { get: () => () => {} }),
+      HUD: { hide() {}, show() {} }, Net: { room: null },
+      Profile: { data: { settings: {}, unlocked: [], achievements: [] }, setting(k, v) { if (v === undefined) return this.data.settings[k]; this.data.settings[k] = v; return v; }, reducedMotion: () => false },
+      document: { getElementById: () => null, createElement: () => ({ style: {}, classList: { add() {}, remove() {}, toggle() {} } }), querySelectorAll: () => [], querySelector: () => null, addEventListener() {}, body: { classList: { add() {}, remove() {}, toggle() {} }, dataset: {} }, activeElement: null },
+      setTimeout, clearTimeout,
+    };
+    ctx3.globalThis = ctx3; vm.createContext(ctx3);
+    vm.runInContext(ui, ctx3, { filename: 'js/ui/ui.js' });
+    const nav = vm.runInContext(`(() => {
+      const ui = Object.create(UI);
+      const calls = [];
+      ui.stack = []; ui.flow = null;
+      ui.screen = 'acc';
+      ui.show = (n) => { calls.push('show:' + n); ui.screen = n; };
+      ui.toMenu = () => { calls.push('toMenu'); };
+      ui.back();
+      const accBack = calls.join(',');
+      calls.length = 0; ui.screen = 'options'; ui.stack = ['menu'];
+      ui.back();
+      const stackBack = calls.join(',');
+      calls.length = 0; ui.screen = 'conquistas'; ui.stack = [];
+      ui.back();
+      const cqBack = calls.join(',');
+      return JSON.stringify({ accBack, stackBack, cqBack });
+    })()`, ctx3);
+    const NV = JSON.parse(nav);
+    check('back() na tela ACESSORIOS volta pro menu (VOLTAR/Esc funcionam)', NV.accBack === 'toMenu', nav);
+    check('back() com pilha continua desempilhando (show:menu) e conquistas segue toMenu', NV.stackBack === 'show:menu' && NV.cqBack === 'toMenu', nav);
+  }
+
   console.log('---');
   console.log(fails === 0 ? 'ACESSORIOS: TUDO OK (' + n + ' checks)' : 'ACESSORIOS: ' + fails + ' FALHAS de ' + n);
   process.exit(fails ? 1 : 0);

@@ -151,7 +151,7 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
+    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
@@ -454,7 +454,7 @@ const UI = {
         <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
         <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
         ${lock ? '<span class="lk">&#128274;<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
-        <button type="button" class="favbtn${favs.has(d.id) ? ' on' : ''}" data-fav="${d.id}" title="Favoritar (tecla F)" aria-label="Favoritar ${d.id}">★</button>
+        <span class="favbtn${favs.has(d.id) ? ' on' : ''}" role="button" tabindex="-1" data-fav="${d.id}" title="Favoritar (tecla F)" aria-label="Favoritar ${d.id}">★</span>
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
     }).join('');
@@ -518,7 +518,9 @@ const UI = {
     this.stopSelectBg();
     const cv = this.$('select-live');
     if (!cv || !cv.getContext || typeof StageRenderer === 'undefined' || typeof Weather === 'undefined' || typeof STAGE_LIST === 'undefined' || !STAGE_LIST.length) return;
-    const W = 960, H = 540;
+    /* meia resolucao + metade da taxa: o fundo fica atras de um veu escuro,
+       entao 480x270 a 30fps sobra — nao gasta GPU dupla com o demo atras */
+    const W = 480, H = 270;
     cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
     const f = this.flow;
@@ -572,10 +574,11 @@ const UI = {
         stage.drawVignette(ctx);
       } catch (e) { /* fundo do menu nunca pode quebrar a selecao */ }
     };
+    let skip = 0;
     const draw = () => {
       if (!this._selBg || this.screen !== 'select') return;
       this._selBgRaf = requestAnimationFrame(draw);
-      paint();
+      if ((skip++ % 2) === 0) paint(); /* 30fps no fundo ao vivo */
     };
     this._selBg = true;
     if (q === 'low' || reduced) paint(); /* qualidade baixa/reduzido: 1 frame estatico, sem gastar rAF */
