@@ -269,6 +269,7 @@
           <label>Limite de FPS <select data-set="fpsCap" title="Sem limite usa a taxa do monitor (120/144/240+)"><option value="0" title="Taxa do monitor: 120/144/240+">Sem limite</option><option value="60">60</option><option value="120">120</option><option value="144">144</option><option value="240">240</option></select></label>
           <label class="chk"><input type="checkbox" data-set="smooth" /> Movimento suavizado (interpolação acima de 60 FPS)</label>
           <label class="chk"><input type="checkbox" data-set="showFps" /> Mostrar FPS</label>
+          <label class="chk"><input type="checkbox" data-set="showNet" /> Mostrar ping e rede na luta</label>
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
@@ -387,6 +388,7 @@
     </section>
 
     <div id="fps" class="fps" hidden>-- FPS</div>
+    <div id="net-hud" class="fps net-hud" hidden>🌐 —</div>
     <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="dpad">
