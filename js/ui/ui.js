@@ -160,25 +160,31 @@ const UI = {
     const st = (Profile.data && Profile.data.stats) || {};
     const winBy = (Profile.data && Profile.data.winBy) || {};
     const survivalBy = st.survivalBy || {};
-    const medals = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []).map((a) => {
+    const list = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []);
+    const total = list.length;
+    const pct = total ? Math.round((got.length / total) * 100) : 0;
+    const medals = list.map((a) => {
       const on = got.includes(a.id);
-      return `<div class="medal ${on ? 'on' : ''}"><b>${on ? '\u{1F3C5}' : '\u{1F512}'} ${a.name}</b><span>${a.desc}</span></div>`;
+      return `<div class="medal ${on ? 'on' : ''}"><span class="mi">${on ? '\u{1F3C6}' : '\u{1F512}'}</span><div><b>${a.name}</b><small>${a.desc}</small></div></div>`;
     }).join('');
     const nome = (id) => ((typeof FIGHTERS !== 'undefined' ? FIGHTERS.find((f) => f.id === id) : null) || { name: id }).name;
     const topSurvival = Object.entries(survivalBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
-      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vit\u00f3rias</li>`).join('');
     const topWinners = Object.entries(winBy).sort((a, b) => b[1] - a[1]).slice(0, 8)
-      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vitorias</li>`).join('');
+      .map(([id, w]) => `<li><b>${nome(id)}</b> ${w} vit\u00f3rias</li>`).join('');
     this.$('conquistas-list').innerHTML = `
-      <div class="cq-grid">
-        <div><h3>MEDALHAS ${got.length}/${(typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0)}</h3><div class="medals">${medals}</div></div>
-        <div>
-          <h3>RECORDES</h3>
-          <p class="rec">Melhor arcade: <b>${st.bestArcade || 0}/7</b> - Melhor survival: <b>${st.bestSurvival || 0}</b> - Combo maximo: <b>${st.maxCombo || 0}</b></p>
-          <p class="rec">Lutas: <b>${st.fights || 0}</b> - Vitorias: <b>${st.wins || 0}</b></p>
-          ${topSurvival ? `<h4>SURVIVAL POR LUTADOR</h4><ul class="tops">${topSurvival}</ul>` : ''}
-          ${topWinners ? `<h4>MAIS VITORIOSOS</h4><ul class="tops">${topWinners}</ul>` : ''}
-        </div>
+      <div class="cq-head">
+        <h3>MEDALHAS</h3>
+        <div class="cq-bar"><i style="width:${pct}%"></i></div>
+        <span class="cq-pct">${got.length}/${total} \u00b7 ${pct}%</span>
+      </div>
+      <div class="medals">${medals}</div>
+      <div class="cq-rec">
+        <h3>RECORDES</h3>
+        <p class="rec">Melhor arcade: <b>${st.bestArcade || 0}/7</b> \u00b7 Melhor survival: <b>${st.bestSurvival || 0}</b> \u00b7 Combo m\u00e1ximo: <b>${st.maxCombo || 0}</b></p>
+        <p class="rec">Lutas: <b>${st.fights || 0}</b> \u00b7 Vit\u00f3rias: <b>${st.wins || 0}</b></p>
+        ${topSurvival ? `<h4>SURVIVAL POR LUTADOR</h4><ul class="tops">${topSurvival}</ul>` : ''}
+        ${topWinners ? `<h4>MAIS VITORIOSOS</h4><ul class="tops">${topWinners}</ul>` : ''}
       </div>`;
   },
   toMenu() {
@@ -242,6 +248,7 @@ const UI = {
       <div><span>Maior combo</span><b>${s.maxCombo}</b></div>
       <div><span>Arcade (melhor)</span><b>${s.bestArcade}/7</b></div>
       <div><span>Secretos</span><b>${Profile.data.unlocked.length}/${Profile.SECRET_IDS.length}</b></div>
+      <div><span>Medalhas</span><b>${(Profile.data.achievements || []).length}/${typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.length : 0}</b></div>
       <div><span>Mascote P1</span><b>${Profile.petFor(0).name}</b></div>`;
     this.applyRelease();
     if (typeof Events !== 'undefined') this.applyEventSkin();
@@ -500,6 +507,7 @@ const UI = {
     const adding = !set.has(id);
     if (adding) set.add(id); else set.delete(id);
     Profile.setting('favFighters', [...set]);
+    if (adding && set.size >= 5 && typeof Profile !== 'undefined') Profile.grantAchievement('favoritos-5');
     AudioSys.select();
     const d = FIGHTERS.find((x) => x.id === id);
     this.toast((adding ? '★ ' : '☆ ') + (d ? d.name : id) + (adding ? ' entrou nos favoritos' : ' saiu dos favoritos'));
@@ -1033,6 +1041,7 @@ const UI = {
     const s = Object.assign({}, Profile.setting('acc') || {});
     s[id] = !!v;
     Profile.setting('acc', s);
+    if (v && typeof Profile !== 'undefined') Profile.grantAchievement('acessorio-1');
     AudioSys.select();
   },
   toggleAcc(id) { this.setAcc(id, !accOn(id)); },
@@ -1070,6 +1079,7 @@ const UI = {
       a.click();
       a.remove();
       this.toast('\ud83d\udcf7 Foto salva!');
+      if (typeof Profile !== 'undefined') Profile.grantAchievement('foto-1');
       AudioSys.select();
     } catch (e) { this.toast('Nao consegui salvar a foto'); }
   },
@@ -1146,6 +1156,7 @@ const UI = {
     next.hidden = true;
     if (game.mode === 'arcade') {
       if (res.winner === 0) {
+        if (f.arcadeStep >= 3) Profile.grantAchievement('arcade-3');
         if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); Profile.grantAchievement('arcade-campeao'); }
         else { Profile.record('bestArcade', f.arcadeStep + 1); next.hidden = false; }
       }
@@ -1154,6 +1165,7 @@ const UI = {
       if (res.winner === 0) {
         f.survivalWins = (f.survivalWins || 0) + 1;
         Profile.record('bestSurvival', f.survivalWins);
+        if (f.survivalWins >= 5) Profile.grantAchievement('survival-5');
         if (f.survivalWins >= 10) Profile.grantAchievement('survival-10');
         const p0 = game && game.teams && game.teams[0] && game.teams[0].members[0];
         if (p0 && p0.def) Profile.recordSurvivalBy(p0.def.id, f.survivalWins);
@@ -1194,7 +1206,7 @@ const UI = {
     grid.innerHTML = PETS.map((p) => {
       const locked = !!p.secret && !hasPit; /* segredo travado mostra SILHUETA, nao some */
       const spr = locked
-        ? `<span class="pet-spr none" title="???"></span>`
+        ? `<span class="pet-spr sil" title="???">?</span>`
         : `<span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v47-maresprites)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
       const name = locked ? '???' : p.name;
       const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : p.buff;
@@ -1211,6 +1223,7 @@ const UI = {
         return;
       }
       Profile.setPet(slot, b.dataset.id);
+      if (b.dataset.id !== 'none' && typeof Profile !== 'undefined') Profile.grantAchievement('pet-1');
       AudioSys.play('pickup');
       this.renderPets();
       this.buildMenuSide();

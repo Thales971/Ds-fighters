@@ -55,7 +55,7 @@ check('busca sem resultado = so a aleatoria', nada.length === 1 && nada[0] === F
 
 // 4) filtros
 const sec = vm.runInContext('selFilterSlots(FIGHTERS, "", "secret", [], () => true)', ctx);
-check('filtro SECRETOS: so os 4 secretos + aleatoria', sec.length === 5 && sec.slice(0, -1).every((i) => F[i] && F[i].secret), sec.map((i) => F[i] && F[i].id).join(','));
+check('filtro SECRETOS: so os 5 secretos (incl. dolynho) + aleatoria', sec.length === 6 && sec.slice(0, -1).every((i) => F[i] && F[i].secret) && sec.slice(0, -1).some((i) => F[i] && F[i].id === 'dolynho'), sec.map((i) => F[i] && F[i].id).join(','));
 const fav = vm.runInContext('selFilterSlots(FIGHTERS, "", "fav", ["du", "kira"], () => true)', ctx);
 check('filtro FAVORITOS [du,kira] -> du,kira,aleatoria', fav.length === 3 && F[fav[0]] && F[fav[0]].id === 'du' && F[fav[1]] && F[fav[1]].id === 'kira', JSON.stringify(fav.map((i) => F[i] && F[i].id)));
 const unl = vm.runInContext('selFilterSlots(FIGHTERS, "", "unlocked", [], (id) => id !== "du")', ctx);
