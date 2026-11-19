@@ -123,7 +123,10 @@ function preloadAll() {
     const cap = Number(Profile.data.settings.fpsCap) || 0;
     if (!cap || now - lastDraw >= 1000 / cap - 1) {
       lastDraw = now;
-      if (game.stage) game.render(Math.max(0, Math.min(1, acc / STEP)));
+      /* tela de selecao com palco ao vivo: o canvas do demo fica totalmente
+         coberto (z 20 > game), entao nao gastar GPU renderizando ele */
+      const selBgOn = (typeof UI !== 'undefined' && UI.screen === 'select' && !!UI._selBg);
+      if (game.stage && !selBgOn) game.render(Math.max(0, Math.min(1, acc / STEP)));
       fpsFrames++;
     }
     if (now - fpsT >= 500) {

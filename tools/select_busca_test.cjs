@@ -79,6 +79,25 @@ check('mobile.css: ferramentas de busca empilham no celular', /body\.mobile \.se
 const favRt = vm.runInContext(`(function(){ const P = Profile; const a = P.setting('favFighters'); P.setting('favFighters', ['du', 'kira']); const b = P.setting('favFighters'); return JSON.stringify([a === undefined, Array.isArray(b) && b.length === 2]); })()`, ctx);
 check('favFighters persiste no Profile (default vazio, salva array)', JSON.parse(favRt).every(Boolean), favRt);
 
+// 7) FIX grade quebrada: favbtn era <button> dentro de <button class="cell"> —
+//    o parser HTML fecha o botao externo no favbtn e os spans .cur viram itens
+//    da grid (layout quebrado). Agora favbtn e <span> e a celula nao tem botao dentro.
+{
+  const cellTpl = uiSrc.match(/<button class="cell[\s\S]*?<\/button>/);
+  check('celula da grade NAO tem <button> aninhado (favbtn virou span) — sem quebrar o parse', !!cellTpl && cellTpl[0].indexOf('<button', 10) < 0 && uiSrc.indexOf('<span class="favbtn') >= 0 && !/<button[^>]*class="favbtn/.test(uiSrc));
+  check('binding do fav continua no .favbtn (span aceita click) + tecla F continua', uiSrc.indexOf("querySelectorAll('.favbtn')") >= 0 && uiSrc.indexOf("Input.hit(['KeyF'])") >= 0);
+  check('css: .favbtn com display (span precisa) e .on dourado', /\.favbtn\s*\{[^}]*display\s*:/.test(css) && /\.favbtn\.on/.test(css));
+}
+
+// 8) FIX 30fps na selecao: fundo ao vivo em meia resolucao + metade da taxa,
+//    e o loop principal pula o render do demo escondido atras da tela de selecao
+{
+  const mainSrc = fs.readFileSync('js/main.js', 'utf8');
+  check('main.js: pula game.render quando a selecao esta com palco ao vivo (selBgOn)', mainSrc.indexOf("UI.screen === 'select' && !!UI._selBg") >= 0 && /if \(game\.stage && !selBgOn\)/.test(mainSrc));
+  check('ui.js startSelectBg: canvas 480x270 (metade) + paint a cada 2 frames (30fps)', uiSrc.indexOf('const W = 480, H = 270;') >= 0 && uiSrc.indexOf('(skip++ % 2) === 0') >= 0);
+  check('ui.js startSelectBg: qualidade baixa/reduzido continua 1 frame estatico', uiSrc.indexOf("if (q === 'low' || reduced) paint();") >= 0);
+}
+
 console.log('---');
 console.log(fails === 0 ? 'BUSCA NA GRADE: TUDO OK (' + n + ' checks)' : 'BUSCA NA GRADE: ' + fails + ' FALHAS de ' + n);
 process.exit(fails ? 1 : 0);
