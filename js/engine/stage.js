@@ -1000,6 +1000,7 @@ class StageRenderer {
     ctx.restore();
   }
   drawVignette(ctx) {
+    if (this.perfVignetteOff) return; /* modo performance nivel 2 */
     if (!this.vignette) {
       const c = document.createElement('canvas');
       c.width = this.W;

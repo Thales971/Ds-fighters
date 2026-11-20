@@ -109,12 +109,13 @@ function preloadAll() {
     acc += Math.min(100, now - last);
     last = now;
     let steps = 0;
+    /* selecao com palco ao vivo: o demo fica 100% coberto atras da tela
+       (z 20 > canvas), entao nem ticka nem renderiza ele — sobra GPU pro jogo */
+    const selBgOn = (typeof UI !== 'undefined' && UI.screen === 'select' && !!UI._selBg);
     while (acc >= STEP && steps < 5) {
       Input.pollPads();
       UI.tick();
-      game.capturePrev();
-      game.tick();
-      Net.frame(game);
+      if (!selBgOn) { game.capturePrev(); game.tick(); Net.frame(game); }
       Input.endFrame();
       acc -= STEP;
       steps++;
@@ -123,15 +124,13 @@ function preloadAll() {
     const cap = Number(Profile.data.settings.fpsCap) || 0;
     if (!cap || now - lastDraw >= 1000 / cap - 1) {
       lastDraw = now;
-      /* tela de selecao com palco ao vivo: o canvas do demo fica totalmente
-         coberto (z 20 > game), entao nao gastar GPU renderizando ele */
-      const selBgOn = (typeof UI !== 'undefined' && UI.screen === 'select' && !!UI._selBg);
       if (game.stage && !selBgOn) game.render(Math.max(0, Math.min(1, acc / STEP)));
       fpsFrames++;
     }
     if (now - fpsT >= 500) {
+      const fpsNow = Math.round((fpsFrames * 1000) / (now - fpsT));
       if (fpsEl) {
-        fpsEl.textContent = Math.round((fpsFrames * 1000) / (now - fpsT)) + ' FPS';
+        fpsEl.textContent = fpsNow + ' FPS';
         fpsEl.hidden = !Profile.data.settings.showFps;
       }
       /* HUD de ping/rede na luta (opcao showNet) */
@@ -141,6 +140,21 @@ function preloadAll() {
         netEl.hidden = !show;
         if (show) netEl.textContent = netHudText();
       }
+      /* watchdog de performance automatica: fps < 38 por ~2s desce o nivel
+         (game.applyPerf); fps > 55 por ~5s e nivel > 0 sobe de volta.
+         Qualidade "Baixo" nas opcoes tranca direto no nivel 2. */
+      try {
+        const q = (Profile.data.settings && Profile.data.settings.quality) || 'medium';
+        if (!window.__perf) window.__perf = { level: q === 'low' ? 2 : 0, bad: 0, good: 0 };
+        const P = window.__perf;
+        if (q === 'low') P.level = 2;
+        else {
+          if (fpsNow < 38) { P.bad++; P.good = 0; } else { P.bad = 0; if (fpsNow > 55) P.good++; else P.good = 0; }
+          if (P.bad >= 4 && P.level < 2) P.level++;
+          else if (P.good >= 10 && P.level > 0) P.level--;
+        }
+        if (game.applyPerf) game.applyPerf(P.level);
+      } catch (e) {}
       fpsFrames = 0;
       fpsT = now;
     }
