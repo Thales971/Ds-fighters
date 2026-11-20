@@ -150,6 +150,71 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
     check('onda anima varios quadros ao longo do tempo', frames.size >= 6, frames.size + ' quadros');
   }
 }
+// ===== 4. AURORA EM PIXEL ART, ATRAS DA TORCIDA/LUTADORES =====
+{
+  const g = mk('sesi');
+  const Wt = g.weather;
+  check('Weather.drawSky existe', typeof Wt.drawSky === 'function');
+  if (typeof Wt.drawSky === 'function') {
+    Wt.set('aurora'); Wt.intensity = 1; Wt.perfScale = 1; Wt.perfOff = false;
+    for (let t = 0; t < 40; t++) Wt.updateParticles();
+    /* draw() (camada da frente, por cima dos lutadores) nao pinta aurora */
+    let ops = 0;
+    const cnt = Object.assign(fake2d(), { fillRect() { ops++; }, fill() { ops++; }, drawImage() { ops++; }, stroke() { ops++; } });
+    Wt.draw(cnt); Wt.drawOverlay(cnt, 960, 540);
+    check('aurora nao e mais desenhada na frente dos lutadores (draw/drawOverlay)', ops === 0, ops + ' ops');
+    /* ordem: ceu da aurora antes da torcida no drawBack */
+    const order = [];
+    const oSky = Wt.drawSky, oT = g.stage.drawTorcida;
+    Wt.drawSky = function () { order.push('sky'); };
+    g.stage.drawTorcida = function () { order.push('torcida'); };
+    g.stage.drawBack(fake2d(), 0, 0);
+    Wt.drawSky = oSky; g.stage.drawTorcida = oT;
+    check('drawBack desenha o ceu da aurora ANTES da torcida (atras de tudo)', order.join(',') === 'sky,torcida', order.join(','));
+    /* pixels reais sobre um ceu de DIA claro */
+    const cv = createCanvas(960, 540); const c2 = cv.getContext('2d');
+    const day = () => { c2.globalCompositeOperation = 'source-over'; c2.globalAlpha = 1; c2.fillStyle = 'rgb(150,200,240)'; c2.fillRect(0, 0, 960, 540); };
+    day(); const base = c2.getImageData(0, 0, 960, 540).data.slice();
+    let err = null; try { Wt.drawSky(c2); } catch (e) { err = e.message; }
+    check('drawSky desenha sem erro', !err, err || '');
+    const d = c2.getImageData(0, 0, 960, 540).data;
+    const lum = (arr, y0, y1) => { let s3 = 0; for (let y = y0; y < y1; y++) for (let x = 0; x < 960; x++) { const i = (y * 960 + x) * 4; s3 += arr[i] * 0.3 + arr[i + 1] * 0.59 + arr[i + 2] * 0.11; } return s3 / ((y1 - y0) * 960); };
+    check('ceu de cima escurece (noite da aurora) em vez de estourar', lum(d, 0, 160) < lum(base, 0, 160) - 25, lum(base, 0, 160).toFixed(0) + ' -> ' + lum(d, 0, 160).toFixed(0));
+    let sat = 0; for (let y = 0; y < 320; y++) for (let x = 0; x < 960; x++) { const i = (y * 960 + x) * 4; if (d[i] > 245 && d[i + 1] > 245 && d[i + 2] > 245) sat++; }
+    check('sem estouro em branco (< 5% saturado na faixa do ceu)', sat < 960 * 320 * 0.05, (100 * sat / (960 * 320)).toFixed(1) + '%');
+    let green = 0; for (let y = 0; y < 320; y++) for (let x = 0; x < 960; x++) { const i = (y * 960 + x) * 4; if (d[i + 1] > d[i] + 40 && d[i + 1] > 110) green++; }
+    check('cortinas verde/teal visiveis no ceu', green > 6000, green + ' px');
+    let below = 0; for (let y = 330; y < 540; y++) for (let x = 0; x < 960; x++) { const i = (y * 960 + x) * 4; if (Math.abs(d[i] - base[i]) + Math.abs(d[i + 1] - base[i + 1]) + Math.abs(d[i + 2] - base[i + 2]) > 6) below++; }
+    check('aurora fica no ceu (nada abaixo de y=330)', below === 0, below + ' px');
+    /* pixel art: blocos 4x4 — pixel x e x+1 iguais dentro do bloco */
+    let same = 0, tot = 0;
+    for (let y = 0; y < 320; y += 3) for (let x = 0; x < 956; x++) { if (x % 4 === 3) continue; const i = (y * 960 + x) * 4; const changed = Math.abs(d[i] - base[i]) + Math.abs(d[i + 1] - base[i + 1]) > 30; if (!changed) continue; tot++; if (d[i] === d[i + 4] && d[i + 1] === d[i + 5] && d[i + 2] === d[i + 6]) same++; }
+    check('aurora em pixel art (blocos nitidos 4x, sem degrade liso)', tot > 2000 && same / tot > 0.95, (100 * same / Math.max(1, tot)).toFixed(1) + '% de ' + tot);
+    /* perfScale menor desenha sem erro; perfOff nao desenha */
+    Wt.perfScale = 0.45; day(); err = null; try { Wt.drawSky(c2); } catch (e) { err = e.message; }
+    const dq = c2.getImageData(0, 0, 960, 320).data; let ch2 = 0; for (let i = 0; i < dq.length; i += 4) if (Math.abs(dq[i + 1] - base[i + 1]) > 20) ch2++;
+    check('perfScale 0.45: aurora desenha sem erro', !err && ch2 > 3000, (err || '') + ' ' + ch2 + ' px');
+    Wt.perfScale = 1; Wt.perfOff = true; day(); Wt.drawSky(c2);
+    const dOff = c2.getImageData(0, 0, 960, 540).data; let chOff = 0; for (let i = 0; i < dOff.length; i += 4) if (dOff[i] !== base[i] || dOff[i + 1] !== base[i + 1]) chOff++;
+    check('perfOff (modo performance 2): sem aurora', chOff === 0, chOff + ' px');
+    Wt.perfOff = false;
+    /* movimento reduzido: imagem parada */
+    g.reduced = true; for (let t = 0; t < 120; t++) Wt.update(false); /* deixa a qtd de estrelas assentar (reduzido usa 35%) */
+    day(); Wt.drawSky(c2); const r1 = c2.getImageData(0, 0, 960, 320).data.slice();
+    for (let t = 0; t < 30; t++) Wt.update(false);
+    day(); Wt.drawSky(c2); const r2 = c2.getImageData(0, 0, 960, 320).data; let dr = 0; for (let i = 0; i < r1.length; i += 4) if (r1[i] !== r2[i] || r1[i + 1] !== r2[i + 1]) dr++;
+    check('movimento reduzido: aurora parada', dr === 0, dr + ' px mudaram');
+    g.reduced = false;
+    /* sem reduzido: anima */
+    day(); Wt.drawSky(c2); const a1 = c2.getImageData(0, 0, 960, 320).data.slice();
+    for (let t = 0; t < 30; t++) Wt.update(false);
+    day(); Wt.drawSky(c2); const a2 = c2.getImageData(0, 0, 960, 320).data; let da = 0; for (let i = 0; i < a1.length; i += 4) if (a1[i + 1] !== a2[i + 1]) da++;
+    check('aurora anima (cortinas ondulam)', da > 2000, da + ' px');
+    /* outros climas: drawSky nao faz nada */
+    Wt.set('rain'); day(); Wt.drawSky(c2); const dr2 = c2.getImageData(0, 0, 960, 540).data; let chR = 0; for (let i = 0; i < dr2.length; i += 4) if (dr2[i] !== base[i]) chR++;
+    check('outros climas: drawSky nao desenha', chR === 0, chR + ' px');
+  }
+}
 globalThis.__res = () => ({ fails, n });
 `, ctx);
 {

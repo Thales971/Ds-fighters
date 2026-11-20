@@ -104,7 +104,7 @@ check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png'
   // codigo: arco-iris usa arc(), chuva 2 passagens, calor shimmer em faixas, tempestade desenha raio no flash
   const wsrc = fs.readFileSync('js/engine/weather.js', 'utf8');
   check('weather.js: rainbow usa ctx.arc (arco), rain 2 passagens, heatwave shimmer, flash raio', wsrc.indexOf('ctx.arc(cx') >= 0 && wsrc.indexOf('trilha larga') >= 0 && wsrc.indexOf('shimmer: faixas verticais') >= 0 && wsrc.indexOf('RAIO: polilinha') >= 0);
-  check('weather.js v3: aurora v2 em cortinas em camadas + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina densa de proposito', wsrc.indexOf('AURORA BOREAL v2') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('bancos grandes e macios') >= 0);
+  check('weather.js v3: aurora v3 pixel art no ceu (drawSky) + lighter, rainbow halo duplo + arco secundario, eclipse coroa+disco, neblina densa de proposito', wsrc.indexOf('AURORA BOREAL v3 (pixel art)') >= 0 && wsrc.indexOf('drawSky(ctx)') >= 0 && wsrc.indexOf("globalCompositeOperation = 'lighter'") >= 0 && wsrc.indexOf('arco secundario') >= 0 && wsrc.indexOf('ECLIPSE SOLAR') >= 0 && wsrc.indexOf('bancos grandes e macios') >= 0);
   check('weather.js v4: confete de papel two-tone + fogos com faisca radial aditiva em cache', wsrc.indexOf('CONFETE de papel') >= 0 && wsrc.indexOf('FOGOS: fa') >= 0 && wsrc.indexOf('_sparkBlobs') >= 0);
   /* fogos: brilho aditivo no ceu (pixels bem claros acima dos lutadores) vs baseline clear */
   g.weather.set('clear'); g.weather.intensity = 0; g.weather.drops.length = 0; g.render();

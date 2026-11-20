@@ -714,6 +714,8 @@ class StageRenderer {
       ctx.fillRect(0, 0, W, Math.min(H, this.groundY + 8));
       ctx.globalAlpha = 1;
     }
+    /* aurora boreal: ceu de noite + cortinas ATRAS da torcida e dos lutadores */
+    if (this.game && this.game.weather && this.game.weather.drawSky) this.game.weather.drawSky(ctx);
     this.drawTorcida(ctx);
     if (this.drama) this.drawDrama(ctx);
     if (this.hitFlash > 0) {
