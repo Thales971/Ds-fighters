@@ -36,6 +36,7 @@ const STATUS_LABEL = {
   resonance: { t: 'RESSONÂNCIA', c: '#88eaff' }, veil: { t: 'VÉU', c: '#f49bdf' },
   vertigo: { t: 'VERTIGEM', c: '#ff9a36' }, paralyze: { t: 'PARALISADO', c: '#bd80ff' }, nanomachines: { t: 'NANOMÁQUINAS', c: '#ffad4d' },
   daltonic: { t: 'DALTONIC', c: '#c9c9c9' },
+  shuffled: { t: 'EMBARALHADO', c: '#ff4fd8' },
 };
 
 class Fighter {
@@ -859,6 +860,35 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'jesterfinale': {
+        /* GRANDE FINAL (ult exclusiva do JESTER): marretada com estrela, ✗
+           explodindo e chuva de confete; quem leva fica com os BOTOES DE PODER
+           EMBARALHADOS (1-5 sorteados) e com TRAVAMENTO nos controles. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        game.strikes.push(new Strike(this, {
+          x: rival.x, delay: 14, w: 210, h: 360, dmg: p.dmg || 26, stun: 34, launch: -10, follow: rival,
+          sheet: { key, row: p.row, frames: 4 }, scale: 2.4, power: p, sound: 'explosion', shake: 12, warnColor: '#ff4fd8',
+          onHit: (f) => {
+            if (!f.alive) return;
+            const n = Math.max(2, Math.min(5, (f.currentKit() || []).length || 5));
+            const rnd = () => (game.rnd ? game.rnd() : Math.random());
+            let perm;
+            do {
+              perm = Array.from({ length: n }, (_, k) => k);
+              for (let k = n - 1; k > 0; k--) { const j = Math.floor(rnd() * (k + 1)); const t = perm[k]; perm[k] = perm[j]; perm[j] = t; }
+            } while (perm.every((v, k) => v === k));
+            f._shuf = perm;
+            f.addStatus('shuffled', p.shuffle || 480, this);
+            f.addStatus('glitch', 120, this);
+            game.floatText(f.x, f.y - 260, 'BOTÕES EMBARALHADOS!', '#FF4FD8');
+            game.spawnBurst('fx2:jester-extra', 1, f.x, f.y - 110, this.dir, 2.6);
+          },
+        }));
+        game.floatText(this.x, this.y - 250, 'GRANDE FINAL!', '#FFD23A');
+        game.shake(6);
+        break;
+      }
       case 'stackoverflow': {
         /* STACK OVERFLOW (ult exclusiva da LYRA): circulo de runas prende o
            rival, 3 raios caem nele e, no 1o acerto, a pilha estoura — os
@@ -1453,6 +1483,7 @@ class Fighter {
     if (this.has('shock')) input = this.shockInput(input);
     if (this.has('glitch')) input = this.glitchInput(input);
     if (this.has('daltonic')) input = this.daltonicInput(input);
+    if (this.has('shuffled')) input = this.shuffledInput(input);
     this.press(input);
     this.queue = this.queue.filter((q) => {
       q.at--;
@@ -1910,6 +1941,15 @@ class Fighter {
       ['left', 'right', 'down', 'up', 'punch', 'kick'].forEach((key) => { i[key] = false; });
       for (let k = 0; k < 10; k++) i['a' + k] = false;
     }
+    return i;
+  }
+  /** Embaralhado (ult do JESTER): os botoes de poder 1-5 viram outros poderes,
+      numa ordem sorteada quando a marreta acerta (this._shuf). */
+  shuffledInput(input) {
+    const perm = this._shuf;
+    if (!perm) return input;
+    const i = Object.assign({}, input);
+    for (let k = 0; k < perm.length; k++) i['a' + k] = input['a' + perm[k]];
     return i;
   }
   /* nuvem de gas rosa em volta da vitima do Daltonic Mode (6 baforadas que

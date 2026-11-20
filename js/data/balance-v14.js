@@ -61,6 +61,8 @@
     'qa': 2.2,                    /* torneio: 53% */
     'lyra': 2.05,                 /* nova (maga do JS): ~51% */
     'larper': 2.0,                /* nova (veneno): ~50% */
+    'jester': 2.9,                /* novo (bobo): ~46% CPU x CPU — as irritacoes (tela cega/girando,
+                                     controle eletrizado, botoes embaralhados) pesam mais contra gente */
   };
   for (const f of FIGHTERS) {
     const m = FORCA[f.id];

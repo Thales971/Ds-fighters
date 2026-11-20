@@ -160,6 +160,8 @@ def figure_rgba(crop, mask, bg):
     mag = (R > G + 40) & (B > G + 25) & (alpha > 0.99) & (d < 260)
     if getattr(load_sheet, '_strict_mag', False):
         mag &= G < 60  # so respingo de magenta puro; punho rosa brilhando fica
+    if getattr(load_sheet, '_no_magfix', False):
+        mag &= False  # figurino vinho/arroxeado (Jester) virava mancha preta
     if mag.any():
         g = a[..., 1]
         a2 = a.copy()
@@ -722,7 +724,41 @@ LARPER_POSES = {
     'win':     ([(0, 1, 0, True), (1, 0, 1, True), (0, 1, 0, True), (1, 0, 1, True)], 198, BASE),
 }
 
+# JESTER — f1 (si=0, ar maldoso): bola ✓ | empurrao-L | torta | marreta /
+#   corrida-chute | estrela (parada de mao) | giro com ✗ | apanhando-L
+# f2 (si=1, ar bobo): malabares | agachado c/ marreta | passinho | bola ✓ grande /
+#   panico com ✗ | malabares assustado | caindo | tonto
+# -L = olha pra esquerda (flip). Cada pose usa uma folha so (as caras mudam).
+JESTER_POSES = {
+    'idle':    ([(1, 0, 0, False), (1, 0, 0, False), (1, 1, 1, False), (1, 1, 1, False)], 200, BASE),
+    'walk':    ([(1, 2, 0, False), (1, 0, 0, False), (1, 2, 0, False), (1, 0, 0, False)], 196, BASE),
+    'jump':    ([(0, 1, 1, False)] * 4, 180, AIR),
+    'crouch':  ([(1, 1, 0, False)] * 4, 150, BASE),
+    'punch':   ([(0, 1, 0, True)] * 4, 196, BASE),
+    'kick':    ([(0, 0, 1, False)] * 4, 196, BASE),
+    'cpunch':  ([(1, 1, 0, False)] * 4, 150, BASE),
+    'ckick':   ([(1, 1, 0, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 1, 1, False)] * 4, 180, AIR),
+    'jkick':   ([(0, 1, 1, False)] * 4, 180, AIR),
+    'special': ([(0, 2, 0, False)] * 4, 200, BASE),
+    'hit':     ([(0, 3, 1, True)] * 4, 196, BASE),
+    'block':   ([(0, 2, 1, True)] * 4, 196, BASE),
+    'ko':      ([(1, 2, 1, False)] * 4, 130, BASE),
+    'win':     ([(1, 3, 0, False), (1, 0, 0, False), (1, 3, 0, False), (1, 0, 0, False)], 204, BASE),
+}
+
 FIGHTERS = {
+    'jester': {
+        'sheets': ['Jester sprites 1.jpg', 'Jester sprites 2.jpg'],
+        'poses': JESTER_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'no_magfix': True,
+        'abilities_keep': True,  # atlas animado: tools/build_jester_fx.py
+    },
     'larper': {
         'sheets': ['Larper sprites 1.jpg', 'Larper sprites 2.jpg', 'Larper sprites 3.jpg'],
         'poses': LARPER_POSES,
@@ -1088,6 +1124,7 @@ def main():
         load_sheet._dark_bg = cfg.get('dark_bg', False)
         load_sheet._strict_mag = cfg.get('strict_magenta', False)
         load_sheet._holes = cfg.get('holes', False)
+        load_sheet._no_magfix = cfg.get('no_magfix', False)
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
