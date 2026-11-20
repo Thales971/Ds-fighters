@@ -2,8 +2,13 @@
 // tempo (teto 2.4 a cada 40 ticks), +5% de dano, e no fim da contagem cai quem tem menos vida.
 const fs = require('fs');
 const vm = require('vm');
+/* Math.random fixo + arena neutra: antes o clima/mecanica sorteados (chuva,
+   regen, hazards) mudavam o calor medido e a suite falhava as vezes */
+let seed = 11;
+const M = Object.create(Math);
+M.random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
 const ctx = {
-  console, Image: class { set src(v) {} }, Math, Date,
+  console, Image: class { set src(v) {} }, Math: M, Date,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0 },
   EMPTY_INPUT: Object.freeze({ left: false, right: false, down: false, up: false, punch: false, kick: false }),
   Input: { init() {}, read: () => ({ left: false, right: false, down: false, up: false, punch: false, kick: false }), pad: () => null, padCount: 0 },
@@ -25,10 +30,12 @@ const canvas = { width: 960, height: 540, getContext: () => fake2d(), toBuffer: 
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 const g = new api.Game(canvas);
-g.start({ mode: 'versus', teams: [['du'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
+g.start({ mode: 'versus', teams: [['du'], ['du']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 2, timer: 99 });
+const calm = () => { if (g.weather) { g.weather.set('clear'); g.weather.pool = ['clear']; g.weather.changeAt = 1e9; } if (g.mech) g.mech.m = {}; };
+calm();
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
 check('round 1: sem morte subita', g.inferno === null);
-g.round = 3; g.teamWins = [1, 1]; g.beginRound();
+g.round = 3; g.teamWins = [1, 1]; g.beginRound(); calm();
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
 check('round final: morte subita preparada', !!g.inferno && g.suddenLeft > 0, JSON.stringify(g.inferno) + ' contagem=' + g.suddenLeft);
 g.tick();
