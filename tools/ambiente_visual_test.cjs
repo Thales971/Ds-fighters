@@ -47,6 +47,50 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
   const gc = mk('circo');
   check('circo (def.lights): luzes do mapa continuam', gc.stage.buildLights().length === 2, gc.stage.buildLights().length + ' luzes');
 }
+// ===== 1b. CIRCO: holofote desenhado ANTES do 1o tick da luta (intro) nao pode quebrar o render =====
+{
+  const strict = Object.assign(fake2d(), { createRadialGradient(...a) { if (!a.every(Number.isFinite)) throw new TypeError('non-finite'); return { addColorStop() {} }; }, createLinearGradient(...a) { if (!a.every(Number.isFinite)) throw new TypeError('non-finite'); return { addColorStop() {} }; } });
+  const canvas = { width: 960, height: 540, getContext: () => fake2d(), classList: { toggle() {}, add() {}, remove() {} } };
+  const g = new Game(canvas);
+  g.start({ mode: 'versus', teams: [['du'], ['du']], stage: 'circo', cpu: [true, true], roundsToWin: 1, timer: 99 });
+  let err = null;
+  try { g.mech.draw(strict); } catch (e) { err = e.message; }
+  check('circo: holofote desenha na intro (antes do 1o tick) sem erro', !err, err || '');
+}
+// ===== 2. TORCIDA ENCAIXADA POR ARENA (25 pessoas de 51.2x200 na sheet 1280x200) =====
+{
+  const PW = 1280 / 25;
+  const ids = STAGE_LIST.filter((d) => d.torcida).map((d) => d.id);
+  check('7 arenas com torcida', ids.length === 7, ids.join(','));
+  for (const id of ids) {
+    const g = mk(id);
+    const def = STAGE_LIST.find((d) => d.id === id);
+    check(id + ': torcida com posicao propria na ficha (rows)', def.torcida && Array.isArray(def.torcida.rows) && def.torcida.rows.length > 0);
+    g.stage.crowdSheet = fakeImg(1280, 200);
+    rec.length = 0;
+    g.stage.drawTorcida(fake2d());
+    const ppl = rec.filter((a) => a.length === 9 && a[0] === g.stage.crowdSheet);
+    const sizeOk = ppl.length > 0 && ppl.every((a) => Math.abs(a[3] - PW) < 0.01 && a[4] === 200);
+    check(id + ': recorta 1 pessoa por vez (51.2x200)', sizeOk, ppl.length + ' pessoas');
+    const maxH = Math.max(...ppl.map((a) => a[8]));
+    check(id + ': pessoa menor que lutador (altura <= 120px)', maxH <= 120, 'max=' + maxH.toFixed(1));
+    const topOk = ppl.every((a) => a[6] >= 0 && a[6] + a[8] <= 458 + 2);
+    check(id + ': ninguem cortado no topo nem abaixo do chao', topOk);
+    const distinct = new Set(ppl.map((a) => Math.round(a[1] / PW)));
+    check(id + ': varia as pessoas (> 5 diferentes)', distinct.size > 5, distinct.size + ' diferentes');
+    let adj = 0; for (let i = 1; i < ppl.length; i++) if (ppl[i][1] === ppl[i - 1][1] && ppl[i][6] === ppl[i - 1][6]) adj++;
+    check(id + ': sem a mesma pessoa repetida lado a lado', adj === 0, adj + ' repeticoes');
+  }
+  // ficha antiga com torcida: true (sem rows) cai num default seguro
+  const def = STAGE_LIST.find((d) => d.id === 'arquibancada');
+  const saved = def.torcida; def.torcida = true;
+  const g = mk('arquibancada');
+  def.torcida = saved;
+  g.stage.crowdSheet = fakeImg(1280, 200);
+  rec.length = 0; g.stage.drawTorcida(fake2d());
+  const ppl = rec.filter((a) => a.length === 9 && a[0] === g.stage.crowdSheet);
+  check('torcida: true sem rows usa default pequeno', ppl.length > 0 && ppl.every((a) => a[8] <= 120 && a[6] >= 0), ppl.length + ' pessoas');
+}
 globalThis.__res = () => ({ fails, n });
 `, ctx);
 {

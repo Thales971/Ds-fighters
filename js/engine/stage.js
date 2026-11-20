@@ -473,36 +473,55 @@ class StageRenderer {
     }
     if (this.hitFlash > 0) this.hitFlash--;
   }
-  /* TORCIDA (sprite do dono): fileiras que pulam quando a luta esquenta */
+  /* TORCIDA (sprite do dono): assets/fauna/torcida.png tem 25 pessoas lado a lado
+     (51.2 x 200 cada). Cada arena diz ONDE a torcida fica no proprio desenho:
+       torcida: { rows: [{ y, scale, x0, x1, gap }] }
+     y = linha dos pes (px de tela), scale sobre 200px de altura, x0..x1 = faixa
+     horizontal, gap = passo entre pessoas em fracao da largura (default 0.9).
+     Fileiras de tras pra frente na ordem da lista. Pulam quando a luta esquenta. */
   initTorcida() {
     this.crowd = null;
-    if (!this.def.torcida) return;
+    const t = this.def.torcida;
+    if (!t) return;
     this.crowdSheet = new Image();
     this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
     this.crowdHype = 0;
-    this.crowd = [
-      { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
-      { row: 2, y: this.H * 0.38, scale: 0.75, speed: 1.2 },
-      { row: 4, y: this.H * 0.47, scale: 0.95, speed: 1.5 },
-    ];
+    const rows = (t && Array.isArray(t.rows) && t.rows.length) ? t.rows : [{ y: (this.groundY || 458) - 150, scale: 0.3 }];
+    this.crowd = rows.map((r, ri) => {
+      const scale = Math.min(0.6, r.scale || 0.3);
+      const pw = (1280 / 25) * scale;
+      const x0 = r.x0 == null ? 0 : r.x0;
+      const x1 = r.x1 == null ? this.W : r.x1;
+      const step = pw * (r.gap || 0.9);
+      const people = [];
+      let prev = -1;
+      let h = (ri + 1) * 2654435761 >>> 0;
+      for (let x = x0, k = 0; x + pw * 0.5 <= x1; x += step, k++) {
+        h = (h * 1664525 + 1013904223) >>> 0;
+        let who = h % 25;
+        if (who === prev) who = (who + 7) % 25; /* nunca a mesma pessoa lado a lado */
+        prev = who;
+        people.push({ who, x: Math.round(x), ph: (h >>> 8) % 628 / 100, speed: 0.8 + ((h >>> 16) % 60) / 100 });
+      }
+      return { y: r.y, scale, people };
+    });
   }
   drawTorcida(ctx) {
     if (!this.crowd || !this.crowdSheet || !this.crowdSheet.width) return;
     const hype = this.crowdHype > 0;
-    ctx.save();
-    for (const c of this.crowd) {
-      const jump = hype ? Math.abs(Math.sin(this.t * 0.35 * c.speed)) * 7 * c.scale : Math.sin(this.t * 0.03 + c.row) * 1.5;
-      const w = 256 * c.scale * 2.2;
-      const h = 200 * c.scale * 2.2;
-      let tile = 0;
-      for (let x = -w / 2; x < this.W + w; x += w * 0.98, tile++) {
-        /* a folha tem 5 pessoas (256x200 cada) em 1 fileira: cada fileira da arquibancada
-           varia a pessoa tile a tile, começando numa coluna diferente por fileira */
-        const col = (c.row + tile) % 5;
-        ctx.drawImage(this.crowdSheet, col * 256, 0, 256, 200, x, c.y - h + jump, w, h);
+    const PW = this.crowdSheet.width / 25;
+    const SH = this.crowdSheet.height;
+    const reduced = this.reducedFlag;
+    for (const row of this.crowd) {
+      const w = PW * row.scale;
+      const h = SH * row.scale;
+      for (const p of row.people) {
+        const jump = reduced ? 0 : hype
+          ? Math.abs(Math.sin(this.t * 0.3 * p.speed + p.ph)) * 10 * row.scale
+          : Math.max(0, Math.sin(this.t * 0.025 * p.speed + p.ph)) * 1.2;
+        ctx.drawImage(this.crowdSheet, p.who * PW, 0, PW, SH, p.x, Math.round(row.y - h - jump), w, h);
       }
     }
-    ctx.restore();
   }
   drawFlora(ctx) {
     if (!this.flora || !this.flora.length) return;

@@ -272,7 +272,7 @@ for (const id of ['dojo-noite', 'circo', 'pizzaria', 'sesi', 'kernel', '09-orbit
 check('nesses palcos os bichos realmente NASCEM no jogo', nasceuBad.length === 0, nasceuBad.slice(0, 3).join(' | '));
 const gMot = mk('sesi');
 check('sesi: motes de poeira no ar (motes:true -> particulas mote no fundo)', (gMot.stage.fauna || []).some((f) => f.kind === 'mote') || (gMot.stage.ambient || []).some((p) => p.k === 'mote'), 'fauna kinds=' + (gMot.stage.fauna || []).map((f) => f.kind).slice(0, 6).join(','));
-check('sesi e circo tem TORCIDA no fundo (def.torcida + 3 fileiras)', STAGES.find((s) => s.id === 'sesi').torcida === true && STAGES.find((s) => s.id === 'circo').torcida === true && gMot.stage.crowd && gMot.stage.crowd.length === 3, 'crowd=' + (gMot.stage.crowd ? gMot.stage.crowd.length : 'null'));
+check('sesi e circo tem TORCIDA no fundo (def.torcida com fileiras proprias)', !!STAGES.find((s) => s.id === 'sesi').torcida && !!STAGES.find((s) => s.id === 'circo').torcida && gMot.stage.crowd && gMot.stage.crowd.length >= 1, 'crowd=' + (gMot.stage.crowd ? gMot.stage.crowd.length : 'null'));
 
 console.log('---');
 console.log(fails === 0 ? 'FAUNA ULTRA: TUDO OK (' + n + ' checks)' : 'FAUNA ULTRA: ' + fails + ' FALHAS de ' + n);

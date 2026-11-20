@@ -150,7 +150,7 @@ let torcidaOk = 0;
 for (const st of comTorcida) {
   try {
     const gT = mk('du', 'stack', st.id);
-    if (gT.stage.crowd && gT.stage.crowd.length === 3) torcidaOk++;
+    if (gT.stage.crowd && gT.stage.crowd.length >= 1) torcidaOk++;
     for (let t = 0; t < 60; t++) { gT.tick(); gT.render(); }
   } catch (e) { console.log('   ERRO torcida ' + st.id + ': ' + String(e).slice(0, 50)); }
 }

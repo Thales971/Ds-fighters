@@ -76,7 +76,7 @@ check('bichos.png: 10 linhas com sprite (inclui esquilo row8 e libelula row9)', 
 const comTorcida = STAGES.filter((s) => s.torcida);
 check('>=6 palcos com torcida (inclui sesi e circo)', comTorcida.length >= 6 && comTorcida.some((s) => s.id === 'sesi') && comTorcida.some((s) => s.id === 'circo'), comTorcida.map((s) => s.id).join(','));
 const gCrowd = mk('arquibancada');
-check('arquibancada: 3 fileiras de torcida no fundo', gCrowd.stage.crowd && gCrowd.stage.crowd.length === 3);
+check('arquibancada: 3 fileiras de torcida na arquibancada do mapa', gCrowd.stage.crowd && gCrowd.stage.crowd.length === 3);
 // espia drawImage para ver o retangulo de origem usado na torcida
 const draws = [];
 const c2 = fake2d();
@@ -85,9 +85,10 @@ c2.drawImage = function (...args) { draws.push(args); };
 // crowdSheet é Image stub (sem width) no harness — força width para o draw acontecer
 gCrowd.stage.crowdSheet = { width: 1280, height: 200 };
 gCrowd.stage.drawTorcida(c2);
-const crowdDraws = draws.filter((d) => d.length === 9 && d[3] === 256 && d[4] === 200);
-check('torcida desenha src 256x200 (nao 256x256)', crowdDraws.length > 0, crowdDraws.length + ' draws');
-const cols = new Set(crowdDraws.map((d) => d[1] / 256));
+const PW = 1280 / 25;
+const crowdDraws = draws.filter((d) => d.length === 9 && Math.abs(d[3] - PW) < 0.01 && d[4] === 200);
+check('torcida desenha 1 pessoa por vez (src 51.2x200)', crowdDraws.length > 0, crowdDraws.length + ' draws');
+const cols = new Set(crowdDraws.map((d) => Math.round(d[1] / PW)));
 check('torcida varia as pessoas (colunas diferentes)', cols.size > 1, 'cols=' + [...cols].join(','));
 
 console.log('---');

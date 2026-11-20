@@ -98,6 +98,9 @@ const MECHS = {
       for (const f of g.fighters()) if (f.alive && Math.abs(f.x - this.x) < 80) f.addStatus('spot', 3);
     },
     draw(ctx, g) {
+      /* na intro o draw roda antes do 1o tick: sem x o gradiente estourava (NaN)
+         e quebrava o render inteiro do Circo ate a luta comecar */
+      if (!Number.isFinite(this.x)) this.x = 480;
       ctx.save();
       /* cone com gradiente: brilhante no alto do palco, some na base */
       const cone = ctx.createLinearGradient(0, -540, 0, 0);

@@ -1,7 +1,7 @@
 /* Palcos V21. Cada um tem parallax, clima, luz, som e o drama do motor. */
 STAGE_LIST.push(
   {
-    id: 'estacao-valinhos', name: 'Estação Valinhos', group: 'Valinhos', pixel: true, torcida: true,
+    id: 'estacao-valinhos', name: 'Estação Valinhos', group: 'Valinhos', pixel: true, torcida: { rows: [{ y: 345, scale: 0.36, x0: 0, x1: 240 }, { y: 345, scale: 0.36, x0: 590, x1: 900, gap: 1.6 }] },
     image: 'assets/maps/v21/estacao-valinhos-mid.png',
     weather: ['clear', 'wind', 'rain'], fauna: ['pigeons'], tint: '#e7b078', ambient: 'amb_estacao-valinhos', motes: true,
     layers: [
@@ -69,7 +69,7 @@ STAGE_LIST.push(
     ], neon: true
   },
   {
-    id: 'quadra-areia', name: 'Quadra de Areia', group: 'Valinhos', pixel: true, torcida: true,
+    id: 'quadra-areia', name: 'Quadra de Areia', group: 'Valinhos', pixel: true, torcida: { rows: [{ y: 290, scale: 0.3, x0: 0, x1: 130 }, { y: 290, scale: 0.3, x0: 830, x1: 960 }] },
     image: 'assets/maps/v21/quadra-areia-mid.png',
     weather: ['clear', 'wind', 'heatwave'], fauna: ['dog'], tint: '#f0d090', ambient: 'amb_quadra-areia', motes: true,
     layers: [
@@ -86,7 +86,7 @@ STAGE_LIST.push(
     ]
   },
   {
-    id: 'arquibancada', name: 'Arquibancada do Ginásio', group: 'Valinhos', pixel: true, torcida: true,
+    id: 'arquibancada', name: 'Arquibancada do Ginásio', group: 'Valinhos', pixel: true, torcida: { rows: [{ y: 230, scale: 0.22, gap: 1.1 }, { y: 262, scale: 0.26, gap: 1.05 }, { y: 294, scale: 0.3 }] },
     image: 'assets/maps/v21/arquibancada-mid.png',
     weather: ['clear', 'wind', 'confetti'], fauna: ['pigeons'], tint: '#e8e8f0', ambient: 'amb_arquibancada', motes: true,
     layers: [
@@ -120,7 +120,7 @@ STAGE_LIST.push(
     ], sparks: true
   },
   {
-    id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true, torcida: true,
+    id: 'terminal-onibus', name: 'Terminal de Ônibus', group: 'Valinhos', pixel: true, torcida: { rows: [{ y: 345, scale: 0.36, x0: 0, x1: 300, gap: 1.3 }, { y: 345, scale: 0.36, x0: 620, x1: 900, gap: 1.5 }] },
     image: 'assets/maps/v21/terminal-onibus-mid.png',
     weather: ['clear', 'rain', 'wind', 'hail', 'fog'], fauna: ['pigeons'], tint: '#b9c6d4', ambient: 'amb_terminal-onibus', motes: true,
     layers: [
