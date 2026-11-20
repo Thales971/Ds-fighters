@@ -19,7 +19,7 @@
     traits: { kid: true, cap: 'forward' },
     /* BUFF no nivel do Du (1.38/1.02/1.25/138/1.38) e do Felipinho Hydro
        (1.44/1.24/1.0/142/1.55): power e meter no topo, HP alto, peso medio. */
-    stats: { power: 1.44, speed: 1.24, weight: 1.10, hp: 145, meterRate: 1.55 },
+    stats: { power: 2.25, speed: 1.24, weight: 1.10, hp: 166, meterRate: 1.55 }, /* fase 3: no nivel do Du (torneio CPU x CPU entre secretos); hp 166 = teto de 500 na luta */
     secret: true,
     quotes: {
       intro: ['Oi pessoal, eu sou o Dolynho, seu amiguinho!', 'Vai de guaran\u00e1, vai!'],

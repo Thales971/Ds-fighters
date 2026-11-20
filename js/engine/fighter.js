@@ -1701,10 +1701,13 @@ class Fighter {
             this.hasHit = true;
             t.takeHit(p.dmg, { attacker: this, kx: p.kx || 7, dirSign: this.dir, stun: p.stun || 20, launch: p.launch != null ? p.launch : -4, burn: p.burn, poison: p.poison, slow: p.slow, trap: p.trap, freeze: p.freeze, ability: true, power: p, element: this.elementOf(p) });
             this.game.spawnAbilityImpact(this, p, t.x, t.y - 100);
+            /* o golpe pode ser REVIDADO (espinhos/reflexo/contra-ataque): o
+               atacante leva o hit, takeHit zera cast/dashHit — a habilidade acabou */
+            if (this.cast !== c || !this.dashHit) return;
           }
         }
       }
-      if (this.dashHit.t <= 0) this.dashHit = null;
+      if (this.dashHit && this.dashHit.t <= 0) this.dashHit = null;
     }
     const len = this.dashHit ? 18 : (c.p.slot === 'ultimate' ? 28 : 18);
     if (c.t > len && !this.queue.length) {
