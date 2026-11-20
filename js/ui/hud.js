@@ -37,6 +37,7 @@ const HUD = {
       const t = game.teams[ti];
       const f = t.members[t.active];
       const partner = t.members.find((m, k) => k !== t.active);
+      side._r = null; /* o HTML e recriado: refs antigas apontariam pra barras fora da tela */
       side.innerHTML = `
         <div class="face" style="background-image:url(${SpriteGen.faceUrl(f.def.id)})"></div>
         <div class="info">

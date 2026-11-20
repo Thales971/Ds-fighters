@@ -1,10 +1,11 @@
 /* DS Fighters — service worker (app instalavel + abre sem internet).
    Regras pensadas pra NUNCA prender o jogador numa versao velha (problema que
    fez o index antigo desinstalar todo service worker a cada visita):
-   - pagina, JS, CSS e JSON: REDE PRIMEIRO; o cache so e usado sem internet
+   - pagina, JS, CSS e JSON: REDE PRIMEIRO e sempre revalidando com o servidor
+     (mesmo com o cache HTTP do GitHub Pages); o cache so e usado sem internet
    - imagens/fontes: cache primeiro e atualiza em segundo plano
    - musica (audio com Range) e API: passam direto, nunca entram no cache */
-const CACHE = 'dsf-v1';
+const CACHE = 'dsf-v2'; /* trocar o nome apaga os caches antigos no activate */
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'index.html', 'manifest.webmanifest'])).catch(() => {}));
@@ -32,7 +33,9 @@ self.addEventListener('fetch', (e) => {
   if (isCode(url, req)) {
     e.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        /* cache: 'no-cache' = SEMPRE confere com o servidor (ETag/304), ignorando
+           o cache HTTP de 10 min do GitHub Pages: commit novo aparece na hora */
+        const res = await fetch(req, { cache: 'no-cache' });
         if (res.ok) { const c = await caches.open(CACHE); c.put(req, res.clone()); }
         return res;
       } catch (err) {

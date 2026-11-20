@@ -42,7 +42,7 @@ if (!pw) {
   const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
   const server = http.createServer((req, res) => {
     const u = decodeURIComponent(req.url.split('?')[0]);
-    if (u === '/js/__prova.js') { probe++; res.writeHead(200, { 'Content-Type': 'text/javascript' }); return res.end('window.__prova=' + probe + ';'); }
+    if (u === '/js/__prova.js') { probe++; res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'max-age=600' }); /* igual ao GitHub Pages: 10 min de cache */ return res.end('window.__prova=' + probe + ';'); }
     if (u === '/api/__prova') { probe++; res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ n: probe })); }
     const f = path.join(ROOT, u === '/' ? 'index.html' : u);
     if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
@@ -68,7 +68,7 @@ if (!pw) {
       /* codigo: sempre da rede quando online */
       const a1 = await p.evaluate(async () => (await (await fetch('js/__prova.js')).text()));
       const a2 = await p.evaluate(async () => (await (await fetch('js/__prova.js')).text()));
-      check('codigo (js) vem sempre da rede quando online — nunca preso em versao velha', a1 !== a2, a1 + ' -> ' + a2);
+      check('codigo (js) vem sempre da rede quando online, mesmo com o servidor mandando cache de 10 min (GitHub Pages)', a1 !== a2, a1 + ' -> ' + a2);
       /* API e musica nunca no cache */
       await p.evaluate(async () => { await fetch('api/__prova'); try { await fetch('assets/music/playlist.json'); } catch (e) {} });
       const keys = await p.evaluate(async () => { const out = []; for (const k of await caches.keys()) { const c2 = await caches.open(k); for (const r of await c2.keys()) out.push(new URL(r.url).pathname); } return out; });
