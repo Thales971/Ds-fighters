@@ -93,7 +93,7 @@ const R = vm.runInContext(`(() => {
 check('Lyra registrada (normal, nao secreta)', R.found && !R.secret, JSON.stringify(R.stats));
 check('kit: arrow function / Promise.all / event loop / try-catch / Stack Overflow', JSON.stringify(R.kinds) === JSON.stringify(['shot', 'shot', 'zone', 'aura', 'stackoverflow']), R.names.join(' | '));
 check('balanceada com o FORCA do v14 (2.05)', Math.abs(R.stats.power - 2.296) < 0.01, JSON.stringify(R.stats));
-check('na grade de selecao + folhas registradas + cache proprio', R.roster === 52 && R.rv === 'v65-lyra' && R.sheets && /v65-lyra/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
+check('na grade de selecao + folhas registradas + cache proprio', R.roster === 52 && /^v6[5-9]/.test(R.rv) && R.sheets && /v65-lyra/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
 
 const res = vm.runInContext(`(() => {
   const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };

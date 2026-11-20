@@ -1012,6 +1012,8 @@ class Fighter {
           game.strikes.push(new Strike(this, { x: this.x, delay: 4, w: (p.radius || 240) * 2, h: 300, dmg: p.dmg, stun: p.stun == null ? 26 : p.stun, launch: p.launch == null ? -9 : p.launch, sheet: { key, row: p.row, frames: 4 }, scale: 3, element: el, power: p, sound: 'explosion', shake: 12 }));
         } else {
           game.strikes.push(new Strike(this, { x: tx, delay: 14, w: 200, h: 320, dmg: p.dmg, stun: p.stun == null ? 26 : p.stun, launch: p.launch == null ? -9 : p.launch, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, follow: tgt, element: el, power: p, sound: 'explosion', shake: 12 }));
+          /* zoneAfter (LARPER — Nuvem da Morte): a explosao deixa uma nuvem no chao */
+          if (p.zoneAfter) game.zones.push(new Zone(this, Object.assign({ fid, key, row: p.row, x: tx, w: 220, time: 240, dmg: 0.08, power: p }, p.zoneAfter)));
         }
         if (p.heal) this.heal(p.heal);
         if (p.kernel) {

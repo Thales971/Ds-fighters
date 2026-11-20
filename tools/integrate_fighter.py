@@ -698,7 +698,40 @@ LYRA_POSES = {
     'win':     ([(0, 3, 1, False), (1, 1, 0, False), (0, 3, 1, False), (1, 1, 0, False)], 210, BASE),
 }
 
+# LARPER (veneno) — 3 folhas. Quase tudo olha pra ESQUERDA (flip); so o
+# spray de gas da folha 2 (1,2,1) ja aponta pra direita.
+# f1 (si=0, 1 linha): soco | nuvem de gas | corrida | encolhida
+# f2 (si=1): guarda | soco | rasteira de gas | joelhada / soco de gas | chute
+#            de gas | spray de gas (D) | puff de gas
+# f3 (si=2): soco | nuvem | salto | ajoelhada / guarda | nuvem | arremessada | KO
+LARPER_POSES = {
+    'idle':    ([(1, 0, 0, True)] * 4, 198, BASE),
+    'walk':    ([(1, 0, 0, True), (1, 3, 1, True), (1, 0, 0, True), (1, 3, 1, True)], 196, BASE),
+    'jump':    ([(2, 2, 0, True)] * 4, 176, AIR),
+    'crouch':  ([(2, 3, 0, True)] * 4, 128, BASE),
+    'punch':   ([(1, 1, 0, True)] * 4, 196, BASE),
+    'kick':    ([(1, 1, 1, True)] * 4, 196, BASE),
+    'cpunch':  ([(2, 3, 0, True)] * 4, 128, BASE),
+    'ckick':   ([(1, 2, 0, True)] * 4, 150, BASE),
+    'jpunch':  ([(2, 2, 0, True)] * 4, 176, AIR),
+    'jkick':   ([(1, 3, 0, True)] * 4, 186, AIR),
+    'special': ([(1, 2, 1, False)] * 4, 196, BASE),
+    'hit':     ([(2, 2, 1, True)] * 4, 180, BASE),
+    'block':   ([(2, 0, 1, True)] * 4, 196, BASE),
+    'ko':      ([(2, 3, 1, True)] * 4, 84, BASE),
+    'win':     ([(0, 1, 0, True), (1, 0, 1, True), (0, 1, 0, True), (1, 0, 1, True)], 198, BASE),
+}
+
 FIGHTERS = {
+    'larper': {
+        'sheets': ['Larper sprites 1.jpg', 'Larper sprites 2.jpg', 'Larper sprites 3.jpg'],
+        'poses': LARPER_POSES,
+        'ui_cell': (1, 0, 0, True),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'holes': True,
+        'abilities_keep': True,  # atlas animado: tools/build_larper_fx.py
+    },
     'lyra': {
         'sheets': ['Maga JS sprites 1.jpg', 'Maga JS sprites 2.jpg'],
         'poses': LYRA_POSES,

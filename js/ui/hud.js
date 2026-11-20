@@ -56,7 +56,7 @@ const HUD = {
       const sk = this.$('skills-' + ti);
       const kit = f.currentKit();
       sk.innerHTML = kit.map((p, i) => `
-        <div class="skill s${i} ${p.slot}" data-i="${i}" title="${p.name}: ${p.desc || ''}">
+        <div class="skill s${i} ${p.slot}" data-i="${i}" title="${String(p.name + ': ' + (p.desc || '')).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}">
           <div class="ico"></div><div class="cool"></div><div class="lock">🔒</div>
           <div class="pct"></div>
           <div class="key">${keys ? keys['a' + i] : (game.mode === 'online' ? 'REMOTO' : 'CPU')}</div>
