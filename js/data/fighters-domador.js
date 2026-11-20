@@ -14,6 +14,8 @@
   SPRITE_LAYOUT.ver[id] = 'v68-domador';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    headScan: true, /* acessorio: cabeca medida pelo tronco (sprites.js _headScanBody) */
+    accHide: ['jump', 'jpunch', 'ko'],
   });
   const visual = (row, color) => ({
     visualSheet: id, visualRow: row, impactSheets: ['domador-extra'], impactColor: color,

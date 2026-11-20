@@ -2272,7 +2272,10 @@ class Fighter {
     /* ACESSÓRIO universal ligado (ex.: gorro de natal) — pendurado na cabeça
        pela âncora automática do sprite (1ª linha opaca da célula da pose),
        com flip na direção e um balançozinho. Funciona em qualquer lutador. */
-    if (typeof ACC_LIST !== 'undefined' && typeof accAnyOn === 'function' && accAnyOn()) {
+    const accHide = SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[this.spriteKey()] && SPRITE_LAYOUT.perFighter[this.spriteKey()].accHide;
+    /* accHide: poses em que a cabeca nao da pra achar (de ponta-cabeca, deitado,
+       cajado/elefante colado em cima da cabeca) — melhor sem chapeu que flutuando */
+    if (typeof ACC_LIST !== 'undefined' && typeof accAnyOn === 'function' && accAnyOn() && !(accHide && accHide.includes(pose))) {
       const L = SPRITE_LAYOUT;
       const ownL = L.perFighter && L.perFighter[this.spriteKey()];
       const sc = (ownL && ownL.poseScale && ownL.poseScale[pose]) || L.drawScale || 1;

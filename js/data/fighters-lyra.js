@@ -14,6 +14,8 @@
   SPRITE_LAYOUT.ver[id] = 'v65-lyra';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    headScan: true, /* acessorio: cabeca medida pelo tronco (sprites.js _headScanBody) */
+    accHide: ['kick', 'win'],
   });
   const visual = (row, color) => ({
     visualSheet: id, visualRow: row, impactSheets: ['lyra-extra'], impactColor: color,

@@ -52,6 +52,25 @@ const early = chip(240);
 for (let t = 0; t < 1200; t++) { g.tick(); a.hp = a.maxHp; b.hp = b.maxHp; a.x = 300; b.x = 660; }
 const late = chip(240);
 check('calor aumenta com o tempo', late > early * 1.3, 'inicio=' + early.toFixed(2) + ' depois=' + late.toFixed(2));
+/* chamas CRESCEM: parede de fogo avanca com o tempo e quem encosta nela leva o dobro */
+{
+  const t0 = g.inferno.t;
+  g.inferno.t = 60; const h1 = g.infernoHeat();
+  g.inferno.t = 30 * 60; const h2 = g.infernoHeat();
+  g.inferno.t = 60 * 60; const h3 = g.infernoHeat();
+  check('chamas se intensificam com o tempo (calor 0 -> 1)', h1 < 0.1 && h2 > 0.6 && h3 === 1, [h1, h2, h3].map((v) => v.toFixed(2)).join(' '));
+  g.inferno.t = 30 * 60 - 1;
+  a.x = 480; b.x = 20; a.hp = a.maxHp; b.hp = b.maxHp;
+  g.tick();
+  const da = a.maxHp - a.hp, db = b.maxHp - b.hp;
+  check('quem encosta na parede de fogo leva o dobro', db > da * 1.6 && da > 0, 'centro=' + da.toFixed(2) + ' parede=' + db.toFixed(2));
+  g.inferno.t = t0; a.x = 300; b.x = 660;
+}
+/* online: o convidado recebe o tempo do fogo no snapshot */
+{
+  const src = fs.readFileSync('js/engine/game.js', 'utf8');
+  check('snapshot do online leva a morte subita pro convidado', /inf: this\.inferno \? this\.inferno\.t : -1/.test(src) && /s\.inf >= 0/.test(src));
+}
 /* +5% de dano com o fogo ativo */
 const dm = (on) => { const s = g.inferno.active; g.inferno.active = on; const v = a.dmgMult ? a.dmgMult() : null; g.inferno.active = s; return v; };
 const on = dm(true), off = dm(false);

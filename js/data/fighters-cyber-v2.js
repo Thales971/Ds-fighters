@@ -11,6 +11,8 @@
   SPRITE_LAYOUT.ver[id] = 'v63-ciber';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    headScan: true, /* acessorio: cabeca medida pelo tronco (sprites.js _headScanBody) */
+    accHide: ['jump', 'jkick', 'ko'],
   });
 
   const f = FIGHTERS.find((x) => x.id === id);

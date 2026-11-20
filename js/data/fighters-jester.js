@@ -13,6 +13,8 @@
   SPRITE_LAYOUT.ver[id] = 'v67-jester';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
+    headScan: true, /* acessorio: cabeca medida pelo tronco (sprites.js _headScanBody) */
+    accHide: ['jump', 'jpunch', 'jkick', 'ko'],
   });
   const visual = (row, color) => ({
     visualSheet: id, visualRow: row, impactSheets: ['jester-extra'], impactColor: color,
