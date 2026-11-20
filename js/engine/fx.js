@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* JESTER, bobo da corte (tools/build_jester_fx.py) */
+  'abil:jester': { src: 'assets/abilities/jester.png', size: 128, cols: 4, rows: 5, v: 'v67-jester' },
+  'fx2:jester': { src: 'assets/abilities/jester.png', size: 128, cols: 4, rows: 5, v: 'v67-jester' },
+  'fx2:jester-extra': { src: 'assets/abilities/jester-extra.png', size: 128, cols: 4, rows: 2, v: 'v67-jester' },
   /* LARPER, veneno (tools/build_larper_fx.py) */
   'abil:larper': { src: 'assets/abilities/larper.png', size: 128, cols: 4, rows: 5, v: 'v66-larper' },
   'fx2:larper': { src: 'assets/abilities/larper.png', size: 128, cols: 4, rows: 5, v: 'v66-larper' },

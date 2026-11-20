@@ -284,6 +284,11 @@ const UI = {
     if (meta) meta.setAttribute('content', `DS Fighters: jogo de luta arcade retrô 2D com ${r.selectable} lutadores selecionáveis, 5 habilidades cada (IALES até 10), ${r.arenas} arenas, 2x2 e online.`);
     return r;
   },
+  /* Lutadores fora do online (lista no RoomCore, a mesma que o servidor usa). */
+  onlineBanned(id) {
+    const list = (typeof RoomCore !== 'undefined' && RoomCore.ONLINE_BANNED) || ['iales'];
+    return list.includes(id);
+  },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
     const a = ids[(Math.random() * ids.length) | 0];
@@ -450,7 +455,8 @@ const UI = {
         return `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
       }
       const d = FIGHTERS[i];
-      const lock = f.mode === 'training' ? false : !Profile.isUnlocked(d.id);
+      const offline = f.mode === 'online' && UI.onlineBanned(d.id);
+      const lock = f.mode === 'training' ? false : (offline || !Profile.isUnlocked(d.id));
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
          interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
          O busto vem do atlas gerado a partir do idle real, na mesma escala. */
@@ -729,10 +735,11 @@ const UI = {
     if (f.done[who]) return;
     let i = f.cursor[who];
     if (i >= FIGHTERS.length) {
-      const pool = FIGHTERS.map((d, k) => k).filter((k) => FIGHTERS[k].id !== 'boneco-treino' && (f.mode === 'training' || Profile.isUnlocked(FIGHTERS[k].id)) && !f.picks[who].includes(k));
+      const pool = FIGHTERS.map((d, k) => k).filter((k) => FIGHTERS[k].id !== 'boneco-treino' && !(f.mode === 'online' && this.onlineBanned(FIGHTERS[k].id)) && (f.mode === 'training' || Profile.isUnlocked(FIGHTERS[k].id)) && !f.picks[who].includes(k));
       i = pool[(Math.random() * pool.length) | 0];
     }
     const d = FIGHTERS[i];
+    if (f.mode === 'online' && this.onlineBanned(d.id)) { AudioSys.back(); this.toast(d.name + ' não pode ser usado no online.'); return; }
     if (f.mode !== 'training' && !Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
     if (f.picks[who].includes(i)) { AudioSys.back(); return; }
     f.picks[who].push(i);
