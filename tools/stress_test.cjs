@@ -5,7 +5,10 @@
 const fs = require('fs'); const vm = require('vm');
 function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
-const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,
+/* Math.random com semente fixa: as lutas IA x IA ficam reproduziveis (sem flake) */
+const SEEDED_MATH = Object.create(Math);
+{ let a = 20261120 >>> 0; SEEDED_MATH.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const ctx = { console, Math: SEEDED_MATH, Date, Image: class { set src(v) {} }, createCanvas,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0 },
   EMPTY_INPUT: Object.freeze({ left: false, right: false, down: false, up: false, punch: false, kick: false }),
   Input: { init() {}, read: () => ({ left: false, right: false, down: false, up: false, punch: false, kick: false }), pad: () => null, padCount: 0 },

@@ -95,6 +95,9 @@ const UI = {
     document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('nav')) AudioSys.cursor(); });
     this.buildMenuSide();
     this.show('title');
+    /* tela inicial VIVA: luta de demonstracao roda atras do titulo (a musica
+       so comeca depois do 1o toque/tecla — o AudioSys guarda como pendente) */
+    this.startDemo();
     /* TREINO GUIADO so aparece pra quem e novo no jogo. */
     const isNew = !Profile.setting('tutorialDone');
     const bt = this.$('btn-tutorial');
@@ -188,12 +191,14 @@ const UI = {
       </div>`;
   },
   toMenu() {
-    if (this.game.running) this.game.stop();
+    /* vindo do titulo a demo ja esta rodando: continua a mesma luta no fundo */
+    const demoOn = this.game.running && this.game.mode === 'demo';
+    if (this.game.running && !demoOn) this.game.stop();
     HUD.hide();
     Net.leave(true);
-    this.$('stage-wrap').classList.remove('on');
+    if (!demoOn) this.$('stage-wrap').classList.remove('on');
     this.show('menu');
-    this.startDemo();
+    if (!demoOn) this.startDemo();
     AudioSys.playMusic('menu');
   },
   pressStart() {
