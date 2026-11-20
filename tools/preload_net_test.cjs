@@ -41,7 +41,7 @@ const layersMissing = [];
 for (const s of STAGE_LIST) for (const l of (s.layers || [])) { const u = String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1'); if (!urls.includes(u)) layersMissing.push(s.id + ':' + l.src); }
 check('todas as camadas parallax das arenas estao no preload', layersMissing.length === 0, layersMissing.slice(0, 3).join(','));
 
-for (const u of ['assets/fx/rain-streaks.png?v=v36-amb1', 'assets/fx/mare.png?v=v47-maresprites',
+for (const u of ['assets/fx/rain-streaks.png?v=v36-amb1', 'assets/fx/mare.png?v=v54-ambiente',
   'assets/fauna/torcida.png?v=v47-maresprites', 'assets/weather/petals.png?v=v36-balance13', 'assets/weather/neon.png?v=v36-balance13',
   'assets/weather/snowflakes.png?v=v33-weather', 'assets/weather/leaf.png?v=v33-weather', 'assets/weather/spark.png?v=v33-weather',
   'assets/pets/pitoco.png?v=v47-maresprites']) {

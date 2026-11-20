@@ -18,7 +18,7 @@ function buildPreloadUrls() {
     (s.layers || []).forEach((l) => urls.add(String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1')));
   });
   urls.add('assets/fx/rain-streaks.png?v=v36-amb1');
-  urls.add('assets/fx/mare.png?v=v47-maresprites');
+  urls.add('assets/fx/mare.png?v=v54-ambiente');
   urls.add('assets/fauna/torcida.png?v=v47-maresprites');
   urls.add('assets/weather/petals.png?v=v36-balance13');
   urls.add('assets/weather/neon.png?v=v36-balance13');

@@ -327,7 +327,7 @@ class StageRenderer {
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
     /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
     this.waveSheet = new Image();
-    this.waveSheet.src = 'assets/fx/mare.png?v=v47-maresprites';
+    this.waveSheet.src = 'assets/fx/mare.png?v=v54-ambiente';
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
