@@ -108,6 +108,17 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
         seed[:, 0] = bg_like[:, 0]
         seed[:, -1] = bg_like[:, -1]
         flooded = ndimage.binary_propagation(seed, mask=bg_like, structure=np.ones((3, 3)))
+        if getattr(load_sheet, '_holes', False):
+            # BURACOS: fundo magenta puro cercado pela figura (dentro do arco
+            # do cajado, entre braco e corpo) nao e alcancado pelo flood das
+            # bordas; bolsoes grandes de magenta puro tambem viram fundo
+            pure = (G < 60) & (R > 110) & (B > 110) & (np.abs(R - B) < 60)
+            lab, n = ndimage.label(pure & ~flooded)
+            if n:
+                sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
+                big = np.zeros(n + 1, bool)
+                big[1:] = sizes > 300
+                flooded = flooded | big[lab]
         fg = ndimage.binary_closing(~flooded, structure=np.ones((3, 3)))
     else:
         # folhas de habilidade: FX rosa/petala sao magenta-like e seriam
@@ -665,7 +676,38 @@ CIBER_V2_POSES = {
     'win':     ([(0, 3, 1, False), (0, 0, 1, False), (0, 3, 1, False), (0, 0, 1, False)], 204, BASE),
 }
 
+# LYRA, a Maga do JavaScript — folha1 (si=0): idle | andar | investida baixa |
+# cajado-tiro / mao-magia | giro do cajado (arco) | ataque no ar | ritual (ult)
+# folha2 (si=1): parada sem cajado | cajado erguido | agachada | apanhando /
+# cambaleando | KO | ajoelhada | tonta. Todas olham pra DIREITA (sem flip).
+LYRA_POSES = {
+    'idle':    ([(0, 0, 0, False)] * 4, 196, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 0, 0, False), (0, 1, 0, False), (0, 0, 0, False)], 192, BASE),
+    'jump':    ([(0, 2, 1, False)] * 4, 170, AIR),
+    'crouch':  ([(1, 2, 0, False)] * 4, 136, BASE),
+    'punch':   ([(0, 3, 0, False)] * 4, 186, BASE),
+    'kick':    ([(0, 1, 1, False)] * 4, 196, BASE),
+    'cpunch':  ([(1, 2, 0, False)] * 4, 136, BASE),
+    'ckick':   ([(0, 2, 0, False)] * 4, 140, BASE),
+    'jpunch':  ([(0, 2, 1, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, 1, False)] * 4, 170, AIR),
+    'special': ([(0, 0, 1, False), (1, 1, 0, False), (0, 0, 1, False), (1, 1, 0, False)], 198, BASE),
+    'hit':     ([(1, 3, 0, False), (1, 0, 1, False), (1, 3, 0, False), (1, 0, 1, False)], 192, BASE),
+    'block':   ([(1, 2, 0, False)] * 4, 136, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 76, BASE),
+    'win':     ([(0, 3, 1, False), (1, 1, 0, False), (0, 3, 1, False), (1, 1, 0, False)], 210, BASE),
+}
+
 FIGHTERS = {
+    'lyra': {
+        'sheets': ['Maga JS sprites 1.jpg', 'Maga JS sprites 2.jpg'],
+        'poses': LYRA_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'holes': True,
+        'abilities_keep': True,  # atlas animado: tools/build_lyra_fx.py
+    },
     'rafael': {
         'sheets': ['Rafael sprites 1.jpg', 'Rafael sprites 2.jpg', 'Rafael sprites 3.jpg'],
         # 5 folhas de habilidades (31 icones uteis apos descartar celulas vazias)
@@ -1012,6 +1054,7 @@ def main():
         cells = {}
         load_sheet._dark_bg = cfg.get('dark_bg', False)
         load_sheet._strict_mag = cfg.get('strict_magenta', False)
+        load_sheet._holes = cfg.get('holes', False)
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):

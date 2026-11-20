@@ -59,6 +59,7 @@
     'backend': 2.2,               /* torneio: 45% */
     'nexo': 2.2,                  /* torneio: 34% */
     'qa': 2.2,                    /* torneio: 53% */
+    'lyra': 2.05,                 /* nova (maga do JS): ~51% */
   };
   for (const f of FIGHTERS) {
     const m = FORCA[f.id];
