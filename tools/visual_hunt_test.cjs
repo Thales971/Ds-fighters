@@ -100,7 +100,7 @@ check('8 screenshots de palcos salvos em .vibe/hunt para inspecao', fs.readdirSy
 
 // ===== 2. scan dos ATLAS de sprites: chroma-key magenta puro nao pode existir nos PNGs =====
 const { PNG } = req('pngjs');
-const atlases = ['assets/fauna/bichos.png', 'assets/fauna/fauna.png', 'assets/fauna/flora.png', 'assets/fauna/torcida.png', 'assets/fx/mare.png', 'assets/weather/snowflakes.png', 'assets/weather/leaf.png', 'assets/weather/spark.png', 'assets/weather/petals.png', 'assets/weather/neon.png', 'assets/fx/stage-props.png', 'assets/fx/rain-streaks.png', 'assets/fx/firefly.png', 'assets/ui/logo.png',
+const atlases = ['assets/fauna/bichos.png', 'assets/fauna/fauna.png', 'assets/fauna/flora.png', 'assets/fauna/torcida.png', 'assets/fx/mare.png', 'assets/weather/snowflakes.png', 'assets/weather/leaf.png', 'assets/weather/spark.png', 'assets/weather/petals.png', 'assets/weather/neon.png', 'assets/fx/rain-streaks.png', 'assets/fx/firefly.png', 'assets/ui/logo.png',
   ...fs.readdirSync('assets/fx2').filter((f) => f.endsWith('.png')).map((f) => 'assets/fx2/' + f),
   ...fs.readdirSync('assets/fx').filter((f) => f.endsWith('.png')).map((f) => 'assets/fx/' + f),
   ...fs.readdirSync('assets/abilities').filter((f) => f.endsWith('.png')).map((f) => 'assets/abilities/' + f)];

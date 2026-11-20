@@ -246,27 +246,6 @@ function stageAmbient(def) {
   return 'amb_night';
 }
 
-function defaultStageProps(id) {
-  let h = 0;
-  const s = String(id || 'stage');
-  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
-  const pick = (n) => { h = (h * 1664525 + 1013904223) >>> 0; return h % n; };
-  const spots = [
-    { cell: 0, x: 46, y: 148, flash: true },
-    { cell: 4, x: 914, y: 136, flash: true },
-    { cell: 2, x: 118, y: 196 },
-    { cell: 1, x: 842, y: 188 },
-    { cell: 5, x: 64, y: 286, fall: true },
-  ];
-  return spots.map((p) => ({
-    cell: p.cell,
-    x: p.x + pick(18) - 9,
-    y: p.y + pick(12) - 6,
-    fall: !!p.fall,
-    flash: !!p.flash,
-  }));
-}
-
 class StageRenderer {
   constructor(def, W, H, groundY) {
     this.def = def;
@@ -343,10 +322,7 @@ class StageRenderer {
     this.props = [];
     this.hitFlash = 0;
     this.floraShake = 0;
-    this.propShake = 0;
     this.drama = 0;
-    this.propSheet = new Image();
-    this.propSheet.src = 'assets/fx/stage-props.png?v=v36-amb1';
     this.rainSheet = new Image();
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
     /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
@@ -360,8 +336,8 @@ class StageRenderer {
       img.src = spec.src + (String(spec.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1');
       this.layers.push(layer);
     }
-    const propList = this.def.props || defaultStageProps(this.def.id);
-    this.props = propList.map((p) => ({ cell: p.cell || 0, x: p.x, y: p.y, baseY: p.y, fall: !!p.fall, flash: !!p.flash, vy: 0, rot: 0, falling: false }));
+    /* enfeites genericos (sheet antiga de postes, bonequinhos, placa...) removidos
+       a pedido do dono: os mapas ja desenham o proprio cenario. */
   }
   makeFlora() {
     const d = this.def;
@@ -495,14 +471,7 @@ class StageRenderer {
       if (pl.x < 10) pl.x = 10;
       if (pl.x > (this.W || 960) - 10) pl.x = (this.W || 960) - 10;
     }
-    if (this.propShake > 0) this.propShake *= 0.84;
     if (this.hitFlash > 0) this.hitFlash--;
-    for (const p of this.props) {
-      if (!p.falling) continue;
-      p.vy += 0.42;
-      p.y += p.vy;
-      p.rot += 0.12;
-    }
   }
   /* TORCIDA (sprite do dono): fileiras que pulam quando a luta esquenta */
   initTorcida() {
@@ -625,7 +594,6 @@ class StageRenderer {
   }
   react(power) {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
-    this.propShake = Math.max(this.propShake, power);
     this.floraShake = Math.max(this.floraShake, power >= 12 ? 60 : 20);
     if (this.crowd) {
       const wasHype = this.crowdHype > 0;
@@ -638,12 +606,6 @@ class StageRenderer {
       }
     }
     if (power < 11) return;
-    for (const p of this.props) {
-      if (p.fall && !p.falling && Math.random() < 0.6) {
-        p.falling = true;
-        p.vy = -1.4;
-      }
-    }
     /* FAUNA INTERATIVA: assusta bichos proximos a golpes fortes */
     if (this.liveFauna) {
       const r = power >= 15 ? 220 : 140;
@@ -734,7 +696,6 @@ class StageRenderer {
       ctx.globalAlpha = 1;
     }
     this.drawTorcida(ctx);
-    this.drawProps(ctx, camX);
     if (this.drama) this.drawDrama(ctx);
     if (this.hitFlash > 0) {
       ctx.globalAlpha = this.hitFlash / 18;
@@ -754,22 +715,6 @@ class StageRenderer {
     this.drawLights(ctx, camX);
     if (this.liveFauna) this.liveFauna.draw(ctx, 'back');
     ctx.restore();
-  }
-  drawProps(ctx, camX) {
-    const sheet = this.propSheet;
-    if (!sheet || !sheet.complete || !sheet.naturalWidth) return;
-    const shake = this.propShake || 0;
-    for (const p of this.props) {
-      const jx = shake ? Math.sin(this.t * 1.7 + p.x) * Math.min(6, shake * 0.35) : 0;
-      const jy = shake ? Math.cos(this.t * 1.3 + p.y) * Math.min(3, shake * 0.18) : 0;
-      const flash = p.flash && this.hitFlash > 0;
-      ctx.save();
-      ctx.translate(p.x + jx - camX * 18, p.y + jy);
-      if (p.rot) ctx.rotate(p.rot);
-      if (flash) ctx.globalAlpha = 0.55 + (this.hitFlash % 2) * 0.45;
-      ctx.drawImage(sheet, (p.cell % 8) * 48, 0, 48, 64, -24, -56, 48, 64);
-      ctx.restore();
-    }
   }
   drawDrama(ctx) {
     ctx.save();
@@ -917,18 +862,13 @@ class StageRenderer {
     try { ctx.filter = 'none'; } catch (e) {}
     ctx.restore();
   }
-  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) + luminarias
-     (props com flash) viram fontes de luz: halo aditivo pulsante ao redor
-     da fonte e poça de luz no piso de combate. */
+  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) viram fontes de
+     luz: halo aditivo pulsante ao redor da fonte e poça de luz no piso. */
   buildLights() {
     const d = this.def || {};
     const list = [];
     for (const L of (d.lights || [])) {
       list.push({ x: L.x, y: L.y, r: L.r || 110, color: L.color || '255,220,150', pulse: L.pulse == null ? 1 : L.pulse, ph: L.x * 0.013 + (L.y || 0) * 0.007 });
-    }
-    for (const p of this.props) {
-      if (!p.flash) continue;
-      list.push({ x: p.x, y: p.y - 42, r: 130, color: d.neon ? (p.cell % 2 ? '255,120,240' : '120,240,255') : '255,214,140', pulse: 1, ph: p.x * 0.017 });
     }
     return list;
   }

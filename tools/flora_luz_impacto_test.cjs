@@ -135,8 +135,8 @@ check('render usa composite lighter para faíscas glow', recSpark[1].lighter > 0
 // ===== E. IMPACTO (shake -> stage.react -> flora/crowd/props/fauna) =====
 const g4 = mk('arquibancada'); // palco com torcida
 g4.shake(14);
-check('impacto forte chama stage.react: hitFlash+floraShake+propShake+crowdHype', g4.stage.hitFlash > 0 && g4.stage.floraShake > 0 && g4.stage.propShake > 0 && g4.stage.crowdHype > 0,
-  'hitFlash=' + g4.stage.hitFlash + ' flora=' + g4.stage.floraShake + ' prop=' + g4.stage.propShake + ' hype=' + g4.stage.crowdHype);
+check('impacto forte chama stage.react: hitFlash+floraShake+crowdHype (enfeites removidos)', g4.stage.hitFlash > 0 && g4.stage.floraShake > 0 && g4.stage.crowdHype > 0,
+  'hitFlash=' + g4.stage.hitFlash + ' flora=' + g4.stage.floraShake + ' hype=' + g4.stage.crowdHype);
 // fauna assustada por golpe forte perto do centro
 const g5 = mk('parque-lago');
 const lf = g5.stage.liveFauna;

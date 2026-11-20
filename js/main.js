@@ -4,7 +4,7 @@
 /* Pré-carrega as folhas principais com progresso real antes de liberar o título. */
 /* Lista COMPLETA do que precisa estar em cache antes de liberar o jogo:
    sprites dos lutadores, atlas de habilidades/fx/fauna/pets, mapas e camadas
-   de TODAS as arenas, props, torcida e sprites de clima. Antes eles carregavam
+   de TODAS as arenas, torcida e sprites de clima. Antes eles carregavam
    na hora da luta (mapa/personagem faltando ao entrar) — agora o loader segura
    ate 100% para o jogo entrar pronto. */
 function buildPreloadUrls() {
@@ -17,7 +17,6 @@ function buildPreloadUrls() {
     if (s.sheet) urls.add(s.sheet);
     (s.layers || []).forEach((l) => urls.add(String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1')));
   });
-  urls.add('assets/fx/stage-props.png?v=v36-amb1');
   urls.add('assets/fx/rain-streaks.png?v=v36-amb1');
   urls.add('assets/fx/mare.png?v=v47-maresprites');
   urls.add('assets/fauna/torcida.png?v=v47-maresprites');
