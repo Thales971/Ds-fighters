@@ -246,27 +246,6 @@ function stageAmbient(def) {
   return 'amb_night';
 }
 
-function defaultStageProps(id) {
-  let h = 0;
-  const s = String(id || 'stage');
-  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
-  const pick = (n) => { h = (h * 1664525 + 1013904223) >>> 0; return h % n; };
-  const spots = [
-    { cell: 0, x: 46, y: 148, flash: true },
-    { cell: 4, x: 914, y: 136, flash: true },
-    { cell: 2, x: 118, y: 196 },
-    { cell: 1, x: 842, y: 188 },
-    { cell: 5, x: 64, y: 286, fall: true },
-  ];
-  return spots.map((p) => ({
-    cell: p.cell,
-    x: p.x + pick(18) - 9,
-    y: p.y + pick(12) - 6,
-    fall: !!p.fall,
-    flash: !!p.flash,
-  }));
-}
-
 class StageRenderer {
   constructor(def, W, H, groundY) {
     this.def = def;
@@ -343,15 +322,12 @@ class StageRenderer {
     this.props = [];
     this.hitFlash = 0;
     this.floraShake = 0;
-    this.propShake = 0;
     this.drama = 0;
-    this.propSheet = new Image();
-    this.propSheet.src = 'assets/fx/stage-props.png?v=v36-amb1';
     this.rainSheet = new Image();
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
     /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
     this.waveSheet = new Image();
-    this.waveSheet.src = 'assets/fx/mare.png?v=v47-maresprites';
+    this.waveSheet.src = 'assets/fx/mare.png?v=v55-revisao';
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
@@ -360,8 +336,8 @@ class StageRenderer {
       img.src = spec.src + (String(spec.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1');
       this.layers.push(layer);
     }
-    const propList = this.def.props || defaultStageProps(this.def.id);
-    this.props = propList.map((p) => ({ cell: p.cell || 0, x: p.x, y: p.y, baseY: p.y, fall: !!p.fall, flash: !!p.flash, vy: 0, rot: 0, falling: false }));
+    /* enfeites genericos (sheet antiga de postes, bonequinhos, placa...) removidos
+       a pedido do dono: os mapas ja desenham o proprio cenario. */
   }
   makeFlora() {
     const d = this.def;
@@ -495,45 +471,60 @@ class StageRenderer {
       if (pl.x < 10) pl.x = 10;
       if (pl.x > (this.W || 960) - 10) pl.x = (this.W || 960) - 10;
     }
-    if (this.propShake > 0) this.propShake *= 0.84;
     if (this.hitFlash > 0) this.hitFlash--;
-    for (const p of this.props) {
-      if (!p.falling) continue;
-      p.vy += 0.42;
-      p.y += p.vy;
-      p.rot += 0.12;
-    }
   }
-  /* TORCIDA (sprite do dono): fileiras que pulam quando a luta esquenta */
+  /* TORCIDA (sprite do dono): assets/fauna/torcida.png tem 25 pessoas lado a lado
+     (51.2 x 200 cada). Cada arena diz ONDE a torcida fica no proprio desenho:
+       torcida: { rows: [{ y, scale, x0, x1, gap }] }
+     y = linha dos pes (px de tela), scale sobre 200px de altura, x0..x1 = faixa
+     horizontal, gap = passo entre pessoas em fracao da largura (default 0.9).
+     Fileiras de tras pra frente na ordem da lista. Pulam quando a luta esquenta. */
   initTorcida() {
     this.crowd = null;
-    if (!this.def.torcida) return;
+    const t = this.def.torcida;
+    if (!t) return;
     this.crowdSheet = new Image();
     this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
     this.crowdHype = 0;
-    this.crowd = [
-      { row: 0, y: this.H * 0.30, scale: 0.55, speed: 0.9 },
-      { row: 2, y: this.H * 0.38, scale: 0.75, speed: 1.2 },
-      { row: 4, y: this.H * 0.47, scale: 0.95, speed: 1.5 },
-    ];
+    const rows = (t && Array.isArray(t.rows) && t.rows.length) ? t.rows : [{ y: 308, scale: 0.3 }];
+    /* as fichas sao escritas em 960x540 (chao 458); o preview AO VIVO da selecao
+       roda em 480x270: escala tudo pro tamanho real do palco */
+    const kx = (this.W || 960) / 960, ky = (this.groundY || 458) / 458;
+    this.crowd = rows.map((r, ri) => {
+      const scale = Math.min(0.6, r.scale || 0.3) * ky;
+      const pw = (1280 / 25) * scale;
+      const x0 = (r.x0 == null ? 0 : r.x0) * kx;
+      const x1 = r.x1 == null ? this.W : r.x1 * kx;
+      const step = Math.max(1, pw * (r.gap || 0.9));
+      const people = [];
+      let prev = -1;
+      let h = (ri + 1) * 2654435761 >>> 0;
+      for (let x = x0, k = 0; x + pw <= x1 + 0.5; x += step, k++) { /* pessoa inteira dentro da faixa */
+        h = (h * 1664525 + 1013904223) >>> 0;
+        let who = h % 25;
+        if (who === prev) who = (who + 7) % 25; /* nunca a mesma pessoa lado a lado */
+        prev = who;
+        people.push({ who, x: Math.round(x), ph: (h >>> 8) % 628 / 100, speed: 0.8 + ((h >>> 16) % 60) / 100 });
+      }
+      return { y: r.y * ky, scale, people };
+    });
   }
   drawTorcida(ctx) {
     if (!this.crowd || !this.crowdSheet || !this.crowdSheet.width) return;
     const hype = this.crowdHype > 0;
-    ctx.save();
-    for (const c of this.crowd) {
-      const jump = hype ? Math.abs(Math.sin(this.t * 0.35 * c.speed)) * 7 * c.scale : Math.sin(this.t * 0.03 + c.row) * 1.5;
-      const w = 256 * c.scale * 2.2;
-      const h = 200 * c.scale * 2.2;
-      let tile = 0;
-      for (let x = -w / 2; x < this.W + w; x += w * 0.98, tile++) {
-        /* a folha tem 5 pessoas (256x200 cada) em 1 fileira: cada fileira da arquibancada
-           varia a pessoa tile a tile, começando numa coluna diferente por fileira */
-        const col = (c.row + tile) % 5;
-        ctx.drawImage(this.crowdSheet, col * 256, 0, 256, 200, x, c.y - h + jump, w, h);
+    const PW = this.crowdSheet.width / 25;
+    const SH = this.crowdSheet.height;
+    const reduced = this.reducedFlag;
+    for (const row of this.crowd) {
+      const w = PW * row.scale;
+      const h = SH * row.scale;
+      for (const p of row.people) {
+        const jump = reduced ? 0 : hype
+          ? Math.abs(Math.sin(this.t * 0.3 * p.speed + p.ph)) * 10 * row.scale
+          : Math.max(0, Math.sin(this.t * 0.025 * p.speed + p.ph)) * 1.2;
+        ctx.drawImage(this.crowdSheet, p.who * PW, 0, PW, SH, p.x, Math.round(row.y - h - jump), w, h);
       }
     }
-    ctx.restore();
   }
   drawFlora(ctx) {
     if (!this.flora || !this.flora.length) return;
@@ -625,7 +616,6 @@ class StageRenderer {
   }
   react(power) {
     this.hitFlash = Math.max(this.hitFlash, power >= 11 ? 10 : 5);
-    this.propShake = Math.max(this.propShake, power);
     this.floraShake = Math.max(this.floraShake, power >= 12 ? 60 : 20);
     if (this.crowd) {
       const wasHype = this.crowdHype > 0;
@@ -638,12 +628,6 @@ class StageRenderer {
       }
     }
     if (power < 11) return;
-    for (const p of this.props) {
-      if (p.fall && !p.falling && Math.random() < 0.6) {
-        p.falling = true;
-        p.vy = -1.4;
-      }
-    }
     /* FAUNA INTERATIVA: assusta bichos proximos a golpes fortes */
     if (this.liveFauna) {
       const r = power >= 15 ? 220 : 140;
@@ -733,8 +717,9 @@ class StageRenderer {
       ctx.fillRect(0, 0, W, Math.min(H, this.groundY + 8));
       ctx.globalAlpha = 1;
     }
+    /* aurora boreal: ceu de noite + cortinas ATRAS da torcida e dos lutadores */
+    if (this.game && this.game.weather && this.game.weather.drawSky) this.game.weather.drawSky(ctx);
     this.drawTorcida(ctx);
-    this.drawProps(ctx, camX);
     if (this.drama) this.drawDrama(ctx);
     if (this.hitFlash > 0) {
       ctx.globalAlpha = this.hitFlash / 18;
@@ -754,22 +739,6 @@ class StageRenderer {
     this.drawLights(ctx, camX);
     if (this.liveFauna) this.liveFauna.draw(ctx, 'back');
     ctx.restore();
-  }
-  drawProps(ctx, camX) {
-    const sheet = this.propSheet;
-    if (!sheet || !sheet.complete || !sheet.naturalWidth) return;
-    const shake = this.propShake || 0;
-    for (const p of this.props) {
-      const jx = shake ? Math.sin(this.t * 1.7 + p.x) * Math.min(6, shake * 0.35) : 0;
-      const jy = shake ? Math.cos(this.t * 1.3 + p.y) * Math.min(3, shake * 0.18) : 0;
-      const flash = p.flash && this.hitFlash > 0;
-      ctx.save();
-      ctx.translate(p.x + jx - camX * 18, p.y + jy);
-      if (p.rot) ctx.rotate(p.rot);
-      if (flash) ctx.globalAlpha = 0.55 + (this.hitFlash % 2) * 0.45;
-      ctx.drawImage(sheet, (p.cell % 8) * 48, 0, 48, 64, -24, -56, 48, 64);
-      ctx.restore();
-    }
   }
   drawDrama(ctx) {
     ctx.save();
@@ -917,18 +886,13 @@ class StageRenderer {
     try { ctx.filter = 'none'; } catch (e) {}
     ctx.restore();
   }
-  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) + luminarias
-     (props com flash) viram fontes de luz: halo aditivo pulsante ao redor
-     da fonte e poça de luz no piso de combate. */
+  /* LUZES DINAMICAS: luzes declaradas no mapa (def.lights) viram fontes de
+     luz: halo aditivo pulsante ao redor da fonte e poça de luz no piso. */
   buildLights() {
     const d = this.def || {};
     const list = [];
     for (const L of (d.lights || [])) {
       list.push({ x: L.x, y: L.y, r: L.r || 110, color: L.color || '255,220,150', pulse: L.pulse == null ? 1 : L.pulse, ph: L.x * 0.013 + (L.y || 0) * 0.007 });
-    }
-    for (const p of this.props) {
-      if (!p.flash) continue;
-      list.push({ x: p.x, y: p.y - 42, r: 130, color: d.neon ? (p.cell % 2 ? '255,120,240' : '120,240,255') : '255,214,140', pulse: 1, ph: p.x * 0.017 });
     }
     return list;
   }

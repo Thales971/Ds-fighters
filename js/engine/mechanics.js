@@ -3,6 +3,10 @@
    Cada mecânica tem tick(t) (lógica) e draw(ctx) (camada do chão).
    Perigos usam Strike(null, ...) — atingem qualquer lutador, com aviso.
    ============================================================ */
+/* layout de assets/fx/mare.png — gerado por tools/build_mare_atlas.py (rodar de novo
+   se trocar as imagens da onda; o script imprime estes valores) */
+const MARE_ATLAS = { fw: 176, fh: 150, waterH: 40, calm: [0, 0, 192, 40], waveFrames: [[0, 40], [176, 40], [352, 40], [528, 40], [704, 40], [0, 190], [176, 190]] };
+
 const MECHS = {
   overheat: {
     every: 360,
@@ -98,6 +102,9 @@ const MECHS = {
       for (const f of g.fighters()) if (f.alive && Math.abs(f.x - this.x) < 80) f.addStatus('spot', 3);
     },
     draw(ctx, g) {
+      /* na intro o draw roda antes do 1o tick: sem x o gradiente estourava (NaN)
+         e quebrava o render inteiro do Circo ate a luta comecar */
+      if (!Number.isFinite(this.x)) this.x = 480;
       ctx.save();
       /* cone com gradiente: brilhante no alto do palco, some na base */
       const cone = ctx.createLinearGradient(0, -540, 0, 0);
@@ -230,6 +237,9 @@ const MECHS = {
   tide: {
     init(g) {
       this.wave = 0; this.dir = 1;
+      /* posicao da onda e da faixa guardadas no estado e avancadas no tick:
+         quando o sentido troca a onda vira no lugar, sem teletransportar */
+      this.waveX = -MARE_ATLAS.fw; this.phase = 0;
       /* palco COM peixe = maré alta CONSTANTE (sempre alta, sem religar) */
       const fauna = (typeof stageFauna === 'function' && g && g.stage && g.stage.def) ? stageFauna(g.stage.def) : (g && g.stage && g.stage.def && g.stage.def.fauna) || [];
       this.permaTide = fauna.indexOf('fish') >= 0;
@@ -245,35 +255,57 @@ const MECHS = {
       }
     },
     tick(g) {
-      if (this.permaTide) { this.wave = 130; g.pushX = this.dir * 1.25; return; }
-      if (this.wave > 0) { this.wave--; g.pushX = this.dir * 1.25; }
+      const dir = this.dir || 1;
+      const W = g.W || 960, fw = MARE_ATLAS.fw, cw = MARE_ATLAS.calm[2];
+      this.phase = (((this.phase || 0) + dir * 0.8) % cw + cw) % cw;
+      if (!Number.isFinite(this.waveX)) this.waveX = -fw;
+      this.waveX += dir * 2.2;
+      if (dir > 0 && this.waveX > W + fw) this.waveX = -fw;
+      if (dir < 0 && this.waveX < -fw * 2) this.waveX = W;
+      if (this.permaTide) { this.wave = 130; g.pushX = dir * 1.25; return; }
+      if (this.wave > 0) { this.wave--; g.pushX = dir * 1.25; }
     },
     draw(ctx, g, t) {
       if (this.wave <= 0) return;
       ctx.save();
-      /* sprite real das ondas (assets/fx/mare.png, 4 variantes de 1184x160);
-         se ainda nao carregou, cai no canvas antigo de triangulos */
+      /* sprites reais da onda (assets/fx/mare.png, tools/build_mare_atlas.py):
+         faixa de agua calma lado a lado no nivel do chao + UMA onda animada
+         (cresce, quebra, vira espuma) andando no sentido do empurrao.
+         Se o atlas ainda nao carregou, cai no canvas antigo de blocos. */
       const sheet = g.stage && g.stage.waveSheet;
       const ready = sheet && sheet.complete && sheet.naturalWidth;
-      ctx.globalAlpha = Math.min(0.92, 0.25 + (this.wave / 130) * 0.75);
+      const A = MARE_ATLAS;
+      const TOP = -32; /* superficie da agua (y relativo ao chao) */
+      ctx.globalAlpha = Math.min(0.82, 0.3 + (this.wave / 130) * 0.52);
       if (ready) {
-        const SW = 1184, ROW = 160;
-        const row = Math.floor(t / 24) % 4; /* troca a onda devagar */
-        const sy = row * ROW;
-        const bob = Math.sin(t * 0.08) * 3;
-        const ox = ((t * this.dir * 2.2) % SW + SW) % SW;
-        for (let x = -SW - ox; x < g.W + SW; x += SW) {
-          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW + bob, SW, ROW);
+        const [cx, cy, cw, ch] = A.calm;
+        const dir = this.dir || 1;
+        const bob = g.reduced ? 0 : Math.round(Math.sin(t * 0.06) * 1.5);
+        const ox = this.phase || 0;
+        for (let x = -cw + ox; x < g.W; x += cw) {
+          ctx.drawImage(sheet, cx, cy, cw, ch, Math.round(x), TOP + bob, cw, ch);
         }
-        /* REFLEXO na agua: copia espelhada e achatada das ondas abaixo da superficie */
+        /* a onda: anima os quadros em ~7.5 fps enquanto atravessa a tela */
+        const n = A.waveFrames.length;
+        const [fx, fy] = A.waveFrames[Math.floor(t / 8) % n];
+        const pos = Math.round(Number.isFinite(this.waveX) ? this.waveX : -A.fw);
+        const wy = TOP + bob - (A.fh - A.waterH);
+        if (dir > 0) {
+          ctx.drawImage(sheet, fx, fy, A.fw, A.fh, pos, wy, A.fw, A.fh);
+        } else {
+          ctx.save();
+          ctx.translate(pos + A.fw, 0);
+          ctx.scale(-1, 1); /* espelha no lugar: a crista olha pro lado que a agua empurra */
+          ctx.drawImage(sheet, fx, fy, A.fw, A.fh, 0, wy, A.fw, A.fh);
+          ctx.restore();
+        }
+        /* reflexo leve da faixa (espelhada e achatada) somando luz na agua */
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = g.reduced ? 0.07 : 0.13;
-        ctx.translate(0, 6 + bob);
-        ctx.scale(1, -0.38);
-        for (let x = -SW - ox; x < g.W + SW; x += SW) {
-          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW, SW, ROW);
-        }
+        ctx.globalAlpha = g.reduced ? 0.06 : 0.1;
+        ctx.translate(0, TOP + ch + bob);
+        ctx.scale(1, -0.35);
+        for (let x = -cw + ox; x < g.W; x += cw) ctx.drawImage(sheet, cx, cy, cw, ch, Math.round(x), 0, cw, ch);
         ctx.restore();
       } else {
         ctx.globalAlpha = Math.min(0.5, this.wave / 60);

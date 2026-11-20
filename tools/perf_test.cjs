@@ -26,7 +26,7 @@ const hudSrc = fs.readFileSync(R + 'js/ui/hud.js', 'utf8');
 check('css: CRT overlay SEM mix-blend-mode (blend em tela cheia mata fps no mobile)', /#app\.crt::after\s*\{[^}]*\}/.test(css) && !/mix-blend-mode/.test(css.match(/#app\.crt::after\s*\{[^}]*\}/)[0]));
 check('css: stage-wrap.demo sem blur()', !/blur\(/.test(css.match(/#stage-wrap\.demo\s*\{[^}]*\}/)[0]));
 check('css: body.perf-low/xlow escondem CRT, animacoes, blur da pausa, select-live no xlow', /body\.perf-low #app\.crt::after/.test(css) && /body\.perf-xlow \.select-live/.test(css) && /body\.perf-low #scr-pause/.test(css));
-check('weather.js: draw() respeita perfOff; update() escala por perfScale; aurora escala cortinas (useDefs) e raios (nRays)', weatherSrc.indexOf('if (this.perfOff) return;') >= 0 && weatherSrc.indexOf('wantBase') >= 0 && weatherSrc.indexOf('(this.perfScale || 1)') >= 0 && weatherSrc.indexOf('useDefs') >= 0 && /nRays = Math\.max\(6, Math\.round/.test(weatherSrc));
+check('weather.js: draw()/drawSky() respeitam perfOff; update() escala por perfScale; aurora corta cortinas por perfScale', weatherSrc.indexOf('if (this.perfOff) return;') >= 0 && weatherSrc.indexOf('if (this.perfOff || this.kind !== \'aurora\') return;') >= 0 && weatherSrc.indexOf('wantBase') >= 0 && weatherSrc.indexOf('(this.perfScale || 1)') >= 0 && /Math\.round\(4 \* \(this\.perfScale/.test(weatherSrc));
 check('game.js: applyPerf(nivel) + perfLevel no construtor + fauna parada no nivel 2', /applyPerf\(level\) \{/.test(gameSrc) && gameSrc.indexOf('this.perfLevel = 0;') >= 0 && gameSrc.indexOf('this.perfLevel < 2') >= 0);
 check('game.js: applyChroma em MEIA RESOLUCAO (sem getImageData em tela cheia)', gameSrc.indexOf('(W * 0.5)') >= 0 && gameSrc.indexOf('_chromaCv') >= 0 && gameSrc.indexOf('ox.drawImage(this.canvas, 0, 0, w2, h2)') >= 0 && gameSrc.indexOf('ctx.drawImage(cv, 0, 0, W, H)') >= 0);
 check('stage.js: drawVignette pula no nivel 2 (perfVignetteOff)', stageSrc.indexOf('if (this.perfVignetteOff) return;') >= 0);
@@ -98,7 +98,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(R + f, 'utf8'), c
     W.kind = 'aurora'; W.pool = ['aurora']; W.perfScale = 0.45; W.drops.length = 0;
     for (let t = 0; t < 40; t++) W.update(false);
     let aurErr = null; let aurPx = -1;
-    try { cx2d.clearRect(0, 0, 960, 540); cx2d.save(); cx2d.translate(0, 458); W.draw(cx2d); cx2d.restore(); const d = cx2d.getImageData(0, 0, 960, 540).data; aurPx = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 10) aurPx++; } catch (e) { aurErr = e.message; } /* como no jogo: translate(0, GROUND_Y) */
+    try { cx2d.clearRect(0, 0, 960, 540); W.intensity = 1; W.drawSky(cx2d); /* aurora agora e ceu (coordenadas de tela, atras dos lutadores) */ const d = cx2d.getImageData(0, 0, 960, 540).data; aurPx = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 10) aurPx++; } catch (e) { aurErr = e.message; } /* como no jogo: translate(0, GROUND_Y) */
     out.aurora = { err: aurErr, px: aurPx, drops: W.drops.length };
     // --- BENCHMARK: custo medio de render por frame (canvas de CPU = pior caso) ---
     const bench = (label) => { const t0 = Date.now(); for (let i = 0; i < 120; i++) { g.time = 400 + i; g.stage.t = 40 + i; cx2d.clearRect(0, 0, 960, 540); g.render(1); } const ms = (Date.now() - t0) / 120; out[label] = Math.round(ms * 100) / 100; };

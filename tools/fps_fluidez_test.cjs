@@ -82,7 +82,7 @@ g2.stage.drawBack(rec, 0, 0);
 JSON.stringify({ rad1, rad2: rad, dr1, dr2: draws, lights: g2.stage.lights.length, cached: g2.stage.lights.filter((L) => L._halo).length });
 `, ctx);
 const L = JSON.parse(r2);
-check('drawLights cacheia o halo em offscreen (todas as luzes com _halo)', L.cached === L.lights && L.lights >= 4, L.cached + '/' + L.lights);
+check('drawLights cacheia o halo em offscreen (todas as luzes do mapa com _halo; postes removidos)', L.cached === L.lights && L.lights >= 2, L.cached + '/' + L.lights);
 check('2a drawBack NAO recria gradiente radial (radial=0) e usa drawImage (leve p/ 240 Hz)', L.rad2 === L.rad1 && L.dr2 > L.dr1, 'rad ' + L.rad1 + '->' + L.rad2 + ', drawImage ' + L.dr1 + '->' + L.dr2);
 
 // ===== 5. torcida faz barulho no hype (throttle) =====

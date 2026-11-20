@@ -315,94 +315,150 @@ class Weather {
       if (d.x < -120) d.x = W + 100;
     }
   }
+  /* AURORA BOREAL v3 (pixel art): desenhada pelo palco no drawBack, ATRAS da
+     torcida e dos lutadores, em coordenadas de tela.
+     1) escurece o alto do ceu (vira noite, senao a luz estoura em mapa de dia);
+     2) cortinas num canvas de 240x80 pintado pixel a pixel (raios verticais,
+        borda de baixo ondulando, roxo -> teal -> verde vivo na borda, alpha em
+        degraus) e ampliado 4x SEM suavizar, com a mesma cara da chuva/vagalume;
+     3) estrelas piscando por cima. Redesenha o canvas pequeno a cada 2 ticks
+        (parado com movimento reduzido); perfScale corta cortinas; perfOff = nada. */
+  drawSky(ctx) {
+    if (this.perfOff || this.kind !== 'aurora') return;
+    const W = this.game.W || 960;
+    const reduced = this.game.reduced;
+    const fade = Math.max(0, Math.min(1, (this.intensity || 0) / 0.6));
+    if (fade <= 0) return;
+    const LW = 240, LH = 80, SCALE = 4;
+    ctx.save();
+    /* tudo abaixo e desenhado em 960x540; o preview da selecao (480x270) escala */
+    const k = W / 960;
+    if (k !== 1) ctx.scale(k, k);
+    /* 1) noite no alto do ceu */
+    if (!this._auroraNight || this._auroraNight.ctx !== ctx) {
+      const gr = ctx.createLinearGradient(0, 0, 0, 300);
+      gr.addColorStop(0, 'rgba(6,10,34,0.66)');
+      gr.addColorStop(0.55, 'rgba(10,16,46,0.38)');
+      gr.addColorStop(1, 'rgba(10,16,46,0)');
+      this._auroraNight = { ctx, gr };
+    }
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = this._auroraNight.gr;
+    ctx.fillRect(0, 0, 960, 300);
+    /* 2) cortinas em baixa resolucao */
+    if (!this._auroraCv && typeof document !== 'undefined' && document.createElement) {
+      const cv = document.createElement('canvas');
+      cv.width = LW; cv.height = LH;
+      this._auroraCv = cv;
+      this._auroraKey = null;
+    }
+    const cv = this._auroraCv;
+    if (cv) {
+      const tick = reduced ? 0 : Math.floor(this.t / 2);
+      const n = Math.max(2, Math.round(4 * (this.perfScale == null ? 1 : this.perfScale)));
+      const key = tick + ':' + n;
+      if (this._auroraKey !== key) {
+        this._auroraKey = key;
+        this._paintAurora(cv, tick * 2, n);
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.85 * fade;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(cv, 0, 0, LW, LH, 0, 0, LW * SCALE, LH * SCALE);
+      ctx.imageSmoothingEnabled = true;
+    }
+    /* 3) estrelas (drops da aurora vivem em coordenadas do chao) */
+    ctx.globalCompositeOperation = 'source-over';
+    for (const d of this.drops) {
+      const tw = reduced ? 0.8 : 0.5 + 0.5 * Math.abs(Math.sin((this.t + d.s * 240) * 0.03));
+      ctx.globalAlpha = tw * fade;
+      ctx.fillStyle = d.s > 0.5 ? '#d8fff5' : '#e6d9ff';
+      /* drops vivem em coordenadas do chao do jogo (458) e x em unidades de W */
+      const x = Math.round(d.x / k / 2) * 2, y = Math.round((d.y + 458) / 2) * 2;
+      if (y > 300) continue;
+      const sz = d.s > 0.82 ? 4 : 2;
+      ctx.fillRect(x, y, sz, sz);
+      if (d.s > 0.82 && tw > 0.8) {
+        ctx.fillRect(x - 2, y + 1, sz + 4, 2);
+        ctx.fillRect(x + 1, y - 2, 2, sz + 4);
+      }
+    }
+    ctx.restore();
+  }
+  /* pinta as cortinas no canvas pequeno (pixel a pixel, soma de luz).
+     Sem alocar nada por repintura: buffer, ImageData e tabela de curva sao
+     criados 1x; cores interpoladas como numeros soltos (roda a cada 2 ticks). */
+  _paintAurora(cv, t, n) {
+    const LW = cv.width, LH = cv.height;
+    const x2 = cv.getContext('2d');
+    if (!this._auroraBuf || this._auroraBuf.length !== LW * LH * 3) this._auroraBuf = new Float32Array(LW * LH * 3);
+    if (!this._auroraImg || this._auroraImg.width !== LW || this._auroraImg.height !== LH) this._auroraImg = x2.createImageData(LW, LH);
+    if (!Weather._AUR) {
+      /* f^1.6 tabelado (65 passos) + cortinas + paletas planas [r,g,b x topo/meio/borda] */
+      const pow = new Float32Array(65);
+      for (let i = 0; i <= 64; i++) pow[i] = Math.pow(i / 64, 1.6);
+      Weather._AUR = {
+        pow,
+        curt: [
+          { base: 40, len: 32, ph: 0.0, sp: 1.0, hue: 0 },
+          { base: 31, len: 24, ph: 2.1, sp: 0.8, hue: 1 },
+          { base: 49, len: 38, ph: 4.2, sp: 1.2, hue: 0 },
+          { base: 24, len: 18, ph: 5.7, sp: 0.7, hue: 2 },
+        ],
+        /* roxo -> teal -> verde vivo */
+        pal: [
+          [120, 60, 210, 40, 200, 170, 110, 255, 150],
+          [90, 70, 220, 40, 170, 230, 130, 240, 255],
+          [170, 60, 200, 120, 90, 230, 220, 150, 255],
+        ],
+      };
+    }
+    const AU = Weather._AUR, pow = AU.pow;
+    const buf = this._auroraBuf;
+    buf.fill(0);
+    const m = Math.min(n, AU.curt.length);
+    for (let ci = 0; ci < m; ci++) {
+      const c = AU.curt[ci];
+      const P = AU.pal[c.hue];
+      for (let x = 0; x < LW; x++) {
+        const yb = c.base + Math.sin(x * 0.045 + t * 0.018 * c.sp + c.ph) * 6 + Math.sin(x * 0.11 - t * 0.011 + c.ph * 2) * 3;
+        const ray = 0.5 + 0.5 * Math.sin(x * 0.55 + c.ph * 3 + t * 0.04 * c.sp) * Math.sin(x * 0.13 + c.ph + t * 0.01);
+        const colA = 0.25 + 0.75 * (ray > 0 ? ray : 0);
+        const yt = yb - c.len * (0.5 + 0.5 * colA);
+        const span = Math.max(1, yb - yt);
+        const y0 = Math.max(0, Math.floor(yt)), y1 = Math.min(LH - 1, Math.floor(yb));
+        for (let y = y0; y <= y1; y++) {
+          const f = (y - yt) / span;
+          const fc = f <= 0 ? 0 : f >= 1 ? 1 : f;
+          let a = colA * pow[(fc * 64 + 0.5) | 0];
+          a = Math.round(a * 4) / 4; /* degraus: cara de pixel art */
+          if (a <= 0) continue;
+          let r, gg, bb;
+          if (fc < 0.6) { const u = fc / 0.6; r = P[0] + (P[3] - P[0]) * u; gg = P[1] + (P[4] - P[1]) * u; bb = P[2] + (P[5] - P[2]) * u; }
+          else { const u = (fc - 0.6) / 0.4; r = P[3] + (P[6] - P[3]) * u; gg = P[4] + (P[7] - P[4]) * u; bb = P[5] + (P[8] - P[5]) * u; }
+          const w = a * (y === y1 ? 1.35 : 1) * 0.55;
+          const i = (y * LW + x) * 3;
+          buf[i] += r * w;
+          buf[i + 1] += gg * w;
+          buf[i + 2] += bb * w;
+        }
+      }
+    }
+    const img = this._auroraImg, d = img.data;
+    for (let p = 0, q = 0; p < buf.length; p += 3, q += 4) {
+      d[q] = buf[p] > 255 ? 255 : buf[p];
+      d[q + 1] = buf[p + 1] > 255 ? 255 : buf[p + 1];
+      d[q + 2] = buf[p + 2] > 255 ? 255 : buf[p + 2];
+      d[q + 3] = 255;
+    }
+    x2.putImageData(img, 0, 0);
+  }
   draw(ctx) {
     if (this.perfOff) return; /* modo performance nivel 2: clima desligado */
     if (!this.drops.length && !this.flash) return;
     ctx.save();
     if (this.kind === 'aurora') {
-      /* AURORA BOREAL v2: cortinas em CAMADAS pendendo do topo do ceu.
-         Cada cortina = caminho com borda inferior dupla-ondulada + gradiente
-         vertical no padrao da aurora real (roxo em cima -> teal no meio ->
-         VERDE BRILHANTE na borda inferior) + dezenas de raios verticais
-         cintilando (intensidade varia no espaco e no tempo) + linha luminosa
-         na borda. Composite 'lighter' soma tudo como luz. */
-      const W = this.game.W;
-      const reduced = this.game.reduced;
-      const t = this.t;
-      /* [top sumindo, meio, borda brilhante, base do raio, linha da borda] */
-      const COL = [
-        ['rgba(150,90,255,0.10)', 'rgba(60,235,190,0.22)', 'rgba(110,255,160,0.50)', 'rgba(225,255,240,0.95)', 'rgba(200,255,225,0.62)'],
-        ['rgba(90,140,255,0.10)', 'rgba(60,215,255,0.22)', 'rgba(100,240,255,0.42)', 'rgba(215,250,255,0.95)', 'rgba(180,246,255,0.55)'],
-        ['rgba(160,80,255,0.12)', 'rgba(120,120,255,0.20)', 'rgba(150,160,255,0.36)', 'rgba(235,225,255,0.95)', 'rgba(214,196,255,0.46)'],
-        ['rgba(255,90,180,0.08)', 'rgba(200,110,255,0.16)', 'rgba(235,130,255,0.30)', 'rgba(255,225,250,0.95)', 'rgba(255,195,246,0.38)'],
-      ];
-      const defs = reduced
-        ? [{ top: -560, hgt: 210, hue: 0, ph: 0.0 }, { top: -530, hgt: 300, hue: 2, ph: 3.4 }]
-        : [
-            { top: -560, hgt: 200, hue: 0, ph: 0.0 },
-            { top: -548, hgt: 255, hue: 1, ph: 1.7 },
-            { top: -536, hgt: 305, hue: 2, ph: 3.4 },
-            { top: -522, hgt: 235, hue: 1, ph: 5.1 },
-            { top: -508, hgt: 175, hue: 3, ph: 6.3 },
-          ];
-      const useDefs = defs.slice(0, Math.max(2, Math.round(defs.length * (this.perfScale || 1))));
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      for (const c of useDefs) {
-        const col = COL[c.hue];
-        const sway = t * (0.35 + (c.ph % 1) * 0.22);
-        const edgeY = (x) => c.top + c.hgt + Math.sin(x * 0.013 - sway * 1.4 + c.ph * 2) * 34 + Math.sin(x * 0.031 + sway * 2.2 + c.ph) * 13;
-        /* corpo da cortina: topo reto (fora da tela), base dupla-ondulada */
-        ctx.beginPath();
-        ctx.moveTo(-40, c.top - 14);
-        for (let x = -40; x <= W + 40; x += 20) ctx.lineTo(x, c.top + Math.sin(x * 0.010 + sway + c.ph) * 10);
-        for (let x = W + 40; x >= -40; x -= 20) ctx.lineTo(x, edgeY(x));
-        ctx.closePath();
-        const g = ctx.createLinearGradient(0, c.top - 14, 0, c.top + c.hgt + 55);
-        g.addColorStop(0, col[0]);
-        g.addColorStop(0.55, col[1]);
-        g.addColorStop(0.92, col[2]);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.fill();
-        /* borda inferior luminosa e nitida (a parte mais viva da aurora) */
-        ctx.beginPath();
-        for (let x = -40; x <= W + 40; x += 20) { const by = edgeY(x); if (x === -40) ctx.moveTo(x, by); else ctx.lineTo(x, by); }
-        ctx.strokeStyle = col[4];
-        ctx.lineWidth = 2.6;
-        ctx.stroke();
-        /* raios verticais cintilando dentro da cortina */
-        const nRays = Math.max(6, Math.round((reduced ? 16 : 56) * (this.perfScale || 1)));
-        for (let i = 0; i < nRays; i++) {
-          const x = -20 + (i / nRays) * (W + 40) + Math.sin(i * 12.9898) * 18;
-          const tw = 0.5 + 0.5 * Math.sin(x * 0.05 + t * (0.8 + (i % 5) * 0.23) + c.ph * 3 + i);
-          if (tw < 0.25) continue;
-          const ry = c.top + Math.sin(x * 0.010 + sway + c.ph) * 10;
-          const rl = c.hgt * (0.35 + 0.55 * tw);
-          const rg = ctx.createLinearGradient(0, ry, 0, ry + rl);
-          rg.addColorStop(0, col[3]);
-          rg.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.globalAlpha = 0.14 + 0.42 * tw;
-          ctx.fillStyle = rg;
-          ctx.fillRect(x, ry, 4 + 4 * tw, rl);
-        }
-        ctx.globalAlpha = 1;
-      }
-      ctx.restore();
-      /* estrelas piscando (as maiores fazem um brilinho em cruz) */
-      ctx.globalAlpha = 1;
-      for (const d of this.drops) {
-        const tw = 0.5 + 0.5 * Math.abs(Math.sin((this.t + d.s * 240) * 0.03));
-        ctx.globalAlpha = tw;
-        ctx.fillStyle = d.s > 0.5 ? '#d8fff5' : '#e6d9ff';
-        const s = d.s > 0.82 ? 3 : 2;
-        ctx.fillRect(Math.round(d.x), Math.round(d.y), s, s);
-        if (d.s > 0.82 && tw > 0.8) {
-          ctx.fillRect(Math.round(d.x) - 2, Math.round(d.y), s + 4, 1);
-          ctx.fillRect(Math.round(d.x), Math.round(d.y) - 2, 1, s + 4);
-        }
-      }
-      ctx.globalAlpha = 1;
+      /* aurora agora mora no ceu, ATRAS da torcida e dos lutadores: drawSky() */
     } else if (this.kind === 'heatwave') {
       /* ONDA DE CALOR: linhas de miragem + BRASAS subindo com sprite. */
       ctx.strokeStyle = 'rgba(255,190,112,0.38)';
@@ -727,17 +783,6 @@ class Weather {
       fog.addColorStop(1, 'rgba(228,242,255,0.16)');
       ctx.fillStyle = fog;
       ctx.fillRect(0, H * 0.72, W, H * 0.28);
-    } else if (this.kind === 'aurora') {
-      /* brilho ambiente do ceu inteiro em 'lighter' (reforca as cortinas) */
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      const glow = ctx.createLinearGradient(0, 0, 0, H * 0.62);
-      glow.addColorStop(0, 'rgba(80,255,210,0.11)');
-      glow.addColorStop(0.5, 'rgba(140,110,255,0.09)');
-      glow.addColorStop(1, 'rgba(20,25,70,0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H * 0.62);
-      ctx.restore();
     } else if (this.kind === 'heatwave') {
       /* shimmer: faixas verticais quentes que sobem ondulando (nao mais retangulo chapado) */
       const bands = this.game.reduced ? 3 : 6;
