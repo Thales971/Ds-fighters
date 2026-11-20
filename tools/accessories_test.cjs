@@ -100,7 +100,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   const css = fs.readFileSync('css/style.css', 'utf8');
   check('index.html: botao data-go="acc" no menu + tela #scr-acc + script accessories.js', /data-go="acc"/.test(html) && /id="scr-acc" data-screen="acc"/.test(html) && /js\/data\/accessories\.js/.test(html) && /id="acc-list"/.test(html));
   check('ui.js: enter_acc/setAcc/toggleAcc + botoes ligar/desligar todos', ui.indexOf('enter_acc()') >= 0 && ui.indexOf('setAcc(') >= 0 && ui.indexOf('toggleAcc(') >= 0 && ui.indexOf('acc-all-on') >= 0);
-  check('fighter.js: bloco de acessorio universal apos o blit principal, usando headAnchor', ftr.indexOf('ACESSÓRIO universal ligado') >= 0 && ftr.indexOf('SpriteGen.headAnchor(this.spriteKey(), pose)') >= 0);
+  check('fighter.js: bloco de acessorio universal apos o blit principal, usando a cabeca medida (headBox + accPlacement)', ftr.indexOf('ACESSÓRIO universal ligado') >= 0 && ftr.indexOf('SpriteGen.headBox(this.spriteKey(), pose)') >= 0 && ftr.indexOf('accPlacement(') >= 0);
   check('sprites.js: headAnchor com scan de alpha + cache + fallback', spr.indexOf('headAnchor(id, pose)') >= 0 && spr.indexOf('_headCache') >= 0 && spr.indexOf('getImageData') >= 0);
   check('css: .acc-list/.acc-row/.acc-img/.acc-toggle', /\.acc-list\s*\{/.test(css) && /\.acc-row\s*\{/.test(css) && /\.acc-img\s*\{/.test(css) && /\.acc-toggle\s*\{/.test(css));
 

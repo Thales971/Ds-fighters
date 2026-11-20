@@ -1038,18 +1038,19 @@ const UI = {
     if (!el || typeof ACC_LIST === 'undefined') return;
     el.innerHTML = ACC_LIST.map((a) => `
       <div class="acc-row${accOn(a.id) ? ' on' : ''}">
-        <img class="acc-img" src="${a.src}?v=v47-maresprites" alt="" aria-hidden="true" />
+        <img class="acc-img" src="${a.src}?v=v57-acessorios" alt="" aria-hidden="true" />
         <div class="acc-info"><b>${a.icon} ${a.name}</b><small>${a.desc}</small></div>
         <button type="button" class="nav btn tiny acc-toggle" data-acc="${a.id}">${accOn(a.id) ? 'LIGADO ✓' : 'DESLIGADO'}</button>
       </div>`).join('') || '<p class="sub">Nenhum acessorio disponivel ainda.</p>';
     el.querySelectorAll('.acc-toggle').forEach((b) => b.addEventListener('click', () => { this.toggleAcc(b.dataset.acc); this.enter_acc(); }));
     const on = this.$('acc-all-on'), off = this.$('acc-all-off');
-    if (on) on.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, true)); this.enter_acc(); };
+    /* "ligar todos" = 1 por lugar (o 1o de cada: gorro, oculos, faixa, fone) */
+    if (on) on.onclick = () => { const seen = new Set(); ACC_LIST.forEach((a) => { if (!seen.has(a.slot)) { seen.add(a.slot); this.setAcc(a.id, true); } }); this.enter_acc(); };
     if (off) off.onclick = () => { ACC_LIST.forEach((a) => this.setAcc(a.id, false)); this.enter_acc(); };
   },
   setAcc(id, v) {
-    const s = Object.assign({}, Profile.setting('acc') || {});
-    s[id] = !!v;
+    /* 1 por lugar: ligar o bone desliga o gorro/coroa; oculos/faixa/fone convivem */
+    const s = (typeof accToggle === 'function') ? accToggle(Profile.setting('acc') || {}, id, v) : Object.assign({}, Profile.setting('acc') || {}, { [id]: !!v });
     Profile.setting('acc', s);
     if (v && typeof Profile !== 'undefined') Profile.grantAchievement('acessorio-1');
     AudioSys.select();

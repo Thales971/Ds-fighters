@@ -2160,21 +2160,28 @@ class Fighter {
       const L = SPRITE_LAYOUT;
       const ownL = L.perFighter && L.perFighter[this.spriteKey()];
       const sc = (ownL && ownL.poseScale && ownL.poseScale[pose]) || L.drawScale || 1;
-      const a = SpriteGen.headAnchor(this.spriteKey(), pose);
-      const top = this.y - L.baseline * sc;
-      const hx = this.x + (a.x - L.frameW / 2) * sc * this.dir;
-      const hy = top + a.y * sc;
-      for (const acc of ACC_LIST) {
+      /* cabeça MEDIDA no sprite (SpriteGen.headBox): cada acessório encaixa no
+         lugar dele (chapéu sentado, óculos nos olhos...) e no tamanho da cabeça */
+      const box = SpriteGen.headBox(this.spriteKey(), pose);
+      const cellLeft = this.x - (L.frameW / 2) * sc * this.dir;
+      const cellTop = this.y - L.baseline * sc;
+      const bob = Math.sin(this.frame * 0.12) * 1.2;
+      const order = (typeof ACC_DRAW_ORDER !== 'undefined') ? ACC_DRAW_ORDER : ['top'];
+      const list = ACC_LIST.slice().sort((p, q) => order.indexOf(p.fit) - order.indexOf(q.fit));
+      for (const acc of list) {
         if (typeof accOn === 'function' && !accOn(acc.id)) continue;
         const img = (typeof ACC_IMAGES !== 'undefined') && ACC_IMAGES[acc.id];
-        if (!img || !(img.complete && img.naturalWidth)) continue;
-        const s = (acc.scale || 1) * sc;
-        const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+        if (!img || !(img.complete && (img.naturalWidth || img.width))) continue;
+        const pl = accPlacement(acc, box, sc, img.naturalWidth || img.width, img.naturalHeight || img.height);
+        const w = Math.round(pl.w), h = Math.round(pl.h);
+        const ax = cellLeft + (pl.x + pl.w / 2) * this.dir; /* centro do acessório na tela */
+        const ay = cellTop + pl.y + (acc.fit === 'top' ? bob : bob * 0.5);
         ctx.save();
-        ctx.translate(Math.round(hx), Math.round(hy + Math.sin(this.frame * 0.12) * 1.4));
+        ctx.translate(Math.round(ax), Math.round(ay));
         if (this.dir < 0) ctx.scale(-1, 1);
-        ctx.rotate(Math.sin(this.frame * 0.09) * 0.05);
-        ctx.drawImage(img, -Math.round(w / 2), -h + 4, w, h); /* base do acessório assenta na cabeça */
+        if (acc.fit === 'top') ctx.rotate(Math.sin(this.frame * 0.09) * 0.04);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, -Math.round(w / 2), 0, w, h);
         ctx.restore();
       }
     }

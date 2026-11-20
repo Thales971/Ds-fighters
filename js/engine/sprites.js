@@ -165,6 +165,52 @@ const SpriteGen = {
     return a;
   },
 
+  /* CAIXA DA CABEÇA na célula da pose (frame 0): topo = 1ª linha com >= 4 px
+     opacos (ignora pixel solto); largura = quartil inferior das larguras das
+     linhas logo abaixo do topo (rabo de cavalo/mecha alargam só algumas linhas);
+     centro = mediana dos centros dessas linhas estreitas. Usada pra encaixar os
+     acessórios (gorro, boné, óculos...) do tamanho da cabeça de cada lutador. */
+  headBox(id, pose) {
+    const key = id + '|' + pose;
+    if (this._headBoxCache && this._headBoxCache[key]) return this._headBoxCache[key];
+    const L = SPRITE_LAYOUT;
+    let box = { x: L.frameW / 2, y: 34, w: 46, h: 53 };
+    const img = this.images[id];
+    if (img && img.naturalWidth !== 0 && (img.naturalWidth || img.width) && typeof document !== 'undefined') {
+      try {
+        const row = Math.min(Math.max(0, this.rowOf(pose, id)), (L.poses ? L.poses.length : this.POSES.length) - 1);
+        const c = document.createElement('canvas');
+        c.width = L.frameW; c.height = L.frameH;
+        const x = c.getContext('2d');
+        if (x && x.getImageData) {
+          x.drawImage(img, 0, row * L.frameH, L.frameW, L.frameH, 0, 0, L.frameW, L.frameH);
+          const d = x.getImageData(0, 0, L.frameW, L.frameH).data;
+          const rows = [];
+          let top = -1;
+          for (let yy = 0; yy < L.frameH; yy++) {
+            let mn = -1, mx = -1, cnt = 0;
+            for (let xx = 0; xx < L.frameW; xx++) {
+              if (d[(yy * L.frameW + xx) * 4 + 3] > 40) { if (mn < 0) mn = xx; mx = xx; cnt++; }
+            }
+            if (top < 0 && cnt >= 4) top = yy;
+            if (top >= 0) rows.push(cnt ? { w: mx - mn + 1, c: (mn + mx) / 2 } : null);
+            if (top >= 0 && yy > top + 30) break;
+          }
+          const band = rows.slice(6, 26).filter(Boolean);
+          if (top >= 0 && band.length >= 4) {
+            const ws = band.map((r) => r.w).sort((a, b) => a - b);
+            const w = Math.max(18, Math.min(90, ws[Math.floor(ws.length * 0.25)]));
+            const narrow = band.filter((r) => r.w <= w * 1.25).map((r) => r.c).sort((a, b) => a - b);
+            const cx = narrow.length ? narrow[Math.floor(narrow.length / 2)] : L.frameW / 2;
+            box = { x: cx, y: top, w, h: w * 1.15 };
+          }
+        }
+      } catch (e) { /* sem canvas/readback: usa o fallback */ }
+    }
+    (this._headBoxCache = this._headBoxCache || {})[key] = box;
+    return box;
+  },
+
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {
     const L = SPRITE_LAYOUT;
     // poseScale por lutador (ex.: hit compacto da Mis/Kimi, pivô no pé).
