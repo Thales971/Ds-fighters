@@ -1,4 +1,4 @@
-// CLIMA ULTRA INTENSIVO: 16 tipos de clima (set direto + rotacao natural),
+// CLIMA ULTRA INTENSIVO: 17 tipos de clima (set direto + rotacao natural),
 // particulas com teto, vento/fricção, tempestade com raios, granizo machuca,
 // arco-iris cura, neve deixa lento, sprites de clima validos, pools dos 94 palcos
 // so com tipos validos, e 94 palcos x 600 frames trocando clima sem crash.
@@ -35,7 +35,7 @@ const TIPOS = Object.keys(WEATHER_INFO);
 let ruinsPool = [];
 for (const st of STAGES) for (const w of (st.weather || ['clear'])) if (!WEATHER_INFO[w]) ruinsPool.push(st.id + ':' + w);
 check('94 palcos: todos os climas dos pools existem em WEATHER_INFO (' + TIPOS.length + ' tipos)', ruinsPool.length === 0, ruinsPool.slice(0, 5).join(' | '));
-check('16 tipos de clima definidos', TIPOS.length === 16, TIPOS.join(','));
+check('17 tipos de clima definidos (16 + bolhas de sabao)', TIPOS.length === 17 && TIPOS.includes('bubbles'), TIPOS.join(','));
 
 // ===== 2. Sprites de clima existem e tem o tamanho certo =====
 const dims = { 'assets/weather/snowflakes.png': [168, 28], 'assets/weather/leaf.png': [16, 16], 'assets/weather/spark.png': [8, 8], 'assets/weather/petals.png': [42, 14], 'assets/weather/neon.png': [20, 10] };

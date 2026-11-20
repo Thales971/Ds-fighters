@@ -30,10 +30,10 @@ const STAGE_LIST = [
   }, STAGE_EXTRA[s.id] || { weather: ['clear'], fauna: [], mech: null, tint: '#ffffff' })),
   { id: '01-neon-rooftop', name: 'Telhado Neon', image: 'assets/maps/01-neon-rooftop.jpg', group: 'Pacote retrô', weather: ['rain', 'storm', 'wind'], fauna: ['bat', 'bird'], mech: 'spotlight', tint: '#ff4fd8', neon: true, glitch: true },
   { id: '02-volcanic-forge', name: 'Forja Vulcânica', image: 'assets/maps/02-volcanic-forge.jpg', group: 'Pacote retrô', weather: ['clear', 'wind', 'heatwave'], fauna: ['bat'], mech: 'lava', tint: '#ff6a1c', embers: true, sparks: true, motes: true },
-  { id: '03-underwater-lab', name: 'Laboratório Submarino', image: 'assets/maps/03-underwater-lab.jpg', group: 'Pacote retrô', weather: ['clear'], fauna: ['fish', 'fish'], mech: 'lowgrav', tint: '#3ecbff', gravity: 0.72, bubbles: true, motes: true, lights: [{ x: 480, y: 90, r: 260, color: '80,200,255', pulse: 0.5 }] },
+  { id: '03-underwater-lab', name: 'Laboratório Submarino', image: 'assets/maps/03-underwater-lab.jpg', group: 'Pacote retrô', weather: ['clear', 'bubbles'], fauna: ['fish', 'fish'], mech: 'lowgrav', tint: '#3ecbff', gravity: 0.72, bubbles: true, motes: true, lights: [{ x: 480, y: 90, r: 260, color: '80,200,255', pulse: 0.5 }] },
   { id: '04-storm-temple', name: 'Templo da Tempestade', image: 'assets/maps/04-storm-temple.jpg', group: 'Pacote retrô', weather: ['storm'], fauna: ['bird'], mech: 'lightning', tint: '#ffe14d', motes: true },
   { id: '05-chaos-citadel', name: 'Cidadela do Caos', image: 'assets/maps/05-chaos-citadel.jpg', group: 'Pacote retrô', weather: ['storm', 'wind', 'clear'], fauna: ['bat'], mech: 'rift', tint: '#ff3355', embers: true },
-  { id: '06-sakura-dojo', name: 'Dojo Sakura', image: 'assets/maps/06-sakura-dojo.jpg', group: 'Pacote retrô', weather: ['clear', 'wind', 'rain'], fauna: ['bird', 'butterfly', 'bee'], mech: 'gong', tint: '#ffb3d1', petals: true },
+  { id: '06-sakura-dojo', name: 'Dojo Sakura', image: 'assets/maps/06-sakura-dojo.jpg', group: 'Pacote retrô', weather: ['clear', 'wind', 'rain', 'bubbles'], fauna: ['bird', 'butterfly', 'bee'], mech: 'gong', tint: '#ffb3d1', petals: true },
   { id: '07-sky-islands', name: 'Ilhas do Céu', image: 'assets/maps/07-sky-islands.jpg', group: 'Pacote retrô', weather: ['wind', 'clear', 'storm'], fauna: ['bird', 'butterfly'], mech: 'highjump', tint: '#a8e4ff', gravity: 0.82 },
   { id: '08-crystal-cavern', name: 'Caverna de Cristal', image: 'assets/maps/08-crystal-cavern.jpg', group: 'Pacote retrô', weather: ['clear'], fauna: ['bat'], mech: 'bounce', tint: '#c77dff' },
   { id: '09-orbital-core', name: 'Núcleo Orbital', image: 'assets/maps/09-orbital-core.jpg', group: 'Pacote retrô', weather: ['clear', 'aurora', 'eclipse', 'fireflies'], fauna: ['bat', 'fireflies'], mech: 'lowgrav', tint: '#7de0ff', gravity: 0.62, motes: true },
@@ -49,19 +49,19 @@ const STAGE_LIST = [
   { id: 'java', name: 'Torrefação JVM', image: 'assets/maps/java.jpg', group: 'Expansão Turbo', weather: ['clear', 'wind'], fauna: ['bat'], mech: 'gc', tint: '#f89820', embers: true, motes: true },
   { id: 'chrome', name: 'Cidade Cromada', image: 'assets/maps/chrome.jpg', group: 'Expansão Turbo', weather: ['rain', 'storm', 'clear'], fauna: ['bird'], mech: 'drones', tint: '#ff4fd8' },
   { id: 'sesi', name: 'Quadra SESI Valinhos', image: 'assets/maps/sesi.jpg', group: 'Expansão V4', weather: ['clear', 'wind', 'rain'], fauna: ['pigeons', 'dog'], mech: 'sesi', tint: '#e30613', torcida: { rows: [{ y: 160, scale: 0.21, x0: 0, x1: 225, gap: 1.1 }, { y: 160, scale: 0.21, x0: 415, x1: 830, gap: 1.1 }] }, motes: true },
-  { id: 'sesi-patio', name: 'Pátio SESI Valinhos', image: 'assets/maps/sesi-patio.jpg', group: 'Expansão V4', weather: ['clear', 'wind', 'leaves', 'rain'], fauna: ['pigeons', 'dog'], mech: 'sesi', tint: '#ffcf95', torcida: { rows: [{ y: 330, scale: 0.3, x0: 0, x1: 210 }, { y: 330, scale: 0.3, x0: 770, x1: 960 }] }, motes: true },
+  { id: 'sesi-patio', name: 'Pátio SESI Valinhos', image: 'assets/maps/sesi-patio.jpg', group: 'Expansão V4', weather: ['clear', 'wind', 'leaves', 'rain', 'bubbles'], fauna: ['pigeons', 'dog'], mech: 'sesi', tint: '#ffcf95', torcida: { rows: [{ y: 330, scale: 0.3, x0: 0, x1: 210 }, { y: 330, scale: 0.3, x0: 770, x1: 960 }] }, motes: true },
   { id: 'senai-valinhos', name: 'Oficina SENAI Valinhos', image: 'assets/maps/senai-valinhos.jpg', group: 'Expansão V4', weather: ['clear', 'rain', 'wind'], fauna: ['pigeons', 'cat'], mech: 'pulse', tint: '#c6dbeb', motes: true },
-  { id: 'japan', name: 'Jardim do Sol Nascente', image: 'assets/maps/japan.jpg', group: 'Expansão V5', weather: ['clear', 'wind'], fauna: ['bird', 'butterfly'], mech: 'gong', tint: '#ffc28b', petals: true },
+  { id: 'japan', name: 'Jardim do Sol Nascente', image: 'assets/maps/japan.jpg', group: 'Expansão V5', weather: ['clear', 'wind', 'bubbles'], fauna: ['bird', 'butterfly'], mech: 'gong', tint: '#ffc28b', petals: true },
   { id: 'cyberpunk', name: 'Distrito Neon 2077', image: 'assets/maps/cyberpunk.jpg', group: 'Expansão V5', weather: ['rain', 'clear', 'storm', 'fog'], fauna: ['bat'], mech: 'neonsign', tint: '#b09aff', motes: true, lights: [{ x: 240, y: 150, r: 130, color: '255,80,220' }, { x: 720, y: 150, r: 130, color: '80,240,255' }] },
   { id: 'dojo-noite', name: 'Dojo à Noite', image: 'assets/maps/dojo-noite.jpg', group: 'Novos V6', weather: ['clear', 'rain', 'fireflies', 'eclipse'], fauna: ['bat', 'fireflies'], mech: 'gong', tint: '#ff9a5c', motes: true, lights: [{ x: 200, y: 140, r: 120, color: '255,190,110' }, { x: 760, y: 140, r: 120, color: '255,190,110' }] },
   { id: 'treino-dojo', name: 'Dojo de Treino', image: 'assets/maps/treino-dojo.jpg', group: 'Novos V6', weather: ['clear'], fauna: ['cat'], mech: null, tint: '#d8b98a', motes: true },
-  { id: 'circo', name: 'Circo Abandonado', image: 'assets/maps/circo.jpg', group: 'Novos V6', weather: ['clear', 'wind', 'confetti', 'fireworks'], fauna: ['pigeons'], mech: 'spotlight', tint: '#ffb03b', torcida: { rows: [{ y: 398, scale: 0.36, x0: 0, x1: 330, gap: 1.15 }, { y: 398, scale: 0.36, x0: 610, x1: 960, gap: 1.15 }] }, motes: true, lights: [{ x: 240, y: 110, r: 150, color: '255,120,80' }, { x: 720, y: 110, r: 150, color: '120,180,255' }] },
+  { id: 'circo', name: 'Circo Abandonado', image: 'assets/maps/circo.jpg', group: 'Novos V6', weather: ['clear', 'wind', 'confetti', 'fireworks', 'bubbles'], fauna: ['pigeons'], mech: 'spotlight', tint: '#ffb03b', torcida: { rows: [{ y: 398, scale: 0.36, x0: 0, x1: 330, gap: 1.15 }, { y: 398, scale: 0.36, x0: 610, x1: 960, gap: 1.15 }] }, motes: true, lights: [{ x: 240, y: 110, r: 150, color: '255,120,80' }, { x: 720, y: 110, r: 150, color: '120,180,255' }] },
   { id: 'pizzaria', name: 'Pizzaria à Noite', image: 'assets/maps/pizzaria.jpg', group: 'Novos V6', weather: ['clear', 'rain', 'fireflies'], fauna: ['cat'], mech: 'coffee', tint: '#ff6a2a', motes: true, lights: [{ x: 480, y: 120, r: 180, color: '255,170,90' }] },
 ];
 
 STAGE_LIST.push(
   { id: 'area-de-trabalho', name: 'Área de Trabalho', image: 'assets/maps/area-de-trabalho.jpg', group: 'Expansão V7', weather: ['clear', 'rain', 'fog'], fauna: ['cat'], mech: 'pulse', tint: '#4db9ff', motes: true },
-  { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true, lights: [{ x: 480, y: 90, r: 260, color: '60,170,255', pulse: 0.5 }] },
+  { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear', 'bubbles'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true, lights: [{ x: 480, y: 90, r: 260, color: '60,170,255', pulse: 0.5 }] },
   { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind', 'heatwave'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
   { id: 'pos-codigocalipse', name: 'Pós-Codigocalipse', image: 'assets/maps/pos-codigocalipse.jpg', group: 'Expansão V8', weather: ['clear', 'storm', 'aurora', 'eclipse', 'fireflies', 'darkfog'], fauna: ['bat'], mech: 'glitch', tint: '#a783ff', embers: true, motes: true },
 );
@@ -86,6 +86,7 @@ const WEATHER_INFO = {
   darkfog: { name: 'Neblina Sombria', icon: '☾', desc: 'Névoa roxa só no fundo da arena. O lutador continua nítido.' },
   confetti: { name: 'Confete', icon: '🎊', desc: 'Serpentina e confete caindo. Só visual, sem empurrar nem machucar.' },
   fireworks: { name: 'Fogos', icon: '🎆', desc: 'Fogos no céu. Só visual, sem escurecer a arena.' },
+  bubbles: { name: 'Bolhas de Sabão', icon: '🫧', desc: 'Bolhas sobem pela arena e estouram em quem encosta: cada bolha estourada dá +1,5 de ultimate.' },
 };
 
 const MECH_INFO = {
