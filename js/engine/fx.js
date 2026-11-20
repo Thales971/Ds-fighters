@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* LYRA, a Maga do JavaScript (tools/build_lyra_fx.py) */
+  'abil:lyra': { src: 'assets/abilities/lyra.png', size: 128, cols: 4, rows: 5, v: 'v65-lyra' },
+  'fx2:lyra': { src: 'assets/abilities/lyra.png', size: 128, cols: 4, rows: 5, v: 'v65-lyra' },
+  'fx2:lyra-extra': { src: 'assets/abilities/lyra-extra.png', size: 128, cols: 4, rows: 2, v: 'v65-lyra' },
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pitoco: { src: 'assets/pets/pitoco.png', size: 96, cols: 4 },

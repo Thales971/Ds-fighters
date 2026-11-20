@@ -859,6 +859,37 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'stackoverflow': {
+        /* STACK OVERFLOW (ult exclusiva da LYRA): circulo de runas prende o
+           rival, 3 raios caem nele e, no 1o acerto, a pilha estoura — os
+           poderes simples dele entram em recarga (4s) e as 2 barras de carga
+           caem pela metade. Texto do erro do JS em cima do alvo. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        const rx = rival.x;
+        game.zones.push(new Zone(this, { fid, key: 'fx2:lyra-extra', row: 0, x: rx, w: 230, time: 150, dmg: 0.04, slow: 40, power: p }));
+        rival.addStatus('paralyze', 40, this);
+        game.floatText(rx, rival.y - 250, 'STACK OVERFLOW', '#7DE0FF');
+        game.shake(8);
+        let blown = false;
+        const n = p.hits || 3;
+        for (let k = 0; k < n; k++) {
+          game.strikes.push(new Strike(this, {
+            x: rx, delay: 16 + k * 14, w: 130, h: 420, dmg: p.dmg || 9, stun: 26, launch: k === n - 1 ? -9 : 0,
+            follow: rival, fromSky: true, sheet: { key, row: p.row, frames: 4 }, scale: 1.7, power: p,
+            sound: 'thunder_cast', shake: 7, warnColor: '#7DE0FF', unblockable: k === n - 1,
+            onHit: (f) => {
+              if (blown || !f.alive) return;
+              blown = true;
+              for (let i = 0; i < 2; i++) f.cd[i] = Math.max(f.cd[i] || 0, 240);
+              f.charge = (f.charge || [0, 0]).map((c) => c * 0.5);
+              game.floatText(f.x, f.y - 280, 'RangeError: Maximum call stack size exceeded', '#FF5A5A');
+              game.spawnBurst('fx2:lyra-extra', 1, f.x, f.y - 110, this.dir, 2.6);
+            },
+          }));
+        }
+        break;
+      }
       case 'rewind': {
         /* REBOBINAR: volta 3 segundos no tempo — vida e posicao restauradas. */
         const hist = this._rewindHist || [];
@@ -1879,6 +1910,31 @@ class Fighter {
     }
     return i;
   }
+  /* nuvem de gas rosa em volta da vitima do Daltonic Mode (6 baforadas que
+     giram devagar + nevoa no chao); 'lighter' pra brilhar em qualquer arena */
+  _drawDaltonicCloud(ctx) {
+    const t = this.frame;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 6; k++) {
+      const a = t * 0.03 + k * 1.047;
+      const gx = this.x + Math.cos(a) * 62;
+      const gy = this.y - 105 + Math.sin(a * 1.3) * 70;
+      const r = 70 + 14 * Math.sin(t * 0.07 + k);
+      const g = ctx.createRadialGradient(gx, gy, 4, gx, gy, r);
+      g.addColorStop(0, 'rgba(255,122,217,0.30)');
+      g.addColorStop(0.6, 'rgba(240,90,200,0.12)');
+      g.addColorStop(1, 'rgba(230,60,190,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(gx, gy, r, 0, 6.3); ctx.fill();
+    }
+    const fl = ctx.createRadialGradient(this.x, this.y - 6, 6, this.x, this.y - 6, 150);
+    fl.addColorStop(0, 'rgba(255,120,215,0.28)');
+    fl.addColorStop(1, 'rgba(255,120,215,0)');
+    ctx.fillStyle = fl;
+    ctx.beginPath(); ctx.ellipse(this.x, this.y - 6, 150, 34, 0, 0, 6.3); ctx.fill();
+    ctx.restore();
+  }
   /** Daltônico (ult da Jess): direções invertidas e botões de poder espelhados.
       As teclas 1-5 (a0..a4 do kit) são espelhadas dentro do kit do lutador:
       1<->5, 2<->4, 3 fica. */
@@ -2157,6 +2213,15 @@ class Fighter {
         SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x + ox, this.y + oy, false, null, null, 0);
       }
       ctx.restore();
+    }
+    /* DALTONIC (ult da Jess) visto de FORA: quando a tela inteira nao fica
+       cinza (vitima e a CPU, ou 2 jogadores no mesmo PC), a propria vitima
+       aparece descolorida e turva dentro de uma nuvem de gas rosa — antes
+       nesses casos a ult parecia nao fazer nada. */
+    const daltonicHere = this.has('daltonic') && !this.game._daltonicOn;
+    if (daltonicHere) {
+      this._drawDaltonicCloud(ctx);
+      ctx.filter = 'grayscale(1) blur(1.2px) brightness(0.9)';
     }
     SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
