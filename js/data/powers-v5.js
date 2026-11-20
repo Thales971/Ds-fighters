@@ -100,29 +100,9 @@ Object.assign(SIGNATURES, {
   },
 });
 
+/* a ficha do Dolynho virou SECRETA em js/data/fighters-dolynho.js — a versao
+   normal antiga da V5 saiu daqui (entrava duplicada na lista de lutadores) */
 FIGHTERS.push(
-  {
-    id: 'dolynho',
-    name: 'DOLYNHO',
-    title: 'Seu Amiguinho',
-    bio: 'Garrafinha verde de guaraná, tampa branca, olhos grandes, luvas brancas e tênis vermelhos. Seu amiguinho chegou com bolhas e bastante stun!',
-    colors: { skin: '#35a85a', hair: '#eeeeee', shirt: '#35a85a', pants: '#35a85a', shoes: '#d83232', accent: '#84ef43' },
-    traits: { bottleCap: 'white', gloves: 'white', shoes: 'red', mascotBottle: true },
-    stats: { power: 1.08, speed: 1.03, weight: 1.0, hp: 126, meterRate: 1.1 },
-    secret: false,
-    quotes: {
-      intro: ['Oi pessoal, eu sou o Dolynho, seu amiguinho!', 'Seu amiguinho chegou!'],
-      win: ['Amizade que dá stun!', 'Foi um abraço gaseificado!'],
-      special: ['GUARANÁ!', 'TAMPINHA!', 'ESPUMA NA CARA!'],
-      super: ['AMIZADE EXPLOSIVA!!'],
-    },
-    moves: {
-      punch: { dmg: 6, range: 52, startup: 5, active: 4, recovery: 10 },
-      kick: { dmg: 9, range: 64, startup: 7, active: 4, recovery: 12 },
-    },
-    special: { name: 'Rajada de Garrafa', type: 'projectile', cost: 25, proj: { speed: 10, dmg: 10, w: 24, h: 20, color: '#84ef43', shape: 'orb' } },
-    super: { name: 'Amizade Explosiva', type: 'melee-rush', dmg: 28, hits: 5 },
-  },
   {
     id: 'thl',
     name: 'VIGILANTE',

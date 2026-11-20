@@ -160,3 +160,33 @@ function preloadAll() {
   }
   requestAnimationFrame(frame);
 })();
+
+/* APP INSTALAVEL (PWA): service worker (abre sem internet; codigo sempre da rede
+   quando online) + botao INSTALAR APP na tela inicial quando o navegador oferece.
+   iPhone/iPad nao tem o evento: o botao explica "Compartilhar > Adicionar a Tela". */
+(function pwa() {
+  const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches) || navigator.standalone === true;
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+  const btn = document.getElementById('btn-install');
+  if (!btn || standalone) return;
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    if (e.preventDefault) e.preventDefault();
+    deferred = e;
+    btn.hidden = false;
+  });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent || '') && !window.MSStream;
+  if (ios) btn.hidden = false;
+  btn.addEventListener('click', async (ev) => {
+    ev.stopPropagation();
+    if (deferred) {
+      const d = deferred; deferred = null;
+      try { await d.prompt(); const r = await d.userChoice; if (r && r.outcome === 'accepted') btn.hidden = true; } catch (e) { /* usuario fechou */ }
+    } else if (ios && typeof UI !== 'undefined' && UI.toast) {
+      UI.toast('No Safari: toque em Compartilhar e depois em "Adicionar à Tela de Início"', 5000);
+    }
+  });
+  window.addEventListener('appinstalled', () => { btn.hidden = true; });
+})();
