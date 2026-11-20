@@ -158,8 +158,9 @@ def audit(fid, problems):
     if not (AB / f'{fid}.png').exists():
         bad('falta assets/abilities/<id>.png')
 
-    if fid not in room_ids():
-        bad('id ausente no FIGHTER_IDS do room-core (nao aparece no online)')
+    core_src = (ROOT / 'js/net/room-core.js').read_text(encoding='utf-8')
+    if 'validFighterId' not in core_src or not re.match(r'^[a-z][a-z0-9_-]{0,40}$', fid):
+        bad('id nao passa na validacao por formato do room-core (nao entra no online)')
 
     # hitbox: moves sadios
     mv = fighter_ids_and_moves().get(fid, '')

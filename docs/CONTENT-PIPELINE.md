@@ -39,7 +39,7 @@ O cache-buster atual da maior parte dos scripts e das folhas de lutador/habilida
 | Rosto da HUD e do versus | `assets/ui/face-<id>.png` (168×168) |
 | Retrato legado do integrador | `assets/ui/portrait-<id>.png` (320×360) |
 | Busto da grade de seleção | célula do atlas `assets/ui/roster-portraits.png` |
-| Id aceito na sala online | `FIGHTER_IDS` em `js/net/room-core.js` **e** a cópia `online-server/room-core.js` |
+| Id aceito na sala online | validado por formato (`validFighterId`) em `js/net/room-core.js` **e** na cópia idêntica `online-server/room-core.js` — lutador novo entra sozinho |
 
 `secret: true` só pinta o selo SECRETO e, junto com `Profile.SECRET_IDS`, tranca o lutador até o código. Hoje a lista é `du`, `iales`, `felipinho`. WINX.EXE tem `secret: false` e não está nessa lista: é lutadora normal. O QWEN também. códigos legados liberam o mesmo trio (`Profile.LEGACY_IDS`).
 
@@ -149,7 +149,7 @@ Dívida que isso deixa:
 3. Crie `js/data/fighters-v21.js` (o próximo número) no estilo do `fighters-v20.js`: registra a folha em `SPRITE_LAYOUT`, dá `FIGHTERS.push` com nome em português, 5 poderes (2 `simple`, 2 `charge`, 1 `ultimate`) e `secret: false`. Poder normal não passa de um soco “que ganha sozinho”; deixe o topo para Du, Iales e Felipinho.
 4. Inclua o `<script>` **depois** de `fighters-v20.js` e **antes** dos `powers-balance-*`, com `?v=` novo.
 5. Se o passe de balance precisar mexer nele, faça no **último** `powers-balance-v*.js` ou num arquivo novo carregado por último — e apague o número velho em vez de empilhar o sexto override.
-6. Acrescente o id em `FIGHTER_IDS` nos dois `room-core.js` e rode `npm run sync --prefix online-server` se o script de sync existir; senão copie a lista na mão e não deixe as duas divergirem.
+6. O online aceita o id sozinho (validação por formato em `validFighterId`); só mantenha `js/net/room-core.js` e `online-server/room-core.js` idênticos (copie o arquivo) — `FIGHTER_IDS` virou lista legada de compatibilidade.
 7. Rode `python3 tools/build_roster_portraits.py` para o busto entrar na grade. Se a cabeça ficar fora, ajuste `OVERRIDES` e rode de novo.
 8. Suba o `?v=` de `SpriteGen.url` / `Art.url` se a folha mudou, para o selo `build` não mentir.
 

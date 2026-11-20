@@ -945,7 +945,7 @@ const UI = {
   },
   showVs(cfg, then) {
     const side = (ti) => cfg.teams[ti].map((id) => {
-      const d = FIGHTERS.find((x) => x.id === id);
+      const d = FIGHTERS.find((x) => x.id === id) || FIGHTERS[3]; /* id estranho nunca quebra a tela VS */
       const sheetClass = ROSTER_4X8_SPRITES.has(id) ? ' sprite-4x8' : '';
       return `<div class="vs-f"><div class="vs-sprite${sheetClass}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:${d.colors.accent}">${d.name}</b><small>${d.title}</small></div>`;
     }).join('');
