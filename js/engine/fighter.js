@@ -1985,7 +1985,9 @@ class Fighter {
       const fid = this.auraFid || this.def.id;
       ctx.save();
       ctx.globalAlpha = 0.85;
-      Art.ability(ctx, fid, this.aura.row, Math.floor(t / 5), this.x, this.y - 92, { scale: 1.75, add: true });
+      /* auraScale/auraDy (opcional, por poder): aura que precisa ENVOLVER o
+         corpo (CYBER — Ciberneurose: chama em volta do robo) */
+      Art.ability(ctx, fid, this.aura.row, Math.floor(t / 5), this.x, this.y - 92 + (this.aura.auraDy || 0), { scale: this.aura.auraScale || 1.75, add: true });
       ctx.restore();
     }
   }

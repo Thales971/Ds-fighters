@@ -12,7 +12,7 @@
    ============================================================ */
 (() => {
   const FORCA = {
-    'cyber-psicopata': 0.408,     /* torneio: 45% */
+    'cyber-psicopata': 0.78,      /* v2 (arte e kit novos, leve buff): 45% -> ~53% */
     'nunes': 0.417,               /* torneio: 59% */
     'emilio': 0.425,              /* torneio: 47% */
     'engenheira-prompt': 0.449,   /* torneio: 53% */

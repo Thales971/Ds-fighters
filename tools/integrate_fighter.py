@@ -98,6 +98,10 @@ def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
     # mesmo pelos vaos entre os fios.
     if flood:
         bg_like = magenta_like | (d <= 60)
+        if getattr(load_sheet, '_strict_mag', False):
+            # fundo magenta PURO (G ~ 0, R ~ B): punho rosa/vermelho brilhando
+            # (Ciber v2) tem G alto ou B baixo e nunca vira fundo
+            bg_like = ((G < 60) & (R > 110) & (B > 110) & (np.abs(R - B) < 55)) | (d <= 40)
         seed = np.zeros_like(bg_like)
         seed[0, :] = bg_like[0, :]
         seed[-1, :] = bg_like[-1, :]
@@ -143,6 +147,8 @@ def figure_rgba(crop, mask, bg):
     alpha[~mask] = 0.0
     R, G, B = a[..., 0], a[..., 1], a[..., 2]
     mag = (R > G + 40) & (B > G + 25) & (alpha > 0.99) & (d < 260)
+    if getattr(load_sheet, '_strict_mag', False):
+        mag &= G < 60  # so respingo de magenta puro; punho rosa brilhando fica
     if mag.any():
         g = a[..., 1]
         a2 = a.copy()
@@ -635,6 +641,30 @@ RAFAEL_POSES = {
     'win':     ([(0, 3, 1, False)] * 4, 195, BASE),
 }
 
+# CIBER v2 — folha1 (si=0): idle-frente | soco-gigante-L | soco-baixo-L | soco-D
+#                          bracos-pra-cima | canhao-D | joelhada-L | flexao
+# folha2 (si=1): idle | bloqueio | agachado | apanhando-L
+#                cambaleando-L | KO deitado | guarda baixa | glitch
+# -L = olhando pra esquerda (flip). Os ataques ficam todos na folha 1 e os
+# estados na folha 2, pra cor nao piscar dentro da mesma pose.
+CIBER_V2_POSES = {
+    'idle':    ([(1, 0, 0, False), (1, 0, 0, False), (1, 0, 0, False), (1, 3, 1, False)], 200, BASE),
+    'walk':    ([(1, 0, 0, False), (1, 2, 1, False), (1, 0, 0, False), (1, 2, 1, False)], 196, BASE),
+    'jump':    ([(0, 2, 1, True)] * 4, 175, AIR),
+    'crouch':  ([(1, 2, 0, False)] * 4, 128, BASE),
+    'punch':   ([(0, 3, 0, False)] * 4, 196, BASE),
+    'kick':    ([(0, 1, 0, True)] * 4, 196, BASE),
+    'cpunch':  ([(0, 2, 0, True)] * 4, 150, BASE),
+    'ckick':   ([(0, 2, 0, True)] * 4, 150, BASE),
+    'jpunch':  ([(0, 3, 0, False)] * 4, 180, AIR),
+    'jkick':   ([(0, 2, 1, True)] * 4, 175, AIR),
+    'special': ([(0, 1, 1, False)] * 4, 200, BASE),
+    'hit':     ([(1, 3, 0, True), (1, 0, 1, True), (1, 3, 0, True), (1, 0, 1, True)], 196, BASE),
+    'block':   ([(1, 1, 0, False)] * 4, 196, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 84, BASE),
+    'win':     ([(0, 3, 1, False), (0, 0, 1, False), (0, 3, 1, False), (0, 0, 1, False)], 204, BASE),
+}
+
 FIGHTERS = {
     'rafael': {
         'sheets': ['Rafael sprites 1.jpg', 'Rafael sprites 2.jpg', 'Rafael sprites 3.jpg'],
@@ -812,13 +842,38 @@ FIGHTERS = {
         'poses': HANA_POSES,
         'ui_cell': (0, 0, 0, False),
     },
+    # CIBER v2 (nov/2026): arte nova do dono. Folha 1 = ataques (chrome lilas,
+    # olhos vermelhos), folha 2 = estados (chrome cinza, visor vermelho).
+    # O atlas de habilidades e feito por tools/build_ciber_fx.py (animado).
     'cyber-psicopata': {
-        'sheet': 'ciber-psicopata sprites.jpg',
-        'abilities': 'ciber-psicopata habilidades 2.jpg',
-        'poses': CIBER_POSES,
-        'ui_cell': (0, 0, False),
+        'sheets': ['Ciber v2 sprites 1.jpg', 'Ciber v2 sprites 2.jpg'],
+        'poses': CIBER_V2_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'desat': {0: 0.55},
+        'abilities_keep': True,
     },
 }
+
+
+def desat_metal(fig, k):
+    """Tira k (0..1) da saturacao de tudo que NAO e vermelho/laranja vivo:
+    o chrome lilas vira cinza, o olho/punho/clarão vermelho ficam."""
+    arr = np.array(fig).astype(float)
+    r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
+    mx = np.maximum(np.maximum(r, g), b)
+    mn = np.minimum(np.minimum(r, g), b)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    red = (r > g + 50) & (r > b + 20) & (sat > 0.28)
+    lum = 0.299 * r + 0.587 * g + 0.114 * b
+    for c in range(3):
+        arr[..., c] = np.where(red, arr[..., c], arr[..., c] * (1 - k) + lum * k)
+    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGBA')
+
+
+SHEET_POST = {}
 
 
 def build_sheet(cells, pose_map):
@@ -833,6 +888,8 @@ def build_sheet(cells, pose_map):
                 si, ci, ri, flip = key
             crop, mask, bg = cells[(si, ci, ri)]
             fig = figure_rgba(crop, mask, bg)
+            if SHEET_POST.get(si):
+                fig = desat_metal(fig, SHEET_POST[si])
             shake = SHAKE_DEFAULT if len(set(map(tuple, keys))) == 1 else 0
             place(sheet, fig, target_h, foot_y, frame, pose_i,
                   dx=shake[frame] if shake else 0, flip=flip)
@@ -925,8 +982,13 @@ def build_abilities(paths, row_bands=None, col_bands=None, ab_map=None, ab_fx=No
 
 
 def build_ui(cells, ui_cell):
-    crop, mask, bg = cells[tuple(ui_cell[:3]) if len(ui_cell) >= 3 else (0, ui_cell[0], ui_cell[1])]
+    key = tuple(ui_cell[:3]) if len(ui_cell) >= 3 else (0, ui_cell[0], ui_cell[1])
+    crop, mask, bg = cells[key]
     fig = figure_rgba(crop, mask, bg)
+    if SHEET_POST.get(key[0]):
+        fig = desat_metal(fig, SHEET_POST[key[0]])
+    if len(ui_cell) >= 4 and ui_cell[3]:
+        fig = fig.transpose(Image.FLIP_LEFT_RIGHT)
     port = Image.new('RGBA', (320, 360), (0, 0, 0, 0))
     f = fig.copy()
     f.thumbnail((300, 340), Image.LANCZOS)
@@ -949,6 +1011,9 @@ def main():
         sheets = cfg.get('sheets') or [cfg['sheet']]
         cells = {}
         load_sheet._dark_bg = cfg.get('dark_bg', False)
+        load_sheet._strict_mag = cfg.get('strict_magenta', False)
+        SHEET_POST.clear()
+        SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
             sc = load_sheet(SRC / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'))
             for k, v in sc.items():

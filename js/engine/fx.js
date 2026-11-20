@@ -35,6 +35,10 @@ const ART_SHEETS = {
     .map((id) => ['fx2:' + id + '-fx', { src: 'assets/fx/' + id + '.png', size: 128, cols: 4, rows: 5 }])),
   'abil:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
   'fx2:iales': { src: 'assets/abilities/iales.png', size: 128, cols: 4, rows: 10 },
+  /* CYBER-PSICOPATA v2 (tools/build_ciber_fx.py): atlas novo + explosao de impacto */
+  'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
+  'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
+  'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
   pitoco: { src: 'assets/pets/pitoco.png', size: 96, cols: 4 },

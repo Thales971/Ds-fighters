@@ -10,6 +10,9 @@
    - rain/storm: bônus de água/raio, fogo mais fraco, chão escorregadio
    - storm: raios caem com aviso e causam dano a qualquer lutador
    - snow: movimento mais lento; aurora: medidor +8%; heatwave: bônus elemental leve
+   - bubbles (bolhas de sabao): bolhas sobem pela arena e ESTOURAM em quem
+     encosta (ou num projetil) — cada bolha estourada por um lutador da +1,5
+     de ultimate. Arte do dono em assets/weather/bubbles.png
    O clima pode mudar no meio do round (frente fria / tempestade chegando).
    ============================================================ */
 class Weather {
@@ -34,6 +37,7 @@ class Weather {
     this._loadSprite('flakes', 'assets/weather/snowflakes.png', 28);
     this._loadSprite('leaf', 'assets/weather/leaf.png', 16);
     this._loadSprite('spark', 'assets/weather/spark.png', 8);
+    this._loadSprite('bubbles', 'assets/weather/bubbles.png', 96);
     this._chimeAt = 240;
   }
   _loadSprite(name, src, cell) {
@@ -68,6 +72,7 @@ class Weather {
     if (kind === 'rainbow') a.play('unlock', { vol: 0.2 });
     if (kind === 'fireflies') a.play('magic', { vol: 0.14 });
     if (kind === 'darkfog') a.play('dragon', { vol: 0.12 });
+    if (kind === 'bubbles') a.play('magic', { vol: 0.12 });
     if (this.game.onWeather) this.game.onWeather(kind);
   }
   stop() {
@@ -146,6 +151,8 @@ class Weather {
         }
       }
     }
+    /* BOLHAS: lutador (ou projetil) que encosta estoura a bolha */
+    if (fighting && this.kind === 'bubbles') this._popBubbles();
     /* sons ambiente dos climas novos */
     if (fighting && (this.kind === 'fireflies' || this.kind === 'leaves' || this.kind === 'aurora' || this.kind === 'heatwave' || this.kind === 'eclipse' || this.kind === 'darkfog' || this.kind === 'confetti' || this.kind === 'fireworks')) {
       this._chimeAt--;
@@ -162,6 +169,48 @@ class Weather {
     }
     this.updateParticles();
   }
+  /* nova bolha: tipo (0 pequena, 1 media, 2 arco-iris, 3 cacho) e tamanho;
+     'spread' espalha pela tela toda (inicio do clima), senao nasce no chao */
+  _newBubble(d, spread) {
+    const rnd = () => (this.game.rnd ? this.game.rnd() : Math.random());
+    const t = rnd();
+    d.design = t < 0.4 ? 0 : t < 0.7 ? 1 : t < 0.88 ? 2 : 3;
+    d.s = rnd();
+    d.size = (d.design === 0 ? 30 : d.design === 3 ? 62 : 44) + d.s * 34;
+    d.x = rnd() * (this.game.W + 120) - 60;
+    d.y = spread ? -30 - rnd() * 480 : 20 + rnd() * 30;
+    d.ph = rnd() * 6.28;
+    d.pop = -1;
+  }
+  /* Bolha estoura ao encostar num lutador (corpo ~230px de altura) ou num
+     projetil; quem estourou ganha +1,5 de ultimate. Som com intervalo pra
+     nao virar metralhadora quando um lutador atravessa um cacho. */
+  _popBubbles() {
+    const fs = this.game.fighters();
+    const projs = this.game.projectiles || [];
+    let popped = 0;
+    for (const d of this.drops) {
+      if (d.pop >= 0) continue;
+      const r = d.size * 0.42;
+      let by = null;
+      for (const f of fs) {
+        if (!f.alive) continue;
+        if (Math.abs(f.x - d.x) < 34 + r && d.y < f.y + r && d.y > f.y - 232 - r) { by = f; break; }
+      }
+      let hit = !!by;
+      if (!hit) for (const p of projs) if (!p.dead && Math.abs(p.x - d.x) < r + 18 && Math.abs(p.y - d.y) < r + 18) { hit = true; break; }
+      if (!hit) continue;
+      d.pop = 0;
+      popped++;
+      if (by) by.ultimate = Math.min(100, (by.ultimate || 0) + 1.5);
+    }
+    this._popSfx = Math.max(0, (this._popSfx || 0) - 1);
+    if (popped && !this._popSfx) {
+      this._popSfx = 10;
+      this.game.audio.play('water', { vol: 0.1 });
+    }
+    return popped;
+  }
   updateParticles() {
     /* aneis de impacto: expandem e apagam sozinhos */
     if (this.rings.length) {
@@ -170,7 +219,7 @@ class Weather {
     }
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : 0;
+    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : this.kind === 'bubbles' ? 30 : 0;
     const want = Math.max(0, Math.round(wantBase * (this.perfScale || 1))); /* perfScale: modo performance reduz particulas */
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
@@ -198,10 +247,25 @@ class Weather {
       }
       /* ONDA DE CALOR: algumas sao EMBERS subindo. */
       if (this.kind === 'heatwave') d.ember = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4;
+      if (this.kind === 'bubbles') this._newBubble(d, true);
       this.drops.push(d);
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
+      if (this.kind === 'bubbles') {
+        /* BOLHAS: sobem devagar balancando; estourada, toca os 4 quadros do
+           estouro e renasce no chao */
+        if (d.pop >= 0) {
+          d.pop++;
+          if (d.pop > 16) this._newBubble(d, false);
+          continue;
+        }
+        d.ph += 0.018 + d.s * 0.012;
+        d.y -= 0.35 + (1 - d.s) * 0.45;
+        d.x += Math.sin(d.ph) * 0.55 + this.wind * 0.35;
+        if (d.y < -560 || d.x < -80 || d.x > W + 80) this._newBubble(d, false);
+        continue;
+      }
       if (this.kind === 'fireflies') {
         /* VAGALUMES: flutuam em onda, piscam, perseguem de leve o vento */
         d.ph += 0.05 + d.s * 0.06;
@@ -591,6 +655,25 @@ class Weather {
       /* Ceu limpo: poeira dourada flutuando bem sutil. */
       ctx.fillStyle = 'rgba(255,240,200,0.30)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+    } else if (this.kind === 'bubbles') {
+      const sp = this.sprites.bubbles;
+      for (const d of this.drops) {
+        const wob = 1 + Math.sin(this.t * 0.06 + d.ph * 2) * 0.03; /* bolha "respira" */
+        const sz = d.size * (d.pop >= 0 ? 1.25 : wob);
+        if (sp && sp.img.width) {
+          const col = d.pop >= 0 ? Math.min(3, d.pop >> 2) : d.design;
+          const row = d.pop >= 0 ? 1 : 0;
+          ctx.globalAlpha = d.pop >= 0 ? Math.max(0, 1 - d.pop / 18) : 1;
+          ctx.drawImage(sp.img, col * sp.cell, row * sp.cell, sp.cell, sp.cell, Math.round(d.x - sz / 2), Math.round(d.y - sz / 2), sz, sz);
+        } else {
+          /* sem sprite (teste/sem rede): circulo de vidro simples */
+          ctx.globalAlpha = d.pop >= 0 ? 0.3 : 0.55;
+          ctx.strokeStyle = '#bfe6ff';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(d.x, d.y, sz / 2, 0, 6.3); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
     } else if (this.kind === 'fireflies') {
       const blink = [0, 1, 2, 3, 2, 1];
       for (const d of this.drops) {
@@ -809,6 +892,24 @@ class Weather {
       night.addColorStop(1, 'rgba(8,12,36,0.07)');
       ctx.fillStyle = night;
       ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'bubbles') {
+      /* BOLHAS: luz lavanda bem leve de cima + reflexo iridescente que
+         passeia devagar pelo ceu (so ambientacao, nao escurece a luta) */
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, 'rgba(190,170,255,0.14)');
+      sky.addColorStop(0.6, 'rgba(170,220,255,0.05)');
+      sky.addColorStop(1, 'rgba(170,220,255,0)');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, W, H);
+      const sx = ((this.t * 0.6) % (W + 400)) - 200;
+      const sh = ctx.createLinearGradient(sx - 160, 0, sx + 160, 0);
+      sh.addColorStop(0, 'rgba(255,140,220,0)');
+      sh.addColorStop(0.35, 'rgba(255,170,230,0.06)');
+      sh.addColorStop(0.5, 'rgba(160,240,255,0.08)');
+      sh.addColorStop(0.65, 'rgba(255,240,150,0.06)');
+      sh.addColorStop(1, 'rgba(160,240,255,0)');
+      ctx.fillStyle = sh;
+      ctx.fillRect(sx - 160, 0, 320, H * 0.6);
     } else if (this.kind === 'leaves') {
       /* tapete de folhas no chao */
       ctx.fillStyle = 'rgba(190,120,50,0.10)';
