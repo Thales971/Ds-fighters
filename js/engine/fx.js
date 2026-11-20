@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* LARPER, veneno (tools/build_larper_fx.py) */
+  'abil:larper': { src: 'assets/abilities/larper.png', size: 128, cols: 4, rows: 5, v: 'v66-larper' },
+  'fx2:larper': { src: 'assets/abilities/larper.png', size: 128, cols: 4, rows: 5, v: 'v66-larper' },
+  'fx2:larper-extra': { src: 'assets/abilities/larper-extra.png', size: 128, cols: 4, rows: 2, v: 'v66-larper' },
   /* LYRA, a Maga do JavaScript (tools/build_lyra_fx.py) */
   'abil:lyra': { src: 'assets/abilities/lyra.png', size: 128, cols: 4, rows: 5, v: 'v65-lyra' },
   'fx2:lyra': { src: 'assets/abilities/lyra.png', size: 128, cols: 4, rows: 5, v: 'v65-lyra' },

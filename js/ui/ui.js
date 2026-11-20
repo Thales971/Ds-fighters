@@ -658,7 +658,7 @@ const UI = {
       <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
       <div class="ttl">${d.title}</div>
-      ${SIGNATURES[d.id] ? `<div class="trait" title="${SIGNATURES[d.id].desc}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
+      ${SIGNATURES[d.id] ? `<div class="trait" title="${String(SIGNATURES[d.id].desc).replace(/"/g, '&quot;')}"><b>${SIGNATURES[d.id].trait}</b><small>${SIGNATURES[d.id].desc}</small></div>` : ''}
       <p class="bio">${d.bio}</p>
       ${d.quotes && d.quotes.intro && d.quotes.intro.length ? `<div class="quotes">“${d.quotes.intro[0]}”</div>` : ''}
       <div class="statbars">${bar('FORÇA', st.power, 1.7)}${bar('VELOC.', st.speed, 1.5)}${bar('ALCANCE', (d.moves && d.moves.kick && d.moves.kick.range) || 64, 96)}</div>

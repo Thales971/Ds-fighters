@@ -60,6 +60,7 @@
     'nexo': 2.2,                  /* torneio: 34% */
     'qa': 2.2,                    /* torneio: 53% */
     'lyra': 2.05,                 /* nova (maga do JS): ~51% */
+    'larper': 2.0,                /* nova (veneno): ~50% */
   };
   for (const f of FIGHTERS) {
     const m = FORCA[f.id];
