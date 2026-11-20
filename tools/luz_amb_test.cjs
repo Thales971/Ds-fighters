@@ -179,7 +179,7 @@ check('palcos neon/glitch/codigo/sparks: 600 frames sem crash', neonErrs === 0, 
 // ===== 9. LUZES DINAMICAS: halo aditivo + poça no chao, drama na vinheta, holofote =====
 const gL = mk('circo');
 check('circo declara luzes de holofote (def.lights)', (gL.stage.def.lights || []).length >= 2, JSON.stringify(gL.stage.def.lights || []));
-check('stage monta luzes (def.lights + props flash viram luminarias)', gL.stage.lights.length >= 4, gL.stage.lights.length + ' luzes');
+check('stage monta luzes do mapa (def.lights; postes genericos removidos)', gL.stage.lights.length === (gL.stage.def.lights || []).length && gL.stage.lights.length >= 2, gL.stage.lights.length + ' luzes');
 const recL = mkRec();
 gL.stage.drawBack(recL[0], 0, 0);
 /* halo cacheado em offscreen (drawImage) OU gradiente direto no fallback — os dois valem */
@@ -197,7 +197,7 @@ check('luz PULSA com o tempo (alpha muda entre frames, cache ou nao)', sA !== sB
 const recL2 = mkRec(); gL.stage.drawBack(recL2[0], 0, 0);
 check('halo cacheado: 2a drawBack usa drawImage e nao recria gradiente (leve pra FPS alto)', recL2[1].drawImage >= gL.stage.lights.length * 2 && recL2[1].radial === 0, 'drawImage=' + recL2[1].drawImage + ' radial=' + recL2[1].radial);
 const gT = mk('treino-dojo');
-check('palco sem def.lights ganha luminarias dos props flash', gT.stage.lights.length >= 2, gT.stage.lights.length + ' luzes');
+check('palco sem def.lights nao inventa luminarias (postes genericos removidos)', gT.stage.lights.length === 0, gT.stage.lights.length + ' luzes');
 /* DRAMA: vinheta ganha camada extra escura nas bordas */
 const gDr = mk('treino-dojo');
 gDr.stage.drama = 1; gDr.stage.reducedFlag = false;

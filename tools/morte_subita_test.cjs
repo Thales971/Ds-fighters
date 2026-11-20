@@ -1,4 +1,5 @@
-// MORTE SÚBITA: paredes de fogo ativam, avançam, causam dano contínuo e podem matar.
+// MORTE SÚBITA (round final): fogo liga na hora, o calor fere os DOIS e cresce com o
+// tempo (teto 2.4 a cada 40 ticks), +5% de dano, e no fim da contagem cai quem tem menos vida.
 const fs = require('fs');
 const vm = require('vm');
 const ctx = {
@@ -21,67 +22,37 @@ const api = vm.runInContext('({Game,FIGHTERS})', ctx);
 const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, ellipse() {}, fill() {}, fillText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), set imageSmoothingEnabled(v) {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: 960, height: 540 }) });
 const canvas = { width: 960, height: 540, getContext: () => fake2d(), toBuffer: () => Buffer.alloc(10), classList: { remove() {}, add() {}, toggle() {} } };
 
+let fails = 0, n = 0;
+const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 const g = new api.Game(canvas);
-g.start({ mode: 'morte-subita', teams: [['du'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
+g.start({ mode: 'versus', teams: [['du'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
-const [a, b] = g.activePair();
-console.log('round 1 -> inferno:', g.inferno === null ? 'NULL (OK — fogo so no round final)' : 'FALHOU (fogo no round 1)');
-// pula pro round final (3)
+check('round 1: sem morte subita', g.inferno === null);
 g.round = 3; g.teamWins = [1, 1]; g.beginRound();
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
-console.log('round 3 -> inferno:', JSON.stringify(g.inferno));
-
-// 1) aviso aos 360 ticks de luta (ainda inativo)
-for (let t = 0; t < 400 && g.inferno.t < 360; t++) g.tick();
-console.log('aviso aos 360 ticks (ainda inativo):', g.inferno.t >= 360 && !g.inferno.active ? 'OK' : 'FALHOU');
-
-// 2) ativa aos 720
-for (let t = 0; t < 400 && !g.inferno.active; t++) g.tick();
-console.log('ativa apos t=720: active =', g.inferno.active, g.inferno.active ? 'OK' : 'FALHOU');
-
-// 3) paredes avançam
-const l0 = g.inferno.left, r0 = g.inferno.right;
-for (let t = 0; t < 300; t++) g.tick();
-console.log('paredes: left', l0.toFixed(0), '->', g.inferno.left.toFixed(0), '| right', r0.toFixed(0), '->', g.inferno.right.toFixed(0),
-  (g.inferno.left > l0 && g.inferno.right < r0) ? 'OK' : 'FALHOU');
-
-// 4) dano continuo: coloca o lutador A na parede
-a.x = g.inferno.left - 10;
-const hp0 = a.hp;
-for (let t = 0; t < 60; t++) { g.tick(); a.x = Math.min(a.x, g.inferno.left - 5); } // mantem dentro do fogo
-console.log('dano continuo: hp', Math.round(hp0), '->', Math.round(a.hp), a.hp < hp0 - 10 ? 'OK' : 'FALHOU');
-console.log('burn aplicado:', a.has('burn') ? 'OK' : 'FALHOU');
-
-// 4b) calor da arena: dano continuo nos DOIS sem tocar o fogo
-a.x = 480; b.x = 520;
+check('round final: morte subita preparada', !!g.inferno && g.suddenLeft > 0, JSON.stringify(g.inferno) + ' contagem=' + g.suddenLeft);
+g.tick();
+check('fogo liga logo no comeco da luta do round final', g.inferno.active === true);
+const [a, b] = g.activePair();
+a.x = 300; b.x = 660;
+/* calor fere os dois, sem ninguem encostar em nada */
 const hpA = a.hp, hpB = b.hp;
-for (let t = 0; t < 300; t++) g.tick();
-console.log('calor da arena (dano nos dois): A', Math.round(hpA), '->', Math.round(a.hp), '| B', Math.round(hpB), '->', Math.round(b.hp),
-  (a.hp < hpA - 3 && b.hp < hpB - 3) ? 'OK' : 'FALHOU');
-
-// 4c) medidor mais rapido com fogo ativo
-a.ultimate = 0; a.charge = [0, 0];
-const u0 = a.ultimate;
-a.gain(true, 1);
-const g1 = a.ultimate - u0;
-const infSave = g.inferno.active; g.inferno.active = false;
-a.ultimate = 0;
-a.gain(true, 1);
-const g2 = a.ultimate;
-g.inferno.active = infSave;
-console.log('medidor: com fogo', g1.toFixed(2), 'vs sem fogo', g2.toFixed(2), (g1 > g2 * 1.3) ? 'OK (1.6x)' : 'FALHOU');
-
-// 5) fogo mata: segura o A na parede ate cair (B sempre com HP cheio)
-let ko = false;
-for (let t = 0; t < 3000 && !ko; t++) {
-  g.tick();
-  b.hp = b.maxHp; b.alive = true;
-  if (a.alive) a.x = Math.min(a.x, g.inferno.left - 5);
-  else ko = true;
-}
-console.log('morte pelo fogo:', ko ? 'OK (K.O. por queimadura)' : 'FALHOU');
-
-// 6) gap minimo trava no centro
-for (let t = 0; t < 5000 && !g.matchOver; t++) { g.tick(); b.hp = b.maxHp; b.alive = true; }
-console.log('gap final:', Math.round(g.inferno.right - g.inferno.left), '(esperado ~230)');
-console.log('roundState:', g.roundState);
+for (let t = 0; t < 240; t++) { g.tick(); a.x = 300; b.x = 660; }
+check('calor da arena fere os DOIS lutadores', a.hp < hpA - 1 && b.hp < hpB - 1, 'A ' + hpA.toFixed(1) + '->' + a.hp.toFixed(1) + ' | B ' + hpB.toFixed(1) + '->' + b.hp.toFixed(1));
+/* o calor cresce com o tempo */
+const chip = (ticks) => { const h0 = a.hp; for (let t = 0; t < ticks; t++) { g.tick(); a.x = 300; b.x = 660; a.hp = Math.max(a.hp, 1); } return h0 - a.hp; };
+const early = chip(240);
+for (let t = 0; t < 1200; t++) { g.tick(); a.hp = a.maxHp; b.hp = b.maxHp; a.x = 300; b.x = 660; }
+const late = chip(240);
+check('calor aumenta com o tempo', late > early * 1.3, 'inicio=' + early.toFixed(2) + ' depois=' + late.toFixed(2));
+/* +5% de dano com o fogo ativo */
+const dm = (on) => { const s = g.inferno.active; g.inferno.active = on; const v = a.dmgMult ? a.dmgMult() : null; g.inferno.active = s; return v; };
+const on = dm(true), off = dm(false);
+if (on != null) check('fogo ativo: +5% de dano', Math.abs(on / off - 1.05) < 0.001, on.toFixed(3) + ' vs ' + off.toFixed(3));
+/* fim da contagem: cai quem tem MENOS vida */
+a.hp = a.maxHp * 0.3; b.hp = b.maxHp * 0.9; g.suddenLeft = 1;
+g.tick();
+check('fim da contagem: quem tem menos vida cai', !a.alive || a.hp <= 0, 'A hp=' + a.hp.toFixed(1) + ' alive=' + a.alive + ' | B hp=' + b.hp.toFixed(1));
+console.log('---');
+console.log(fails === 0 ? 'MORTE SUBITA: TUDO OK (' + n + ' checks)' : 'MORTE SUBITA: ' + fails + ' FALHAS de ' + n);
+process.exit(fails ? 1 : 0);

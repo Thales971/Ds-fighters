@@ -23,7 +23,7 @@ const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/figh
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO CARGA', f, e.message.slice(0, 60)); } }
 
 vm.runInContext(`
-const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, ellipse() {}, arc() {}, fill() {}, fillText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), set imageSmoothingEnabled(v) {} });
+const fake2d = () => ({ canvas: null, strokeText() {}, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, ellipse() {}, arc() {}, fill() {}, fillText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), set imageSmoothingEnabled(v) {} });
 const mk = (mode) => {
   const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), toBuffer: () => Buffer.alloc(10), classList: { remove() {}, add() {}, toggle() {} } });
   g.start({ mode: mode || 'versus', teams: [['du'], ['stack']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 1, timer: 99 });
@@ -61,7 +61,7 @@ check('F9 com tabela de FRAME DATA renderiza sem crash', renderOk);
 check('tabela tem os 6 golpes', typeof g2._drawFrameDataTable === 'function');
 
 // ==== 3. CONQUISTAS: 15 medalhas definidas, grant persiste ====
-check('15 conquistas definidas', ACHIEVEMENTS.length === 15, ACHIEVEMENTS.length + ' medalhas');
+check('conquistas definidas (15 originais + expansoes)', ACHIEVEMENTS.length >= 15, ACHIEVEMENTS.length + ' medalhas');
 const ids = new Set(ACHIEVEMENTS.map((a) => a.id));
 check('ids unicos', ids.size === ACHIEVEMENTS.length);
 Profile.grantAchievement('primeiro-ko');

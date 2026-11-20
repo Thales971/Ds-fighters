@@ -35,7 +35,7 @@ const f = g.activeOf(0), o = g.activeOf(1);
 check('vida balanceada (v10: ~561 em jogo)', f.maxHp >= 500 && f.maxHp <= 600, 'maxHp=' + f.maxHp);
 check('power 1.34 (forca 3/5)', f.def.stats.power === 1.34);
 
-const reset = () => { f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.state = 'idle'; o.state = 'idle'; f.status = {}; o.status = {}; f.cast = null; f.stolen = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; g.zones = []; g.walls = []; };
+const reset = () => { f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.state = 'idle'; o.state = 'idle'; f.status = {}; o.status = {}; f.cast = null; f.stolen = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; g.zones = []; g.walls = []; };
 
 // 1) Pendulo: projetil ciano com LENTIDAO de 2s (120 frames)
 reset();
@@ -52,7 +52,7 @@ const sentinela = g.walls.find((w) => w.owner === f);
 check('sentinela invocada', !!sentinela, sentinela ? 'time=' + (sentinela.time - sentinela.age) : 'sem parede');
 check('sentinela dura ~12s', sentinela && sentinela.time >= 700, 'time=' + (sentinela && sentinela.time));
 // projétil do oponente bloqueado pela sentinela
-o.x = 900; o.dir = -1; o.cd = [0,0,0,0,0,0,0,0,0,0]; o.state = 'idle'; o.castLock = 0;
+o.x = 900; o.dir = -1; o.cd = [0,0,0,0,0,0,0,0,0,0]; o.spamShared = 0; o.state = 'idle'; o.castLock = 0;
 o.tryCast(0); // machado do Du
 let bloqueado = false;
 for (let t = 0; t < 100; t++) { g.tick(); if (g.projectiles.length === 0 && t > 8) { bloqueado = true; break; } }
@@ -87,7 +87,7 @@ check('fora do campo: sem lentidão', !o.has('slow'), 'slow=' + o.has('slow'));
 
 // 6) Ultimate: Parar o Relógio — congela 3s (180f)
 reset();
-f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle';
+f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.state = 'idle';
 check('ULT cast', f.tryCast(4) === true);
 for (let t = 0; t < 90; t++) g.tick(); // super-freeze da ult
 check('oponente CONGELADO', o.has('freeze') || o.has('paralyze'), 'freeze=' + o.has('freeze') + ' paralyze=' + o.has('paralyze'));
@@ -97,7 +97,7 @@ for (let t = 0; t < 300; t++) { g.tick(); o.hp = o.maxHp; if (o.has('freeze') ||
 check('congelamento da ult ~3s (180f)', congeladoTotal >= 140 && congeladoTotal <= 260, congeladoTotal + ' frames congelado');
 // recarga da ult: 45s = 2700 frames com anti-spam
 reset();
-f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle';
+f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.state = 'idle';
 f.tryCast(4);
 check('recarga da ult ~45s', f.ultimate === 0 && true, 'ult zerada apos o cast');
 

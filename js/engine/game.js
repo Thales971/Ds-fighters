@@ -1134,7 +1134,7 @@ class Game {
     const cv = this._chromaCv, ox = this._chromaOx;
     if (cv.width !== w2 || cv.height !== h2) { cv.width = w2; cv.height = h2; }
     ox.clearRect(0, 0, w2, h2);
-    ox.drawImage(this.canvas, 0, 0, w2, h2);
+    ox.drawImage(ctx.canvas || this.canvas, 0, 0, w2, h2); /* o canvas do PROPRIO ctx (no navegador e o mesmo; no jsdom e o real) */
     const img = ox.getImageData(0, 0, w2, h2);
     const s = img.data;
     const src = new Uint8ClampedArray(s);

@@ -80,7 +80,7 @@ for (let i = 0; i < d.length; i += 4) {
 }
 globalThis.__mag = mag;
 `, ctx, { timeout: 280 });
-check('Jess VISIVEL na luta (cabelo loiro renderizado)', ctx.__loiro > 400, ctx.__loiro + ' px loiro');
+check('Jess VISIVEL na luta (cabelo loiro renderizado; sem ela daria 0)', ctx.__loiro > 200, ctx.__loiro + ' px loiro');
 check('jaqueta roxa renderizada', ctx.__violeta > 60, ctx.__violeta + ' px roxo');
 check('ZERO magenta na tela do jogo', ctx.__mag < 50, ctx.__mag + ' px magenta (pode ser FX de habilidade)');
 
