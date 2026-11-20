@@ -54,8 +54,10 @@ for (const kind of KINDS) {
   check('clima ' + kind + ' renderiza', true, g.weather.drops.length + ' particulas');
 }
 g.weather.set('snow');
-g.weather.updateParticles();
-const flake = g.weather.drops.find((d) => d.design !== undefined);
+/* a neve nasce aos poucos (sorteio por tick): 1 tick so as vezes gera floco,
+   o que deixava a suite intermitente. Espera ate 2s de jogo pelo 1o floco. */
+let flake = null;
+for (let t = 0; t < 120 && !flake; t++) { g.weather.updateParticles(); flake = g.weather.drops.find((d) => d.design !== undefined); }
 check('floco tem design (0-5)', !!flake && flake.design >= 0 && flake.design <= 5, 'design=' + (flake && flake.design));
 check('floco tem camada de profundidade', !!flake && [0, 1, 2].includes(flake.layer), 'layer=' + (flake && flake.layer));
 check('sprites de clima no disco', fs.existsSync('assets/weather/snowflakes.png') && fs.existsSync('assets/weather/leaf.png') && fs.existsSync('assets/weather/spark.png'), 'flakes/leaf/spark');

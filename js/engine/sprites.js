@@ -41,10 +41,12 @@ const SpriteGen = {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
     // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
     // v18-balance: rebalanceamento geral + cromo buff
-    return src + '?v=v47-maresprites';
+    /* SPRITE_LAYOUT.ver[id]: versao so daquele lutador (arte nova nao obriga
+       todo mundo a baixar de novo as ~50 folhas) */
+    return src + '?v=' + ((SPRITE_LAYOUT.ver || {})[id] || 'v47-maresprites');
   },
   faceUrl(id) {
-    return `assets/ui/face-${id}.png?v=spritefix-4x15d`;
+    return `assets/ui/face-${id}.png?v=` + ((SPRITE_LAYOUT.ver || {})[id] || 'spritefix-4x15d');
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};
