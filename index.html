@@ -1,28 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>DS Fighters — Edição V20</title>
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 42 lutadores selecionáveis, 5 habilidades cada (IALES até 10), 47 arenas, 2x2 e online." />
   <meta name="theme-color" content="#120a24" />
-  <script>
-    (async () => {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((registration) => registration.unregister()));
-      }
-      if ('caches' in window) {
-        const names = await caches.keys();
-        await Promise.all(names.map((name) => caches.delete(name)));
-      }
-    })().catch((error) => console.warn('Cache cleanup failed:', error));
-  </script>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/share/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DS Fighters" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v56-titulo" />
+  <link rel="stylesheet" href="css/style.css?v=v59-app" />
   <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
   <link rel="stylesheet" href="css/mobile.css?v=v56-titulo" />
 </head>
@@ -71,6 +62,7 @@
       <p class="tagline">EDIÇÃO V20 · 42 LUTADORES · 47 ARENAS</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
+      <button class="nav install-btn" id="btn-install" type="button" hidden>📲 INSTALAR APP</button>
       <p class="credit">Arte e código originais · Música enviada pelo proprietário · Jogo gratuito</p>
     </section>
 
@@ -553,7 +545,7 @@
   <script src="js/data/roster-portraits.js?v=v47-maresprites"></script>
   <script src="js/ui/ui.js?v=v57-acessorios"></script>
   <script src="js/ui/account.js?v=v47-maresprites"></script>
-  <script src="js/main.js?v=v54-ambiente"></script>
+  <script src="js/main.js?v=v59-app"></script>
   <script src="js/net/tournament.js?v=v47-maresprites"></script>
 </body>
 </html>

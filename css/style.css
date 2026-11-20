@@ -713,3 +713,8 @@ body.perf-low .screen.on, body.perf-xlow .screen.on { animation: none; }
 body.perf-low #scr-pause, body.perf-xlow #scr-pause { backdrop-filter: none; -webkit-backdrop-filter: none; }
 body.perf-low .pet-spr, body.perf-xlow .pet-spr { animation: none; }
 body.perf-xlow .select-live, body.perf-xlow .sel-stage-tag, body.perf-xlow .title-fx { display: none; }
+/* botao INSTALAR APP (PWA) — canto da tela inicial, so aparece quando da pra instalar */
+.install-btn { position: absolute; top: 14px; right: 16px; background: rgba(18, 10, 36, .78); border: 2px solid var(--cyan); color: var(--cyan); font: 9px/1.4 'Press Start 2P', monospace; padding: 8px 10px; cursor: pointer; z-index: 2; }
+.install-btn:hover, .install-btn:focus { background: var(--cyan); color: #120a24; }
+.install-btn[hidden] { display: none; }
+body.mobile .install-btn { top: max(8px, env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right)); min-height: 40px; font-size: 9px; }
