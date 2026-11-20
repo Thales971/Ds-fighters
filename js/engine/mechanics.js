@@ -3,6 +3,10 @@
    Cada mecânica tem tick(t) (lógica) e draw(ctx) (camada do chão).
    Perigos usam Strike(null, ...) — atingem qualquer lutador, com aviso.
    ============================================================ */
+/* layout de assets/fx/mare.png — gerado por tools/build_mare_atlas.py (rodar de novo
+   se trocar as imagens da onda; o script imprime estes valores) */
+const MARE_ATLAS = { fw: 176, fh: 120, waterH: 40, calm: [0, 0, 192, 40], waveFrames: [[0, 40], [176, 40], [352, 40], [528, 40], [704, 40], [0, 160], [176, 160]] };
+
 const MECHS = {
   overheat: {
     every: 360,
@@ -254,29 +258,45 @@ const MECHS = {
     draw(ctx, g, t) {
       if (this.wave <= 0) return;
       ctx.save();
-      /* sprite real das ondas (assets/fx/mare.png, 4 variantes de 1184x160);
-         se ainda nao carregou, cai no canvas antigo de triangulos */
+      /* sprites reais da onda (assets/fx/mare.png, tools/build_mare_atlas.py):
+         faixa de agua calma lado a lado no nivel do chao + UMA onda animada
+         (cresce, quebra, vira espuma) andando no sentido do empurrao.
+         Se o atlas ainda nao carregou, cai no canvas antigo de blocos. */
       const sheet = g.stage && g.stage.waveSheet;
       const ready = sheet && sheet.complete && sheet.naturalWidth;
-      ctx.globalAlpha = Math.min(0.92, 0.25 + (this.wave / 130) * 0.75);
+      const A = MARE_ATLAS;
+      const TOP = -32; /* superficie da agua (y relativo ao chao) */
+      ctx.globalAlpha = Math.min(0.82, 0.3 + (this.wave / 130) * 0.52);
       if (ready) {
-        const SW = 1184, ROW = 160;
-        const row = Math.floor(t / 24) % 4; /* troca a onda devagar */
-        const sy = row * ROW;
-        const bob = Math.sin(t * 0.08) * 3;
-        const ox = ((t * this.dir * 2.2) % SW + SW) % SW;
-        for (let x = -SW - ox; x < g.W + SW; x += SW) {
-          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW + bob, SW, ROW);
+        const [cx, cy, cw, ch] = A.calm;
+        const dir = this.dir || 1;
+        const bob = g.reduced ? 0 : Math.round(Math.sin(t * 0.06) * 1.5);
+        const ox = (((t * dir * 0.8) % cw) + cw) % cw;
+        for (let x = -cw + ox; x < g.W; x += cw) {
+          ctx.drawImage(sheet, cx, cy, cw, ch, Math.round(x), TOP + bob, cw, ch);
         }
-        /* REFLEXO na agua: copia espelhada e achatada das ondas abaixo da superficie */
+        /* a onda: anima os quadros em ~7.5 fps enquanto atravessa a tela */
+        const n = A.waveFrames.length;
+        const [fx, fy] = A.waveFrames[Math.floor(t / 8) % n];
+        const span = g.W + A.fw * 2;
+        const pos = ((t * 2.2) % span) - A.fw;
+        const wy = TOP + bob - (A.fh - A.waterH);
+        if (dir > 0) {
+          ctx.drawImage(sheet, fx, fy, A.fw, A.fh, Math.round(pos), wy, A.fw, A.fh);
+        } else {
+          ctx.save();
+          ctx.translate(g.W, 0);
+          ctx.scale(-1, 1); /* espelha: a crista olha pro lado que a agua empurra */
+          ctx.drawImage(sheet, fx, fy, A.fw, A.fh, Math.round(pos), wy, A.fw, A.fh);
+          ctx.restore();
+        }
+        /* reflexo leve da faixa (espelhada e achatada) somando luz na agua */
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = g.reduced ? 0.07 : 0.13;
-        ctx.translate(0, 6 + bob);
-        ctx.scale(1, -0.38);
-        for (let x = -SW - ox; x < g.W + SW; x += SW) {
-          ctx.drawImage(sheet, 0, sy, SW, ROW, Math.round(x), -ROW, SW, ROW);
-        }
+        ctx.globalAlpha = g.reduced ? 0.06 : 0.1;
+        ctx.translate(0, TOP + ch + bob);
+        ctx.scale(1, -0.35);
+        for (let x = -cw + ox; x < g.W; x += cw) ctx.drawImage(sheet, cx, cy, cw, ch, Math.round(x), 0, cw, ch);
         ctx.restore();
       } else {
         ctx.globalAlpha = Math.min(0.5, this.wave / 60);

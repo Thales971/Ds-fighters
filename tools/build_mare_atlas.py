@@ -1,70 +1,130 @@
 #!/usr/bin/env python3
-"""Atlas das ondas da MARÉ ALTA a partir dos sprites do dono.
+"""Atlas da MARÉ ALTA a partir dos sprites do dono — QUADRO A QUADRO.
 
-Le os JPGs em Pitoco-pet/mare-alta-nova-sprites-recortar/ (fundo magenta
-chroma-key), recorta as 4 faixas de onda horizontais (largura cheia 1184px)
-e empacota em:
+As duas imagens em Pitoco-pet/mare-alta-nova-sprites-recortar/ (fundo magenta)
+são grades de quadros de animação de UMA onda (cresce -> quebra -> some), com
+linhas divisórias entre os painéis. A versão antiga cortava a linha inteira
+(1184px) como se fosse uma faixa contínua, e as divisórias viravam riscos
+verticais na tela. Aqui cada painel é recortado por dentro (sem divisória),
+recebe chroma-key, é escalado para a água ficar com WATER_H px de espessura e
+alinhado pela linha da superfície.
 
-  assets/fx/mare.png — 1184 x 640, 4 linhas de 160px, onda ancorada na base
-
-Linhas: 0/1 = "Mare alta nova sprite.jpg", 2/3 = "mare alta nova 2 sprite.jpg".
+Saída:
+  assets/fx/mare.png — linha 0: faixa de água calma tileável (CALM_W x WATER_H,
+                       bordas casadas); linhas 1..: quadros da onda (FW x FH,
+                       superfície em y = FH - WATER_H).
+  Imprime o layout (MARE_ATLAS) que js/engine/mechanics.js usa.
 
 Uso: python3 tools/build_mare_atlas.py
 """
+import json
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / 'Pitoco-pet/mare-alta-nova-sprites-recortar'
 OUT = ROOT / 'assets/fx/mare.png'
-W = 1184
-ROW_H = 160
 
-SOURCES = [
-    ('Pitoco-pet/mare-alta-nova-sprites-recortar/Mare alta nova sprite.jpg', [(220, 295), (678, 749)]),
-    ('Pitoco-pet/mare-alta-nova-sprites-recortar/mare alta nova 2 sprite.jpg', [(234, 373), (664, 786)]),
+WATER_H = 40      # espessura da água na tela (px)
+FH = 120          # altura de cada quadro da onda (crista + água)
+FW = 176          # largura de cada quadro da onda
+CALM_W = 192      # largura do tile de água calma
+INSET = 8         # margem pra dentro do painel (some a divisória e a borda clara)
+
+# painéis (x0, x1, y0, y1) medidos nas divisórias de cada imagem
+SHEETS = [
+    ('Mare alta nova sprite.jpg',
+     [(0, 293), (295, 590), (592, 888), (890, 1184)], [(0, 447), (449, 896)]),
+    ('mare alta nova 2 sprite.jpg',
+     [(0, 238), (241, 471), (474, 705), (709, 940), (943, 1184)], [(0, 449), (453, 896)]),
 ]
+# sequência da onda passando: (folha, linha, coluna). Só a folha 0: os 7 quadros
+# dela formam uma onda coerente (cresce, crista, quebra, espuma, some); a folha 1
+# tem outra paleta/espessura de água e destoava quando misturada.
+WAVE_SEQ = [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
+CALM_FROM = (0, 1, 3)  # painel só com água calma
 
 
 def key_magenta(rgb):
-    """alpha a partir de uma mascara de magenta (matiz), com 1px de borda suave.
-    Azul da onda (r~1, b~108) e espuma branca nao sao magenta; blends de borda
-    pinkish tambem caem na mascara (r alto, g baixo, b alto) e viram transparentes."""
+    """alpha: tudo que é magenta (e a franja rosada da borda) fica transparente."""
     from scipy import ndimage
     a = rgb.astype(np.int16)
     r, g, b = a[:, :, 0], a[:, :, 1], a[:, :, 2]
-    mag = (r > 140) & (b > 100) & (g < 0.75 * r) & (r - b > -60)
-    d = ndimage.distance_transform_edt(~mag)  # distancia ate o magenta
+    mag = (r > 140) & (b > 70) & (g < 0.6 * r) & (r - b > -60)
+    d = ndimage.distance_transform_edt(~mag)
     return (d > 1.5).astype(np.uint8) * 255
 
 
+def load_panel(sheet, row, col):
+    name, cols, rows = SHEETS[sheet]
+    img = np.asarray(Image.open(SRC / name).convert('RGB'))
+    x0, x1 = cols[col]
+    y0, y1 = rows[row]
+    crop = img[y0 + INSET:y1 - INSET, x0 + INSET:x1 - INSET]
+    alpha = key_magenta(crop)
+    return np.dstack([crop, alpha])
+
+
+def water_band(rgba):
+    """superfície = 1a linha onde >=92% da largura é opaca; fundo = última."""
+    full = (rgba[:, :, 3] > 0).mean(axis=1) >= 0.92
+    ys = np.where(full)[0]
+    return int(ys.min()), int(ys.max()) + 1
+
+
+def scaled(rgba, s):
+    im = Image.fromarray(rgba, 'RGBA')
+    return im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.BOX)
+
+
 def main():
-    strips = []
-    for name, bands in SOURCES:
-        img = Image.open(ROOT / name).convert('RGB')
-        arr = np.asarray(img)
-        alpha = key_magenta(arr)
-        rgba = np.dstack([arr.astype(np.uint8), alpha])
-        for (y0, y1) in bands:
-            strip = rgba[y0 - 4:y1 + 4, :, :]  # respiro pra includir a crista
-            strips.append(strip)
-    atlas = Image.new('RGBA', (W, ROW_H * len(strips)), (0, 0, 0, 0))
-    for i, strip in enumerate(strips):
-        h = min(ROW_H, strip.shape[0])
-        img = Image.fromarray(strip[:h])
-        atlas.alpha_composite(img, (0, i * ROW_H + (ROW_H - h)))  # base da onda embaixo
+    frames = []
+    for (sh, row, col) in WAVE_SEQ:
+        p = load_panel(sh, row, col)
+        top, bot = water_band(p)
+        s = WATER_H / (bot - top)
+        im = scaled(p[:bot], s)  # corta abaixo do fundo da água
+        surf = im.height - WATER_H
+        canvas = Image.new('RGBA', (FW, FH), (0, 0, 0, 0))
+        # centraliza na largura, superfície em FH - WATER_H (crista que passar do topo é cortada)
+        canvas.alpha_composite(im.crop((max(0, (im.width - FW) // 2), max(0, surf - (FH - WATER_H)),
+                                        max(0, (im.width - FW) // 2) + min(FW, im.width), im.height)),
+                               (max(0, (FW - im.width) // 2), max(0, (FH - WATER_H) - surf)))
+        frames.append(canvas)
+
+    # água calma tileável
+    p = load_panel(*CALM_FROM)
+    top, bot = water_band(p)
+    band = scaled(p[top:bot], WATER_H / (bot - top)).resize((CALM_W + 24, WATER_H), Image.BOX)
+    a = np.asarray(band).astype(np.float32)
+    main_part = a[:, :CALM_W].copy()
+    tail = a[:, CALM_W:CALM_W + 24]
+    for i in range(24):  # crossfade: o começo do tile recebe o "depois" do fim
+        w = 1 - i / 24
+        main_part[:, i] = main_part[:, i] * (1 - w) + tail[:, i] * w
+    main_part[:, :, 3] = 255
+    calm = Image.fromarray(main_part.clip(0, 255).astype(np.uint8), 'RGBA')
+
+    per_row = 5
+    rows = (len(frames) + per_row - 1) // per_row
+    W = max(CALM_W, per_row * FW)
+    atlas = Image.new('RGBA', (W, WATER_H + rows * FH), (0, 0, 0, 0))
+    atlas.alpha_composite(calm, (0, 0))
+    pos = []
+    for i, f in enumerate(frames):
+        x, y = (i % per_row) * FW, WATER_H + (i // per_row) * FH
+        atlas.alpha_composite(f, (x, y))
+        pos.append([x, y])
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(OUT)
+    atlas.save(OUT, optimize=True)
+
+    layout = {'fw': FW, 'fh': FH, 'waterH': WATER_H, 'calm': [0, 0, CALM_W, WATER_H], 'waveFrames': pos}
     a = np.asarray(atlas)
-    al = a[:, :, 3] > 40
-    for i in range(len(strips)):
-        row = al[i * ROW_H:(i + 1) * ROW_H]
-        print(f'linha {i}: {int(row.sum())} px opacos, altura usada ate y={int(np.where(row.any(axis=1))[0].max()) if row.any() else 0}')
-    # vazamento de magenta?
-    leak = int((((np.abs(a[:, :, :3].astype(int) - np.array([243, 24, 144])).sum(axis=2) < 40) & (a[:, :, 3] > 200))).sum())
-    print(f'vazamento magenta opaco: {leak} px')
-    print(f'atlas {atlas.size} -> {OUT.relative_to(ROOT)}')
+    leak = int((((np.abs(a[:, :, :3].astype(int) - np.array([249, 28, 140])).sum(axis=2) < 60) & (a[:, :, 3] > 200))).sum())
+    print(f'atlas {atlas.size} -> {OUT.relative_to(ROOT)}  vazamento magenta: {leak} px')
+    print('MARE_ATLAS =', json.dumps(layout, separators=(', ', ': ')))
 
 
 if __name__ == '__main__':

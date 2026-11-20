@@ -91,6 +91,65 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
   const ppl = rec.filter((a) => a.length === 9 && a[0] === g.stage.crowdSheet);
   check('torcida: true sem rows usa default pequeno', ppl.length > 0 && ppl.every((a) => a[8] <= 120 && a[6] >= 0), ppl.length + ' pessoas');
 }
+// ===== 3. MARE QUADRO A QUADRO (atlas sem riscos de divisoria, agua calma tileavel) =====
+{
+  const A = (typeof MARE_ATLAS !== 'undefined') ? MARE_ATLAS : null;
+  check('mechanics.js expoe MARE_ATLAS (layout do atlas novo)', !!A && Array.isArray(A.waveFrames) && A.waveFrames.length >= 6 && Array.isArray(A.calm));
+  if (A) {
+    const png = PNG.sync.read(fs.readFileSync('assets/fx/mare.png'));
+    const px = (x, y) => { const i = (y * png.width + x) * 4; return [png.data[i], png.data[i + 1], png.data[i + 2], png.data[i + 3]]; };
+    const [cx, cy, cw, ch] = A.calm;
+    check('atlas contem a faixa calma e todos os quadros', png.width >= cx + cw && A.waveFrames.every(([x, y]) => x + A.fw <= png.width && y + A.fh <= png.height), png.width + 'x' + png.height);
+    /* faixa calma tileavel: coluna 0 ~ ultima coluna */
+    let d = 0;
+    for (let y = cy; y < cy + ch; y++) { const a = px(cx, y), b = px(cx + cw - 1, y); d += Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]); }
+    d /= ch * 3;
+    check('agua calma tileavel (emenda invisivel, diff medio < 12)', d < 12, 'diff=' + d.toFixed(1));
+    let opaque = 0; for (let y = cy; y < cy + ch; y++) for (let x = cx; x < cx + cw; x++) if (px(x, y)[3] > 200) opaque++;
+    check('agua calma 100% opaca (sem buraco)', opaque === cw * ch, opaque + '/' + cw * ch);
+    /* sem RISCO: nenhuma coluna da faixa de agua de um quadro e uma linha clara/escura destoando das vizinhas */
+    let riscos = 0;
+    for (const [fx, fy] of A.waveFrames) {
+      const y0 = fy + A.fh - A.waterH, y1 = fy + A.fh;
+      const colMean = [];
+      /* so colunas 100% opacas na faixa de agua (a borda transparente do quadro nao e risco) */
+      for (let x = fx; x < fx + A.fw; x++) { let s2 = 0, op = true; for (let y = y0; y < y1; y++) { const p = px(x, y); s2 += p[0] + p[1] + p[2]; if (p[3] < 250) op = false; } colMean.push(op ? s2 / (y1 - y0) : null); }
+      for (let i = 2; i < colMean.length - 2; i++) { if (colMean[i] == null || colMean[i - 2] == null || colMean[i + 2] == null) continue; const nb = (colMean[i - 2] + colMean[i + 2]) / 2; if (Math.abs(colMean[i] - nb) > 120) riscos++; }
+    }
+    check('quadros da onda sem riscos verticais de divisoria', riscos === 0, riscos + ' colunas destoantes');
+    /* sem magenta vazando */
+    let leak = 0; for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) { const p = px(x, y); if (p[3] > 200 && p[0] > 200 && p[1] < 80 && p[2] > 100) leak++; }
+    check('sem magenta vazando no atlas', leak < 20, leak + ' px');
+    /* draw: faixa baixa (topo >= -40 e base <= +8) e onda <= 110px de altura acima do chao */
+    const calls = [];
+    const st = [];
+    const c = Object.assign(fake2d(), {
+      sx: 1, sy: 1, tx: 0,
+      save() { st.push([this.sx, this.sy, this.tx]); }, restore() { [this.sx, this.sy, this.tx] = st.pop() || [1, 1, 0]; },
+      translate(x) { this.tx += x * this.sx; }, scale(x, y) { this.sx *= x; this.sy *= y; },
+      drawImage(...a) { const r = a.slice(); r.sx = this.sx; r.sy = this.sy; r.tx = this.tx; calls.push(r); },
+    });
+    /* x de tela efetivo considerando translate/scale horizontal */
+    const ex = (a) => a.sx < 0 ? a.tx + a.sx * (a[5] + a[7]) : a.tx + a[5];
+    const tide = MECHS.tide;
+    const gg = { W: 960, reduced: false, stage: { def: { fauna: ['fish'] }, waveSheet: fakeImg(png.width, png.height) } };
+    tide.init(gg); tide.wave = 130; tide.dir = 1;
+    tide.draw(c, gg, 100);
+    const calm = calls.filter((a) => a.length === 9 && a[3] === cw && a[4] === ch && a[2] === cy && a.sy > 0);
+    check('mare desenha faixa calma lado a lado cobrindo a tela', calm.length >= Math.ceil(960 / cw) && Math.min(...calm.map(ex)) <= 0 && Math.max(...calm.map((a) => ex(a) + a[7])) >= 960, calm.length + ' tiles');
+    check('faixa de agua baixa, no nivel do chao (topo >= -40, base <= +8)', calm.every((a) => a[6] >= -40 && a[6] + a[8] <= 8), calm.map((a) => a[6] + '..' + (a[6] + a[8]))[0]);
+    const wave = calls.filter((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0);
+    check('onda animada desenhada (1 quadro por vez)', wave.length === 1, wave.length + ' quadros');
+    check('onda com altura <= 110px acima do chao', wave.every((a) => a[6] >= -110 - 8), wave.map((a) => a[6]).join(','));
+    /* quadro muda com o tempo e a onda anda no sentido do empurrao */
+    const at = (t, dir) => { calls.length = 0; tide.dir = dir; tide.draw(c, gg, t); return calls.filter((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0)[0]; };
+    const w1 = at(100, 1), w2 = at(110, 1), w3 = at(100, -1), w4 = at(110, -1);
+    check('onda anda pra direita com dir=+1 (e olha pra direita)', w1 && w2 && ex(w2) > ex(w1) && w1.sx > 0, w1 && w2 ? ex(w1) + '->' + ex(w2) : '');
+    check('onda anda pra esquerda com dir=-1 (espelhada, olha pra esquerda)', w3 && w4 && ex(w4) < ex(w3) && w3.sx < 0, w3 && w4 ? ex(w3) + '->' + ex(w4) : '');
+    const frames = new Set(); for (let t = 0; t < 200; t += 4) { const w = at(t, 1); if (w) frames.add(w[1] + ',' + w[2]); }
+    check('onda anima varios quadros ao longo do tempo', frames.size >= 6, frames.size + ' quadros');
+  }
+}
 globalThis.__res = () => ({ fails, n });
 `, ctx);
 {
