@@ -64,7 +64,7 @@ const FIGHTERS_CFG = {
     expect: [ { st: ['shock'], dmg: 15, quake: true }, { aura: true }, { st: ['vuln', 'shock'], dmg: 8, pull: true }, { st: ['burn', 'shock'], dmg: 10 }, { st: ['shock', 'vuln'], dmg: 25, ult: true, rush: true } ] },
   cracker: { title: 'O Hacker', stats: { hp: 175, power: 1.1, speed: 1.12, weight: 0.95 }, rosterIdx: 50,
     powers: ['shot', 'steal', 'shadowport', 'zone', 'barrage'],
-    expect: [ { st: ['poison', 'slow'], dmg: 8 }, { st: ['glitch'], dmg: 5, steal: true }, { st: ['glitch'], dmg: 8, invuln: true, blink: true }, { st: ['burn', 'slow'], dmg: 8, zone: true }, { st: ['locked', 'glitch', 'blind'], dmg: 10, ult: true, barrage: true } ] },
+    expect: [ { st: ['poison', 'slow'], dmg: 8 }, { st: ['glitch'], dmg: 5, steal: true }, { st: ['glitch'], dmg: 8, invuln: true, blink: true }, { st: ['locked', 'slow'], dmg: 8, zone: true }, { st: ['locked', 'glitch', 'blind'], dmg: 10, ult: true, barrage: true } ] },
   rafael: { title: 'O Fixer de Night City', stats: { hp: 210, power: 1.3, speed: 0.85, weight: 1.3 }, rosterIdx: 51,
     powers: ['beam', 'blast', 'dash', 'rain', 'quake'],
     expect: [ { st: ['bleed'], dmg: 15, beam: true }, { st: ['shock', 'slow'], dmg: 10 }, { st: ['vuln'], dmg: 12, whiff: 20 }, { st: ['bleed', 'slow'], dmg: 12 }, { st: ['bleed', 'vuln'], dmg: 30, ult: true, quake: true } ],
