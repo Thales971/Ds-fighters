@@ -56,7 +56,7 @@ check('TODAS as URLs do preload existem no disco (' + urls.length + ' arquivos)'
 /* sprites dos lutadores e atlas de habilidades tambem */
 const spritesOk = vm.runInContext('Object.keys(SPRITE_LAYOUT.files).every((id) => buildPreloadUrls().includes(SpriteGen.url(id)))', ctx);
 check('todos os sprites de lutadores (SPRITE_LAYOUT.files) no preload', spritesOk === true);
-const artOk = vm.runInContext('Object.values(ART_SHEETS).every((s) => buildPreloadUrls().includes(Art.url(s.src)))', ctx);
+const artOk = vm.runInContext('Object.values(ART_SHEETS).every((s) => buildPreloadUrls().includes(Art.url(s.src, s.v)))', ctx);
 check('todos os atlas ART_SHEETS (habilidades/fx/fauna/pets) no preload', artOk === true);
 
 /* wiring do loader: bloqueia a tela ate 100% e so libera quando nao falhou */

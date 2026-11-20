@@ -1073,6 +1073,8 @@ class Fighter {
         this.addStatus('invuln', 14);
         this.vx = 0;
         game.spawnImgFx('portal', 'projectile', this.x, -6, { scale: 2.2, life: 20 });
+        /* Teleporte com arte propria (CRACKER — Blink): silhueta -> vortice -> glitch */
+        if (p.visualSheet) game.spawnBurst('fx2:' + p.visualSheet, Number.isInteger(p.visualRow) ? p.visualRow : p.row, this.x, this.y - 96, this.dir, 1.6);
         game.audio.play('magic');
         break;
       }
@@ -1630,6 +1632,7 @@ class Fighter {
         sp.t = 0;
         this.hidden = false;
         game.spawnImgFx('portal', 'impact', this.x, sp.above ? this.y : -4, { scale: 2.4, life: 16 });
+        if (sp.p.visualSheet) game.spawnBurst('fx2:' + sp.p.visualSheet, Number.isInteger(sp.p.visualRow) ? sp.p.visualRow : sp.p.row, this.x, this.y - 96, this.dir, 1.6);
         if (sp.above) this.vy = 10;
         this.addStatus('invuln', 8);
       }

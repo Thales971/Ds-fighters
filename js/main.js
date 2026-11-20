@@ -9,7 +9,7 @@
    ate 100% para o jogo entrar pronto. */
 function buildPreloadUrls() {
   const urls = new Set();
-  Object.values(ART_SHEETS).forEach((s) => urls.add(Art.url(s.src)));
+  Object.values(ART_SHEETS).forEach((s) => urls.add(Art.url(s.src, s.v)));
   Object.keys((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((id) => urls.add(SpriteGen.url(id)));
   /* mapas (jpg ou spritesheet) + camadas parallax de todas as arenas */
   (typeof STAGE_LIST !== 'undefined' ? STAGE_LIST : []).forEach((s) => {

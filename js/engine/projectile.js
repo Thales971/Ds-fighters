@@ -288,10 +288,17 @@ class Zone {
     const f = 1 + (Math.floor(this.age / 8) % 3);
     ctx.save();
     ctx.globalAlpha = 0.9 * fade;
-    Art.cell(ctx, key, this.row, f, this.x, -size * sc * 0.25, {
-      scale: sc,
-      sy: 0.6,
-    });
+    if (this.power && this.power.zoneTall) {
+      /* zona em pe (CRACKER — Quarentena): a jaula envolve o lutador inteiro,
+         apoiada no chao, em vez da mancha achatada padrao */
+      const sy = this.power.zoneTall;
+      Art.cell(ctx, key, this.row, f, this.x, -size * sc * sy / 2 + 6, { scale: sc, sy });
+    } else {
+      Art.cell(ctx, key, this.row, f, this.x, -size * sc * 0.25, {
+        scale: sc,
+        sy: 0.6,
+      });
+    }
     ctx.restore();
   }
 }

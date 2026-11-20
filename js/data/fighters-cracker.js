@@ -2,7 +2,7 @@
    Arte do dono (Pitoco-pet/.../Craker-personagem/): cabelo verde, oculos,
    roupa preta com detalhes verdes, tenis e um laptop de tela verde na mao.
    Zoner/rush hibrido tematico de invasao: pacote que envenena, exploit que
-   expoe (vuln), dash de invasao intangivel, chuva de requisicoes (DDoS) e
+   expoe (vuln), blink de invasao, jaula de quarentena, chuva de requisicoes (DDoS) e
    ult rootkit que trava os poderes do rival. */
 (() => {
   const id = 'cracker';
@@ -48,7 +48,7 @@
   Object.assign(POWERS, {
     [id]: {
       element: 'veneno',
-      theme: 'cracker: hacker de controle — pacote venenoso (shot), roubo de kit (steal), blink (teleporte), firewall (zona) e ult DDoS massivo (barrage)',
+      theme: 'cracker: hacker de controle — pacote venenoso (shot), roubo de kit (steal), blink (teleporte), quarentena (jaula/zona) e ult DDoS massivo (barrage)',
       powers: [
         Object.assign({
           id: 'pacote-suspeito', name: 'Pacote Suspeito', slot: 'simple', row: 0,
@@ -69,10 +69,12 @@
           desc: 'Teleporte hacker: some e reaparece atrás (ou em cima) do rival; cair em cima dá 14 de dano + TRAVAMENTO.',
         }, visual(2, '#4AE3FF')),
         Object.assign({
-          id: 'firewall', name: 'Firewall', slot: 'charge', meter: 0, row: 3,
-          kind: 'zone', time: 320, dmg: 0.12, slow: 50, burn: 140, cd: 120, sfx: 'hazard',
-          fx: { burn: 220, slow: 90 },
-          desc: 'Zona de firewall no rival por ~5s: dano contínuo + QUEIMANDO + LENTO enquanto estiver dentro.',
+          /* id mantido ('firewall') pra nao quebrar perfis/testes; o nome mudou:
+             hacker nao queima ninguem — ele ISOLA o rival numa jaula de codigo. */
+          id: 'firewall', name: 'Quarentena', slot: 'charge', meter: 0, row: 3,
+          kind: 'zone', time: 320, dmg: 0.12, slow: 50, cd: 120, sfx: 'hazard', zoneTall: 1.35,
+          fx: { lock: 24, glitch: 90 },
+          desc: 'Jaula de código no rival por ~5s: dano contínuo + LENTO + SEM PODERES enquanto estiver preso lá dentro.',
         }, visual(3, '#B9FF4A')),
         Object.assign({
           id: 'ddos-massivo', name: 'DDoS Massivo', slot: 'ultimate', row: 4,
@@ -89,7 +91,7 @@
   Object.assign(SIGNATURES, {
     [id]: {
       trait: 'MALWARE',
-      desc: 'Hacker de controle: pacote venenoso de longe, rouba o kit do rival de perto, blink pra trás do alvo, firewall de zona e ult DDoS massivo (lock + glitch + cego).',
+      desc: 'Hacker de controle: pacote venenoso de longe, rouba o kit do rival de perto, blink pra trás do alvo, jaula de quarentena e ult DDoS massivo (lock + glitch + cego).',
       basic: {},
       ability: {},
     },

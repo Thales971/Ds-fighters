@@ -20,8 +20,8 @@ const ART_SHEETS = {
   'fx2:milena': { src: 'assets/abilities/milena.png', size: 128, cols: 4, rows: 5 },
   'abil:kira': { src: 'assets/abilities/kira.png', size: 128, cols: 4, rows: 5 },
   'fx2:kira': { src: 'assets/abilities/kira.png', size: 128, cols: 4, rows: 5 },
-  'abil:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
-  'fx2:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5 },
+  'abil:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5, v: 'v62-cracker' },
+  'fx2:cracker': { src: 'assets/abilities/cracker.png', size: 128, cols: 4, rows: 5, v: 'v62-cracker' },
   'abil:rafael': { src: 'assets/abilities/rafael.png', size: 128, cols: 4, rows: 5 },
   'fx2:rafael': { src: 'assets/abilities/rafael.png', size: 128, cols: 4, rows: 5 },
   ...Object.fromEntries(['lia', 'nexo', 'maximilian']
@@ -48,14 +48,16 @@ const ART_SHEETS = {
 
 const Art = {
   images: {},
-  url(src) {
-    return src + '?v=v39-floraatlas';
+  /* s.v (opcional) troca a versao so daquela folha: arte nova nao obriga
+     todo mundo a baixar de novo as outras ~50 folhas. */
+  url(src, v) {
+    return src + '?v=' + (v || 'v39-floraatlas');
   },
   load() {
     Object.entries(ART_SHEETS).forEach(([key, s]) => {
       const img = new Image();
       img.onload = () => { this.images[key] = img; };
-      img.src = this.url(s.src);
+      img.src = this.url(s.src, s.v);
     });
   },
   ready(key) { const i = this.images[key]; return !!(i && i.naturalWidth); },
@@ -95,7 +97,7 @@ const Art = {
     const w = img ? img.naturalWidth : s.size * s.cols;
     const h = img ? img.naturalHeight : s.size * (s.rows || 5);
     const r = ((row % (s.rows || 5)) + (s.rows || 5)) % (s.rows || 5);
-    return `background-image:url(${this.url(s.src)});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-r * px}px;`;
+    return `background-image:url(${this.url(s.src, s.v)});background-size:${w * k}px ${h * k}px;background-position:${-col * px}px ${-r * px}px;`;
   },
 };
 Art.load();
