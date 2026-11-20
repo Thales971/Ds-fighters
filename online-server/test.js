@@ -95,8 +95,13 @@ const T = (t) => (m) => m.t === t;
     pass('configuração nula usa regras padrão sem derrubar a conexão');
 
     // validação de escolhas
-    A.send({ t: 'pick', fighters: ['senpai'] });
-    assert.match((await A.wait(T('error'))).msg, /inválida/); pass('lutador inexistente (Senpai) é recusado');
+    A.send({ t: 'pick', fighters: ['../senpai'] });
+    assert.match((await A.wait(T('error'))).msg, /inválida/); pass('id malformado (path) é recusado');
+    A.send({ t: 'pick', fighters: ['boneco-treino'] });
+    assert.match((await A.wait(T('error'))).msg, /inválida/); pass('boneco de treino não entra no online');
+    A.send({ t: 'pick', fighters: ['kira'] });
+    await A.wait((m) => m.t === 'room' && m.room.players[0].picks[0] === 'kira');
+    pass('lutador novo (kira) aceito sem editar lista — validação por formato');
     A.send({ t: 'pick', fighters: ['iales', 'du'] });
     await A.wait(T('error')); pass('quantidade errada de lutadores para 1x1 é recusada');
     B.send({ t: 'stage', id: 'hive' });

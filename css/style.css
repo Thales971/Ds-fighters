@@ -343,6 +343,7 @@ body.reduced .pet-spr { animation: none; }
 .lp .pn { font-size: 10px; color: var(--gold); }
 .lp .faces { display: flex; gap: 4px; justify-content: center; }
 .lp .faces i { width: 40px; height: 40px; background-size: cover; image-rendering: pixelated; border: 2px solid #000; }
+.lp .faces i.q { display: flex; align-items: center; justify-content: center; color: #8b93b8; font-style: normal; background: #1a1230; font-size: 14px; }
 .lp .st { color: var(--lime); }
 
 /* ---------- HUD ---------- */

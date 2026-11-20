@@ -20,6 +20,12 @@
 }(typeof self !== 'undefined' ? self : this, () => {
   const PROTOCOL = 2;
   const MAX_MSG = 96 * 1024;
+  /* Ids de lutador sao validados por FORMATO, nao por lista fechada: lutador
+     novo entra no online sozinho, sem editar este arquivo (a lista FIGHTER_IDS
+     fica so por compatibilidade de testes/export). O cliente cai no 'stack'
+     quando nao conhece o id recebido. */
+  const ID_RE = /^[a-z][a-z0-9_-]{0,40}$/; /* comeca com letra: numero puro nao e lutador */
+  const validFighterId = (id) => ID_RE.test(String(id).toLowerCase());
   const FIGHTER_IDS = ['du', 'iales', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'nunes', 'ponteiro', 'lia', 'nexo', 'maximilian', 'henrico', 'jess'];
   const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo', 'mistral', 'slime', 'dragao', 'fenix', 'robot'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -59,7 +65,7 @@
     const wins = Array.isArray(r.wins) && r.wins.length === 2 && r.wins.every((n) => Number.isInteger(n) && n >= 0 && n <= 9)
       ? r.wins.slice() : [0, 0];
     const teams = Array.isArray(r.teams) ? r.teams.slice(0, 2).map((team) => Array.isArray(team) ? team.slice(0, 4).map((m) => ({
-      id: FIGHTER_IDS.includes(String(m && m.id)) ? String(m.id) : 'stack',
+      id: validFighterId(m && m.id) ? String(m.id).toLowerCase() : 'stack',
       name: cleanName(m && m.name),
       dmg: Number.isFinite(Number(m && m.dmg)) ? Math.max(0, Math.min(999999, Math.round(Number(m.dmg)))) : 0,
       hits: Number.isFinite(Number(m && m.hits)) ? Math.max(0, Math.min(9999, Math.round(Number(m.hits)))) : 0,
@@ -145,8 +151,9 @@
     function validPicks(r, arr) {
       const need = picksNeeded(r.mode);
       if (!Array.isArray(arr) || arr.length !== need) return null;
-      const out = arr.map(String);
-      if (!out.every((id) => FIGHTER_IDS.includes(id))) return null;
+      const out = arr.map((s) => String(s).toLowerCase());
+      if (!out.every(validFighterId)) return null;
+      if (out.includes('boneco-treino')) return null; /* dummy so existe no treino */
       if (new Set(out).size !== out.length) return null;
       return out;
     }
@@ -353,5 +360,5 @@
     return { rooms, onMessage, onClose, publicRoom, publicRooms };
   }
 
-  return { PROTOCOL, MAX_MSG, FIGHTER_IDS, PET_IDS, DEFAULT_CONFIG, normalizeConfig, createRooms, capacity, picksNeeded };
+  return { PROTOCOL, MAX_MSG, FIGHTER_IDS, PET_IDS, DEFAULT_CONFIG, normalizeConfig, createRooms, capacity, picksNeeded, validFighterId };
 }));

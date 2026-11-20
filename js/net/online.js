@@ -498,7 +498,9 @@ const Net = {
     this.$('lobby-players').innerHTML = slots.map((slot) => {
       const p = r.players.find((x) => x.slot === slot);
       if (!p) return `<div class="lp empty team${slot >> 1}"><b>${label(slot)}</b><span>Vaga livre — envie o código <b>${r.code}</b></span></div>`;
-      const faces = (p.picks || []).map((id) => `<i style="background-image:url(${SpriteGen.faceUrl(id)})"></i>`).join('');
+      const faces = (p.picks || []).map((id) => (typeof FIGHTERS !== 'undefined' && FIGHTERS.some((f) => f.id === id)
+        ? `<i style="background-image:url(${SpriteGen.faceUrl(id)})"></i>`
+        : '<i class="q">?</i>')).join('');
       const host = p.id === r.hostId ? ' ★ ANFITRIÃO' : '';
       return `<div class="lp team${p.team} ${p.ready ? 'ready' : ''} ${p.connected ? '' : 'off'} ${p.id === this.me ? 'me' : ''}">
         <b>${label(slot)}${host}${p.id === this.me ? ' (você)' : ''}</b>
@@ -624,9 +626,12 @@ const Net = {
     this.activeMatchId = m.matchId;
     this.activeRoomCode = r.code;
     const four = r.mode === '2x2-4';
+    /* Id desconocido (cliente viejo / id inventado) vira 'stack': a tela VS
+       nunca quebra e o sprite sempre cai num lutador real. */
+    const sanitize = (id) => (FIGHTERS.find((f) => f.id === id) ? id : 'stack');
     const teams = [0, 1].map((t) => {
-      if (four) return r.players.filter((p) => p.team === t).sort((a, b) => a.slot - b.slot).map((p) => p.picks[0]);
-      return (r.players.find((p) => p.team === t) || { picks: ['stack'] }).picks;
+      if (four) return r.players.filter((p) => p.team === t).sort((a, b) => a.slot - b.slot).map((p) => sanitize(p.picks[0]));
+      return ((r.players.find((p) => p.team === t) || { picks: ['stack'] }).picks || ['stack']).map(sanitize);
     });
     const pets = [0, 1].map((t) => { const p = r.players.find((x) => x.slot === t * 2) || r.players.find((x) => x.team === t); return PETS.find((x) => x.id === (p && p.pet)) || PETS[0]; });
     const synced = RoomCore.normalizeConfig(m.config || r.config || {});
