@@ -11,8 +11,9 @@ alinhado pela linha da superfície.
 
 Saída:
   assets/fx/mare.png — linha 0: faixa de água calma tileável (CALM_W x WATER_H,
-                       bordas casadas); linhas 1..: quadros da onda (FW x FH,
-                       superfície em y = FH - WATER_H).
+                       bordas casadas); linhas 1..: quadros da onda, SÓ a crista
+                       (FW x fh, superfície em y = fh - WATER_H; fh cabe a maior
+                       crista inteira). A água é sempre a faixa calma.
   Imprime o layout (MARE_ATLAS) que js/engine/mechanics.js usa.
 
 Uso: python3 tools/build_mare_atlas.py
@@ -28,7 +29,6 @@ SRC = ROOT / 'Pitoco-pet/mare-alta-nova-sprites-recortar'
 OUT = ROOT / 'assets/fx/mare.png'
 
 WATER_H = 40      # espessura da água na tela (px)
-FH = 120          # altura de cada quadro da onda (crista + água)
 FW = 176          # largura de cada quadro da onda
 CALM_W = 192      # largura do tile de água calma
 INSET = 8         # margem pra dentro do painel (some a divisória e a borda clara)
@@ -80,18 +80,33 @@ def scaled(rgba, s):
 
 
 def main():
-    frames = []
+    # 1a passada: escala cada quadro pra água ficar com WATER_H e mede a crista
+    scaled_frames = []
     for (sh, row, col) in WAVE_SEQ:
         p = load_panel(sh, row, col)
         top, bot = water_band(p)
-        s = WATER_H / (bot - top)
-        im = scaled(p[:bot], s)  # corta abaixo do fundo da água
+        im = scaled(p[:bot], WATER_H / (bot - top))  # corta abaixo do fundo da água
         surf = im.height - WATER_H
-        canvas = Image.new('RGBA', (FW, FH), (0, 0, 0, 0))
-        # centraliza na largura, superfície em FH - WATER_H (crista que passar do topo é cortada)
-        canvas.alpha_composite(im.crop((max(0, (im.width - FW) // 2), max(0, surf - (FH - WATER_H)),
-                                        max(0, (im.width - FW) // 2) + min(FW, im.width), im.height)),
-                               (max(0, (FW - im.width) // 2), max(0, (FH - WATER_H) - surf)))
+        alpha = np.asarray(im)[:, :, 3] > 0
+        crest = surf - int(np.where(alpha.any(axis=1))[0].min())
+        scaled_frames.append((im, surf, crest))
+    # altura do quadro: a maior crista inteira + a faixa de água (nada cortado reto)
+    fh = max(c for _, _, c in scaled_frames) + 2 + WATER_H
+    frames = []
+    for im, surf, _ in scaled_frames:
+        a = np.asarray(im).copy()
+        # SÓ a crista: a água do quadro (outro painel, outro tom) sumia em cima da
+        # faixa calma e virava um "bloco" mais escuro andando. Some abaixo da
+        # superfície com rampa de 3px pra crista assentar na água.
+        for k in range(3):
+            if surf + k < a.shape[0]:
+                a[surf + k, :, 3] = (a[surf + k, :, 3] * (1 - (k + 1) / 4)).astype(np.uint8)
+        a[surf + 3:, :, 3] = 0
+        im = Image.fromarray(a, 'RGBA')
+        canvas = Image.new('RGBA', (FW, fh), (0, 0, 0, 0))
+        x_src = max(0, (im.width - FW) // 2)
+        canvas.alpha_composite(im.crop((x_src, 0, x_src + min(FW, im.width), im.height)),
+                               (max(0, (FW - im.width) // 2), (fh - WATER_H) - surf))
         frames.append(canvas)
 
     # água calma tileável
@@ -110,17 +125,17 @@ def main():
     per_row = 5
     rows = (len(frames) + per_row - 1) // per_row
     W = max(CALM_W, per_row * FW)
-    atlas = Image.new('RGBA', (W, WATER_H + rows * FH), (0, 0, 0, 0))
+    atlas = Image.new('RGBA', (W, WATER_H + rows * fh), (0, 0, 0, 0))
     atlas.alpha_composite(calm, (0, 0))
     pos = []
     for i, f in enumerate(frames):
-        x, y = (i % per_row) * FW, WATER_H + (i // per_row) * FH
+        x, y = (i % per_row) * FW, WATER_H + (i // per_row) * fh
         atlas.alpha_composite(f, (x, y))
         pos.append([x, y])
     OUT.parent.mkdir(parents=True, exist_ok=True)
     atlas.save(OUT, optimize=True)
 
-    layout = {'fw': FW, 'fh': FH, 'waterH': WATER_H, 'calm': [0, 0, CALM_W, WATER_H], 'waveFrames': pos}
+    layout = {'fw': FW, 'fh': fh, 'waterH': WATER_H, 'calm': [0, 0, CALM_W, WATER_H], 'waveFrames': pos}
     a = np.asarray(atlas)
     leak = int((((np.abs(a[:, :, :3].astype(int) - np.array([249, 28, 140])).sum(axis=2) < 60) & (a[:, :, 3] > 200))).sum())
     print(f'atlas {atlas.size} -> {OUT.relative_to(ROOT)}  vazamento magenta: {leak} px')

@@ -327,7 +327,7 @@ class StageRenderer {
     this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
     /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
     this.waveSheet = new Image();
-    this.waveSheet.src = 'assets/fx/mare.png?v=v54-ambiente';
+    this.waveSheet.src = 'assets/fx/mare.png?v=v55-revisao';
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
@@ -486,24 +486,27 @@ class StageRenderer {
     this.crowdSheet = new Image();
     this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
     this.crowdHype = 0;
-    const rows = (t && Array.isArray(t.rows) && t.rows.length) ? t.rows : [{ y: (this.groundY || 458) - 150, scale: 0.3 }];
+    const rows = (t && Array.isArray(t.rows) && t.rows.length) ? t.rows : [{ y: 308, scale: 0.3 }];
+    /* as fichas sao escritas em 960x540 (chao 458); o preview AO VIVO da selecao
+       roda em 480x270: escala tudo pro tamanho real do palco */
+    const kx = (this.W || 960) / 960, ky = (this.groundY || 458) / 458;
     this.crowd = rows.map((r, ri) => {
-      const scale = Math.min(0.6, r.scale || 0.3);
+      const scale = Math.min(0.6, r.scale || 0.3) * ky;
       const pw = (1280 / 25) * scale;
-      const x0 = r.x0 == null ? 0 : r.x0;
-      const x1 = r.x1 == null ? this.W : r.x1;
-      const step = pw * (r.gap || 0.9);
+      const x0 = (r.x0 == null ? 0 : r.x0) * kx;
+      const x1 = r.x1 == null ? this.W : r.x1 * kx;
+      const step = Math.max(1, pw * (r.gap || 0.9));
       const people = [];
       let prev = -1;
       let h = (ri + 1) * 2654435761 >>> 0;
-      for (let x = x0, k = 0; x + pw * 0.5 <= x1; x += step, k++) {
+      for (let x = x0, k = 0; x + pw <= x1 + 0.5; x += step, k++) { /* pessoa inteira dentro da faixa */
         h = (h * 1664525 + 1013904223) >>> 0;
         let who = h % 25;
         if (who === prev) who = (who + 7) % 25; /* nunca a mesma pessoa lado a lado */
         prev = who;
         people.push({ who, x: Math.round(x), ph: (h >>> 8) % 628 / 100, speed: 0.8 + ((h >>> 16) % 60) / 100 });
       }
-      return { y: r.y, scale, people };
+      return { y: r.y * ky, scale, people };
     });
   }
   drawTorcida(ctx) {

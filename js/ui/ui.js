@@ -543,6 +543,8 @@ const UI = {
       };
       stage.game = stub;
       weather = new Weather(stub, def);
+      stub.weather = weather; /* o palco desenha o ceu do clima (aurora) atras de tudo */
+      stub.stage = stage;
       weather.roll();
       this._selBgStage = def.id;
       if (tag) {

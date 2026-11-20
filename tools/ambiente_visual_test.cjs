@@ -16,6 +16,7 @@ const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,
 ctx.globalThis = ctx; vm.createContext(ctx);
 const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/fighters.js', 'js/data/fighters-v10.js', 'js/data/fighters-v11.js', 'js/data/powers.js', 'js/data/powers-turbo.js', 'js/data/powers-v4.js', 'js/data/powers-v5.js', 'js/data/powers-v6.js', 'js/data/powers-balance-v6.js', 'js/data/powers-v7.js', 'js/data/powers-v8.js', 'js/data/powers-v9.js', 'js/data/powers-v10.js', 'js/data/powers-v11.js', 'js/data/fighters-v12.js', 'js/data/fighters-v13.js', 'js/data/fighters-v14.js', 'js/data/fighters-v15.js', 'js/data/fighters-v16.js', 'js/data/fighters-v17.js', 'js/data/fighters-v18.js', 'js/data/fighters-v19.js', 'js/data/fighters-v20.js', 'js/data/fighters-pack.js', 'js/data/fighters-henrico.js', 'js/data/fighters-jess.js', 'js/data/powers-balance-v7.js', 'js/data/powers-balance-v8.js', 'js/data/powers-balance-v9.js', 'js/data/powers-balance-v10.js', 'js/data/powers-balance-v11.js', 'js/data/powers-balance-v12.js', 'js/data/powers-balance-v13.js', 'js/data/pets.js', 'js/data/stages.js', 'js/data/stages-v21.js', 'js/data/stages-brasil.js', 'js/data/stages-events.js', 'js/data/voice-book.js', 'js/data/achievements.js', 'js/engine/stage.js', 'js/engine/mechanics.js', 'js/engine/fx.js', 'js/engine/projectile.js', 'js/engine/vfx.js', 'js/engine/fighter.js', 'js/engine/weather.js', 'js/engine/game.js', 'js/engine/ai.js'];
 for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); } catch (e) { console.log('ERRO CARGA', f, e.message.slice(0, 80)); } }
+{ const { Image: CImg } = req('canvas'); const im = new CImg(); im.src = fs.readFileSync('assets/fx/mare.png'); ctx.__mareImg = im; ctx.__CImg = CImg; }
 vm.runInContext(`
 const rec = [];
 const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage(...a) { rec.push(a); }, translate() {}, scale() {}, rotate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, ellipse() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), createPattern: () => ({}), set imageSmoothingEnabled(v) {}, set globalAlpha(v) {}, set globalCompositeOperation(v) {}, set fillStyle(v) {}, set strokeStyle(v) {}, set font(v) {}, set textAlign(v) {}, set lineWidth(v) {}, set filter(v) {} });
@@ -133,16 +134,16 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
     const ex = (a) => a.sx < 0 ? a.tx + a.sx * (a[5] + a[7]) : a.tx + a[5];
     const tide = MECHS.tide;
     const gg = { W: 960, reduced: false, stage: { def: { fauna: ['fish'] }, waveSheet: fakeImg(png.width, png.height) } };
-    tide.init(gg); tide.wave = 130; tide.dir = 1;
+    tide.init(gg); tide.permaTide = true; tide.wave = 130; tide.dir = 1;
     tide.draw(c, gg, 100);
     const calm = calls.filter((a) => a.length === 9 && a[3] === cw && a[4] === ch && a[2] === cy && a.sy > 0);
     check('mare desenha faixa calma lado a lado cobrindo a tela', calm.length >= Math.ceil(960 / cw) && Math.min(...calm.map(ex)) <= 0 && Math.max(...calm.map((a) => ex(a) + a[7])) >= 960, calm.length + ' tiles');
     check('faixa de agua baixa, no nivel do chao (topo >= -40, base <= +8)', calm.every((a) => a[6] >= -40 && a[6] + a[8] <= 8), calm.map((a) => a[6] + '..' + (a[6] + a[8]))[0]);
     const wave = calls.filter((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0);
     check('onda animada desenhada (1 quadro por vez)', wave.length === 1, wave.length + ' quadros');
-    check('onda com altura <= 110px acima do chao', wave.every((a) => a[6] >= -110 - 8), wave.map((a) => a[6]).join(','));
+    check('onda com crista inteira e altura <= 145px acima do chao (pico da maior onda)', wave.every((a) => a[6] >= -145), wave.map((a) => a[6]).join(','));
     /* quadro muda com o tempo e a onda anda no sentido do empurrao */
-    const at = (t, dir) => { calls.length = 0; tide.dir = dir; tide.draw(c, gg, t); return calls.filter((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0)[0]; };
+    const at = (t, dir) => { calls.length = 0; tide.dir = dir; for (let k = 0; k < 10; k++) tide.tick(gg); tide.draw(c, gg, t); return calls.filter((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0)[0]; };
     const w1 = at(100, 1), w2 = at(110, 1), w3 = at(100, -1), w4 = at(110, -1);
     check('onda anda pra direita com dir=+1 (e olha pra direita)', w1 && w2 && ex(w2) > ex(w1) && w1.sx > 0, w1 && w2 ? ex(w1) + '->' + ex(w2) : '');
     check('onda anda pra esquerda com dir=-1 (espelhada, olha pra esquerda)', w3 && w4 && ex(w4) < ex(w3) && w3.sx < 0, w3 && w4 ? ex(w3) + '->' + ex(w4) : '');
@@ -214,6 +215,75 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
     Wt.set('rain'); day(); Wt.drawSky(c2); const dr2 = c2.getImageData(0, 0, 960, 540).data; let chR = 0; for (let i = 0; i < dr2.length; i += 4) if (dr2[i] !== base[i]) chR++;
     check('outros climas: drawSky nao desenha', chR === 0, chR + ' px');
   }
+}
+// ===== 5. REVISAO FINAL =====
+{
+  const A = MARE_ATLAS;
+  const tide = Object.assign({}, MECHS.tide);
+  const gg = { W: 960, reduced: false, pushX: 0, rnd: Math.random, announce() {}, audio: { play() {} }, stage: { def: { fauna: ['fish'] }, waveSheet: __mareImg } };
+  tide.init(gg); tide.dir = 1; tide.permaTide = true; tide.wave = 130;
+  /* 5a. onda sem "bloco" de agua mais escuro: dentro e fora da onda a agua tem o mesmo tom */
+  let guard = 0;
+  do { tide.tick(gg); guard++; } while (!(tide.waveX > 150 && tide.waveX < 650) && guard < 2000);
+  check('mare guarda a posicao da onda no estado (waveX)', Number.isFinite(tide.waveX), String(tide.waveX));
+  const cv = createCanvas(960, 540); const c3 = cv.getContext('2d');
+  c3.fillStyle = 'rgb(120,110,100)'; c3.fillRect(0, 0, 960, 540);
+  c3.save(); c3.translate(0, 458); tide.draw(c3, gg, 300); c3.restore();
+  const dd = c3.getImageData(0, 0, 960, 540).data;
+  const colLum = []; for (let x = 0; x < 960; x++) { let s4 = 0; for (let y = 458 - 26; y < 458 + 2; y++) { const i = (y * 960 + x) * 4; s4 += dd[i] * 0.3 + dd[i + 1] * 0.59 + dd[i + 2] * 0.11; } colLum.push(s4 / 28); }
+  if (Number.isFinite(tide.waveX)) {
+    const wx = Math.round(tide.waveX);
+    const inside = [], outside = [];
+    for (let x = 0; x < 960; x++) { if (x > wx + 30 && x < wx + A.fw - 30) inside.push(colLum[x]); else if (x < wx - 10 || x > wx + A.fw + 10) outside.push(colLum[x]); }
+    const mean = (a) => a.reduce((p, q) => p + q, 0) / a.length;
+    const diffIO = Math.abs(mean(inside) - mean(outside));
+    check('agua dentro da onda = agua fora (sem bloco escuro andando)', diffIO < 6, 'dif=' + diffIO.toFixed(1));
+    let edge = 0; for (const ex0 of [wx, wx + A.fw]) { if (ex0 < 8 || ex0 > 950) continue; const a1 = mean(colLum.slice(ex0 - 6, ex0)), a2 = mean(colLum.slice(ex0, ex0 + 6)); edge = Math.max(edge, Math.abs(a1 - a2)); }
+    check('sem borda vertical dura nas laterais da onda', edge < 8, 'salto=' + edge.toFixed(1));
+  }
+  /* 5b. troca de sentido nao teleporta a onda nem a faixa */
+  const st2 = []; const calls2 = [];
+  const c4 = Object.assign(fake2d(), { sx: 1, sy: 1, tx: 0, save() { st2.push([this.sx, this.sy, this.tx]); }, restore() { [this.sx, this.sy, this.tx] = st2.pop() || [1, 1, 0]; }, translate(x) { this.tx += x * this.sx; }, scale(x, y) { this.sx *= x; this.sy *= y; }, drawImage(...a) { const r = a.slice(); r.sx = this.sx; r.sy = this.sy; r.tx = this.tx; calls2.push(r); } });
+  const ex2 = (a) => a.sx < 0 ? a.tx + a.sx * (a[5] + a[7]) : a.tx + a[5];
+  const snap = () => { calls2.length = 0; tide.draw(c4, gg, 400); const w = calls2.find((a) => a.length === 9 && a[3] === A.fw && a[4] === A.fh && a.sy > 0); const tiles = calls2.filter((a) => a.length === 9 && a[3] === A.calm[2] && a[4] === A.calm[3] && a.sy > 0).map(ex2).sort((p, q) => p - q); return { w: w ? ex2(w) : NaN, tile: tiles.find((v) => v >= 0) }; };
+  const b1 = snap(); tide.dir = -1; tide.tick(gg); const b2 = snap(); tide.dir = 1;
+  check('troca de sentido: onda continua no mesmo lugar (sem teleporte)', Math.abs(b2.w - b1.w) <= 4, b1.w + ' -> ' + b2.w);
+  check('troca de sentido: faixa de agua nao pula', Math.abs(b2.tile - b1.tile) <= 2 || Math.abs(b2.tile - b1.tile) >= A.calm[2] - 2, b1.tile + ' -> ' + b2.tile);
+  /* 5c. crista da maior onda nao cortada reta no topo do quadro */
+  const png2 = PNG.sync.read(fs.readFileSync('assets/fx/mare.png'));
+  let cut = 0; for (const [fx, fy] of A.waveFrames) for (let x = fx; x < fx + A.fw; x++) if (png2.data[((fy) * png2.width + x) * 4 + 3] > 40) cut++;
+  check('nenhuma crista cortada no topo do quadro', cut === 0, cut + ' px na 1a linha');
+}
+{
+  /* 5d. preview AO VIVO da selecao (480x270, chao em 230): torcida proporcional, dentro da tela */
+  for (const def of STAGE_LIST.filter((d) => d.torcida)) {
+    const sr = new StageRenderer(def, 480, 270, 230);
+    sr.crowdSheet = fakeImg(1280, 200);
+    rec.length = 0; sr.drawTorcida(fake2d());
+    const ppl = rec.filter((a) => a.length === 9 && a[0] === sr.crowdSheet);
+    const ok = ppl.length > 0 && ppl.every((a) => a[5] >= -1 && a[5] + a[7] <= 482 && a[6] >= 0 && a[6] + a[8] <= 232 && a[8] <= 60);
+    check('selecao 480x270 (' + def.id + '): torcida proporcional e dentro da tela', ok, ppl.length + ' pessoas, max y=' + Math.max(...ppl.map((a) => a[6] + a[8])).toFixed(0));
+  }
+  const uiSrc = fs.readFileSync('js/ui/ui.js', 'utf8');
+  check('selecao: palco ao vivo enxerga o clima (stub.weather) -> aurora aparece', /stub\.weather = weather/.test(uiSrc));
+  const stub = { W: 480, H: 270, rnd: Math.random, reduced: false, audio: { loop() {}, play() {}, voice() {} }, announce() {}, splash() {}, floatText() {}, fighters: () => [], strikes: [] };
+  const w5 = new Weather(stub, STAGE_LIST.find((d) => d.id === 'kernel'));
+  w5.set('aurora'); w5.intensity = 1; for (let t = 0; t < 40; t++) w5.update(false);
+  const cs = createCanvas(480, 270); const c5 = cs.getContext('2d'); c5.fillStyle = 'rgb(150,200,240)'; c5.fillRect(0, 0, 480, 270);
+  w5.drawSky(c5);
+  const d5 = c5.getImageData(0, 0, 480, 270).data;
+  let right = 0, low = 0; for (let y = 0; y < 270; y++) for (let x = 0; x < 480; x++) { const i = (y * 480 + x) * 4; const ch3 = Math.abs(d5[i] - 150) + Math.abs(d5[i + 1] - 200) + Math.abs(d5[i + 2] - 240) > 10; if (ch3 && x > 440 && y < 120) right++; if (ch3 && y > 165) low++; }
+  check('aurora em 480x270: escala junto (cobre ate a direita, fica no ceu)', right > 200 && low === 0, 'direita=' + right + ' abaixo=' + low);
+}
+{
+  /* 5e. aurora sem alocar ImageData a cada repintura */
+  const g6 = mk('kernel'); const W6 = g6.weather; W6.set('aurora'); W6.intensity = 1;
+  const cv6 = createCanvas(960, 540); const c6 = cv6.getContext('2d');
+  W6.drawSky(c6);
+  let made = 0; const realGet = W6._auroraCv.getContext.bind(W6._auroraCv);
+  W6._auroraCv.getContext = (k) => { const x = realGet(k); if (!x.__wrapped) { const o = x.createImageData.bind(x); x.createImageData = (...a) => { made++; return o(...a); }; x.__wrapped = true; } return x; };
+  for (let i = 0; i < 6; i++) { W6.update(false); W6.update(false); W6.drawSky(c6); }
+  check('aurora reaproveita o ImageData entre repinturas', made === 0, made + ' createImageData em 6 repinturas');
 }
 globalThis.__res = () => ({ fails, n });
 `, ctx);

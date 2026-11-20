@@ -331,6 +331,9 @@ class Weather {
     if (fade <= 0) return;
     const LW = 240, LH = 80, SCALE = 4;
     ctx.save();
+    /* tudo abaixo e desenhado em 960x540; o preview da selecao (480x270) escala */
+    const k = W / 960;
+    if (k !== 1) ctx.scale(k, k);
     /* 1) noite no alto do ceu */
     if (!this._auroraNight || this._auroraNight.ctx !== ctx) {
       const gr = ctx.createLinearGradient(0, 0, 0, 300);
@@ -341,7 +344,7 @@ class Weather {
     }
     ctx.globalAlpha = fade;
     ctx.fillStyle = this._auroraNight.gr;
-    ctx.fillRect(0, 0, W, 300);
+    ctx.fillRect(0, 0, 960, 300);
     /* 2) cortinas em baixa resolucao */
     if (!this._auroraCv && typeof document !== 'undefined' && document.createElement) {
       const cv = document.createElement('canvas');
@@ -366,12 +369,12 @@ class Weather {
     }
     /* 3) estrelas (drops da aurora vivem em coordenadas do chao) */
     ctx.globalCompositeOperation = 'source-over';
-    const GY = (this.game.stage && this.game.stage.groundY) || 458;
     for (const d of this.drops) {
       const tw = reduced ? 0.8 : 0.5 + 0.5 * Math.abs(Math.sin((this.t + d.s * 240) * 0.03));
       ctx.globalAlpha = tw * fade;
       ctx.fillStyle = d.s > 0.5 ? '#d8fff5' : '#e6d9ff';
-      const x = Math.round(d.x / 2) * 2, y = Math.round((d.y + GY) / 2) * 2;
+      /* drops vivem em coordenadas do chao do jogo (458) e x em unidades de W */
+      const x = Math.round(d.x / k / 2) * 2, y = Math.round((d.y + 458) / 2) * 2;
       if (y > 300) continue;
       const sz = d.s > 0.82 ? 4 : 2;
       ctx.fillRect(x, y, sz, sz);
@@ -382,55 +385,71 @@ class Weather {
     }
     ctx.restore();
   }
-  /* pinta as cortinas no canvas pequeno (pixel a pixel, soma de luz) */
+  /* pinta as cortinas no canvas pequeno (pixel a pixel, soma de luz).
+     Sem alocar nada por repintura: buffer, ImageData e tabela de curva sao
+     criados 1x; cores interpoladas como numeros soltos (roda a cada 2 ticks). */
   _paintAurora(cv, t, n) {
     const LW = cv.width, LH = cv.height;
     const x2 = cv.getContext('2d');
     if (!this._auroraBuf || this._auroraBuf.length !== LW * LH * 3) this._auroraBuf = new Float32Array(LW * LH * 3);
+    if (!this._auroraImg || this._auroraImg.width !== LW || this._auroraImg.height !== LH) this._auroraImg = x2.createImageData(LW, LH);
+    if (!Weather._AUR) {
+      /* f^1.6 tabelado (65 passos) + cortinas + paletas planas [r,g,b x topo/meio/borda] */
+      const pow = new Float32Array(65);
+      for (let i = 0; i <= 64; i++) pow[i] = Math.pow(i / 64, 1.6);
+      Weather._AUR = {
+        pow,
+        curt: [
+          { base: 40, len: 32, ph: 0.0, sp: 1.0, hue: 0 },
+          { base: 31, len: 24, ph: 2.1, sp: 0.8, hue: 1 },
+          { base: 49, len: 38, ph: 4.2, sp: 1.2, hue: 0 },
+          { base: 24, len: 18, ph: 5.7, sp: 0.7, hue: 2 },
+        ],
+        /* roxo -> teal -> verde vivo */
+        pal: [
+          [120, 60, 210, 40, 200, 170, 110, 255, 150],
+          [90, 70, 220, 40, 170, 230, 130, 240, 255],
+          [170, 60, 200, 120, 90, 230, 220, 150, 255],
+        ],
+      };
+    }
+    const AU = Weather._AUR, pow = AU.pow;
     const buf = this._auroraBuf;
     buf.fill(0);
-    const CURT = [
-      { base: 40, len: 32, ph: 0.0, sp: 1.0, hue: 0 },
-      { base: 31, len: 24, ph: 2.1, sp: 0.8, hue: 1 },
-      { base: 49, len: 38, ph: 4.2, sp: 1.2, hue: 0 },
-      { base: 24, len: 18, ph: 5.7, sp: 0.7, hue: 2 },
-    ];
-    /* [topo, meio, borda] por tom: roxo -> teal -> verde vivo */
-    const PAL = [
-      [[120, 60, 210], [40, 200, 170], [110, 255, 150]],
-      [[90, 70, 220], [40, 170, 230], [130, 240, 255]],
-      [[170, 60, 200], [120, 90, 230], [220, 150, 255]],
-    ];
-    const lerp = (a, b, f) => a + (b - a) * f;
-    for (let ci = 0; ci < Math.min(n, CURT.length); ci++) {
-      const c = CURT[ci];
-      const pal = PAL[c.hue];
+    const m = Math.min(n, AU.curt.length);
+    for (let ci = 0; ci < m; ci++) {
+      const c = AU.curt[ci];
+      const P = AU.pal[c.hue];
       for (let x = 0; x < LW; x++) {
         const yb = c.base + Math.sin(x * 0.045 + t * 0.018 * c.sp + c.ph) * 6 + Math.sin(x * 0.11 - t * 0.011 + c.ph * 2) * 3;
         const ray = 0.5 + 0.5 * Math.sin(x * 0.55 + c.ph * 3 + t * 0.04 * c.sp) * Math.sin(x * 0.13 + c.ph + t * 0.01);
-        const colA = 0.25 + 0.75 * Math.max(0, ray);
+        const colA = 0.25 + 0.75 * (ray > 0 ? ray : 0);
         const yt = yb - c.len * (0.5 + 0.5 * colA);
+        const span = Math.max(1, yb - yt);
         const y0 = Math.max(0, Math.floor(yt)), y1 = Math.min(LH - 1, Math.floor(yb));
         for (let y = y0; y <= y1; y++) {
-          const f = (y - yt) / Math.max(1, yb - yt);
-          let a = colA * Math.pow(Math.max(0, f), 1.6);
+          const f = (y - yt) / span;
+          const fc = f <= 0 ? 0 : f >= 1 ? 1 : f;
+          let a = colA * pow[(fc * 64 + 0.5) | 0];
           a = Math.round(a * 4) / 4; /* degraus: cara de pixel art */
           if (a <= 0) continue;
-          const col = f < 0.6 ? pal[0].map((v, k) => lerp(v, pal[1][k], f / 0.6)) : pal[1].map((v, k) => lerp(v, pal[2][k], (f - 0.6) / 0.4));
-          const edge = y === y1 ? 1.35 : 1;
+          let r, gg, bb;
+          if (fc < 0.6) { const u = fc / 0.6; r = P[0] + (P[3] - P[0]) * u; gg = P[1] + (P[4] - P[1]) * u; bb = P[2] + (P[5] - P[2]) * u; }
+          else { const u = (fc - 0.6) / 0.4; r = P[3] + (P[6] - P[3]) * u; gg = P[4] + (P[7] - P[4]) * u; bb = P[5] + (P[8] - P[5]) * u; }
+          const w = a * (y === y1 ? 1.35 : 1) * 0.55;
           const i = (y * LW + x) * 3;
-          buf[i] += col[0] * a * edge * 0.55;
-          buf[i + 1] += col[1] * a * edge * 0.55;
-          buf[i + 2] += col[2] * a * edge * 0.55;
+          buf[i] += r * w;
+          buf[i + 1] += gg * w;
+          buf[i + 2] += bb * w;
         }
       }
     }
-    const img = x2.createImageData(LW, LH);
+    const img = this._auroraImg, d = img.data;
     for (let p = 0, q = 0; p < buf.length; p += 3, q += 4) {
-      img.data[q] = Math.min(255, buf[p]);
-      img.data[q + 1] = Math.min(255, buf[p + 1]);
-      img.data[q + 2] = Math.min(255, buf[p + 2]);
-      img.data[q + 3] = 255;
+      d[q] = buf[p] > 255 ? 255 : buf[p];
+      d[q + 1] = buf[p + 1] > 255 ? 255 : buf[p + 1];
+      d[q + 2] = buf[p + 2] > 255 ? 255 : buf[p + 2];
+      d[q + 3] = 255;
     }
     x2.putImageData(img, 0, 0);
   }
