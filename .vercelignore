@@ -1,5 +1,22 @@
+# So vai pro deploy o que o SITE e a API usam (index.html, css/, js/, assets/, api/).
+# Arte-fonte e prints do dono ficam no repositorio, mas fora do upload: cada deploy
+# ficava ~90 MB mais leve (o plano gratis guarda todos os deploys de preview).
+node_modules
 online-server
-tools
+supabase
+docs
+bugs
+Pitoco-pet
+milena-personagem
+fauna-atualizada-alguns
+trocida-nova-pessoas
+dev-virado-personagem
+flora
+esquilo-libelula
+inspirações
 assets/art-pack
+*.md
 *.py
-UPGRADE-PLAN.md
+# tools/ fica fora, MENOS o modulo que o api/keepalive.js importa
+tools/*
+!tools/supabase_keepalive.js
