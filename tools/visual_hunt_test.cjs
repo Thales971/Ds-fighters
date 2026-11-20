@@ -2,7 +2,7 @@
 // imagens reais) e varre os frames procurando: vazamento de chroma magenta, tela vazia/preta,
 // lutador fora da tela ou NaN. Tambem testa que a tela inicial e o menu nao quebram.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 const ctx = { console, Math, Date, Image: CanvasImage, createCanvas, loadImage, fs,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [], stats: {}, achievements: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0, unlockPitoco() {}, hasPitoco() { return false; } },
@@ -51,7 +51,7 @@ const res = await vm.runInContext(`
   const out = { stages: [], magBad: [], blankBad: [], posBad: [], crash: [] };
   for (const st of STAGES) {
     try {
-      const g = new Game({ width: 960, height: 540, getContext: () => cx2d, toBuffer: () => canvas.toBuffer('image/png'), classList: { remove() {}, add() {}, toggle() {} } });
+      const g = new Game(Object.assign(canvas, { classList: { remove() {}, add() {}, toggle() {} } })) /* canvas REAL: applyChroma copia o proprio canvas */;
       g.start({ mode: 'versus', teams: [['du'], ['stack']], stage: st.id, cpu: [false, false], roundsToWin: 1, timer: 99 });
       for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
       let magMax = 0, litMin = 1e9, posOk = true;
@@ -87,15 +87,18 @@ await vm.runInContext(`
   const canvas = createCanvas(960, 540);
   const cx2d = canvas.getContext('2d');
   for (const [i, id] of ['parque-lago', 'circo', 'cyberpunk', 'represa', 'kernel', 'sesi', 'dojo-noite', 'abismo-das-baleias'].entries()) {
-    const g = new Game({ width: 960, height: 540, getContext: () => cx2d, toBuffer: () => canvas.toBuffer('image/png'), classList: { remove() {}, add() {}, toggle() {} } });
+    const g = new Game(Object.assign(canvas, { classList: { remove() {}, add() {}, toggle() {} } })) /* canvas REAL: applyChroma copia o proprio canvas */;
     g.start({ mode: 'versus', teams: [['du'], ['stack']], stage: id, cpu: [true, true], roundsToWin: 1, timer: 99 });
     for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
     for (let t = 0; t < 200; t++) g.tick();
     g.render();
     fs.writeFileSync('.vibe/hunt/palco-' + id + '.png', canvas.toBuffer('image/png'));
+    /* golpe pesado liga a aberracao cromatica: forca o caminho (antes so caia nele por sorte) */
+    try { g.chroma = 8; g.reduced = false; g.render(); } catch (e) { globalThis.__chromaErr = globalThis.__chromaErr || (id + ': ' + e.message); }
   }
   return 'ok';
 })()`, ctx);
+check('render com aberracao cromatica ativa nao quebra (canvas real no harness)', !ctx.__chromaErr, ctx.__chromaErr || '8 palcos');
 check('8 screenshots de palcos salvos em .vibe/hunt para inspecao', fs.readdirSync('.vibe/hunt').filter((f) => f.startsWith('palco-')).length === 8, fs.readdirSync('.vibe/hunt').filter((f) => f.startsWith('palco-')).join(','));
 
 // ===== 2. scan dos ATLAS de sprites: chroma-key magenta puro nao pode existir nos PNGs =====

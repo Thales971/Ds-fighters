@@ -21,7 +21,7 @@ vm.runInContext(`
 const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, ellipse() {}, fill() {}, fillText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), set imageSmoothingEnabled(v) {} });
 const mk = (mode, teams) => {
   const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), toBuffer: () => Buffer.alloc(10), classList: { remove() {}, add() {}, toggle() {} } });
-  g.start({ mode: mode || 'versus', teams: teams || [['nunes'], ['du']], cpu: [false, false], roundsToWin: 2, timer: 99 });
+  g.start({ mode: mode || 'versus', teams: teams || [['nunes'], ['du']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 2, timer: 99 });
   for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
   return g;
 };

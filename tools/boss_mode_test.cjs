@@ -7,7 +7,7 @@
 // - tela inicial: title-fx no HTML, animacoes logoFloat/stars/scan no CSS com guarda reduced
 // - viewport: fullscreenchange + ResizeObserver + overscroll none
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 
 let fails = 0, n = 0;
@@ -122,7 +122,10 @@ check('tela inicial tem camada title-fx (estrelas/scan)', /class="title-fx"/.tes
 const css = fs.readFileSync('css/style.css', 'utf8');
 check('logo flutua e brilha (logoFloat + logoGlow)', /@keyframes logoFloat/.test(css) && /@keyframes logoGlow/.test(css) && /logoFloat 3\.4s/.test(css));
 check('ceu com estrelas piscando e faixa de luz (stars + scan)', /@keyframes stars/.test(css) && /@keyframes scan/.test(css));
-check('animacoes da tela inicial respeitam reduced motion', /body\.reduced #scr-title \.logo \{ animation: none; \}/.test(css) && /body\.reduced \.title-fx::before/.test(css));
+{ /* reduzir animacoes: tira o MOVIMENTO (logo pulando/zoom, grade andando, faixa varrendo) e mantem so brilho/opacidade */
+  const m = css.match(/body\.reduced #scr-title \.logo \{ animation: ([^;]+); \}/);
+  check('animacoes da tela inicial respeitam reduced motion (sem movimento, so brilho)', !!m && !/logoFloat|logoIn/.test(m[1]) && /body\.reduced \.title-fx::before \{ animation: none/.test(css) && /body\.reduced \.title-bg::before \{ animation: none/.test(css), m ? m[1] : 'sem regra');
+}
 const vp = fs.readFileSync('js/ui/viewport.js', 'utf8');
 check('viewport: fullscreenchange + ResizeObserver + visualViewport', /fullscreenchange/.test(vp) && /ResizeObserver/.test(vp) && /visualViewport/.test(vp));
 check('css: sem pull-to-refresh (overscroll-behavior none)', /overscroll-behavior: none/.test(css));

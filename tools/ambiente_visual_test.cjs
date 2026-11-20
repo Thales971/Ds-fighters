@@ -1,7 +1,7 @@
 // AMBIENTE VISUAL (plano 2026-11-20): enfeites genericos removidos, torcida encaixada por
 // arena, mare recortada quadro a quadro e aurora em pixel art atras dos lutadores.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs, PNG,
@@ -200,7 +200,7 @@ for (const id of ['estacao-valinhos', 'represa', 'sesi', 'parque-lago']) {
     check('perfOff (modo performance 2): sem aurora', chOff === 0, chOff + ' px');
     Wt.perfOff = false;
     /* movimento reduzido: imagem parada */
-    g.reduced = true; for (let t = 0; t < 120; t++) Wt.update(false); /* deixa a qtd de estrelas assentar (reduzido usa 35%) */
+    g.reduced = true; Wt.intensity = Wt.intensityTarget = 1; for (let t = 0; t < 200; t++) Wt.update(false); /* intensidade fixa + qtd de estrelas assentada (reduzido usa 35%) */
     day(); Wt.drawSky(c2); const r1 = c2.getImageData(0, 0, 960, 320).data.slice();
     for (let t = 0; t < 30; t++) Wt.update(false);
     day(); Wt.drawSky(c2); const r2 = c2.getImageData(0, 0, 960, 320).data; let dr = 0; for (let i = 0; i < r1.length; i += 4) if (r1[i] !== r2[i] || r1[i + 1] !== r2[i + 1]) dr++;

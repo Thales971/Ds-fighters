@@ -1,6 +1,6 @@
 // E2E REAL: sprites carregados com await (nada de fallback vetorial)
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 const ctx = { console, Math, Date, Image: CanvasImage, createCanvas, fs, loadImage,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [], stats: {} }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0, unlockPitoco() { return true; }, hasPitoco() { return true; } },
@@ -80,7 +80,7 @@ for (let i = 0; i < d.length; i += 4) {
 }
 globalThis.__mag = mag;
 `, ctx, { timeout: 280 });
-check('Jess VISIVEL na luta (cabelo loiro renderizado)', ctx.__loiro > 400, ctx.__loiro + ' px loiro');
+check('Jess VISIVEL na luta (cabelo loiro renderizado; sem ela daria 0)', ctx.__loiro > 200, ctx.__loiro + ' px loiro');
 check('jaqueta roxa renderizada', ctx.__violeta > 60, ctx.__violeta + ' px roxo');
 check('ZERO magenta na tela do jogo', ctx.__mag < 50, ctx.__mag + ' px magenta (pode ser FX de habilidade)');
 

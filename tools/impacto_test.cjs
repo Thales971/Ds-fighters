@@ -1,7 +1,7 @@
 // POLIMENTO DE IMPACTO: hit-stop forte + aberracao cromatica (RGB split) no golpe
 // pesado/KO, rim light na cor do time atras do sprite, poeira ao correr/dash/bloquear.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
@@ -61,21 +61,22 @@ for (let t = 0; t < 3; t++) g.tick();
 const chromaDecay = g.chroma < chBefore;
 /* render com chroma>0 chama getImageData; com chroma=0 nao chama */
 let gi = 0, pi = 0;
-const rec = new Proxy({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, ellipse() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), getImageData() { gi++; return { data: new Uint8ClampedArray(960 * 540 * 4) }; }, putImageData() { pi++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
+let back = 0;
+const rec = new Proxy({ canvas: createCanvas(960, 540), save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage(src) { if (src && src === g._chromaCv) back++; }, translate() {}, scale() {}, rotate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, ellipse() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), getImageData() { gi++; return { data: new Uint8ClampedArray(960 * 540 * 4) }; }, putImageData() { pi++; } }, { get(t, k) { return k in t ? t[k] : undefined; }, set(t, k, v) { t[k] = v; return true; } });
 g.chroma = 5;
 g.renderScene(rec);
-const withChroma = gi;
+const withChroma = back; const halfW = g._chromaCv ? g._chromaCv.width : 0;
 g.chroma = 0;
-gi = 0;
+back = 0;
 g.renderScene(rec);
-JSON.stringify({ heavy, light, blocked, chromaDecay, withChroma, noChroma: gi, put: pi });
+JSON.stringify({ heavy, light, blocked, chromaDecay, withChroma, noChroma: back, halfW });
 `, ctx);
 const R = JSON.parse(r);
 check('golpe pesado (d>=26) liga chroma e hit-stop >= 7', R.heavy.chroma >= 9 && R.heavy.hitstop >= 7, JSON.stringify(R.heavy));
 check('golpe medio (d>=20) liga chroma menor, sem hit-stop extra', R.light.chroma >= 6 && R.light.chroma <= R.heavy.chroma, JSON.stringify(R.light));
 check('golpe BLOQUEADO nao liga chroma', R.blocked.chroma === R.light.chroma, '');
 check('chroma decai com o tempo', R.chromaDecay, '');
-check('render com chroma>0 aplica RGB split (getImageData/putImageData); com chroma=0 nao (barato)', R.withChroma > 0 && R.noChroma === 0 && R.put > 0, 'get=' + R.withChroma + ' put=' + R.put);
+check('render com chroma>0 aplica RGB split (readback em meia-res 480px e devolve na tela); com chroma=0 nao (barato)', R.withChroma > 0 && R.noChroma === 0 && R.halfW === 480, 'devolveu=' + R.withChroma + ' sem=' + R.noChroma + ' meia-res=' + R.halfW);
 const gSrc = fs.readFileSync('js/engine/game.js', 'utf8');
 check('K.O. liga chroma forte (12)', /this\.chroma = 12/.test(gSrc), '');
 

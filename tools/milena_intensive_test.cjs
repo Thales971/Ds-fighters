@@ -2,7 +2,7 @@
 // habilidades (alerta slow, varredura stun, dash iFrames, erros em cascata glitch,
 // ult tela azul kernel), render real, IA e modos.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, loadImage } = req('canvas');
 const { PNG } = req('pngjs');
 let fails = 0, n = 0;

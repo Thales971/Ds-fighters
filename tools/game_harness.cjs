@@ -14,12 +14,12 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 function req(name) {
-  try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); }
+  return require(name);
 }
 const { JSDOM } = req('jsdom');
 const { createCanvas, loadImage } = req('canvas');
 
-const ROOT = '/workspace/github__Thales971__Ds-fighters';
+const ROOT = require('path').resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
 // canvas do jogo

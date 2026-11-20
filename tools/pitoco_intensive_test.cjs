@@ -2,7 +2,7 @@
 // sequencia de teclado P-I-T-O-C-O, silhueta na selecao de pets, guardas de
 // setPet/petFor e efeito em combate (50% erra, regen 15 HP/s, sprite desenhado).
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 
@@ -23,7 +23,7 @@ const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,
   AudioSys: new Proxy({}, { get: () => () => {} }),
   UI: undefined,
   Net: {}, AI: { think() { return { left: false, right: false, down: false, up: false, punch: false, kick: false }; } },
-  document: { getElementById: () => null, createElement: () => createCanvas(960, 540), querySelectorAll: () => [], addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} }, dataset: {} }, activeElement: null },
+  document: { getElementById: (id) => (id === 'toast' ? { textContent: '', classList: { add() {}, remove() {}, toggle() {} } } : null), /* UI.toast real roda nas conquistas */ createElement: () => createCanvas(960, 540), querySelectorAll: () => [], addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} }, dataset: {} }, activeElement: null },
   window: { addEventListener() {}, matchMedia: () => ({ matches: false }) }, location: { hash: '' }, setTimeout, clearTimeout, requestAnimationFrame: (cb) => setTimeout(cb, 16) };
 ctx.globalThis = ctx; vm.createContext(ctx);
 const files = ['assets/sprites/layout.js', 'js/engine/sprites.js', 'js/data/pets.js', 'js/core/profile.js', 'js/ui/ui.js',

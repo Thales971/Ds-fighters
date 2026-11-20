@@ -28,14 +28,14 @@ const mk = (opp) => {
 };
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
-const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; };
+const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; };
 
 // ==== 1. as 5 habilidades em sequencia rapida (anti-spam respeitado) ====
 let g = mk();
 let f = g.activeOf(0), o = g.activeOf(1);
 let allOk = true;
 for (let i = 0; i < 5; i++) {
-  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100]; f.ultimate = 100;
+  f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100]; f.ultimate = 100;
   if (!f.tryCast(i)) allOk = false;
   for (let t = 0; t < 110; t++) { g.tick(); o.hp = o.maxHp; }
 }
@@ -96,7 +96,7 @@ check('Campo Lento afeta so o OPONENTE', o.has('slow') && !f.has('slow'), 'opp s
 g = mk('iales'); const ia = g.activeOf(1); const pt = g.activeOf(0);
 check('luta contra Iales roda', g.roundState === 'fight');
 ia.x = 300; pt.x = 340; pt.status = {}; ia.status = {};
-ia.charge = [100, 100]; ia.ultimate = 100; ia.cd = [0,0,0,0,0,0,0,0,0,0]; ia.castLock = 0; ia.state = 'idle';
+ia.charge = [100, 100]; ia.ultimate = 100; ia.cd = [0,0,0,0,0,0,0,0,0,0]; ia.spamShared = 0; ia.castLock = 0; ia.state = 'idle';
 const roubou = ia.tryCast(2); // Ctrl+C
 for (let t = 0; t < 60 && !ia.stolen; t++) g.tick();
 check('Iales roubou o kit do Ponteiro', roubou && ia.stolen && ia.stolen.from === 'ponteiro', 'from=' + (ia.stolen && ia.stolen.from));

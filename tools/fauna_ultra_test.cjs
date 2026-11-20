@@ -3,7 +3,7 @@
 // peixe NA AGUA (nao no ar) em palco de mare e no tanque em palco underwater,
 // mare alta constante quando tem peixe e mare ciclica sem peixe, render das 10 linhas.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs, PNG,
@@ -137,17 +137,19 @@ check('kotlin: mare DISPARA (every 480) e DECAI ate 0 (nao fica constante)', fir
 
 // ===== 6b. SPRITES REAIS DA MARE (assets/fx/mare.png) no lugar do canvas generico =====
 const mare = PNG.sync.read(fs.readFileSync('assets/fx/mare.png'));
-check('mare.png 1184x640 (4 ondas de 160px)', mare.width === 1184 && mare.height === 640, mare.width + 'x' + mare.height);
+/* atlas quadro a quadro (tools/build_mare_atlas.py): faixa calma + quadros da onda (layout em MARE_ATLAS) */
+const MA = MARE_ATLAS;
+check('mare.png bate com MARE_ATLAS (faixa calma + quadros da onda)', mare.width >= MA.fw * 5 && MA.waveFrames.every(([x, y]) => x + MA.fw <= mare.width && y + MA.fh <= mare.height), mare.width + 'x' + mare.height);
 let mareMag = 0, mareRows = 0;
-for (let r = 0; r < 4; r++) {
+for (const [fx, fy] of MA.waveFrames) {
   let tem = 0;
-  for (let y = r * 160; y < (r + 1) * 160; y++) for (let x = 0; x < 1184; x++) {
-    const i = (y * 1184 + x) * 4;
+  for (let y = fy; y < fy + MA.fh; y++) for (let x = fx; x < fx + MA.fw; x++) {
+    const i = (y * mare.width + x) * 4;
     if (mare.data[i + 3] > 40) { tem++; if (MAGENTA(mare.data[i], mare.data[i+1], mare.data[i+2], mare.data[i+3])) mareMag++; }
   }
-  if (tem > 1000) mareRows++;
+  if (tem > 150) mareRows++;
 }
-check('mare.png: 4/4 ondas com conteudo', mareRows === 4, mareRows + '/4');
+check('mare.png: todos os quadros da onda com conteudo', mareRows === MA.waveFrames.length, mareRows + '/' + MA.waveFrames.length);
 check('mare.png: 0 magenta (chroma-key limpo)', mareMag === 0, mareMag + ' px');
 const gM = mk('represa');
 const stageSrc = fs.readFileSync('js/engine/stage.js', 'utf8');

@@ -51,7 +51,7 @@ UI.screen = 'fight';
 UI.game.start({ mode: 'training', teams: [['du'], ['boneco-treino']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 99, timer: Infinity, dummy: 'stand', autoHeal: true });
 UI.tutorialBegin();
 check('tutorialBegin disparou no inicio da luta', !!UI.tutorial, 'tutorial=' + !!UI.tutorial);
-check('10 passos carregados', UI.tutorial.steps.length === 10, UI.tutorial.steps.length + ' passos');
+check('12 passos carregados (inclui DOUBLE JUMP e DASH)', UI.tutorial.steps.length === 12, UI.tutorial.steps.length + ' passos');
 const g = UI.game;
 for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) { g.tick(); UI.tick({}); }
 check('luta de treino rodando', g.roundState === 'fight');
@@ -103,6 +103,12 @@ check('passo BLOQUEIO concluido', T.step >= 9, 'step=' + T.step);
 f.blocking = false;
 T.jumpCancels = 1;
 g.tick(); UI.tick({});
+check('passo JUMP-CANCEL concluido', T.step >= 10 || !UI.tutorial, 'step=' + T.step);
+// passo 11: double jump / passo 12: dash (detectores exigem input real; forca o contador como no combo)
+T.doubleJumps = 1; g.tick(); UI.tick({});
+check('passo DOUBLE JUMP concluido', T.step >= 11 || !UI.tutorial, 'step=' + T.step);
+T.dashes = 1; g.tick(); UI.tick({});
+for (let t = 0; t < 10; t++) { g.tick(); UI.tick({}); }
 check('TREINO CONCLUIDO', T.step >= 10 || !UI.tutorial, 'step=' + (UI.tutorial ? UI.tutorial.step : 'finalizado'));
 // 4) jogador deixou de ser novo
 check('tutorialDone gravado', Profile.setting('tutorialDone') === true);

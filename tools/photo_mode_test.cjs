@@ -6,7 +6,7 @@
 // 3) UI real (objeto UI do ui.js com DOM stub): enterPhoto/exitPhoto/photoZoom/
 //    togglePhotoFighters/photoKeys/savePhoto com teclado simulado.
 const fs = require('fs'); const vm = require('vm');
-function req(name) { try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };

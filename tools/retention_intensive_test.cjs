@@ -1,7 +1,7 @@
 // INTENSIVO: wake-up (janelas/edge cases), 15 conquistas (todas as trilhas),
 // recordes, netcode visual (varios saltos), preload, frame data nos 46.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const ACH = [];
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,

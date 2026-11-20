@@ -1,7 +1,7 @@
 // INTENSIVO DEV VIRADO: registro, sprites recortados (sem magenta/vazios/duplicados,
 // pe na baseline), habilidades (4 dashes + ult), passiva Ultima Caneca, render real.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, loadImage } = req('canvas');
 const { PNG } = req('pngjs');
 let fails = 0, n = 0;

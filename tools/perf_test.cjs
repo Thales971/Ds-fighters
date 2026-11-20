@@ -9,11 +9,11 @@
 // 3) BENCHMARK: custo medio de game.render() por frame (canvas de CPU = pior caso;
 //    na GPU do navegador e mais rapido) com clima ligado no nivel 0 vs nivel 2.
 const fs = require('fs'); const vm = require('vm');
-function req(name) { try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
-const R = '/workspace/github__Thales971__Ds-fighters/';
+const R = require('path').resolve(__dirname, '..') + '/';
 
 const css = fs.readFileSync(R + 'css/style.css', 'utf8');
 const weatherSrc = fs.readFileSync(R + 'js/engine/weather.js', 'utf8');
@@ -28,7 +28,7 @@ check('css: stage-wrap.demo sem blur()', !/blur\(/.test(css.match(/#stage-wrap\.
 check('css: body.perf-low/xlow escondem CRT, animacoes, blur da pausa, select-live no xlow', /body\.perf-low #app\.crt::after/.test(css) && /body\.perf-xlow \.select-live/.test(css) && /body\.perf-low #scr-pause/.test(css));
 check('weather.js: draw()/drawSky() respeitam perfOff; update() escala por perfScale; aurora corta cortinas por perfScale', weatherSrc.indexOf('if (this.perfOff) return;') >= 0 && weatherSrc.indexOf('if (this.perfOff || this.kind !== \'aurora\') return;') >= 0 && weatherSrc.indexOf('wantBase') >= 0 && weatherSrc.indexOf('(this.perfScale || 1)') >= 0 && /Math\.round\(4 \* \(this\.perfScale/.test(weatherSrc));
 check('game.js: applyPerf(nivel) + perfLevel no construtor + fauna parada no nivel 2', /applyPerf\(level\) \{/.test(gameSrc) && gameSrc.indexOf('this.perfLevel = 0;') >= 0 && gameSrc.indexOf('this.perfLevel < 2') >= 0);
-check('game.js: applyChroma em MEIA RESOLUCAO (sem getImageData em tela cheia)', gameSrc.indexOf('(W * 0.5)') >= 0 && gameSrc.indexOf('_chromaCv') >= 0 && gameSrc.indexOf('ox.drawImage(this.canvas, 0, 0, w2, h2)') >= 0 && gameSrc.indexOf('ctx.drawImage(cv, 0, 0, W, H)') >= 0);
+check('game.js: applyChroma em MEIA RESOLUCAO (sem getImageData em tela cheia)', gameSrc.indexOf('(W * 0.5)') >= 0 && gameSrc.indexOf('_chromaCv') >= 0 && gameSrc.indexOf('ox.drawImage(ctx.canvas || this.canvas, 0, 0, w2, h2)') >= 0 && gameSrc.indexOf('ctx.drawImage(cv, 0, 0, W, H)') >= 0);
 check('stage.js: drawVignette pula no nivel 2 (perfVignetteOff)', stageSrc.indexOf('if (this.perfVignetteOff) return;') >= 0);
 check('main.js: selBgOn pula tick E render do demo na selecao com palco ao vivo', mainSrc.indexOf("if (!selBgOn) { game.capturePrev(); game.tick(); Net.frame(game); }") >= 0 && mainSrc.indexOf('if (game.stage && !selBgOn) game.render(') >= 0 && mainSrc.indexOf("UI.screen === 'select' && !!UI._selBg") >= 0);
 check('main.js: watchdog de fps (fps<38 por ~2s desce nivel, >55 por ~5s sobe, quality=low tranca nivel 2)', mainSrc.indexOf('window.__perf') >= 0 && mainSrc.indexOf('P.bad >= 4') >= 0 && mainSrc.indexOf('P.good >= 10') >= 0 && mainSrc.indexOf("q === 'low') P.level = 2") >= 0 && mainSrc.indexOf('game.applyPerf(P.level)') >= 0);

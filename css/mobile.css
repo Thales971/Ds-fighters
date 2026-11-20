@@ -19,11 +19,12 @@ body.mobile input, body.mobile textarea { user-select: text; touch-action: auto;
 body.mobile input[type=checkbox] { width: 24px; height: 24px; flex: none; }
 body.mobile input[type=range] { width: 100%; min-height: 44px; }
 body.mobile button:focus-visible, body.mobile input:focus-visible, body.mobile select:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-body.mobile #scr-title .logo { width: min(92%, 560px); margin-top: max(24px, calc(var(--viewport-height) * .16)); }
+body.mobile #scr-title.on { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+body.mobile #scr-title .logo { width: min(92%, 560px); max-height: calc(var(--viewport-height) * .46); object-fit: contain; margin-top: 0; }
 body.mobile .tagline { font-size: 9px; line-height: 1.8; letter-spacing: 0; padding: 0 12px; }
 body.mobile .press-start { min-height: 56px; padding: 12px; font-size: 15px; line-height: 1.6; }
 body.mobile .hint { font: 14px/1.6 system-ui, sans-serif; }
-body.mobile .credit { position: relative; bottom: auto; font: 11px/1.6 system-ui, sans-serif; margin-top: 32px; }
+body.mobile .credit { position: relative; bottom: auto; font: 11px/1.6 system-ui, sans-serif; margin-top: 18px; }
 body.mobile #scr-menu.on { display: flex; flex-direction: column; gap: 14px; }
 body.mobile #scr-menu .logo.small { position: static; width: min(300px, 80%); margin: 0 auto; }
 body.mobile .main-menu { position: static; width: 100%; max-height: none; overflow: visible; padding: 0; gap: 8px; }
@@ -125,6 +126,13 @@ body.mobile.landscape .mobile-landscape-hint { display: none; }
 body.mobile #loader .ld-title { font-size: 18px; }
 body.mobile #loader #ld-text { max-width: 88%; text-align: center; line-height: 1.6; }
 @media (orientation: landscape) {
+  /* celular deitado: pouca altura — logo menor e titulo compacto pro START caber sem rolar */
+  body.mobile #scr-title .logo { width: auto; max-width: 70%; max-height: calc(var(--viewport-height) * .5); }
+  body.mobile #scr-title .tagline { margin: 2px 0 6px; }
+  body.mobile #scr-title .press-start { min-height: 44px; padding: 6px 12px; }
+  body.mobile #scr-title .hint { margin-top: 2px; font-size: 12px; }
+  body.mobile #scr-title .credit { display: none; }
+  body.mobile #scr-menu .logo.small { width: auto; max-height: calc(var(--viewport-height) * .26); }
   body.mobile .main-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.mobile .menu-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   body.mobile .sel-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
