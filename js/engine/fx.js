@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* DOMADOR DE PGADMIN (tools/build_domador_fx.py) */
+  'abil:domador': { src: 'assets/abilities/domador.png', size: 128, cols: 4, rows: 5, v: 'v68-domador' },
+  'fx2:domador': { src: 'assets/abilities/domador.png', size: 128, cols: 4, rows: 5, v: 'v68-domador' },
+  'fx2:domador-extra': { src: 'assets/abilities/domador-extra.png', size: 128, cols: 4, rows: 2, v: 'v68-domador' },
   /* JESTER, bobo da corte (tools/build_jester_fx.py) */
   'abil:jester': { src: 'assets/abilities/jester.png', size: 128, cols: 4, rows: 5, v: 'v67-jester' },
   'fx2:jester': { src: 'assets/abilities/jester.png', size: 128, cols: 4, rows: 5, v: 'v67-jester' },

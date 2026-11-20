@@ -613,6 +613,7 @@ class Fighter {
     if (fx.resonance) this.addStatus('resonance', fx.resonance, atk);
     if (fx.slow) this.addStatus('slow', fx.slow);
     if (fx.lock) this.addStatus('locked', fx.lock);
+    if (fx.dizzy) this.addStatus('dizzy', fx.dizzy, atk); /* Jester/Domador: estavam no kit e ninguem aplicava */
     if (fx.stun) this.stunGauge += fx.stun * controlScale;
     if (fx.drain) atk.heal(d * fx.drain);
     if (fx.meterBurn) { this.charge[0] = Math.max(0, this.charge[0] - fx.meterBurn); this.charge[1] = Math.max(0, this.charge[1] - fx.meterBurn); }
@@ -840,7 +841,7 @@ class Fighter {
         if (p.at === 'behind' && tgt) x = tgt.x - tgt.dir * 20;
         game.strikes.push(new Strike(this, {
           x, delay: p.delay || 18, w: p.at === 'behind' ? 200 : (p.big ? 150 : 110), h: 260, dmg: p.dmg, stun: p.stun || 20, launch: p.launch == null ? -7 : p.launch,
-          burn: p.burn, poison: p.poison, slow: p.slow, element: el, follow: seek ? tgt : null, power: p,
+          burn: p.burn, poison: p.poison, slow: p.slow, trap: p.trap, element: el, follow: seek ? tgt : null, power: p,
           sheet: { key, row: p.row, frames: 4 }, scale: scaleBig, dir: this.dir, sound: p.sfx === 'fire' ? 'fire' : 'explosion', shake: 6,
           warnColor: (ELEMENT_FX[el] || {}).color,
         }));

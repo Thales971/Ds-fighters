@@ -162,6 +162,14 @@ def figure_rgba(crop, mask, bg):
         mag &= G < 60  # so respingo de magenta puro; punho rosa brilhando fica
     if getattr(load_sheet, '_no_magfix', False):
         mag &= False  # figurino vinho/arroxeado (Jester) virava mancha preta
+    if getattr(load_sheet, '_magfix_red', False) and mag.any():
+        # respingo de magenta num objeto VERMELHO (chicote do Domador): tira so
+        # o azul (vira vermelho escuro) em vez de cinza
+        a2 = a.copy()
+        a2[mag, 2] = a[mag, 1]
+        a2[mag, 0] = a[mag, 0] * 0.8
+        a = a2
+        mag &= False
     if mag.any():
         g = a[..., 1]
         a2 = a.copy()
@@ -747,7 +755,42 @@ JESTER_POSES = {
     'win':     ([(1, 3, 0, False), (1, 0, 0, False), (1, 3, 0, False), (1, 0, 0, False)], 204, BASE),
 }
 
+# DOMADOR DE PGADMIN — elefante azul do PostgreSQL flutuando no ombro.
+# f1 (si=0, casaca azul): parado | agachado | salto c/ chicote | bracos cruzados
+#   c/ aneis / chicote no ar | tonto | arremessado | tirando a cartola
+# f2 (si=1, colete dourado): chicote+anel | soco | chicotada | avanco baixo /
+#   chute | giro do anel | invocando o elefante | recuo
+# Todas olham pra ESQUERDA (flip).
+DOMADOR_POSES = {
+    'idle':    ([(1, 0, 0, True)] * 4, 200, BASE),
+    'walk':    ([(1, 0, 0, True), (1, 3, 1, True), (1, 0, 0, True), (1, 3, 1, True)], 198, BASE),
+    'jump':    ([(0, 2, 0, True)] * 4, 176, AIR),
+    'crouch':  ([(0, 1, 0, True)] * 4, 140, BASE),
+    'punch':   ([(1, 1, 0, True)] * 4, 198, BASE),
+    'kick':    ([(1, 0, 1, True)] * 4, 196, BASE),
+    'cpunch':  ([(0, 1, 0, True)] * 4, 140, BASE),
+    'ckick':   ([(1, 3, 0, True)] * 4, 160, BASE),
+    'jpunch':  ([(0, 2, 0, True)] * 4, 176, AIR),
+    'jkick':   ([(1, 0, 1, True)] * 4, 186, AIR),
+    'special': ([(1, 2, 0, True), (1, 1, 1, True), (1, 2, 0, True), (1, 1, 1, True)], 200, BASE),
+    'hit':     ([(0, 0, 1, True)] * 4, 196, BASE),
+    'block':   ([(0, 3, 0, True)] * 4, 198, BASE),
+    'ko':      ([(0, 2, 1, True)] * 4, 120, BASE),
+    'win':     ([(1, 2, 1, True), (0, 3, 1, True), (1, 2, 1, True), (0, 3, 1, True)], 206, BASE),
+}
+
 FIGHTERS = {
+    'domador': {
+        'sheets': ['Domador sprites 1.jpg', 'Domador sprites 2.jpg'],
+        'poses': DOMADOR_POSES,
+        'ui_cell': (1, 0, 0, True),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'magfix_red': True,
+        'abilities_keep': True,  # atlas animado: tools/build_domador_fx.py
+    },
     'jester': {
         'sheets': ['Jester sprites 1.jpg', 'Jester sprites 2.jpg'],
         'poses': JESTER_POSES,
@@ -1125,6 +1168,7 @@ def main():
         load_sheet._strict_mag = cfg.get('strict_magenta', False)
         load_sheet._holes = cfg.get('holes', False)
         load_sheet._no_magfix = cfg.get('no_magfix', False)
+        load_sheet._magfix_red = cfg.get('magfix_red', False)
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
