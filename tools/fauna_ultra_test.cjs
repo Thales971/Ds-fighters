@@ -3,7 +3,7 @@
 // peixe NA AGUA (nao no ar) em palco de mare e no tanque em palco underwater,
 // mare alta constante quando tem peixe e mare ciclica sem peixe, render das 10 linhas.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs, PNG,

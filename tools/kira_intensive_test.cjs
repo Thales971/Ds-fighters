@@ -2,7 +2,7 @@
 // habilidades (marretada quake trava+arremessa+shock, muralha aura -50% dano+cura, gancho pull que puxa+vuln+shock,
 // erupcao rain burn+shock, ult martelada final rush+explode+shock+vuln), render real, IA e modos.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, loadImage } = req('canvas');
 const { PNG } = req('pngjs');
 let fails = 0, n = 0;

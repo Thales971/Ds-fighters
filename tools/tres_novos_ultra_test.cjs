@@ -6,7 +6,7 @@
 // (kira/rafael), OVERCLOCK do rafael (lowHpRage nos limites 35%), combo poder->soco, KO pela ult,
 // IA dos dois lados, arcade/tag/survival/treino, qualidade baixa, sem warnings de folha.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, loadImage } = req('canvas');
 const { PNG } = req('pngjs');
 let fails = 0, n = 0;

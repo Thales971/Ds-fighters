@@ -19,8 +19,9 @@
     "url": "https://github.com/Thales971/Ds-fighters/issues"
   },
   "homepage": "https://github.com/Thales971/Ds-fighters#readme",
-  "dependencies": {
+  "devDependencies": {
     "canvas": "^3.2.3",
+    "jsdom": "^31.0.1",
     "pngjs": "^7.0.0"
   }
 }

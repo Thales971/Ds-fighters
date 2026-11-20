@@ -2,7 +2,7 @@
 // conquistas (15 medalhas), recordes por lutador, netcode visual,
 // preload de sprites.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,
   Profile: { SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian'], data: { settings: { reducedMotion: false }, unlocked: [], stats: {} }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, redeem: () => ({ ok: true }),

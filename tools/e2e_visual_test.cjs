@@ -1,6 +1,6 @@
 // E2E REAL: sprites carregados com await (nada de fallback vetorial)
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 const ctx = { console, Math, Date, Image: CanvasImage, createCanvas, fs, loadImage,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [], stats: {} }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0, unlockPitoco() { return true; }, hasPitoco() { return true; } },

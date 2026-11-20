@@ -7,7 +7,7 @@
 // - tela inicial: title-fx no HTML, animacoes logoFloat/stars/scan no CSS com guarda reduced
 // - viewport: fullscreenchange + ResizeObserver + overscroll none
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 
 let fails = 0, n = 0;

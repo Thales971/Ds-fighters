@@ -6,10 +6,10 @@
 // Uso: node tools/render_poses.cjs grika mis ... (sem args = 10 suspeitos)
 const fs = require('fs');
 const path = require('path');
-function req(name) { try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); } }
+function req(name) { return require(name); }
 const { createCanvas, loadImage } = req('canvas');
 
-const ROOT = '/workspace/github__Thales971__Ds-fighters';
+const ROOT = require('path').resolve(__dirname, '..');
 const vm = require('vm');
 const ctxGlobal = {
   window: {}, console,

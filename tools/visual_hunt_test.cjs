@@ -2,7 +2,7 @@
 // imagens reais) e varre os frames procurando: vazamento de chroma magenta, tela vazia/preta,
 // lutador fora da tela ou NaN. Tambem testa que a tela inicial e o menu nao quebram.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 const ctx = { console, Math, Date, Image: CanvasImage, createCanvas, loadImage, fs,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [], stats: {}, achievements: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0, unlockPitoco() {}, hasPitoco() { return false; } },

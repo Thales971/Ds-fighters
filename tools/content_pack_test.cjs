@@ -2,7 +2,7 @@
 // os 20 palcos do stages-v21 + vozes. Valida as mudanças grandes do dono.
 const fs = require('fs');
 const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage } = req('canvas');
 const ctx = {
   console, Math, Date, Image: CanvasImage,

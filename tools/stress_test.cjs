@@ -3,7 +3,7 @@
 // fauna fugindo em TODOS os palcos com fauna, netcode com double jump,
 // partidas completas IA-vs-IA com as mecânicas novas, edge cases.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0 },

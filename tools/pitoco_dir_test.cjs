@@ -1,7 +1,7 @@
 // PITOCO: o sprite da folha olha para a ESQUERDA no cru — o pet deve ser desenhado
 // com dir = -dono.dir para acompanhar o dono e olhar pro lado da luta.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs,
   Profile: { SECRET_IDS: [], data: { settings: { reducedMotion: false }, unlocked: [], stats: {}, achievements: [] }, isUnlocked: () => true, petFor: () => null, setting: () => null, reducedMotion: () => false, record() {}, grantAchievement: () => true, hasAchievement: () => false, recordSurvivalBy() {}, recordWinBy() {}, skinFor: () => 0,

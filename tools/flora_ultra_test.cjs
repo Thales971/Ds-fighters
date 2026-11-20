@@ -3,7 +3,7 @@
 // linha/variante certa por tipo, fallback vetorial sem atlas, mushroom vetorial,
 // e 94 palcos x 600 frames sem crash.
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 const ctx = { console, Math, Date, Image: class { set src(v) {} }, createCanvas, fs, PNG,

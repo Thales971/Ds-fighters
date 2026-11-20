@@ -9,11 +9,11 @@
 // 3) BENCHMARK: custo medio de game.render() por frame (canvas de CPU = pior caso;
 //    na GPU do navegador e mais rapido) com clima ligado no nivel 0 vs nivel 2.
 const fs = require('fs'); const vm = require('vm');
-function req(name) { try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
-const R = '/workspace/github__Thales971__Ds-fighters/';
+const R = require('path').resolve(__dirname, '..') + '/';
 
 const css = fs.readFileSync(R + 'css/style.css', 'utf8');
 const weatherSrc = fs.readFileSync(R + 'js/engine/weather.js', 'utf8');

@@ -2,7 +2,7 @@
 // sequencia de teclado P-I-T-O-C-O, silhueta na selecao de pets, guardas de
 // setPet/petFor e efeito em combate (50% erra, regen 15 HP/s, sprite desenhado).
 const fs = require('fs'); const vm = require('vm');
-function req(name){ try { return require(name); } catch(e){ return require('/tmp/node_modules/'+name); } }
+function req(name) { return require(name); }
 const { createCanvas } = req('canvas');
 const { PNG } = req('pngjs');
 

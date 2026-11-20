@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 function req(name) {
-  try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); }
+  return require(name);
 }
 const { createCanvas, Image: CanvasImage } = req('canvas');
 const outDir = path.join('.vibe', 'weather');

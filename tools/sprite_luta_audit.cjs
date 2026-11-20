@@ -5,7 +5,7 @@
 //    procura blob "humanoide" (aspect 1.2-3.2, altura 140-300) alem do lutador
 //    = resto de personagem dentro do atlas de habilidades.
 const fs = require('fs'); const vm = require('vm');
-function req(name) { try { return require(name); } catch (e) { return require('/tmp/node_modules/' + name); } }
+function req(name) { return require(name); }
 const { createCanvas, Image: CanvasImage, loadImage } = req('canvas');
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
