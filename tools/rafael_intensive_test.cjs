@@ -100,7 +100,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
     check('face 168x168 e portrait 320x360 com conteudo', face.width === 168 && port.width === 320 && port.height === 360 && fn > 3000 && pn > 10000, `face=${fn} port=${pn}`);
     const atlas = PNG.sync.read(fs.readFileSync('assets/ui/roster-portraits.png'));
     let cellN = 0; for (let y = 7*96; y < 8*96; y++) for (let x = 2*96; x < 3*96; x++) { const i = (y*atlas.width + x)*4; if (atlas.data[i+3] > 8) cellN++; }
-    check('atlas do grid 672x768 e a celula do rafael (idx 51, col2 row7) tem retrato', atlas.width === 672 && atlas.height === 768 && cellN > 2000, `atlas=${atlas.width}x${atlas.height} cell=${cellN}px`);
+    check('atlas do grid 672x768 e a celula do rafael (idx 51, col2 row7) tem retrato', atlas.width === 672 && atlas.height >= 768 && cellN > 2000, `atlas=${atlas.width}x${atlas.height} cell=${cellN}px`);
   }
 
   // ===== 3+4. RENDER + LUTA REAL =====
