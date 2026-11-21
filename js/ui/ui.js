@@ -286,8 +286,14 @@ const UI = {
   },
   /* Lutadores fora do online (lista no RoomCore, a mesma que o servidor usa). */
   onlineBanned(id) {
-    const list = (typeof RoomCore !== 'undefined' && RoomCore.ONLINE_BANNED) || ['iales'];
+    const list = (typeof RoomCore !== 'undefined' && RoomCore.ONLINE_BANNED) || ['iales', 'kernor'];
     return list.includes(id);
+  },
+  /* Lutador proibido no modo: online (lista do RoomCore) e o IALES so joga no VERSUS. */
+  modeBanned(id, mode) {
+    if (mode === 'online') return this.onlineBanned(id);
+    if (id === 'iales' && mode !== 'versus') return true;
+    return false;
   },
   startDemo() {
     const ids = FIGHTERS.filter((f) => Profile.isUnlocked(f.id)).map((f) => f.id);
@@ -455,7 +461,7 @@ const UI = {
         return `<button class="cell random" data-i="-1" aria-label="Aleatório"><span class="face q">?</span><span class="nm">ALEATÓRIO</span><span class="cur c1"></span><span class="cur c2"></span></button>`;
       }
       const d = FIGHTERS[i];
-      const offline = f.mode === 'online' && UI.onlineBanned(d.id);
+      const offline = UI.modeBanned(d.id, f.mode);
       const lock = f.mode === 'training' ? false : (offline || !Profile.isUnlocked(d.id));
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
          interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
@@ -639,7 +645,7 @@ const UI = {
     if (ti === 1 && solo) {
       if (f.mode === 'arcade') {
         const nBuff = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
-        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>${Profile.isUnlocked('iales') ? 'Chefe: IALES (com trilha AMV)' : 'Chefe: ???'}</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
+        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>6 mapas exclusivos do torneio · Chefe final: ${Profile.isUnlocked('kernor') ? 'KERNOR' : '???'} na Fortaleza do Dev</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
       } else el.innerHTML = `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
       return;
     }
@@ -735,11 +741,11 @@ const UI = {
     if (f.done[who]) return;
     let i = f.cursor[who];
     if (i >= FIGHTERS.length) {
-      const pool = FIGHTERS.map((d, k) => k).filter((k) => FIGHTERS[k].id !== 'boneco-treino' && !(f.mode === 'online' && this.onlineBanned(FIGHTERS[k].id)) && (f.mode === 'training' || Profile.isUnlocked(FIGHTERS[k].id)) && !f.picks[who].includes(k));
+      const pool = FIGHTERS.map((d, k) => k).filter((k) => FIGHTERS[k].id !== 'boneco-treino' && !this.modeBanned(FIGHTERS[k].id, f.mode) && (f.mode === 'training' || Profile.isUnlocked(FIGHTERS[k].id)) && !f.picks[who].includes(k));
       i = pool[(Math.random() * pool.length) | 0];
     }
     const d = FIGHTERS[i];
-    if (f.mode === 'online' && this.onlineBanned(d.id)) { AudioSys.back(); this.toast(d.name + ' não pode ser usado no online.'); return; }
+    if (this.modeBanned(d.id, f.mode)) { AudioSys.back(); this.toast(d.name + (f.mode === 'online' ? ' não pode ser usado no online.' : ' só pode ser usado no modo Versus.')); return; }
     if (f.mode !== 'training' && !Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
     if (f.picks[who].includes(i)) { AudioSys.back(); return; }
     f.picks[who].push(i);
@@ -972,7 +978,7 @@ const UI = {
     const me = FIGHTERS[f.picks[0][0]].id;
     /* TORNEIO RAPIDO ate o chefe: os 6 mais FORTES e INSUPORTAVEIS
        (projetil/zoner/spam de longe, alcance absurdo, stats altos),
-       em ordem crescente de dificuldade, e o chefe IALES no fim. */
+       em ordem crescente de dificuldade, e o chefe KERNOR no fim. */
     const score = (d) => {
       const s = d.stats || {};
       let sc = (s.power || 1) * 2 + (s.speed || 1) + (s.meterRate || 1) + (s.hp || 100) / 200;
@@ -983,13 +989,14 @@ const UI = {
       if ((kick.range || 0) >= 70) sc += 0.4; /* alcance absurdo */
       return sc;
     };
-    const rivais = FIGHTERS.filter((d) => d.id !== me && !d.secret)
+    const rivais = FIGHTERS.filter((d) => d.id !== me && !d.secret && !d.boss)
       .map((d) => ({ id: d.id, sc: score(d) }))
       .sort((a, b) => b.sc - a.sc)
       .slice(0, 6)
       .map((r) => r.id)
       .reverse(); /* mais fraco primeiro, mais forte por ultimo */
-    const boss = me !== 'iales' && Profile.isUnlocked('iales') ? 'iales' : me !== 'fullstack' ? 'fullstack' : 'stack';
+    /* chefe final do torneio: KERNOR (se o jogador escolheu o proprio Kernor, o chefe vira o Fullstack) */
+    const boss = me !== 'kernor' ? 'kernor' : 'fullstack';
     const semBoss = rivais.filter((id) => id !== boss);
     f.ladder = [...semBoss, boss];
     f.arcadeStep = 0;
@@ -1023,10 +1030,15 @@ const UI = {
     const myBuff = typeof Balance !== 'undefined' ? Balance.buffFor(FIGHTERS.find((d) => d.id === me)) : null;
     if (myBuff) this.toast(`BUFF PERMANENTE: +${Math.round((myBuff.hp - 1) * 100)}% HP / +${Math.round((myBuff.power - 1) * 100)}% força — lutador fraco, vale em TODOS os modos!`, 4200);
     const opp = f.ladder[f.arcadeStep];
-    const st = STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
     const isBoss = f.arcadeStep >= f.ladder.length - 1; /* ultima luta = chefe */
+    /* MAPAS DO TORNEIO em ordem (js/engine/torneio.js); o chefe sempre na Fortaleza do Dev */
+    const tor = (typeof TORNEIO !== 'undefined' && TORNEIO.stages.length) ? TORNEIO.stages : null;
+    const st = tor
+      ? STAGE_LIST.find((x) => x.id === (isBoss ? tor[tor.length - 1] : tor[Math.min(tor.length - 1, f.arcadeStep)])) || STAGE_LIST[0]
+      : STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random',
+      bossScale: isBoss && opp === 'kernor' ? { team: 1, power: 0.55, hp: 0.76 } : null,
       difficulty: isBoss ? 3 : Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]],
       roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99, /* torneio rapido; chefe vale 2 rounds */

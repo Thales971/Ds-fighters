@@ -172,7 +172,7 @@ check('IA x IA com o Jester: 4 lutas sem travar', res.ia.done === 4 && !res.ia.e
   rooms.onMessage(a, { t: 'pick', fighters: ['jester'], pet: 'none' });
   check('servidor aceita o Jester no online', !a.inbox.some((m) => m.t === 'error'), JSON.stringify(a.inbox.filter((m) => m.t === 'error')));
   const ui = fs.readFileSync(path.join(ROOT, 'js/ui/ui.js'), 'utf8');
-  check('grade do online tranca o banido e a confirmacao avisa', /f\.mode === 'online' && UI\.onlineBanned\(d\.id\)/.test(ui) && /não pode ser usado no online/.test(ui));
+  check('grade do online tranca o banido e a confirmacao avisa', /UI\.modeBanned\(d\.id, f\.mode\)/.test(ui) && /onlineBanned/.test(ui) && /não pode ser usado no online/.test(ui));
 }
 
 console.log('---');

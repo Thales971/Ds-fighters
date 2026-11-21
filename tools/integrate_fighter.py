@@ -844,7 +844,41 @@ STELLA_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 206, BASE),
 }
 
+# KERNOR, chefe final do torneio (Kernor-chefe-torneio/). f1 (si=0): parado |
+#   passo | bracos pra cima | soco laser / investida-L | investida c/ poeira-L |
+#   pisao | soco. f2 (si=1): 4 parados / arranque-L | salto | bola | pouso.
+# f3 (si=2): bracos cruzados x2 | apanhando | tonto / brilho | ajoelhado |
+#   caido | rugido (vitoria). -L = olha pra esquerda.
+KERNOR_POSES = {
+    'idle':    ([(1, 0, 0, False), (1, 1, 0, False), (1, 0, 0, False), (1, 1, 0, False)], 214, BASE),
+    'walk':    ([(1, 2, 0, False), (1, 3, 0, False), (1, 2, 0, False), (1, 3, 0, False)], 212, BASE),
+    'jump':    ([(1, 1, 1, False)] * 4, 190, AIR),
+    'crouch':  ([(1, 3, 1, False)] * 4, 160, BASE),
+    'punch':   ([(0, 3, 1, False)] * 4, 214, BASE),
+    'kick':    ([(1, 0, 1, True)] * 4, 196, BASE),
+    'cpunch':  ([(1, 3, 1, False)] * 4, 160, BASE),
+    'ckick':   ([(0, 0, 1, True)] * 4, 170, BASE),
+    'jpunch':  ([(1, 1, 1, False)] * 4, 190, AIR),
+    'jkick':   ([(1, 2, 1, False)] * 4, 170, AIR),
+    'special': ([(0, 3, 0, False), (0, 2, 0, False), (0, 3, 0, False), (0, 2, 0, False)], 214, BASE),
+    'hit':     ([(2, 2, 0, False), (2, 0, 1, False), (2, 2, 0, False), (2, 0, 1, False)], 210, BASE),
+    'block':   ([(2, 0, 0, False)] * 4, 212, BASE),
+    'ko':      ([(2, 2, 1, False)] * 4, 130, BASE),
+    'win':     ([(2, 3, 1, False), (2, 1, 0, False), (2, 3, 1, False), (2, 1, 0, False)], 220, BASE),
+}
+
 FIGHTERS = {
+    'kernor': {
+        'src_dir': 'Kernor-chefe-torneio',
+        'sheets': ['kernelor sprite 1.jpg', 'Kernelor sprite 2.jpg', 'Kernelor sprite 3.jpg'],
+        'poses': KERNOR_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'abilities_keep': True,  # atlas animado (10 linhas): tools/build_kernor_fx.py
+    },
     'stella': {
         'sheets': ['Maga Front sprites 1.jpg', 'Maga Front sprites 2.jpg'],
         'poses': STELLA_POSES,
@@ -1270,7 +1304,7 @@ def main():
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
-            sc = load_sheet(SRC / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'))
+            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'))
             for k, v in sc.items():
                 cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
