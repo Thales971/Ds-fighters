@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* KUNO (tools/build_kuno_fx.py) */
+  'abil:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },
+  'fx2:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },
+  'fx2:kuno-extra': { src: 'assets/abilities/kuno-extra.png', size: 128, cols: 4, rows: 2, v: 'v72-kuno' },
   /* MIKO (tools/build_miko_fx.py) */
   'abil:miko': { src: 'assets/abilities/miko.png', size: 128, cols: 4, rows: 5, v: 'v71-miko' },
   'fx2:miko': { src: 'assets/abilities/miko.png', size: 128, cols: 4, rows: 5, v: 'v71-miko' },

@@ -862,6 +862,32 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'kunoult': {
+        /* DRAGAO DAS MIL LAMINAS (ult exclusiva da KUNO): ela some (fantasma +
+           invulneravel) e o dragao de laminas acerta o rival varias vezes; o
+           primeiro acerto ROUBA a ultimate do rival (ate 40%) pra ela. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        this.addStatus('cloak', 90);
+        this.addStatus('invuln', 60);
+        let stolen = false;
+        const n = p.hits || 5;
+        for (let k = 0; k < n; k++) {
+          game.strikes.push(new Strike(this, {
+            x: rival.x, delay: 12 + k * 10, w: 170, h: 380, dmg: p.dmg || 6, stun: 22, launch: k === n - 1 ? -10 : 0, follow: rival,
+            sheet: { key, row: p.row, frames: 4 }, scale: 2.2, power: p, sound: k === 0 ? 'ultimate' : 'whoosh', shake: 6, warnColor: '#c77dff', unblockable: k === n - 1,
+            onHit: (f) => {
+              if (stolen || !f.alive) return;
+              stolen = true;
+              const take = Math.min(f.ultimate || 0, p.steal || 40);
+              f.ultimate = (f.ultimate || 0) - take;
+              this.ultimate = Math.min(100, (this.ultimate || 0) + take);
+              game.floatText(f.x, f.y - 260, take > 0 ? 'ULTIMATE ROUBADA −' + Math.round(take) + '%' : 'MIL LÂMINAS!', '#C77DFF');
+            },
+          }));
+        }
+        break;
+      }
       case 'kitsune': {
         /* KITSUNE DE NOVE CAUDAS (ult exclusiva da MIKO): a raposa sagrada
            ataca o rival e PURIFICA — tira todos os buffs dele (aura, armadura,

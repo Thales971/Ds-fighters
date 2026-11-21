@@ -262,6 +262,7 @@ class Zone {
           if (this.fx.paralyze && this.age % 12 === 0) f.addStatus('paralyze', this.fx.paralyze, this.owner);
           if (this.fx.meterSlow) f.addStatus('meterSlow', this.fx.meterSlow);
           if (this.fx.glitch && this.age % 18 === 0) f.addStatus('glitch', this.fx.glitch);
+          if (this.fx.blind && this.age % 10 === 0) f.addStatus('blind', this.fx.blind); /* KUNO: bomba de fumaca */
         }
       }
     }
