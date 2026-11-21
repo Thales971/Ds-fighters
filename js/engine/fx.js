@@ -39,6 +39,18 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* STELLA, Maga do Front-end (tools/build_stella_fx.py) */
+  'abil:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },
+  'fx2:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },
+  'fx2:stella-extra': { src: 'assets/abilities/stella-extra.png', size: 128, cols: 4, rows: 2, v: 'v73-stella' },
+  /* KUNO (tools/build_kuno_fx.py) */
+  'abil:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },
+  'fx2:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },
+  'fx2:kuno-extra': { src: 'assets/abilities/kuno-extra.png', size: 128, cols: 4, rows: 2, v: 'v72-kuno' },
+  /* MIKO (tools/build_miko_fx.py) */
+  'abil:miko': { src: 'assets/abilities/miko.png', size: 128, cols: 4, rows: 5, v: 'v71-miko' },
+  'fx2:miko': { src: 'assets/abilities/miko.png', size: 128, cols: 4, rows: 5, v: 'v71-miko' },
+  'fx2:miko-extra': { src: 'assets/abilities/miko-extra.png', size: 128, cols: 4, rows: 2, v: 'v71-miko' },
   /* DOMADOR DE PGADMIN (tools/build_domador_fx.py) */
   'abil:domador': { src: 'assets/abilities/domador.png', size: 128, cols: 4, rows: 5, v: 'v68-domador' },
   'fx2:domador': { src: 'assets/abilities/domador.png', size: 128, cols: 4, rows: 5, v: 'v68-domador' },

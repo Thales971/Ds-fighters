@@ -101,7 +101,7 @@ const R = vm.runInContext(`(() => {
 check('kit novo: canhao/misseis/chute/pisao/ciberneurose', JSON.stringify(R.kinds) === JSON.stringify(['shot', 'barrage', 'dash', 'pillar', 'aura']) && R.names[0] === 'Canhão de Plasma' && R.names[3] === 'Pisão Sísmico', R.names.join(' | '));
 check('todos os poderes usam a arte nova + explosao de impacto', R.impact && R.hitSheet);
 check('leve buff aplicado (FORCA 0.78 sobre power 1.5 / hp 160)', Math.abs(R.stats.power - 1.17) < 0.01 && R.stats.hp === 125, JSON.stringify(R.stats));
-check('cache: so o ciber troca de versao', /v=v63-ciber$/.test(R.url) && !/v63-ciber/.test(R.urlDu) && /v63-ciber/.test(R.face) && /v63-ciber/.test(R.art) && /^v6[3-9]/.test(R.roster), [R.url, R.urlDu, R.face, R.art, R.roster].join(' '));
+check('cache: so o ciber troca de versao', /v=v63-ciber$/.test(R.url) && !/v63-ciber/.test(R.urlDu) && /v63-ciber/.test(R.face) && /v63-ciber/.test(R.art) && /^v[67][0-9]/.test(R.roster), [R.url, R.urlDu, R.face, R.art, R.roster].join(' '));
 
 const res = vm.runInContext(`(() => {
   const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };

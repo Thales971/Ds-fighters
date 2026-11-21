@@ -62,6 +62,9 @@
     'lyra': 2.05,                 /* nova (maga do JS): ~51% */
     'larper': 2.0,                /* nova (veneno): ~50% */
     'domador': 2.05,              /* novo (pgAdmin): ~50% */
+    'stella': 2.25,               /* nova (maga do front-end): ~50% */
+    'kuno': 1.7,                  /* nova (kunoichi): ~50% */
+    'miko': 2.55,                 /* nova (sacerdotisa): ~50% */
     'jester': 2.9,                /* novo (bobo): ~46% CPU x CPU — as irritacoes (tela cega/girando,
                                      controle eletrizado, botoes embaralhados) pesam mais contra gente */
   };

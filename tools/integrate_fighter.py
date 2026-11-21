@@ -779,7 +779,105 @@ DOMADOR_POSES = {
     'win':     ([(1, 2, 1, True), (0, 3, 1, True), (1, 2, 1, True), (0, 3, 1, True)], 206, BASE),
 }
 
+# MIKO (sacerdotisa) — f1 (si=0): gohei+ofuda | palma | salto | voadora /
+#   arco | arremesso de ofuda | ritual ajoelhada | apanhando
+# f2 (si=1): ajoelhada com ofuda (8 copias iguais). Todas olham pra DIREITA.
+MIKO_POSES = {
+    'idle':    ([(0, 0, 0, False)] * 4, 200, BASE),
+    'walk':    ([(0, 0, 0, False), (0, 1, 1, False), (0, 0, 0, False), (0, 1, 1, False)], 198, BASE),
+    'jump':    ([(0, 2, 0, False)] * 4, 180, AIR),
+    'crouch':  ([(1, 0, 0, False)] * 4, 140, BASE),
+    'punch':   ([(0, 1, 0, False)] * 4, 198, BASE),
+    'kick':    ([(0, 3, 0, False)] * 4, 176, BASE),
+    'cpunch':  ([(1, 0, 0, False)] * 4, 140, BASE),
+    'ckick':   ([(0, 2, 1, False)] * 4, 140, BASE),
+    'jpunch':  ([(0, 2, 0, False)] * 4, 180, AIR),
+    'jkick':   ([(0, 3, 0, False)] * 4, 176, AIR),
+    'special': ([(0, 0, 1, False), (0, 1, 1, False), (0, 0, 1, False), (0, 1, 1, False)], 200, BASE),
+    'hit':     ([(0, 3, 1, False)] * 4, 196, BASE),
+    'block':   ([(0, 1, 0, False)] * 4, 198, BASE),
+    'ko':      ([(0, 2, 1, False)] * 4, 110, BASE),
+    'win':     ([(1, 0, 0, False)] * 4, 150, BASE),
+}
+
+# KUNO (kunoichi) — f1 (si=0, mascara preta): kunai | corte | investida baixa |
+#   bomba de fumaca / palma roxa | chute alto | giro de lamina | apanhando
+# f2 (si=1, mascara prata): parada | agachada | avanco | guarda /
+#   atordoada | tonta | salto baixo | vitoria. Todas olham pra DIREITA.
+KUNO_POSES = {
+    'idle':    ([(1, 0, 0, False)] * 4, 200, BASE),
+    'walk':    ([(1, 0, 0, False), (1, 3, 0, False), (1, 0, 0, False), (1, 3, 0, False)], 198, BASE),
+    'jump':    ([(1, 2, 1, False)] * 4, 160, AIR),
+    'crouch':  ([(1, 1, 0, False)] * 4, 140, BASE),
+    'punch':   ([(0, 1, 0, False)] * 4, 198, BASE),
+    'kick':    ([(0, 1, 1, False)] * 4, 200, BASE),
+    'cpunch':  ([(0, 2, 0, False)] * 4, 140, BASE),
+    'ckick':   ([(0, 3, 0, False)] * 4, 150, BASE),
+    'jpunch':  ([(1, 2, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 1, 1, False)] * 4, 190, AIR),
+    'special': ([(0, 0, 1, False), (0, 2, 1, False), (0, 0, 1, False), (0, 2, 1, False)], 200, BASE),
+    'hit':     ([(0, 3, 1, False), (1, 0, 1, False), (0, 3, 1, False), (1, 0, 1, False)], 196, BASE),
+    'block':   ([(1, 3, 0, False)] * 4, 198, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 110, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 202, BASE),
+}
+
+# STELLA, a Maga do Front-end — f1 (si=0): varinha baixa | tiro da varinha |
+#   varinha no alto | giro / circulo magico | carrinho | salto c/ varinha | bracos pra cima
+# f2 (si=1): parada | avanco | salto | escudo / atingida | tonta | agachada | vitoria
+# Todas olham pra DIREITA.
+STELLA_POSES = {
+    'idle':    ([(1, 0, 0, False), (0, 0, 0, False), (1, 0, 0, False), (0, 0, 0, False)], 200, BASE),
+    'walk':    ([(1, 0, 0, False), (0, 0, 0, False), (1, 0, 0, False), (0, 0, 0, False)], 198, BASE),
+    'jump':    ([(1, 2, 0, False)] * 4, 176, AIR),
+    'crouch':  ([(1, 2, 1, False)] * 4, 150, BASE),
+    'punch':   ([(0, 1, 0, False)] * 4, 196, BASE),
+    'kick':    ([(0, 3, 0, False)] * 4, 200, BASE),
+    'cpunch':  ([(1, 2, 1, False)] * 4, 150, BASE),
+    'ckick':   ([(0, 1, 1, False)] * 4, 140, BASE),
+    'jpunch':  ([(1, 1, 0, False)] * 4, 170, AIR),
+    'jkick':   ([(0, 2, 1, False)] * 4, 186, AIR),
+    'special': ([(0, 2, 0, False), (0, 0, 1, False), (0, 2, 0, False), (0, 0, 1, False)], 200, BASE),
+    'hit':     ([(1, 0, 1, False), (0, 3, 1, False), (1, 0, 1, False), (0, 3, 1, False)], 196, BASE),
+    'block':   ([(1, 3, 0, False)] * 4, 198, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 120, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 206, BASE),
+}
+
 FIGHTERS = {
+    'stella': {
+        'sheets': ['Maga Front sprites 1.jpg', 'Maga Front sprites 2.jpg'],
+        'poses': STELLA_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'magfix_red': True,
+        'abilities_keep': True,  # atlas animado: tools/build_stella_fx.py
+    },
+    'kuno': {
+        'sheets': ['Kuno sprites 1.jpg', 'Kuno sprites 2.jpg'],
+        'poses': KUNO_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'no_magfix': True,
+        'abilities_keep': True,  # atlas animado: tools/build_kuno_fx.py
+    },
+    'miko': {
+        'sheets': ['Miko sprites 1.jpg', 'Miko sprites 2.jpg'],
+        'poses': MIKO_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'magfix_red': True,
+        'abilities_keep': True,  # atlas animado: tools/build_miko_fx.py
+    },
     'domador': {
         'sheets': ['Domador sprites 1.jpg', 'Domador sprites 2.jpg'],
         'poses': DOMADOR_POSES,

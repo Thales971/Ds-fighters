@@ -862,6 +862,70 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'hotreload': {
+        /* HOT RELOAD (ult exclusiva da STELLA): circulo estelar explode no
+           rival e a Stella RECARREGA TUDO — poderes simples sem recarga e as
+           duas barras de carga cheias na hora. */
+        const rival = game.enemyOf(this);
+        if (rival) game.strikes.push(new Strike(this, {
+          x: rival.x, delay: 14, w: 230, h: 360, dmg: p.dmg || 24, stun: 32, launch: -10, follow: rival,
+          sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'explosion', shake: 12, warnColor: '#ffd23a',
+        }));
+        for (let i = 0; i < this.cd.length; i++) if (i < 4) this.cd[i] = 0;
+        this.charge = [100, 100];
+        game.floatText(this.x, this.y - 250, 'HOT RELOAD! TUDO RECARREGADO', '#FFD23A');
+        game.spawnBurst('fx2:stella-extra', 1, this.x, this.y - 110, this.dir, 2.2);
+        break;
+      }
+      case 'kunoult': {
+        /* DRAGAO DAS MIL LAMINAS (ult exclusiva da KUNO): ela some (fantasma +
+           invulneravel) e o dragao de laminas acerta o rival varias vezes; o
+           primeiro acerto ROUBA a ultimate do rival (ate 40%) pra ela. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        this.addStatus('cloak', 90);
+        this.addStatus('invuln', 60);
+        let stolen = false;
+        const n = p.hits || 5;
+        for (let k = 0; k < n; k++) {
+          game.strikes.push(new Strike(this, {
+            x: rival.x, delay: 12 + k * 10, w: 170, h: 380, dmg: p.dmg || 6, stun: 22, launch: k === n - 1 ? -10 : 0, follow: rival,
+            sheet: { key, row: p.row, frames: 4 }, scale: 2.2, power: p, sound: k === 0 ? 'ultimate' : 'whoosh', shake: 6, warnColor: '#c77dff', unblockable: k === n - 1,
+            onHit: (f) => {
+              if (stolen || !f.alive) return;
+              stolen = true;
+              const take = Math.min(f.ultimate || 0, p.steal || 40);
+              f.ultimate = (f.ultimate || 0) - take;
+              this.ultimate = Math.min(100, (this.ultimate || 0) + take);
+              game.floatText(f.x, f.y - 260, take > 0 ? 'ULTIMATE ROUBADA −' + Math.round(take) + '%' : 'MIL LÂMINAS!', '#C77DFF');
+            },
+          }));
+        }
+        break;
+      }
+      case 'kitsune': {
+        /* KITSUNE DE NOVE CAUDAS (ult exclusiva da MIKO): a raposa sagrada
+           ataca o rival e PURIFICA — tira todos os buffs dele (aura, armadura,
+           reflexo, overclock, regen...) e limpa os debuffs da propria Miko. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        const BUFFS = ['atk', 'def', 'spd', 'rage', 'armor', 'reflect', 'aura', 'regen', 'overclock', 'cloak', 'astra', 'trans', 'phoenix', 'lifesteal', 'nanomachines', 'veil', 'resonance'];
+        game.strikes.push(new Strike(this, {
+          x: rival.x, delay: 16, w: 220, h: 380, dmg: p.dmg || 28, stun: 34, launch: -10, follow: rival,
+          sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'magic', shake: 10, warnColor: '#fff2c4',
+          onHit: (f) => {
+            let n = 0;
+            for (const b of BUFFS) if (f.status[b] > 0) { f.status[b] = 0; n++; }
+            if (f.aura) { f.aura = null; n++; }
+            ['burn', 'poison', 'slow', 'bleed', 'vuln', 'locked', 'blind', 'shock', 'glitch', 'daltonic', 'shuffled', 'vertigo'].forEach((st) => { this.status[st] = 0; });
+            this.heal(p.heal || 12);
+            game.floatText(f.x, f.y - 260, n ? 'PURIFICADO! −' + n + ' BUFF' + (n > 1 ? 'S' : '') : 'PURIFICADO!', '#FFF2C4');
+            game.spawnBurst('fx2:miko-extra', 1, f.x, f.y - 110, this.dir, 2.4);
+          },
+        }));
+        game.floatText(this.x, this.y - 250, 'KITSUNE!', '#FFD27D');
+        break;
+      }
       case 'jesterfinale': {
         /* GRANDE FINAL (ult exclusiva do JESTER): marretada com estrela, ✗
            explodindo e chuva de confete; quem leva fica com os BOTOES DE PODER
