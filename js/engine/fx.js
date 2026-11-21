@@ -39,6 +39,10 @@ const ART_SHEETS = {
   'abil:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata': { src: 'assets/abilities/cyber-psicopata.png', size: 128, cols: 4, rows: 5, v: 'v63-ciber' },
   'fx2:cyber-psicopata-hit': { src: 'assets/abilities/cyber-psicopata-hit.png', size: 128, cols: 4, rows: 1, v: 'v63-ciber' },
+  /* KERNOR, chefe final do torneio (tools/build_kernor_fx.py) — 10 linhas */
+  'abil:kernor': { src: 'assets/abilities/kernor.png', size: 128, cols: 4, rows: 10, v: 'v74-kernor' },
+  'fx2:kernor': { src: 'assets/abilities/kernor.png', size: 128, cols: 4, rows: 10, v: 'v74-kernor' },
+  'fx2:kernor-extra': { src: 'assets/abilities/kernor-extra.png', size: 128, cols: 4, rows: 2, v: 'v74-kernor' },
   /* STELLA, Maga do Front-end (tools/build_stella_fx.py) */
   'abil:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },
   'fx2:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },

@@ -155,6 +155,8 @@ class Fighter {
   }
   addStatus(s, frames, source = null) {
     if (this.def && this.def.id === 'iales' && IALES_IMMUNE.has(s)) return;
+    /* RESISTENCIA (chefe KERNOR): debuffs duram menos (def.statusResist 0..1) */
+    if (this.def && this.def.statusResist && IALES_IMMUNE.has(s) && frames > 0) frames = Math.max(1, Math.round(frames * (1 - this.def.statusResist)));
     this.syncControlMemory();
     if (s === 'resonance' || s === 'veil') {
       let window = this.statusCapWindows[s];
@@ -862,6 +864,47 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'kspikes': {
+        /* CAMPO DE ESPINHOS (KERNOR, estilo chefe final): espinhos brotam do
+           chao em fileira, de uma ponta a outra, deixando BURACOS seguros
+           alternados — da pra escapar pulando ou parando no buraco. */
+        const fromLeft = (game.rnd ? game.rnd() : Math.random()) < 0.5;
+        const gapOff = (game.rnd ? game.rnd() : Math.random()) < 0.5 ? 0 : 1;
+        for (let k = 0; k < 10; k++) {
+          if ((k + gapOff) % 3 === 2) continue; /* buraco seguro */
+          const x = fromLeft ? 50 + k * 96 : game.W - 50 - k * 96;
+          game.strikes.push(new Strike(this, {
+            x, delay: 20 + k * 6, w: 90, h: 180, dmg: p.dmg || 6, stun: 18, launch: -7,
+            sheet: { key, row: p.row, frames: 4 }, scale: 1.3, power: p, sound: k === 0 ? 'heavy' : null, shake: 4, warnColor: '#ff3a5a',
+          }));
+        }
+        break;
+      }
+      case 'kradial': {
+        /* EXPLOSAO RADIAL (KERNOR): laminas de luz saem dele em leque
+           (8 direcoes, inclusive pra cima) — estilo chefe final */
+        for (let k = 0; k < 8; k++) {
+          const ang = -Math.PI + (k / 7) * Math.PI;
+          this.queue.push({ at: k * 2, fn: () => {
+            const pr = new Projectile(this, Object.assign({}, p, { kind: 'shot', speed: 9, big: false, multiHit: 1 }), { fid, dmg: p.dmg || 5, angle: 0, scale: 0.75 });
+            pr.vx = Math.cos(ang) * 9; pr.vy = Math.sin(ang) * 9; pr.x = this.x; pr.y = this.y - 120;
+            game.projectiles.push(pr);
+          } });
+        }
+        game.shake(6);
+        break;
+      }
+      case 'kblackhole': {
+        /* BURACO NEGRO (2a ult do KERNOR): abre no meio, PUXA o rival por ~3s,
+           da dano continuo, deixa SEM PODERES e termina numa explosao */
+        const rival = game.enemyOf(this);
+        const bx = rival ? Math.max(120, Math.min(game.W - 120, (this.x + rival.x) / 2)) : game.W / 2;
+        game.zones.push(new Zone(this, { fid, key: 'fx2:kernor-extra', row: 0, x: bx, w: 300, time: 190, dmg: 0.12, slow: 60, fx: { lock: 30 }, power: p }));
+        this.kHole = { x: bx, t: 190 };
+        game.floatText(bx, -320, 'BURACO NEGRO!', '#c06bff');
+        game.strikes.push(new Strike(this, { x: bx, delay: 186, w: 260, h: 380, dmg: p.dmg || 22, stun: 34, launch: -12, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'explosion', shake: 14, warnColor: '#c06bff', unblockable: true }));
+        break;
+      }
       case 'hotreload': {
         /* HOT RELOAD (ult exclusiva da STELLA): circulo estelar explode no
            rival e a Stella RECARREGA TUDO — poderes simples sem recarga e as
@@ -1522,6 +1565,13 @@ class Fighter {
       if (this.has('bleed') && this.frame % 16 === 0) { this.chip(0.7, this.statusSource.bleed); if (this.frame % 32 === 0) this.game.spark(this.x, this.y - 110, '#ff2d55'); }
       if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 60 - (this.game.rnd ? this.game.rnd() : Math.random()) * 100, '#7df9ff');
       if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#d8f6ff');
+      /* BURACO NEGRO do KERNOR: puxa o rival pro centro enquanto dura */
+      if (this.kHole && this.kHole.t > 0) {
+        this.kHole.t--;
+        const rv = this.game.enemyOf(this);
+        if (rv && rv.alive && !rv.has('invuln')) { const dx = this.kHole.x - rv.x; if (Math.abs(dx) > 8) rv.x += Math.sign(dx) * Math.min(3.2, Math.abs(dx) * 0.05 + 1); }
+        if (this.kHole.t <= 0) this.kHole = null;
+      }
       /* DALTONIC (ult da Jess): lentidao constante + gas rosa subindo do vitima */
       if (this.has('daltonic')) {
         this.addStatus('slow', 30);

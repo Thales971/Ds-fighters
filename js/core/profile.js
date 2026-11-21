@@ -11,7 +11,7 @@ const Profile = {
      Os codigos em si ficam so nas comparacoes abaixo — nunca em comentarios,
      README ou mensagens de erro (anti-vazamento, pedido do dono).
      Winx.exe e Qwen sao personagens NORMAIS (sem codigo). */
-  SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian', 'dolynho'],
+  SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian', 'dolynho', 'kernor'],
   LEGACY_IDS: ['du', 'iales', 'felipinho'],
   data: null,
   accountUid: null,
@@ -236,6 +236,14 @@ const Profile = {
       this.data.unlocked.push(...fresh);
       this.save();
       return { ok: true, msg: 'Desbloqueado: MAXIMILIAN!', ids: fresh };
+    }
+    if (c === 'kernel') {
+      const ids = ['kernor'];
+      const fresh = ids.filter((id) => !this.data.unlocked.includes(id));
+      if (!fresh.length) return { ok: true, already: true, msg: 'KERNOR j\u00e1 est\u00e1 liberado.', ids };
+      this.data.unlocked.push(...fresh);
+      this.save();
+      return { ok: true, msg: 'Desbloqueado: KERNOR, o chefe final!', ids: fresh };
     }
     if (c === 'dolly') {
       const ids = ['dolynho'];

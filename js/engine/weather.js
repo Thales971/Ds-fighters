@@ -24,6 +24,10 @@
      de ultimate. Arte do dono em assets/weather/bubbles.png
    O clima pode mudar no meio do round (frente fria / tempestade chegando).
    ============================================================ */
+/* Climas plugaveis (mapas do torneio — js/engine/torneio.js registra aqui):
+   WEATHER_EXT[kind] = { want, spawn(d,w), move(d,w), draw(ctx,w), overlay(ctx,W,H,w),
+   effect(w,fighting), enter(w) }. Todos opcionais. */
+const WEATHER_EXT = {};
 class Weather {
   constructor(game, stage) {
     this.game = game;
@@ -86,6 +90,7 @@ class Weather {
     if (kind === 'churrasco') a.play('fire', { vol: 0.14 });
     if (kind === 'apagao') a.play('hazard', { vol: 0.14 });
     this._exAt = 420;
+    if (WEATHER_EXT[kind] && WEATHER_EXT[kind].enter) WEATHER_EXT[kind].enter(this);
     if (this.game.onWeather) this.game.onWeather(kind);
   }
   stop() {
@@ -165,6 +170,7 @@ class Weather {
       }
     }
     if (fighting && (this.kind === 'diaenoite' || this.kind === 'churrasco' || this.kind === 'apagao')) this._exclusive();
+    if (WEATHER_EXT[this.kind] && WEATHER_EXT[this.kind].effect) WEATHER_EXT[this.kind].effect(this, fighting);
     /* BOLHAS: lutador (ou projetil) que encosta estoura a bolha */
     if (fighting && this.kind === 'bubbles') this._popBubbles();
     /* sons ambiente dos climas novos */
@@ -269,7 +275,7 @@ class Weather {
     }
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : this.kind === 'bubbles' ? 30 : this.kind === 'diaenoite' ? 18 : this.kind === 'churrasco' ? 34 : this.kind === 'apagao' ? 26 : 0;
+    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : this.kind === 'bubbles' ? 30 : this.kind === 'diaenoite' ? 18 : this.kind === 'churrasco' ? 34 : this.kind === 'apagao' ? 26 : (WEATHER_EXT[this.kind] ? WEATHER_EXT[this.kind].want || 0 : 0);
     const want = Math.max(0, Math.round(wantBase * (this.perfScale || 1))); /* perfScale: modo performance reduz particulas */
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
@@ -298,11 +304,13 @@ class Weather {
       /* ONDA DE CALOR: algumas sao EMBERS subindo. */
       if (this.kind === 'heatwave') d.ember = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4;
       if (this.kind === 'bubbles') this._newBubble(d, true);
+      if (WEATHER_EXT[this.kind] && WEATHER_EXT[this.kind].spawn) WEATHER_EXT[this.kind].spawn(d, this, true);
       if (this.kind === 'diaenoite' || this.kind === 'churrasco' || this.kind === 'apagao') { d.x = roll * W; d.y = -20 - (this.game.rnd ? this.game.rnd() : Math.random()) * 480; d.smoke = this.kind === 'churrasco' && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.45; }
       this.drops.push(d);
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
+      if (WEATHER_EXT[this.kind] && WEATHER_EXT[this.kind].move) { WEATHER_EXT[this.kind].move(d, this); continue; }
       if (this.kind === 'diaenoite' || this.kind === 'apagao') {
         /* brilhos (dia/noite) e poeira verde (data center) flutuando */
         d.ph += 0.02 + d.s * 0.02;
@@ -585,6 +593,8 @@ class Weather {
   }
   draw(ctx) {
     if (this.perfOff) return; /* modo performance nivel 2: clima desligado */
+    const ext = WEATHER_EXT[this.kind];
+    if (ext && ext.draw) { ctx.save(); ext.draw(ctx, this); ctx.restore(); return; }
     if (!this.drops.length && !this.flash) return;
     ctx.save();
     if (this.kind === 'aurora') {
@@ -931,6 +941,7 @@ class Weather {
     ctx.restore();
   }
   drawOverlay(ctx, W, H) {
+    if (WEATHER_EXT[this.kind] && WEATHER_EXT[this.kind].overlay) { ctx.save(); WEATHER_EXT[this.kind].overlay(ctx, W, H, this); ctx.restore(); return; }
     if (this.kind === 'rain' || this.kind === 'storm') {
       ctx.fillStyle = this.kind === 'storm' ? 'rgba(10,20,50,0.16)' : 'rgba(20,40,70,0.1)';
       ctx.fillRect(0, 0, W, H);

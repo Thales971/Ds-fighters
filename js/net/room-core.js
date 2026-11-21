@@ -29,7 +29,7 @@
   const FIGHTER_IDS = ['du', 'felipinho', 'stack', 'gitmaster', 'bughunter', 'frontend', 'backend', 'devops', 'qa', 'scrum', 'fullstack', 'kotlin', 'hacker', 'java', 'merc', 'bhm', 'xeon', 'urbano', 'qwen', 'dolynho', 'thl', 'lobao', 'winx-exe', 'dandara-query', 'nina-vector', 'gemini', 'meta', 'mis', 'dev-senior', 'dev-veterano', 'hana', 'cyber-psicopata', 'grika', 'guarda-digital', 'engenheira-prompt', 'odette', 'john-vibe', 'nimbo', 'emilio', 'nunes', 'ponteiro', 'lia', 'nexo', 'maximilian', 'henrico', 'jess'];
   /* Fora do modo online PERMANENTEMENTE (pedido do dono): o servidor recusa
      a escolha e a grade do online mostra o lutador bloqueado. */
-  const ONLINE_BANNED = ['iales'];
+  const ONLINE_BANNED = ['iales', 'kernor'];
   const PET_IDS = ['none', 'tux', 'whale', 'crab', 'snake', 'elephant', 'gopher', 'leaf', 'octo', 'mistral', 'slime', 'dragao', 'fenix', 'robot'];
   const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const RATE = { input: 160, snap: 90, default: 30 };

@@ -92,7 +92,11 @@ class Game {
       const pet = (this.cfg.pets && this.cfg.pets[ti]) || PETS[0];
       return {
         members: ids.map((id, k) => {
-          const def = FIGHTERS.find((f) => f.id === id) || FIGHTERS[3];
+          let def = FIGHTERS.find((f) => f.id === id) || FIGHTERS[3];
+          /* CHEFE DO TORNEIO: o Kernor vem um pouco mais fraco (passavel) —
+             cfg.bossScale = { team, power, hp } so na luta final do torneio */
+          const bs = this.cfg.bossScale;
+          if (bs && bs.team === ti && def.boss) def = Object.assign({}, def, { stats: Object.assign({}, def.stats, { power: def.stats.power * (bs.power || 1), hp: Math.round(def.stats.hp * (bs.hp || 1)) }) });
           const f = new Fighter(def, ti === 0 ? 260 : 700, ti === 0 ? 1 : -1, this, { team: ti, slot: ti, pet: k === 0 ? pet : PETS[0], skinHue: (typeof Profile !== 'undefined' && Profile.skinFor) ? Profile.skinFor(def.id) : 0 });
           if (k > 0) f.benched = true;
           return f;
