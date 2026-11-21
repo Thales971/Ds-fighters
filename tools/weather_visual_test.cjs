@@ -45,7 +45,7 @@ const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' +
 g.weather.sprites.flakes = { img: WEATHER_IMGS.flakes, cell: 28 };
 g.weather.sprites.leaf = { img: WEATHER_IMGS.leaf, cell: 16 };
 g.weather.sprites.spark = { img: WEATHER_IMGS.spark, cell: 8 };
-const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave', 'confetti', 'fireworks', 'eclipse', 'rainbow', 'fog', 'darkfog', 'leaves', 'hail', 'fireflies', 'bubbles'];
+const KINDS = ['clear', 'rain', 'wind', 'storm', 'snow', 'aurora', 'heatwave', 'confetti', 'fireworks', 'eclipse', 'rainbow', 'fog', 'darkfog', 'leaves', 'hail', 'fireflies', 'bubbles', 'diaenoite', 'churrasco', 'apagao'];
 for (const kind of KINDS) {
   g.weather.set(kind);
   for (let t = 0; t < 180; t++) { g.tick(); if (t < 60) g.weather.updateParticles(); }

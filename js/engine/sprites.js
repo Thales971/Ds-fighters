@@ -187,6 +187,14 @@ const SpriteGen = {
         if (x && x.getImageData) {
           x.drawImage(img, 0, row * L.frameH, L.frameW, L.frameH, 0, 0, L.frameW, L.frameH);
           const d = x.getImageData(0, 0, L.frameW, L.frameH).data;
+          const pf = (L.perFighter && L.perFighter[id]) || {};
+          if (pf.headScan) {
+            const hopt = Object.assign({ id }, typeof pf.headScan === 'object' ? pf.headScan : {});
+            if (pose !== 'idle' && !(this._idleW && this._idleW[id])) this.headBox(id, 'idle');
+            const nb = this._headScanBody(d, L.frameW, L.frameH, hopt);
+            if (nb && pose === 'idle') (this._idleW = this._idleW || {})[id] = nb.w;
+            if (nb) { (this._headBoxCache = this._headBoxCache || {})[key] = nb; return nb; }
+          }
           const rows = [];
           let top = -1;
           for (let yy = 0; yy < L.frameH; yy++) {
@@ -211,6 +219,63 @@ const SpriteGen = {
     }
     (this._headBoxCache = this._headBoxCache || {})[key] = box;
     return box;
+  },
+
+  /* CABECA PELO CORPO (lutadores com coisa em volta da cabeca: orbe do
+     cajado da Lyra, elefante do Domador, bolinhas do Jester, ombros largos do
+     Ciber): acha o centro do TRONCO e, de cima pra baixo, so considera o
+     trecho contiguo de pixels que passa perto dessa coluna. opt = { w, dy }
+     ajusta largura/altura medidas (multiplicador / deslocamento). */
+  _headScanBody(d, W, H, opt) {
+    const o = typeof opt === 'object' ? opt : {};
+    const op = (xx, yy) => d[(yy * W + xx) * 4 + 3] > 40;
+    let top = -1, bottom = -1;
+    for (let yy = 0; yy < H; yy++) { let c = 0; for (let xx = 0; xx < W; xx++) if (op(xx, yy)) c++; if (c >= 4) { if (top < 0) top = yy; bottom = yy; } }
+    if (top < 0 || bottom - top < 40) return null;
+    const hgt = bottom - top;
+    const xs = [];
+    for (let yy = Math.round(top + hgt * 0.5); yy < top + hgt * 0.8; yy++) for (let xx = 0; xx < W; xx++) if (op(xx, yy)) xs.push(xx);
+    if (!xs.length) return null;
+    xs.sort((a, b) => a - b);
+    const cx0 = xs[Math.floor(xs.length / 2)];
+    /* trecho (run) de cada linha que passa a ate 14px do centro do tronco */
+    const runAt = (yy, cx) => {
+      let best = null;
+      let xx = 0;
+      while (xx < W) {
+        if (!op(xx, yy)) { xx++; continue; }
+        const a = xx;
+        while (xx < W && op(xx, yy)) xx++;
+        const b = xx - 1;
+        const dist = cx < a ? a - cx : cx > b ? cx - b : 0;
+        if (dist <= 14 && (!best || dist < best.dist)) best = { a, b, dist };
+      }
+      return best;
+    };
+    let htop = -1;
+    let cx = cx0;
+    const runs = [];
+    for (let yy = top; yy < top + hgt * 0.5; yy++) {
+      const r = runAt(yy, cx);
+      if (!r || r.b - r.a + 1 < 4) { if (htop >= 0 && runs.length > 30) break; continue; }
+      if (htop < 0) htop = yy;
+      runs.push({ w: r.b - r.a + 1, c: (r.a + r.b) / 2 });
+      if (runs.length < 10) cx = Math.round((cx + (r.a + r.b) / 2) / 2); /* segue a cabeca se ela for de lado */
+      if (runs.length > 34) break;
+    }
+    if (htop < 0 || runs.length < 8) return null;
+    const band = runs.slice(5, 24);
+    const ws = band.map((r) => r.w).sort((a, b) => a - b);
+    let w = ws[Math.floor(ws.length * 0.5)] * (o.w || 1);
+    w = Math.max(22, Math.min(70, w));
+    /* pose de lado/deitada (apanhando) mede o corpo inteiro: trava a
+       largura perto da medida do idle */
+    if (opt && this._idleW && this._idleW[o.id]) {
+      const iw = this._idleW[o.id];
+      w = Math.max(iw * 0.85, Math.min(iw * 1.15, w));
+    }
+    const cs = band.map((r) => r.c).sort((a, b) => a - b);
+    return { x: cs[Math.floor(cs.length / 2)], y: htop + (o.dy || 0), w, h: w * 1.15 };
   },
 
   blit(ctx, id, pose, frame, dir, centerX, feetY, white = false, scale = null, xf = null, skinHue = 0) {

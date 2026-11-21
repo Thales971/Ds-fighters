@@ -64,6 +64,10 @@ STAGE_LIST.push(
   { id: 'abismo-das-baleias', name: 'Abismo das Baleias', image: 'assets/maps/abismo-das-baleias.jpg', group: 'Expansão V7', weather: ['clear', 'bubbles'], fauna: ['fish', 'fish'], mech: 'tide', tint: '#2aaedc', bubbles: true, lights: [{ x: 480, y: 90, r: 260, color: '60,170,255', pulse: 0.5 }] },
   { id: 'vale-do-cache', name: 'Vale do Cache', image: 'assets/maps/vale-do-cache.jpg', group: 'Expansão V7', weather: ['clear', 'wind', 'heatwave'], fauna: ['bird'], mech: 'query', tint: '#d6a45a', fireflies: true },
   { id: 'pos-codigocalipse', name: 'Pós-Codigocalipse', image: 'assets/maps/pos-codigocalipse.jpg', group: 'Expansão V8', weather: ['clear', 'storm', 'aurora', 'eclipse', 'fireflies', 'darkfog'], fauna: ['bat'], mech: 'glitch', tint: '#a783ff', embers: true, motes: true },
+  /* Mapas novos do dono (bugs/Novos-mapas/ -> tools/build_mapas_novos.py), cada um com clima EXCLUSIVO */
+  { id: 'metropole-dia-noite', name: 'Metrópole Dia & Noite', image: 'assets/maps/metropole-dia-noite.jpg', group: 'Novos do Dono', weather: ['diaenoite', 'diaenoite', 'clear'], fauna: ['birds'], tint: '#ff4b6b', motes: true, lights: [{ x: 480, y: 200, r: 160, color: '255,60,60', pulse: 0.8 }] },
+  { id: 'churrasco-laje', name: 'Churrasco na Laje', image: 'assets/maps/churrasco-laje.jpg', group: 'Novos do Dono', weather: ['churrasco', 'churrasco', 'clear', 'fireflies'], fauna: ['cat'], tint: '#ffb06b', ambient: 'amb_cafe', motes: true, lights: [{ x: 540, y: 260, r: 200, color: '255,150,60', pulse: 0.5 }] },
+  { id: 'datacenter-abandonado', name: 'Data Center Abandonado', image: 'assets/maps/datacenter-abandonado.jpg', group: 'Novos do Dono', weather: ['apagao', 'apagao', 'darkfog', 'clear'], fauna: ['bat'], tint: '#5dffb0', ambient: 'amb_corredor-datacenter', motes: true, sparks: true },
 );
 
 /* Compatibilidade com código antigo. */
@@ -86,6 +90,9 @@ const WEATHER_INFO = {
   darkfog: { name: 'Neblina Sombria', icon: '☾', desc: 'Névoa roxa só no fundo da arena. O lutador continua nítido.' },
   confetti: { name: 'Confete', icon: '🎊', desc: 'Serpentina e confete caindo. Só visual, sem empurrar nem machucar.' },
   fireworks: { name: 'Fogos', icon: '🎆', desc: 'Fogos no céu. Só visual, sem escurecer a arena.' },
+  diaenoite: { name: 'Virada Dia & Noite', icon: '🌗', desc: 'O laser divisor do meio dispara de tempos em tempos. Do lado do DIA o medidor enche 10% mais rápido.' },
+  churrasco: { name: 'Cheiro de Churrasco', icon: '🍖', desc: 'Fumaça e brasas: cura lenta para os dois e, de vez em quando, sai um espetinho (energia) no chão.' },
+  apagao: { name: 'Apagão', icon: '💡', desc: 'As luzes piscam e caem: no apagão a tela escurece e um surto elétrico dá choque em quem estiver no chão.' },
   bubbles: { name: 'Bolhas de Sabão', icon: '🫧', desc: 'Bolhas sobem pela arena e estouram em quem encosta: cada bolha estourada dá +1,5 de ultimate.' },
 };
 

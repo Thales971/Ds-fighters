@@ -888,7 +888,7 @@ class Game {
     this.netFx = [];
     return {
       t: this.time,
-      rs: this.roundState, rst: this.roundStateTime, rnd: this.round, tw: this.teamWins, tm: this.roundTimer === Infinity ? 99 : Math.max(0, Math.ceil(this.roundTimer / 60)),
+      rs: this.roundState, rst: this.roundStateTime, rnd: this.round, inf: this.inferno ? this.inferno.t : -1, sl: this.suddenLeft, tw: this.teamWins, tm: this.roundTimer === Infinity ? 99 : Math.max(0, Math.ceil(this.roundTimer / 60)),
       wk: this.weather.kind, wind: Math.round(this.weather.wind * 100) / 100, wf: this.weather.flash,
       fr: this.freeze, bs: this.bsod, gl: this.glitch, sh: Math.round(this.shakeMag),
       teams: this.teams.map((t) => ({ a: t.active, cd: t.tagCd, ac: t.assistCd || 0, m: t.members.map((m) => m.snap()) })),
@@ -903,6 +903,10 @@ class Game {
     this.roundState = s.rs;
     this.roundStateTime = s.rst;
     this.round = s.rnd;
+    /* MORTE SUBITA no convidado do online: o host manda o tempo do fogo */
+    if (s.inf != null) {
+      if (s.inf >= 0) { this.inferno = this.inferno || { t: 0, active: false }; this.inferno.t = s.inf; this.inferno.active = s.inf > 0; this.suddenLeft = s.sl || 0; } else this.inferno = null;
+    }
     this.teamWins = s.tw;
     this.roundTimer = s.tm * 60;
     if (this.weather.kind !== s.wk) this.weather.set(s.wk);
@@ -1454,22 +1458,76 @@ class Game {
     if (inf.t % 40 !== 0) return;
     const seconds = inf.t / 60;
     const dmg = Math.min(2.4, 0.35 + seconds * 0.045);
+    /* parede de fogo: quem encosta nela leva o dobro */
+    const wall = 30 + this.infernoHeat() * 200;
     for (const f of this.fighters()) {
       if (!f.alive || f.benched) continue;
-      f.chip(dmg, null);
+      const inWall = f.x < wall + 20 || f.x > W - wall - 20;
+      f.chip(inWall ? dmg * 2 : dmg, null);
+      if (inWall && inf.t % 120 === 0) this.floatText(f.x, f.y - 220, 'QUEIMANDO!', '#ff6a1c');
     }
+  }
+  /* MORTE SUBITA — chamas que CRESCEM durante o round 3 (pedido do dono):
+     estagio 1 (0-15s) chama baixa nas bordas e algumas no chao; estagio 2
+     (15-30s) as paredes de fogo avancam e o chao enche; estagio 3 (30s+)
+     chamas altas fechando a arena, brasas subindo. heat 0..1 guia tudo
+     (altura, quantidade, quanto as paredes fecham e o brilho no chao). */
+  infernoHeat() {
+    const inf = this.inferno;
+    return inf && inf.active ? Math.min(1, inf.t / (45 * 60)) : 0;
   }
   drawInferno(ctx) {
     const inf = this.inferno;
     if (!inf || !inf.active) return;
-    const frame = Math.floor(this.time / 4) % 4;
-    for (let x = 36; x < W - 20; x += 84) {
-      Art.cell(ctx, 'fx2:fire', 1, (frame + ((x / 84) | 0)) % 4, x, -22, { scale: 1.45 });
+    const heat = this.infernoHeat();
+    const t = this.time;
+    const rnd = (k) => { const v = Math.sin(k * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+    /* brilho do chao (fica mais forte com o calor) */
+    const glow = ctx.createLinearGradient(0, -90, 0, 6);
+    glow.addColorStop(0, 'rgba(255,90,20,0)');
+    glow.addColorStop(1, 'rgba(255,110,30,' + (0.10 + heat * 0.30).toFixed(3) + ')');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, -90, W, 96);
+    /* frames 0-2 da coluna de fogo (fx2:fire linha 1) = chama nascendo ->
+       alta; cada chama tem fase propria pra nao piscar tudo junto */
+    const flame = (x, sc, k) => {
+      const f = Math.floor(t / 5 + k * 1.7) % 3;
+      Art.cell(ctx, 'fx2:fire', 1, f, x, -24 * sc, { scale: sc });
+    };
+    /* PAREDES: avancam das bordas pro meio (ate ~230px de cada lado) */
+    const wall = 30 + heat * 200;
+    const rows = 1 + Math.floor(heat * 3);
+    for (let side = 0; side < 2; side++) {
+      for (let x = 0; x < wall; x += 46) {
+        for (let r = 0; r < rows; r++) {
+          const k = side * 100 + x + r * 13;
+          const sc = 1.15 + heat * 1.1 + rnd(k) * 0.35 - r * 0.25;
+          const xx = side ? W - 18 - x : 18 + x;
+          flame(xx + (rnd(k + 5) - 0.5) * 18, Math.max(0.7, sc), k);
+        }
+      }
     }
-    for (let k = 0; k < 4; k++) {
-      const y = -30 - k * 78;
-      Art.cell(ctx, 'fx2:fire', 1, (frame + k) % 4, 34, y, { scale: 1.55 });
-      Art.cell(ctx, 'fx2:fire', 1, (frame + k + 2) % 4, W - 34, y, { scale: 1.55, dir: -1 });
+    /* CHAO: chamas soltas que aparecem conforme o calor sobe */
+    const n = Math.round(4 + heat * 14);
+    for (let i = 0; i < n; i++) {
+      const x = wall + 40 + rnd(i + 9) * Math.max(40, W - 2 * wall - 80);
+      const life = (t * 0.6 + rnd(i) * 400) % 400; /* cada uma nasce e some */
+      const grow = Math.min(1, life / 60) * Math.min(1, (400 - life) / 60);
+      if (grow <= 0.05) continue;
+      flame(x, (0.6 + heat * 0.9) * grow, i + 50);
+    }
+    /* BRASAS subindo (mais no estagio 3) */
+    if (!this.reduced) {
+      const e = Math.round(10 + heat * 40);
+      for (let i = 0; i < e; i++) {
+        const sp = 0.6 + rnd(i + 3) * 1.4;
+        const y = -((t * sp + rnd(i) * 520) % 520);
+        const x = rnd(i + 21) * W + Math.sin(t * 0.03 + i) * 12;
+        ctx.globalAlpha = Math.max(0, 1 + y / 520) * (0.5 + heat * 0.5);
+        ctx.fillStyle = i % 3 ? '#ffb347' : '#ff5a1f';
+        ctx.fillRect(Math.round(x), Math.round(y), 3, 3);
+      }
+      ctx.globalAlpha = 1;
     }
   }
   drawBeams(ctx) {
