@@ -255,9 +255,13 @@ const SpriteGen = {
     let htop = -1;
     let cx = cx0;
     const runs = [];
+    const idleW = this._idleW && this._idleW[o.id];
+    const minRaised = o.skipRaised && idleW ? idleW * 0.72 : 0;
     for (let yy = top; yy < top + hgt * 0.5; yy++) {
       const r = runAt(yy, cx);
       if (!r || r.b - r.a + 1 < 4) { if (htop >= 0 && runs.length > 30) break; continue; }
+      /* membro erguido no eixo do tronco (chute no ar): fino demais pra ser a cabeça do idle */
+      if (minRaised && htop < 0 && (r.b - r.a + 1) < minRaised) continue;
       if (htop < 0) htop = yy;
       runs.push({ w: r.b - r.a + 1, c: (r.a + r.b) / 2 });
       if (runs.length < 10) cx = Math.round((cx + (r.a + r.b) / 2) / 2); /* segue a cabeca se ela for de lado */

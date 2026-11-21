@@ -8,11 +8,13 @@
   const id = 'stella';
   SPRITE_LAYOUT.files[id] = `assets/sprites/${id}.png`;
   SPRITE_LAYOUT.ver = SPRITE_LAYOUT.ver || {};
-  SPRITE_LAYOUT.ver[id] = 'v73-stella';
+  SPRITE_LAYOUT.ver[id] = 'v73-stella-franja';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-    headScan: true,
-    accHide: ['ko', 'jump', 'jpunch'],
+    headScan: { skipRaised: true },
+    /* ko deitada e o chute no ar sobem um membro no eixo da cabeça:
+       o chapéu ia parar no pé. Nas outras poses a cabeça medida segura o acessório. */
+    accHide: ['ko', 'jkick'],
   });
   const visual = (row, color) => ({ visualSheet: id, visualRow: row, impactSheets: ['stella-extra'], impactColor: color });
 
