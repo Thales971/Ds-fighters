@@ -779,7 +779,39 @@ DOMADOR_POSES = {
     'win':     ([(1, 2, 1, True), (0, 3, 1, True), (1, 2, 1, True), (0, 3, 1, True)], 206, BASE),
 }
 
+# MIKO (sacerdotisa) — f1 (si=0): gohei+ofuda | palma | salto | voadora /
+#   arco | arremesso de ofuda | ritual ajoelhada | apanhando
+# f2 (si=1): ajoelhada com ofuda (8 copias iguais). Todas olham pra DIREITA.
+MIKO_POSES = {
+    'idle':    ([(0, 0, 0, False)] * 4, 200, BASE),
+    'walk':    ([(0, 0, 0, False), (0, 1, 1, False), (0, 0, 0, False), (0, 1, 1, False)], 198, BASE),
+    'jump':    ([(0, 2, 0, False)] * 4, 180, AIR),
+    'crouch':  ([(1, 0, 0, False)] * 4, 140, BASE),
+    'punch':   ([(0, 1, 0, False)] * 4, 198, BASE),
+    'kick':    ([(0, 3, 0, False)] * 4, 176, BASE),
+    'cpunch':  ([(1, 0, 0, False)] * 4, 140, BASE),
+    'ckick':   ([(0, 2, 1, False)] * 4, 140, BASE),
+    'jpunch':  ([(0, 2, 0, False)] * 4, 180, AIR),
+    'jkick':   ([(0, 3, 0, False)] * 4, 176, AIR),
+    'special': ([(0, 0, 1, False), (0, 1, 1, False), (0, 0, 1, False), (0, 1, 1, False)], 200, BASE),
+    'hit':     ([(0, 3, 1, False)] * 4, 196, BASE),
+    'block':   ([(0, 1, 0, False)] * 4, 198, BASE),
+    'ko':      ([(0, 2, 1, False)] * 4, 110, BASE),
+    'win':     ([(1, 0, 0, False)] * 4, 150, BASE),
+}
+
 FIGHTERS = {
+    'miko': {
+        'sheets': ['Miko sprites 1.jpg', 'Miko sprites 2.jpg'],
+        'poses': MIKO_POSES,
+        'ui_cell': (0, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'strict_magenta': True,
+        'holes': True,
+        'magfix_red': True,
+        'abilities_keep': True,  # atlas animado: tools/build_miko_fx.py
+    },
     'domador': {
         'sheets': ['Domador sprites 1.jpg', 'Domador sprites 2.jpg'],
         'poses': DOMADOR_POSES,

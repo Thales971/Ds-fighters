@@ -862,6 +862,29 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'kitsune': {
+        /* KITSUNE DE NOVE CAUDAS (ult exclusiva da MIKO): a raposa sagrada
+           ataca o rival e PURIFICA — tira todos os buffs dele (aura, armadura,
+           reflexo, overclock, regen...) e limpa os debuffs da propria Miko. */
+        const rival = game.enemyOf(this);
+        if (!rival) break;
+        const BUFFS = ['atk', 'def', 'spd', 'rage', 'armor', 'reflect', 'aura', 'regen', 'overclock', 'cloak', 'astra', 'trans', 'phoenix', 'lifesteal', 'nanomachines', 'veil', 'resonance'];
+        game.strikes.push(new Strike(this, {
+          x: rival.x, delay: 16, w: 220, h: 380, dmg: p.dmg || 28, stun: 34, launch: -10, follow: rival,
+          sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'magic', shake: 10, warnColor: '#fff2c4',
+          onHit: (f) => {
+            let n = 0;
+            for (const b of BUFFS) if (f.status[b] > 0) { f.status[b] = 0; n++; }
+            if (f.aura) { f.aura = null; n++; }
+            ['burn', 'poison', 'slow', 'bleed', 'vuln', 'locked', 'blind', 'shock', 'glitch', 'daltonic', 'shuffled', 'vertigo'].forEach((st) => { this.status[st] = 0; });
+            this.heal(p.heal || 12);
+            game.floatText(f.x, f.y - 260, n ? 'PURIFICADO! −' + n + ' BUFF' + (n > 1 ? 'S' : '') : 'PURIFICADO!', '#FFF2C4');
+            game.spawnBurst('fx2:miko-extra', 1, f.x, f.y - 110, this.dir, 2.4);
+          },
+        }));
+        game.floatText(this.x, this.y - 250, 'KITSUNE!', '#FFD27D');
+        break;
+      }
       case 'jesterfinale': {
         /* GRANDE FINAL (ult exclusiva do JESTER): marretada com estrela, ✗
            explodindo e chuva de confete; quem leva fica com os BOTOES DE PODER
