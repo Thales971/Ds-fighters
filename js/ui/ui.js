@@ -76,6 +76,8 @@ const UI = {
     this.$('btn-photo-save').addEventListener('click', () => this.savePhoto());
     this.$('btn-photo-exit').addEventListener('click', () => this.exitPhoto());
     this.$('btn-photo-fighters').addEventListener('click', () => this.togglePhotoFighters());
+    const pf = this.$('btn-photo-filter');
+    if (pf) pf.addEventListener('click', () => this.cyclePhotoFilter());
     this.$('btn-photo-zin').addEventListener('click', () => this.photoZoom(0.15));
     this.$('btn-photo-zout').addEventListener('click', () => this.photoZoom(-0.15));
     /* zoom com a rodinha do mouse no modo foto */
@@ -85,7 +87,11 @@ const UI = {
       this.photoZoom(e.deltaY < 0 ? 0.12 : -0.12);
     }, { passive: false });
     this.$('btn-again').addEventListener('click', () => this.rematch());
-    this.$('btn-next').addEventListener('click', () => (this.flow && this.flow.mode === 'survival' ? this.survivalNext() : this.arcadeNext()));
+    this.$('btn-next').addEventListener('click', () => {
+      if (this.flow && this.flow.mode === 'survival') return this.survivalNext();
+      if (this.flow && this.flow.mode === 'arcade') return this.showLadder();
+      this.arcadeNext();
+    });
     this.$('btn-res-select').addEventListener('click', () => (this.flow && this.flow.mode === 'online' ? (Net.room ? Net.openPicker() : this.show('online')) : this.startFlow(this.flow ? this.flow.mode : 'versus')));
     this.$('btn-res-menu').addEventListener('click', () => this.toMenu());
     this.$('redeem-form').addEventListener('submit', (e) => { e.preventDefault(); this.redeem(); });
@@ -281,7 +287,7 @@ const UI = {
     if (tagline) tagline.textContent = `EDIÇÃO ${edition} · ${r.selectable} LUTADORES · ${r.arenas} ARENAS`;
     document.title = `DS Fighters — Edição ${edition}`;
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', `DS Fighters: jogo de luta arcade retrô 2D com ${r.selectable} lutadores selecionáveis, 5 habilidades cada (IALES até 10), ${r.arenas} arenas, 2x2 e online.`);
+    if (meta) meta.setAttribute('content', `DS Fighters: jogo de luta arcade retrô 2D com ${r.selectable} lutadores. O torneio termina no chefe KERNOR. ${r.arenas} arenas, 2x2 e online.`);
     return r;
   },
   /* Lutadores fora do online (lista no RoomCore, a mesma que o servidor usa). */
@@ -645,7 +651,7 @@ const UI = {
     if (ti === 1 && solo) {
       if (f.mode === 'arcade') {
         const nBuff = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
-        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>6 rivais fortes e insuportáveis em ordem crescente + chefe final.</p><p>6 mapas exclusivos do torneio · Chefe final: ${Profile.isUnlocked('kernor') ? 'KERNOR' : '???'} na Fortaleza do Dev</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
+        el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>Larper e Cyber Psicopata (médio), Rafael e Dev Senior (difícil), Lyra e Nimbo (extremo), depois o chefe.</p><p>6 mapas exclusivos · Chefe: ${Profile.isUnlocked('kernor') ? 'KERNOR' : '???'} na Fortaleza, IA extrema. Vencer libera o Kernor.</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
       } else el.innerHTML = `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
       return;
     }
@@ -832,7 +838,7 @@ const UI = {
   afterSelect() {
     const f = this.flow;
     if (f.mode === 'online') { Net.pickFighters(f.picks[0].map((k) => FIGHTERS[k].id)); this.show('online'); return; }
-    if (f.mode === 'arcade') { this.buildArcade(); return this.launchArcade(); }
+    if (f.mode === 'arcade') { this.buildArcade(); return this.showLadder(); }
     if (f.mode === 'survival') { return this.launchSurvival(); }
     setTimeout(() => this.show('stage'), 250);
   },
@@ -966,6 +972,8 @@ const UI = {
     this.$('vs-1').innerHTML = side(1);
     const s = STAGE_LIST.find((x) => x.id === cfg.stage);
     this.$('vs-stage').textContent = s ? s.name : 'ARENA ALEATÓRIA';
+    const lineEl = this.$('vs-line');
+    if (lineEl) lineEl.textContent = cfg.rivalLine || '';
     this.show('vs');
     AudioSys.play('hazard', { vol: 0.7 });
     setTimeout(then, Profile.reducedMotion() ? 900 : 2200);
@@ -976,30 +984,66 @@ const UI = {
   buildArcade() {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
-    /* TORNEIO RAPIDO ate o chefe: os 6 mais FORTES e INSUPORTAVEIS
-       (projetil/zoner/spam de longe, alcance absurdo, stats altos),
-       em ordem crescente de dificuldade, e o chefe KERNOR no fim. */
-    const score = (d) => {
-      const s = d.stats || {};
-      let sc = (s.power || 1) * 2 + (s.speed || 1) + (s.meterRate || 1) + (s.hp || 100) / 200;
-      const sp = (d.special && d.special.type) || '';
-      if (/projectile|cycle|multi|beam|summon|aoe/i.test(sp)) sc += 1.1; /* atira de longe: insuportavel */
-      if (/rush|buff|transform/i.test(sp)) sc += 0.5;
-      const kick = (d.moves && d.moves.kick) || {};
-      if ((kick.range || 0) >= 70) sc += 0.4; /* alcance absurdo */
-      return sc;
-    };
-    const rivais = FIGHTERS.filter((d) => d.id !== me && !d.secret && !d.boss)
-      .map((d) => ({ id: d.id, sc: score(d) }))
-      .sort((a, b) => b.sc - a.sc)
-      .slice(0, 6)
-      .map((r) => r.id)
-      .reverse(); /* mais fraco primeiro, mais forte por ultimo */
-    /* chefe final do torneio: KERNOR (se o jogador escolheu o proprio Kernor, o chefe vira o Fullstack) */
-    const boss = me !== 'kernor' ? 'kernor' : 'fullstack';
-    const semBoss = rivais.filter((id) => id !== boss);
-    f.ladder = [...semBoss, boss];
+    const standIn = { larper: 'ponteiro', 'cyber-psicopata': 'odette', rafael: 'emilio', 'dev-senior': 'jess', lyra: 'nunes', nimbo: 'fullstack', kernor: 'fullstack' };
+    const rows = (typeof TORNEIO_LADDER !== 'undefined' ? TORNEIO_LADDER : []);
+    f.ladder = rows.map((row) => {
+      if (row.id !== me) return Object.assign({}, row);
+      const id = standIn[row.id] || 'ponteiro';
+      return Object.assign({}, row, { id: id, boss: row.boss && id === 'kernor' });
+    });
     f.arcadeStep = 0;
+    f.afterWin = false;
+    f.tourneyBuffs = [];
+    f.tourneyScore = 0;
+    f.ranks = [];
+  },
+  showLadder() {
+    const f = this.flow;
+    const el = this.$('ladder-list');
+    if (!el || !f.ladder) return;
+    const done = f.afterWin ? f.arcadeStep + 1 : f.arcadeStep;
+    const me = FIGHTERS[f.picks[0][0]];
+    el.innerHTML = f.ladder.map((row, i) => {
+      const d = FIGHTERS.find((x) => x.id === row.id) || { name: row.id, colors: { accent: '#fff' } };
+      const st = i < done ? 'done' : i === done ? 'now' : 'wait';
+      const face = rosterPortraitStyle(row.id, 36);
+      return `<div class="lad-row ${st}${row.boss ? ' boss' : ''}">
+        <span class="lad-n">${i + 1}</span>
+        <i class="lad-face" style="${face}"></i>
+        <b style="--c:${d.colors.accent}">${d.name}</b>
+        <small>${row.diffName}${row.boss ? ' · CHEFE' : ''}</small>
+        <em>${st === 'done' ? (f.ranks[i] ? f.ranks[i].letter : 'OK') : st === 'now' ? 'AGORA' : ''}</em>
+      </div>`;
+    }).join('');
+    const you = this.$('ladder-you');
+    if (you) you.textContent = me ? me.name : '';
+    const menu = this.$('btn-ladder-menu');
+    if (menu) menu.onclick = () => this.toMenu();
+    const go = this.$('btn-ladder-go');
+    const last = f.afterWin && f.arcadeStep >= f.ladder.length - 1;
+    if (go) {
+      go.hidden = !!last;
+      go.textContent = f.afterWin ? 'ESCOLHER BÔNUS' : 'LUTAR';
+      go.onclick = () => { if (f.afterWin) this.showBuffs(); else this.launchArcade(); };
+    }
+    this.show('ladder');
+  },
+  showBuffs() {
+    const f = this.flow;
+    const pool = (typeof TORNEIO_BUFFS !== 'undefined' ? TORNEIO_BUFFS : []).filter((b) => !(f.tourneyBuffs || []).includes(b.id));
+    const pick = pool.slice();
+    while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
+    const el = this.$('buff-list');
+    if (el) {
+      el.innerHTML = pick.map((b) => `<button type="button" class="nav buff-card" data-buff="${b.id}"><b>${b.name}</b><small>${b.desc}</small></button>`).join('');
+      el.querySelectorAll('.buff-card').forEach((btn) => btn.addEventListener('click', () => {
+        f.tourneyBuffs = (f.tourneyBuffs || []).concat(btn.dataset.buff);
+        f.arcadeStep++;
+        f.afterWin = false;
+        this.launchArcade();
+      }));
+    }
+    this.show('buffs');
   },
   launchSurvival() {
     const f = this.flow;
@@ -1029,20 +1073,22 @@ const UI = {
     const me = FIGHTERS[f.picks[0][0]].id;
     const myBuff = typeof Balance !== 'undefined' ? Balance.buffFor(FIGHTERS.find((d) => d.id === me)) : null;
     if (myBuff) this.toast(`BUFF PERMANENTE: +${Math.round((myBuff.hp - 1) * 100)}% HP / +${Math.round((myBuff.power - 1) * 100)}% força — lutador fraco, vale em TODOS os modos!`, 4200);
-    const opp = f.ladder[f.arcadeStep];
-    const isBoss = f.arcadeStep >= f.ladder.length - 1; /* ultima luta = chefe */
-    /* MAPAS DO TORNEIO em ordem (js/engine/torneio.js); o chefe sempre na Fortaleza do Dev */
+    const row = f.ladder[f.arcadeStep] || { id: 'kernor', diff: 3, map: 5, boss: true, line: '' };
+    const opp = row.id;
+    const isBoss = !!row.boss;
     const tor = (typeof TORNEIO !== 'undefined' && TORNEIO.stages.length) ? TORNEIO.stages : null;
-    const st = tor
-      ? STAGE_LIST.find((x) => x.id === (isBoss ? tor[tor.length - 1] : tor[Math.min(tor.length - 1, f.arcadeStep)])) || STAGE_LIST[0]
-      : STAGE_LIST[(Math.random() * STAGE_LIST.length) | 0];
+    const stageId = tor ? tor[Math.min(tor.length - 1, row.map == null ? f.arcadeStep : row.map)] : STAGE_LIST[0].id;
     this.launch({
-      mode: 'arcade', teams: [[me], [opp]], stage: st.id, weather: 'random',
-      bossScale: isBoss && opp === 'kernor' ? { team: 1, power: 0.55, hp: 0.76 } : null,
-      difficulty: isBoss ? 3 : Math.min(3, AI.level(f.difficulty == null ? 1 : f.difficulty) + (f.arcadeStep >= 5 ? 1 : 0)),
+      mode: 'arcade', teams: [[me], [opp]], stage: stageId, weather: 'random',
+      bossFight: isBoss && opp === 'kernor',
+      tourneyBuffs: (f.tourneyBuffs || []).slice(),
+      rivalLine: row.line || '',
+      /* A dificuldade do menu NÃO entra aqui. Cada degrau da chave tem a sua. */
+      cpuDifficulty: row.diff == null ? 1 : row.diff,
+      difficulty: row.diff == null ? 1 : row.diff,
       cpu: [false, true], pets: [Profile.petFor(0), PETS[0]],
-      roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99, /* torneio rapido; chefe vale 2 rounds */
-      music: isBoss ? 'boss' : 'battle', /* chefe entra com as faixas AMV (Skillet Monster etc.) */
+      roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99,
+      music: isBoss ? 'boss' : 'battle',
     });
   },
   arcadeNext() {
@@ -1081,7 +1127,7 @@ const UI = {
     const g = this.game;
     if (!g || !g.running) return;
     this.photoMode = true;
-    g.photo = { x: 0, y: 0, z: 1, hideF: false };
+    g.photo = { x: 0, y: 0, z: 1, hideF: false, filter: '', filterName: 'NORMAL' };
     if (typeof HUD !== 'undefined') HUD.hide();
     document.body.classList.add('photo');
     const bar = this.$('photo-bar');
@@ -1112,6 +1158,23 @@ const UI = {
       if (typeof Profile !== 'undefined') Profile.grantAchievement('foto-1');
       AudioSys.select();
     } catch (e) { this.toast('Nao consegui salvar a foto'); }
+  },
+  cyclePhotoFilter() {
+    const g = this.game;
+    if (!g || !g.photo) return;
+    const filters = [
+      { name: 'NORMAL', filter: '' },
+      { name: 'SÉPIA', filter: 'sepia(0.8) contrast(1.05)' },
+      { name: 'FRIO', filter: 'saturate(1.35) hue-rotate(190deg)' },
+      { name: 'P&B', filter: 'grayscale(1) contrast(1.12)' },
+    ];
+    const i = filters.findIndex((f) => f.name === g.photo.filterName);
+    const next = filters[(i + 1) % filters.length];
+    g.photo.filter = next.filter;
+    g.photo.filterName = next.name;
+    const b = this.$('btn-photo-filter');
+    if (b) b.textContent = 'FILTRO: ' + next.name;
+    AudioSys.cursor();
   },
   photoZoom(d) {
     const g = this.game;
@@ -1184,12 +1247,38 @@ const UI = {
     let title = res.winner < 0 ? 'EMPATE' : vsHuman ? `JOGADOR ${res.winner + 1} VENCE!` : res.winner === human ? 'VITÓRIA!' : 'DERROTA';
     const next = this.$('btn-next');
     next.hidden = true;
+    let rankHtml = '';
     if (game.mode === 'arcade') {
       if (res.winner === 0) {
+        const p0 = game.teams[0].members[0];
+        const row = (f.ladder || [])[f.arcadeStep] || {};
+        const ranked = typeof torneioRank === 'function'
+          ? torneioRank(p0.hp / p0.maxHp, res.seconds, (res.teams[0][0] && res.teams[0][0].combo) || 0, !!row.boss)
+          : { letter: 'B', pts: 0 };
+        f.ranks = f.ranks || [];
+        f.ranks[f.arcadeStep] = ranked;
+        f.tourneyScore = (f.ranks || []).reduce((s, r) => s + (typeof torneioRankPoints === 'function' ? torneioRankPoints(r.letter) : 0), 0);
+        rankHtml = `<p class="tourney-rank">NOTA <b class="rk-${ranked.letter}">${ranked.letter}</b> <small>vida ${Math.round(p0.hp / p0.maxHp * 100)}% · ${res.seconds}s · combo ${res.teams[0][0].combo} · pts ${f.tourneyScore}</small></p>`;
         if (f.arcadeStep >= 3) Profile.grantAchievement('arcade-3');
-        if (f.arcadeStep >= 6) { title = 'CAMPEÃO DO ARCADE!'; Profile.record('bestArcade', 7); Profile.grantAchievement('arcade-campeao'); }
-        else { Profile.record('bestArcade', f.arcadeStep + 1); next.hidden = false; }
-      }
+        const cleared = f.arcadeStep >= (f.ladder || []).length - 1;
+        if (cleared) {
+          title = 'CAMPEÃO DO TORNEIO!';
+          Profile.record('bestArcade', 7);
+          Profile.grantAchievement('arcade-campeao');
+          Profile.grantAchievement('trofeu-torneio');
+          if (!Profile.data.unlocked.includes('kernor')) {
+            Profile.data.unlocked.push('kernor');
+            Profile.save();
+          }
+          rankHtml += '<p class="tourney-rank">Troféu do Núcleo. KERNOR liberado na seleção.</p>';
+          f.afterWin = false;
+        } else {
+          Profile.record('bestArcade', f.arcadeStep + 1);
+          f.afterWin = true;
+          next.hidden = false;
+          next.textContent = 'VER CHAVE';
+        }
+      } else f.afterWin = false;
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
     } else if (game.mode === 'survival') {
       if (res.winner === 0) {
@@ -1217,6 +1306,7 @@ const UI = {
       <table class="res-table"><thead><tr><th>Time</th><th>Lutador</th><th>Dano</th><th>Acertos</th><th>Combo</th><th>ULTs</th></tr></thead><tbody>
       ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td><td>${m.ults || 0}</td></tr>`).join('')).join('')}
       </tbody></table>
+      ${rankHtml}
       <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
     this.$('stage-wrap').classList.remove('on');
     this.buildMenuSide();
@@ -1367,7 +1457,7 @@ const UI = {
       <tr><td>Mover / pular / agachar</td><td><kbd>A D W S</kbd></td><td><kbd>← → ↑ ↓</kbd></td><td>Analógico / D-pad</td></tr>
       <tr><td>Soco · Chute</td><td>mouse esq. · dir.</td><td>${K(1, 'punch')} ${K(1, 'kick')}</td><td>□ ✕</td></tr>
       <tr><td>Poderes 1 a 5</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd></td><td><kbd>N1</kbd>…<kbd>N5</kbd></td><td>○ △ L1 R1 R2</td></tr>
-      <tr><td>Poderes 6 a 10 (IALES)</td><td><kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></td><td><kbd>N6</kbd>…<kbd>N0</kbd></td><td>L3 R3 Tpad</td></tr>
+      <tr><td>Poderes 6 a 10 (KERNOR)</td><td><kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></td><td><kbd>N6</kbd>…<kbd>N0</kbd></td><td>L3 R3 Tpad</td></tr>
       <tr><td>Troca (2x2)</td><td>${K(0, 'tag')}</td><td>${K(1, 'tag')}</td><td>L2</td></tr>
       <tr><td>Defender</td><td colspan="3">Segure para trás (em pé = alto, agachado = baixo)</td></tr>
       <tr><td>Dash / recuo</td><td colspan="3">Toque duas vezes para frente / para trás</td></tr>

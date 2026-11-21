@@ -231,7 +231,7 @@ class Fighter {
     if (this.hp <= 0) this.defeat(attacker ? Math.sign(this.x - attacker.x) : -this.dir);
   }
   meterRate() {
-    let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0));
+    let m = (this.def.stats.meterRate || 1) * (1 + (this.pfx.meter || 0)) * (this.tourneyMeter || 1);
     if (this.has('meterSlow')) m *= 0.4;
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
     if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
@@ -295,7 +295,7 @@ class Fighter {
     return m;
   }
   dmgMult(p) {
-    let m = (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1);
+    let m = (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1) * (this.tourneyDmg || 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
@@ -307,11 +307,13 @@ class Fighter {
     m *= 1 + this.afo * 0.04;
     if (this.sig.lowHpRage && this.hp < this.maxHp * 0.35) m *= this.sig.lowHpRage;
     m *= this.weatherDmgMult(p);
+    if (this.bossDmg) m *= this.bossDmg;
+    if (this.enrage) m *= this.enrage;
     if (this.game && this.game.inferno && this.game.inferno.active) m *= 1.05;
     return m;
   }
   defMult() {
-    let m = 1 / Math.sqrt(this.weight());
+    let m = (1 / Math.sqrt(this.weight())) * (this.tourneyDef || 1);
     if (this.has('def')) m *= 0.65;
     if (this.has('veil')) m *= 0.9;
     if (this.has('vuln')) m *= 1.2;
@@ -325,7 +327,7 @@ class Fighter {
     return this._speedBase();
   }
   _speedBase() {
-    let m = this.def.stats.speed || 1;
+    let m = (this.def.stats.speed || 1) * (this.tourneySpd || 1);
     if (this.has('spd')) m *= 1.4;
     if (this.has('aura') && this.aura && this.aura.speedMult) m *= this.aura.speedMult;
     if (this.has('slow')) m *= 0.55;
@@ -1567,6 +1569,16 @@ class Fighter {
       if (this.has('shock') && this.frame % 9 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 60 - (this.game.rnd ? this.game.rnd() : Math.random()) * 100, '#7df9ff');
       if (this.has('chill') && this.frame % 12 === 0) this.game.spark(this.x + ((this.game.rnd ? this.game.rnd() : Math.random()) - 0.5) * 50, this.y - 40 - (this.game.rnd ? this.game.rnd() : Math.random()) * 120, '#d8f6ff');
       /* BURACO NEGRO do KERNOR: puxa o rival pro centro enquanto dura */
+      /* FASE 2 do chefe: abaixo de metade da vida, fúria + super armadura */
+      if (this.bossPhase && this.alive && this.hp > 0 && this.hp <= this.maxHp * 0.5) {
+        if (!this.enrage) {
+          this.enrage = 1.18;
+          this.game.announce('FASE 2', '#ff2a4a', 'NÚCLEO EM FÚRIA');
+          this.game.shake(16);
+          this.game._bossDim = 40;
+        }
+        if (!this.has('armor')) this.addStatus('armor', 150);
+      }
       if (this.kHole && this.kHole.t > 0) {
         this.kHole.t--;
         const rv = this.game.enemyOf(this);

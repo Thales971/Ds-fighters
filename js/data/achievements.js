@@ -7,6 +7,7 @@ const ACHIEVEMENTS = [
   { id: 'combo-10',      name: 'Combo Insano',          desc: 'Acerte um combo de 10 golpes' },
   { id: 'combo-20',      name: 'Combo Lendário',       desc: 'Acerte um combo de 20 golpes' },
   { id: 'arcade-campeao',name: 'Campeão do Arcade',    desc: 'Zere o modo arcade (7 lutas)' },
+  { id: 'trofeu-torneio', name: 'Troféu do Núcleo', desc: 'Vença o torneio e derrube o Kernor' },
   { id: 'survival-10',   name: 'Sobrevivente',         desc: '10 vitórias seguidas no survival' },
   { id: 'lutadores-10',  name: 'Elenco Variado',       desc: 'Vença com 10 lutadores diferentes' },
   { id: 'lutadores-25',  name: 'Mestre do Elenco',     desc: 'Vença com 25 lutadores diferentes' },

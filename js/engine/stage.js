@@ -38,6 +38,10 @@ const FAUNA_RULES = {
   birds: () => true,
 };
 function stageFauna(def) {
+  if (def && def.faunaExact) {
+    const seen = new Set();
+    return ((def.fauna) || []).filter((k) => k && !seen.has(k) && seen.add(k));
+  }
   const b = stageBiome(def);
   const seen = new Set();
   const out = [];

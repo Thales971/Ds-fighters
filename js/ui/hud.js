@@ -110,6 +110,7 @@ const HUD = {
           plife: side.querySelector('.plife i'), ptag: side.querySelector('.ptag'),
         };
       }
+      side.classList.toggle('boss', !!(game.cfg && game.cfg.bossFight && f.def && f.def.boss));
       const R = side._r;
       const setW = (el, v) => { if (el && el._w !== v) { el._w = v; el.style.width = v; } };
       const setT = (el, v) => { if (el && el._t !== v) { el._t = v; el.textContent = v; } };

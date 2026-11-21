@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>DS Fighters — Edição V20</title>
-  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D com 42 lutadores selecionáveis, 5 habilidades cada (IALES até 10), 47 arenas, 2x2 e online." />
+  <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D. O torneio termina no chefe KERNOR. Iales fica só no Versus." />
   <meta name="theme-color" content="#120a24" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="assets/share/apple-touch-icon.png" />
@@ -80,7 +80,7 @@
       <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
       <button class="nav btn mobile-only" id="btn-mobile-account">CONTA / SALVAR PROGRESSO</button>
       <nav class="main-menu" aria-label="Menu principal">
-        <button class="nav mm" data-go="arcade"><span>TORNEIO ATÉ O CHEFE</span><small>6 rivais fortes + IALES · música AMV no chefe</small></button>
+        <button class="nav mm" data-go="arcade"><span>TORNEIO ATÉ O CHEFE</span><small>6 rivais + KERNOR · música AMV no chefe</small></button>
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
         <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
         <button class="nav mm" data-go="survival"><span>SURVIVAL</span><small>Lute contra todos até cair — placar de vitórias</small></button>
@@ -181,10 +181,30 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-ladder" data-screen="ladder">
+      <div class="panel wide">
+        <h2>CHAVE DO TORNEIO</h2>
+        <p class="sub">Seu lutador: <b id="ladder-you"></b></p>
+        <div class="ladder-list" id="ladder-list"></div>
+        <div class="row">
+          <button class="nav btn primary" id="btn-ladder-go" type="button">LUTAR</button>
+          <button class="nav btn" id="btn-ladder-menu" type="button">MENU</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-buffs" data-screen="buffs">
+      <div class="panel wide">
+        <h2>ESCOLHA UM BÔNUS</h2>
+        <p class="sub">Vale até o fim desta chave.</p>
+        <div class="buff-list" id="buff-list"></div>
+      </div>
+    </section>
+
     <section class="screen" id="scr-vs" data-screen="vs">
       <div class="vs-wrap">
         <div class="vs-side p1" id="vs-0"></div>
-        <div class="vs-mid">VS</div>
+        <div class="vs-mid">VS<p class="vs-line" id="vs-line"></p></div>
         <div class="vs-side p2" id="vs-1"></div>
       </div>
       <div class="vs-stage" id="vs-stage"></div>
@@ -411,6 +431,7 @@
       <span id="photo-zoom-lbl">100%</span>
       <button class="nav btn tiny" id="btn-photo-zin" type="button">+ zoom</button>
       <button class="nav btn tiny" id="btn-photo-fighters" type="button">\ud83d\udc41 LUTADORES: ON (F)</button>
+      <button class="nav btn tiny" id="btn-photo-filter" type="button">FILTRO: NORMAL</button>
       <button class="nav btn tiny" id="btn-photo-exit" type="button">SAIR (Esc)</button>
       <span class="photo-hint">WASD/setas movem \u00b7 rodinha/+- zoom \u00b7 0 reseta</span>
     </div>

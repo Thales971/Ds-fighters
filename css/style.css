@@ -240,6 +240,22 @@ body.reduced .cell .sx.buff { animation: none; }
 .vs-mid { font-size: 72px; color: var(--gold); text-shadow: 6px 6px 0 #a1271c, 0 0 30px #ff7a2a; animation: vsPop .5s .3s both cubic-bezier(.2, 1.8, .4, 1); }
 @keyframes vsPop { from { transform: scale(4); opacity: 0; } }
 .vs-stage { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 10px; color: #fff; text-shadow: 2px 2px 0 #000; }
+.vs-line { font-size: 8px; color: #fff; max-width: 220px; line-height: 1.45; margin: 8px auto 0; text-shadow: 2px 2px 0 #000; }
+.ladder-list { display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow: auto; }
+.lad-row { display: grid; grid-template-columns: 22px 36px 1fr auto auto; gap: 8px; align-items: center; padding: 4px 6px; border: 2px solid #3a2766; background: #12081f; }
+.lad-row.now { border-color: var(--gold); }
+.lad-row.done { opacity: 0.55; }
+.lad-row.boss { border-color: #ff2a4a; }
+.lad-face { width: 36px; height: 36px; image-rendering: pixelated; background-color: #000; }
+.lad-n { color: var(--gold); }
+.lad-row b { color: var(--c, #fff); font-size: 8px; }
+.lad-row small, .lad-row em { font-size: 6px; color: #c9b8ff; }
+.buff-list { display: flex; gap: 8px; justify-content: center; }
+.buff-card { width: 160px; min-height: 90px; display: flex; flex-direction: column; gap: 6px; }
+.buff-card small { font-size: 6px; color: #ddd; white-space: normal; }
+.tourney-rank { text-align: center; font-size: 8px; }
+.tourney-rank b { font-size: 22px; margin: 0 6px; }
+.rk-S { color: #ffd84b; } .rk-A { color: #7dff6a; } .rk-B { color: #7ad8ff; } .rk-C { color: #ff8a8a; }
 
 /* ---------- resultado ---------- */
 .res-win { display: flex; align-items: center; justify-content: center; gap: 0; height: 190px; }
@@ -360,6 +376,8 @@ body.reduced .pet-spr { animation: none; }
 .pips i { width: 10px; height: 10px; border: 2px solid #000; background: #3a2766; transform: rotate(45deg); }
 .pips i.won { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
 .life { position: relative; height: 18px; background: #1a0508; border: 3px solid #000; box-shadow: 0 0 0 2px #ffd27d, inset 0 -4px 0 rgba(0,0,0,.4); overflow: hidden; }
+#hud .side.boss .life { height: 32px; box-shadow: 0 0 0 3px #ff2a4a, 0 0 18px #ff2a4a, inset 0 -4px 0 rgba(0,0,0,.4); }
+#hud .side.boss .lifenum { font-size: 12px; color: #fff; text-shadow: 1px 1px 0 #000; }
 .life > div { position: absolute; top: 0; bottom: 0; left: 0; }
 .side.p2 .life > div { left: auto; right: 0; }
 .life .red { background: repeating-linear-gradient(90deg, #ff7a5a 0 6px, #e02418 6px 8px); box-shadow: 0 0 8px rgba(255, 60, 40, .55); transition: width .45s linear; }
