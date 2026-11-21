@@ -245,9 +245,9 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   const petHtml = ui.__els['pet-grid'].innerHTML;
   check('renderPets: pitoco travado aparece como SILHUETA (pet-spr sil + ???) igual lutador ??? na grade', petHtml.indexOf('pet-spr sil') >= 0 && petHtml.indexOf('???') >= 0 && /locked/.test(petHtml), petHtml.slice(petHtml.indexOf('pitoco') - 80, petHtml.indexOf('pitoco') + 40));
 
-  // filtro SECRETOS agora traz 5 secretos + aleatoria
+  // filtro SECRETOS agora traz 6 secretos (com o Kernor) + aleatoria
   const sec = await vm.runInContext('JSON.stringify(selFilterSlots(FIGHTERS, "", "secret", [], () => true).map((i) => FIGHTERS[i] && FIGHTERS[i].id))', ctx2);
-  check('filtro SECRETOS: 5 secretos (incl. dolynho) + aleatoria', JSON.parse(sec).filter(Boolean).length === 5, sec);
+  check('filtro SECRETOS: 6 secretos (incl. dolynho e kernor) + aleatoria', JSON.parse(sec).filter(Boolean).length === 6, sec);
 
   console.log('---');
   console.log(fails === 0 ? 'DOLYNHO+CONQUISTAS: TUDO OK (' + n + ' checks)' : 'DOLYNHO+CONQUISTAS: ' + fails + ' FALHAS de ' + n);
