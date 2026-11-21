@@ -23,7 +23,7 @@ vm.runInContext(`
 let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 const MAGENTA = (r,g,b,a) => a > 40 && g < 90 && r > 150 && b > 90;
-const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, ellipse() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), createPattern: () => ({}), set imageSmoothingEnabled(v) {}, set globalAlpha(v) {}, set globalCompositeOperation(v) {}, set fillStyle(v) {}, set strokeStyle(v) {}, set font(v) {}, set textAlign(v) {}, set lineWidth(v) {}, set filter(v) {} });
+const fake2d = () => ({ canvas: null, save() {}, restore() {}, clearRect() {}, fillRect() {}, strokeRect() {}, drawImage() {}, translate() {}, scale() {}, rotate() {}, setTransform() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, quadraticCurveTo() {}, ellipse() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, strokeText() {}, measureText: () => ({ width: 10 }), createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }), createPattern: () => ({}), set imageSmoothingEnabled(v) {}, set globalAlpha(v) {}, set globalCompositeOperation(v) {}, set fillStyle(v) {}, set strokeStyle(v) {}, set font(v) {}, set textAlign(v) {}, set lineWidth(v) {}, set filter(v) {} });
 const mk = (stageId) => {
   const g = new Game({ width: 960, height: 540, getContext: () => fake2d(), classList: { toggle() {}, add() {}, remove() {} } });
   g.start({ mode: 'versus', teams: [['du'], ['du']], stage: stageId, cpu: [true, true], roundsToWin: 1, timer: 99 });
@@ -66,7 +66,7 @@ check('todos os ' + comFauna + ' palcos com fauna nascem animais (liveFauna ou v
 check('nenhum palco com animal DUPLICADO nos 2 sistemas (makeFauna pula o que o LiveFauna cobre)', dup.length === 0, dup.slice(0, 4).join(' | '));
 
 // ===== 3. CADA especie: 600 ticks sem crash, posicao dentro da tela, ciclo de estados =====
-const TODAS = ['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle'];
+const TODAS = ['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle', 'bat'];
 /* defs sinteticas COM bioma (stageFauna filtra por bioma: peixe so em agua, morcego so a noite...) */
 const defTeste = (k) => {
   if (['fish', 'seagull', 'frog', 'dragonfly', 'turtle'].includes(k)) return { id: 't-rio', name: 'Rio', mech: 'tide', fauna: [k] };
@@ -88,7 +88,7 @@ for (const k of TODAS) {
   } catch (e) { crash = e.message; }
   if (!crash) okEsp++; else badEsp.push(k + ':' + crash);
 }
-check('16/16 especies nascem e sobrevivem 600 ticks dentro da tela', okEsp === TODAS.length, badEsp.join(' | ') || okEsp + '/16');
+check(TODAS.length + ' especies nascem e sobrevivem 600 ticks dentro da tela', okEsp === TODAS.length, badEsp.join(' | ') || okEsp + '/' + TODAS.length);
 
 // ===== 4. FUGA por proximidade (lutador perto) e por GOLPE forte (stage.react) =====
 const gF = mk('parque-lago');
@@ -191,7 +191,7 @@ check('render usou fauna vetorial p/ bird/bat/bee (linhas fauna.png + fx2:birds)
 {
   const ks = new Set(gAll.stage.liveFauna.animals.map((a) => a.k));
   const vet = gAll.stage.fauna.map((f) => f.kind);
-  check('palco sintetico: 14 tipos no LiveFauna + bat/bee so no vetorial, sem duplicar', ks.size === 14 && vet.length >= 2 && vet.every((k) => (k === 'bat' || k === 'bee') && !ks.has(k)), 'live kinds=' + ks.size + ' vet=' + vet.join(','));
+  check('palco sintetico: morcego no LiveFauna e abelha só no vetorial, sem duplicar', ks.size === 15 && ks.has('bat') && !ks.has('bee') && vet.length >= 1 && vet.every((k) => k === 'bee'), 'live kinds=' + ks.size + ' vet=' + vet.join(','));
 }
 
 // ===== 8. COMPORTAMENTOS NOVOS: alerta assiste a luta, borboleta pousa na flor, pombo bica, peixe espirra =====

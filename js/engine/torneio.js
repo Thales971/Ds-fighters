@@ -316,12 +316,12 @@ var TORNEIO = { stages: [], boss: 'kernor' };
 
   /* ---------------- MAPAS ---------------- */
   const TOR = [
-    { id: 'torneio-praca-hello-world', name: 'Praça Hello World', weather: ['hellosol'], mech: 'chafariz', tint: '#ffc070', fauna: ['pigeons', 'birds'], lights: [{ x: 90, y: 60, r: 120, color: '255,220,140', pulse: 0.4 }, { x: 455, y: 110, r: 90, color: '255,220,140', pulse: 0.4 }], ambient: 'amb_torneio-praca' },
-    { id: 'torneio-floresta-dependencias', name: 'Floresta de Dependências', weather: ['vagafloresta'], mech: 'raizes', tint: '#8aff8a', fauna: ['butterfly', 'bird'], lights: [{ x: 560, y: 260, r: 120, color: '255,230,140', pulse: 0.5 }, { x: 880, y: 230, r: 90, color: '255,230,140', pulse: 0.5 }], ambient: 'amb_torneio-floresta' },
-    { id: 'torneio-ponte-do-cache', name: 'Ponte do Cache', weather: ['nevoacache'], mech: 'cachehit', tint: '#6ad0ff', fauna: ['birds'], lights: [{ x: 480, y: 520, r: 240, color: '70,170,255', pulse: 0.8 }, { x: 60, y: 420, r: 60, color: '255,200,120', pulse: 0.4 }, { x: 900, y: 420, r: 60, color: '255,200,120', pulse: 0.4 }], ambient: 'amb_torneio-ponte' },
-    { id: 'torneio-fabrica-de-builds', name: 'Fábrica de Builds', weather: ['fornalha'], mech: 'esteira', tint: '#ff9a3a', fauna: [], sparks: true, lights: [{ x: 620, y: 360, r: 220, color: '255,140,40', pulse: 0.9 }], ambient: 'amb_torneio-fabrica' },
-    { id: 'torneio-cidade-git', name: 'Cidade Git Destruída', weather: ['cinzasgit'], mech: 'mergeconflict', tint: '#ff6a3a', fauna: ['bat'], embers: true, lights: [{ x: 300, y: 420, r: 90, color: '255,120,40', pulse: 0.9 }, { x: 650, y: 400, r: 90, color: '255,120,40', pulse: 0.9 }], ambient: 'amb_torneio-git' },
-    { id: 'torneio-fortaleza-do-dev', name: 'Fortaleza do Dev', weather: ['nucleo'], mech: 'sobrecarga', tint: '#ff4a8a', fauna: ['bat'], embers: true, lights: [{ x: 480, y: 120, r: 200, color: '255,40,100', pulse: 0.8 }, { x: 40, y: 460, r: 70, color: '255,120,40', pulse: 0.9 }, { x: 920, y: 460, r: 70, color: '255,120,40', pulse: 0.9 }], ambient: 'amb_torneio-fortaleza' },
+    { id: 'torneio-praca-hello-world', name: 'Praça Hello World', weather: ['hellosol'], mech: 'chafariz', tint: '#ffc070', fauna: ['pigeons'], faunaExact: true, flora: ['flower_yellow', 'clover', 'grass'], floraCount: 16, lights: [{ x: 90, y: 60, r: 120, color: '255,220,140', pulse: 0.4 }, { x: 455, y: 110, r: 90, color: '255,220,140', pulse: 0.4 }], ambient: 'amb_torneio-praca' },
+    { id: 'torneio-floresta-dependencias', name: 'Floresta de Dependências', weather: ['vagafloresta'], mech: 'raizes', tint: '#8aff8a', fauna: ['butterfly', 'squirrel'], faunaExact: true, flora: ['grass_tall', 'mushroom', 'flower_red'], floraCount: 18, lights: [{ x: 560, y: 260, r: 120, color: '255,230,140', pulse: 0.5 }, { x: 880, y: 230, r: 90, color: '255,230,140', pulse: 0.5 }], ambient: 'amb_torneio-floresta' },
+    { id: 'torneio-ponte-do-cache', name: 'Ponte do Cache', weather: ['nevoacache'], mech: 'cachehit', tint: '#6ad0ff', fauna: ['seagull', 'dragonfly'], faunaExact: true, flora: ['grass', 'flower_yellow'], floraCount: 10, lights: [{ x: 480, y: 520, r: 240, color: '70,170,255', pulse: 0.8 }, { x: 60, y: 420, r: 60, color: '255,200,120', pulse: 0.4 }, { x: 900, y: 420, r: 60, color: '255,200,120', pulse: 0.4 }], ambient: 'amb_torneio-ponte' },
+    { id: 'torneio-fabrica-de-builds', name: 'Fábrica de Builds', weather: ['fornalha'], mech: 'esteira', tint: '#ff9a3a', fauna: ['cat'], faunaExact: true, flora: ['mushroom'], floraCount: 8, sparks: true, lights: [{ x: 620, y: 360, r: 220, color: '255,140,40', pulse: 0.9 }], ambient: 'amb_torneio-fabrica' },
+    { id: 'torneio-cidade-git', name: 'Cidade Git Destruída', weather: ['cinzasgit'], mech: 'mergeconflict', tint: '#ff6a3a', fauna: ['bat'], faunaExact: true, flora: ['grass_tall'], floraCount: 7, embers: true, lights: [{ x: 300, y: 420, r: 90, color: '255,120,40', pulse: 0.9 }, { x: 650, y: 400, r: 90, color: '255,120,40', pulse: 0.9 }], ambient: 'amb_torneio-git' },
+    { id: 'torneio-fortaleza-do-dev', name: 'Fortaleza do Dev', weather: ['nucleo'], mech: 'sobrecarga', tint: '#ff4a8a', fauna: ['fireflies'], faunaExact: true, flora: ['mushroom', 'grass'], floraCount: 6, embers: true, lights: [{ x: 480, y: 120, r: 200, color: '255,40,100', pulse: 0.8 }, { x: 40, y: 460, r: 70, color: '255,120,40', pulse: 0.9 }, { x: 920, y: 460, r: 70, color: '255,120,40', pulse: 0.9 }], ambient: 'amb_torneio-fortaleza' },
   ];
   for (const s of TOR) {
     if (STAGE_LIST.some((x) => x.id === s.id)) continue;
@@ -330,3 +330,62 @@ var TORNEIO = { stages: [], boss: 'kernor' };
   /* ordem do torneio: 6 rivais nos 6 mapas e o chefe na Fortaleza */
   TORNEIO.stages = TOR.map((s) => s.id);
 })();
+
+/* Escada fixa do torneio. diff: 1 médio, 2 difícil, 3 extremo.
+   map = índice em TORNEIO.stages. A Fortaleza fica só com o chefe;
+   o Nimbo repete a Cidade Git porque são 6 palcos e 7 lutas. */
+var TORNEIO_LADDER = [
+  { id: 'larper', diff: 1, diffName: 'MÉDIO', map: 0, line: 'Isso é só roleplay. Você vai perder o personagem.' },
+  { id: 'cyber-psicopata', diff: 1, diffName: 'MÉDIO', map: 1, line: 'Eu não bugo. Eu quebro.' },
+  { id: 'rafael', diff: 2, diffName: 'DIFÍCIL', map: 2, line: 'Sua defesa está lenta demais.' },
+  { id: 'dev-senior', diff: 2, diffName: 'DIFÍCIL', map: 3, line: 'Já vi esse bug em 2009.' },
+  { id: 'lyra', diff: 3, diffName: 'EXTREMO', map: 4, line: 'O script termina aqui.' },
+  { id: 'nimbo', diff: 3, diffName: 'EXTREMO', map: 4, line: 'A nuvem cai em cima de você.' },
+  { id: 'kernor', diff: 3, diffName: 'EXTREMO', map: 5, boss: true, line: 'PROCESSO KERNOR INICIADO.' },
+];
+var TORNEIO_BUFFS = [
+  { id: 'dano', ico: 'ATK', name: '+ DANO', desc: '+12% de dano até o fim do torneio.' },
+  { id: 'vida', ico: 'HP', name: '+ VIDA', desc: '+18% de vida máxima nas próximas lutas.' },
+  { id: 'ult', ico: 'ULT', name: 'ULT INICIAL', desc: 'Entra na luta com 45% da ultimate.' },
+  { id: 'velo', ico: 'VEL', name: '+ VELOCIDADE', desc: '+8% de velocidade.' },
+  { id: 'medidor', ico: 'BAR', name: 'MEDIDOR', desc: 'O medidor enche 15% mais rápido.' },
+  { id: 'escudo', ico: 'DEF', name: 'PELE GROSSA', desc: 'Você toma 10% menos dano.' },
+];
+/* Se o jogador escolheu um rival da chave, entra um substituto.
+   A última luta continua sendo de chefe mesmo quando o Kernor é o jogador. */
+function torneioLadderFor(playerId) {
+  const standIn = { larper: 'ponteiro', 'cyber-psicopata': 'odette', rafael: 'emilio', 'dev-senior': 'jess', lyra: 'nunes', nimbo: 'fullstack', kernor: 'fullstack' };
+  return TORNEIO_LADDER.map((row) => {
+    if (row.id !== playerId) return Object.assign({}, row);
+    const id = standIn[row.id] || 'ponteiro';
+    return Object.assign({}, row, { id: id, boss: !!row.boss });
+  });
+}
+/* Sempre sobra escolha. Com os 6 bônus já pegos, os antigos voltam
+   para a tela não travar antes do chefe. */
+function torneioBuffChoices(owned) {
+  const all = TORNEIO_BUFFS.slice();
+  const have = new Set(owned || []);
+  const fresh = all.filter((b) => !have.has(b.id));
+  const pick = fresh.slice();
+  if (pick.length < 3) {
+    for (const b of all) {
+      if (!have.has(b.id)) continue;
+      if (pick.length >= 3) break;
+      pick.push(b);
+    }
+  }
+  while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
+  return pick;
+}
+function torneioRank(hpRatio, seconds, combo, boss) {
+  const hp = Math.max(0, Math.min(1, hpRatio || 0));
+  const time = Math.max(0, 1 - (seconds || 99) / (boss ? 140 : 75));
+  const cb = Math.min(1, (combo || 0) / 8);
+  const pts = hp * 55 + time * 25 + cb * 20;
+  const letter = pts >= 78 ? 'S' : pts >= 58 ? 'A' : pts >= 38 ? 'B' : 'C';
+  return { letter: letter, pts: Math.round(pts) };
+}
+function torneioRankPoints(letter) {
+  return { S: 400, A: 300, B: 200, C: 100 }[letter] || 0;
+}

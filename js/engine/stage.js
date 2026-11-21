@@ -38,6 +38,10 @@ const FAUNA_RULES = {
   birds: () => true,
 };
 function stageFauna(def) {
+  if (def && def.faunaExact) {
+    const seen = new Set();
+    return ((def.fauna) || []).filter((k) => k && !seen.has(k) && seen.add(k));
+  }
   const b = stageBiome(def);
   const seen = new Set();
   const out = [];
@@ -70,6 +74,7 @@ class LiveFauna {
     for (const k of kinds) {
       if (k === 'pigeons') spawn('pigeon', 3 + Math.floor(Math.random() * 2), { y: groundY - 2 });
       if (k === 'birds' || k === 'bird') spawn('bird', 2, { y: groundY - 240 - Math.random() * 120, sky: true });
+      if (k === 'bat') spawn('bat', 2, { y: groundY - 280 - Math.random() * 80, sky: true });
       if (k === 'cat') spawn('cat', 1, { y: groundY - 2 });
       if (k === 'dog') spawn('dog', 1, { y: groundY - 2 });
       if (k === 'dragonfly') spawn('dragonfly', 2, { y: groundY - 160 - Math.random() * 90, sky: true });
@@ -165,6 +170,7 @@ class LiveFauna {
         if (a.k === 'frog') { a.timer--; if (a.timer <= 0) { a.jump = 20; a.dir = Math.random() < 0.5 ? -1 : 1; a.timer = 300 + Math.random() * 500; } if (a.jump > 0) { a.jump--; a.x += a.dir * 1.4; a.y -= 1.8; } else if (a.y < a.baseY) a.y += 2.2; }
         else if (a.k === 'dragonfly') { a.x += Math.sin(a.ph * 0.6) * 1.4; a.y += Math.cos(a.ph) * 0.9; }
         else if (a.k === 'bird') { a.x += a.dir * 0.9; a.y += Math.sin(a.ph) * 0.5; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
+        else if (a.k === 'bat') { a.x += a.dir * 1.1; a.y += Math.sin(a.ph * 3) * 1.2; if (a.x < 30 || a.x > (g.W || 960) - 30) a.dir *= -1; }
         else if (a.k === 'pigeon') { a.x += a.dir * 0.5; if (Math.random() < 0.01) a.dir *= -1; if (a.x < 40 || a.x > (g.W || 960) - 40) a.dir *= -1; a.timer--; if (a.timer <= 0) { a.peck = 16; a.timer = 160 + Math.random() * 420; } if (a.peck > 0) a.peck--; }
         else if (a.k === 'cat' || a.k === 'dog' || a.k === 'rabbit' || a.k === 'hamster' || a.k === 'turtle') {
           a.timer--;
@@ -204,6 +210,9 @@ class LiveFauna {
         const f = blink[Math.floor(this.t * 0.12 + a.ph * 3) % blink.length];
         Art.cell(ctx, 'fx2:firefly', 1, 0, 0, 0, { scale: 1, add: true, alpha: 0.85 });
         Art.cell(ctx, 'fx2:firefly', 0, f, 0, 0, { scale: 1 });
+      } else if (a.k === 'bat') {
+        const frame = Math.floor(this.t / 4 + a.ph) % 4;
+        Art.cell(ctx, 'fauna', 2, frame, 0, 0, { scale: 1.05, dir: a.dir || 1 });
       } else if (a.k === 'bird' || a.k === 'seagull') {
         const frame = Math.floor(this.t / 5 + a.ph) % 4;
         const face = (a.vx || a.dir || 1) < 0 ? -1 : 1;
@@ -292,7 +301,7 @@ class StageRenderer {
     const spriteRow = { bee: 0, bat: 2 };
     /* especies que o LiveFauna (sprites de bichos.png) ja cobre nao nascem aqui,
        senao ficavam duplicadas (2 sistemas desenhando o mesmo bicho) */
-    const LIVE_KINDS = new Set(['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle']);
+    const LIVE_KINDS = new Set(['pigeons', 'birds', 'bird', 'cat', 'dog', 'dragonfly', 'fireflies', 'butterflies', 'butterfly', 'squirrel', 'seagull', 'frog', 'fish', 'rabbits', 'hamster', 'turtle', 'bat']);
     const gy = this.groundY || 458;
     list.forEach((kind, i) => {
       if (LIVE_KINDS.has(kind)) return;

@@ -89,7 +89,10 @@ async function testAccountIsolationAndMerge() {
   assert.equal(Profile.data.settings.music, 0.8, 'cloud settings must not overwrite device settings');
   assert.equal(Profile.data.settings.serverUrl, 'wss://device-only');
   assert.equal(Profile.data.settings.touch, 'on');
-  assert.deepEqual({ ...Profile.data.stats }, { fights: 4, wins: 2, bestArcade: 3, maxCombo: 8 });
+  assert.equal(Profile.data.stats.fights, 4);
+  assert.equal(Profile.data.stats.wins, 2);
+  assert.equal(Profile.data.stats.bestArcade, 3);
+  assert.equal(Profile.data.stats.maxCombo, 8);
 
   assert.doesNotThrow(() => Profile.applyCloud({ profile: { unlocked: {}, pets: null, stats: { fights: 'bad' } } }), 'malformed remote data must not crash the profile');
   assert.ok(!Profile.SECRET_IDS.includes('qwen'), 'Qwen is a normal fighter and is not part of the secret set');
@@ -142,6 +145,64 @@ async function testStaleSyncAndLogoutFlush() {
   assert.equal(Profile.accountUid, null);
 }
 
+async function testNewestUnlockAndFailedWrite() {
+  const { Profile, storage } = boot();
+  Profile.data.unlocked = Array.from({ length: 64 }, (_, i) => 'old-' + i);
+  Profile.data.achievements = Array.from({ length: 64 }, (_, i) => 'ach-' + i);
+  Profile.data.unlocked.push('kernor');
+  Profile.data.achievements.push('trofeu-torneio');
+  assert.equal(Profile.save(), true);
+  assert.equal(Profile.data.unlocked.length, 64);
+  assert.equal(Profile.data.achievements.length, 64);
+  assert.equal(Profile.data.unlocked.includes('kernor'), true, 'the new unlock stays when the list is already full');
+  assert.equal(Profile.data.achievements.includes('trofeu-torneio'), true, 'the new trophy stays when the list is already full');
+  assert.equal(Profile.data.unlocked.includes('old-0'), false, 'the oldest unlock is the one that leaves');
+
+  const raw = JSON.parse(storage.getItem('dsfighters.profile.v2'));
+  raw.unlocked = raw.unlocked.filter((id) => id !== 'kernor');
+  storage.setItem('dsfighters.profile.v2', JSON.stringify(raw));
+  Profile.load();
+  assert.equal(Profile.data.unlocked.includes('kernor'), true, 'a saved trophy restores the Kernor unlock');
+  const stored = JSON.parse(storage.getItem('dsfighters.profile.v2'));
+  assert.equal(stored.unlocked.includes('kernor'), true, 'the restored unlock is written back');
+
+  const original = storage.setItem;
+  storage.setItem = () => { throw new Error('quota'); };
+  const persisted = Profile.grantTournamentClear();
+  storage.setItem = original;
+  assert.equal(persisted, false, 'a failed write must not count as a saved unlock');
+}
+
+async function testUploadKeepsNewerUnlock() {
+  const { Profile, Cloud } = boot();
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const writes = [];
+  Cloud._ready = true;
+  Cloud._db = {};
+  Cloud.user = { uid: 'a' };
+  Cloud._deps = {
+    firestoreFns: {
+      doc: (_db, _collection, id) => ({ id }),
+      setDoc: (_ref, data) => {
+        writes.push((data.profile.unlocked || []).slice());
+        return writes.length === 1 ? gate : Promise.resolve();
+      },
+      serverTimestamp: () => ({}),
+    },
+  };
+  Cloud._dirty = true;
+  const first = Cloud._upload();
+  Profile.data.unlocked.push('kernor');
+  Cloud.queueSave();
+  release();
+  await first;
+  assert.equal(Cloud._dirty, true, 'a save during an upload must stay dirty');
+  await Cloud.flush();
+  assert.equal(writes.some((ids) => ids.includes('kernor')), true, 'the follow-up upload includes Kernor');
+  assert.equal(Cloud._dirty, false);
+}
+
 async function testSdkFailureKeepsConfiguredError() {
   const { Cloud } = boot();
   Cloud.isConfigured = () => true;
@@ -157,6 +218,8 @@ async function testSdkFailureKeepsConfiguredError() {
 (async () => {
   await testAccountIsolationAndMerge();
   await testStaleSyncAndLogoutFlush();
+  await testNewestUnlockAndFailedWrite();
+  await testUploadKeepsNewerUnlock();
   await testSdkFailureKeepsConfiguredError();
   console.log('profile_cloud_test: PASS (isolamento, merge local, corrida stale e flush no logout)');
 })().catch((error) => {

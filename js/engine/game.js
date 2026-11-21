@@ -71,6 +71,10 @@ class Game {
 
   /* ---------- configuração ---------- */
   start(cfg) {
+    /* Cada luta pode abrir o Kernor de novo. O flag antigo pulava a intro
+       na segunda vez que a página entrava no chefe. */
+    this._bossIntro = false;
+    this._bossDim = 0;
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
     this.time = 0;
@@ -93,10 +97,10 @@ class Game {
       return {
         members: ids.map((id, k) => {
           let def = FIGHTERS.find((f) => f.id === id) || FIGHTERS[3];
-          /* CHEFE DO TORNEIO: o Kernor vem um pouco mais fraco (passavel) —
-             cfg.bossScale = { team, power, hp } so na luta final do torneio */
+          /* bossScale antigo (testes) ainda pode reduzir o chefe. A luta do
+             torneio usa bossFight e aumenta a vida DEPOIS do teto de 500. */
           const bs = this.cfg.bossScale;
-          if (bs && bs.team === ti && def.boss) def = Object.assign({}, def, { stats: Object.assign({}, def.stats, { power: def.stats.power * (bs.power || 1), hp: Math.round(def.stats.hp * (bs.hp || 1)) }) });
+          if (bs && bs.team === ti && def.boss && !this.cfg.bossFight) def = Object.assign({}, def, { stats: Object.assign({}, def.stats, { power: def.stats.power * (bs.power || 1), hp: Math.round(def.stats.hp * (bs.hp || 1)) }) });
           const f = new Fighter(def, ti === 0 ? 260 : 700, ti === 0 ? 1 : -1, this, { team: ti, slot: ti, pet: k === 0 ? pet : PETS[0], skinHue: (typeof Profile !== 'undefined' && Profile.skinFor) ? Profile.skinFor(def.id) : 0 });
           if (k > 0) f.benched = true;
           return f;
@@ -107,22 +111,36 @@ class Game {
     });
     this.running = true;
     this.paused = false;
+    this.applyTourneyBuffs();
+    this.applyBossFight();
     /* Autoteste de folha: se o navegador carregar uma folha antiga (ex.: 4x8 de
        2080px em cache), avisa na tela em vez de parecer bug do jogo.
        A geometria vem de SpriteGen.expectedHeight() — já corrigida a partir da
        imagem real, então layout.js velho não gera falso alarme nem boneco torto. */
     this.spriteWarnings = [];
-    const expectH = SpriteGen.expectedHeight();
-    for (const f of this.allFighters()) {
-      const img = SpriteGen.images[f.spriteKey()];
-      if (!img || !img.naturalWidth) this.spriteWarnings.push(f.def.id + ': folha nao carregou');
-      else if (img.naturalHeight !== expectH) this.spriteWarnings.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
-    }
-    // layout.js velho em cache já é corrigido em SpriteGen.reconcile(); avisa
-    // pra pessoa saber que o problema foi cache do aparelho, não o jogo.
-    if (SpriteGen.fixes && SpriteGen.fixes.length) this.spriteWarnings.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
+    this._sheetsPending = true;
+    this.refreshSpriteSheets();
     this.beginRound();
+    this.applyCpuLevel();
     if (this.mode !== 'demo') AudioSys.playMusic((this.cfg && this.cfg.music) || 'battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
+  }
+  /* Só avisa folha que falhou de verdade. Imagem ainda baixando não é erro. */
+  refreshSpriteSheets() {
+    const expectH = SpriteGen.expectedHeight();
+    const next = [];
+    let pending = false;
+    for (const f of this.allFighters()) {
+      const id = f.spriteKey();
+      const img = SpriteGen.images[id];
+      const failed = !!(SpriteGen.failed && SpriteGen.failed[id]);
+      if (!img && !failed) { pending = true; continue; }
+      if (img && !img.complete && !failed) { pending = true; continue; }
+      if (failed || (img && img.complete && !img.naturalWidth)) next.push(f.def.id + ': folha nao carregou');
+      else if (img && img.naturalHeight && img.naturalHeight !== expectH) next.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
+    }
+    if (SpriteGen.fixes && SpriteGen.fixes.length) next.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
+    this.spriteWarnings = next;
+    this._sheetsPending = pending;
   }
   pickStage(id) {
     if (!id || id === 'random') return STAGE_LIST[((this.rnd ? this.rnd() : Math.random()) * STAGE_LIST.length) | 0];
@@ -177,10 +195,14 @@ class Game {
         f.cd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         f.castLock = 0; f.spamShared = 0;
         f.afo = 0;
+        f.enrage = 0;
         f.stunGauge = 0;
         f.benched = k !== 0;
         f.applyPet();
-        if (this.round === 1) { f.charge = [0, 0]; f.ultimate = 0; }
+        if (this.round === 1) {
+          f.charge = [0, 0]; f.ultimate = 0;
+          if (ti === 0 && (this.cfg.tourneyBuffs || []).indexOf('ult') >= 0) f.ultimate = 45;
+        }
         if (this.mode === 'training') { f.charge = [100, 100]; f.ultimate = 100; }
     if (this.mode === 'training' && this.cfg.autoHeal && f.alive && f.hp < f.maxHp) {
       f.hp = Math.min(f.maxHp, f.hp + 0.25);
@@ -194,6 +216,46 @@ class Game {
     UI.hud.reset(this);
     UI.hud.setStageInfo(this.stageDef, WEATHER_INFO[this.weather.kind]);
     this.startAmbience();
+  }
+  /* Nível da CPU do torneio, gravado no lutador. O menu (Fácil = 0) não derruba isso. */
+  applyCpuLevel() {
+    if (!this.cfg || this.cfg.cpuDifficulty == null || !this.teams || !this.teams[1]) return;
+    const level = (typeof AI !== 'undefined' && AI.level) ? AI.level(this.cfg.cpuDifficulty) : this.cfg.cpuDifficulty;
+    for (const f of this.teams[1].members) f.aiLevel = level;
+  }
+  applyTourneyBuffs() {
+    const ids = this.cfg.tourneyBuffs || [];
+    if (!ids.length) return;
+    const p = this.teams[0] && this.teams[0].members[0];
+    if (!p) return;
+    if (ids.indexOf('dano') >= 0) p.tourneyDmg = (p.tourneyDmg || 1) * 1.12;
+    if (ids.indexOf('vida') >= 0) {
+      const cap = typeof HP_LIMIT === 'number' ? HP_LIMIT : 500;
+      p.maxHp = Math.min(cap, Math.round(p.maxHp * 1.18));
+      p.hp = p.maxHp;
+      p.redHp = p.maxHp;
+    }
+    if (ids.indexOf('ult') >= 0) p.ultimate = Math.max(p.ultimate, 45);
+    if (ids.indexOf('velo') >= 0) p.tourneySpd = (p.tourneySpd || 1) * 1.08;
+    if (ids.indexOf('medidor') >= 0) p.tourneyMeter = (p.tourneyMeter || 1) * 1.15;
+    if (ids.indexOf('escudo') >= 0) p.tourneyDef = (p.tourneyDef || 1) * 0.9;
+  }
+  /* Chefe do torneio: vida acima do teto de 500, IA extrema, fase 2 na metade. */
+  applyBossFight() {
+    if (!this.cfg.bossFight) return;
+    const p = this.teams[1] && this.teams[1].members[0];
+    if (!p || !p.def.boss) return;
+    p.maxHp = 2000;
+    p.hp = 2000;
+    p.redHp = 2000;
+    p.bossPhase = true;
+    /* A barra do chefe é 2000. O dano da luta final fica abaixo do Kernor
+       jogável (500) para a IA extrema ainda deixar abertura. Fase 2 devolve parte. */
+    /* 2000 de vida. O golpe sai mais baixo que o Kernor jogável para a luta
+       ainda fechar em torno de 15–30% contra CPU difícil/extrema. */
+    p.bossDmg = 0.22;
+    p.bossTaken = 1.35;
+    p.enrage = 0;
   }
   startAmbience() {
     const name = typeof stageAmbient === 'function' ? stageAmbient(this.stageDef) : null;
@@ -585,14 +647,24 @@ class Game {
       }
       return EMPTY_INPUT;
     }
-    if (this.cfg.cpu[ti]) return AI.think(f, opp, this.cfg.difficulty);
+    if (this.cfg.cpu[ti]) {
+      const by = this.cfg.difficultyByTeam;
+      const diff = f.aiLevel != null ? f.aiLevel : (by && by[ti] != null ? by[ti] : this.cfg.difficulty);
+      return AI.think(f, opp, diff);
+    }
     return Input.read(this.cfg.cpu[0] ? 0 : ti);
   }
 
   /* ---------- loop ---------- */
   tick() {
-    if (!this.running || this.paused) return;
+    if (!this.running) return;
+    if (this.paused) {
+      if (this.shakeMag > 0) this.shakeMag *= 0.85;
+      if (this.shakeMag < 0.3) this.shakeMag = 0;
+      return;
+    }
     this.time++;
+    if (this._bossDim > 0) this._bossDim--;
     this.fightFrames = (this.fightFrames || 0) + 1;
     try {
       if (this.netRole === 'guest') { this.guestTick(); return; }
@@ -666,6 +738,13 @@ class Game {
         const finalRound = this.round >= (this.cfg.roundsToWin || 2);
         this.audio.voice(finalRound ? 'final' : ('round' + Math.min(3, this.round)));
         if (this.round === 1) this.openingLines();
+      }
+      const bossF = this.teams[1] && this.teams[1].members[0];
+      if (this.roundStateTime === 8 && this.round === 1 && this.cfg.bossFight && bossF && bossF.def.id === 'kernor' && !this._bossIntro) {
+        this._bossIntro = true;
+        this._bossDim = 78;
+        this.shake(18);
+        this.announce('KERNOR', '#ff2a4a', 'O Colosso do Núcleo');
       }
       if (this.roundStateTime === 70) { this.announce('LUTA!', '#7dff5e'); this.audio.voice('fight'); }
       if (this.roundStateTime > 100) { this.roundState = 'fight'; this.roundStateTime = 0; }
@@ -1066,6 +1145,7 @@ class Game {
   render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    if (this._sheetsPending || (this.spriteWarnings && this.spriteWarnings.length)) this.refreshSpriteSheets();
     /* DEBUG DE HITBOX (treino): F9 liga/desliga — hitbox vermelho, hurtbox azul */
     if (this.cfg && this.cfg.mode === 'training' && Input.hit && Input.hit(['F9'])) {
       this.hitboxDebug = !this.hitboxDebug;
@@ -1087,10 +1167,14 @@ class Game {
         e.y = e._py + dy * alpha;
       }
     }
-    /* MODO FOTO: camera livre (pan/zoom) sobre a cena — o jogo continua pausado */
+    /* Limpa em espaço de tela. Se limpar depois do zoom, as bordas ficam com o quadro anterior. */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.W, this.H);
+    /* MODO FOTO: camera livre (pan/zoom/filtro) sobre a cena — o jogo continua pausado */
     const pc = this.photo;
     if (pc) {
       ctx.save();
+      if (pc.filter) ctx.filter = pc.filter;
       ctx.translate(this.W / 2, this.H / 2);
       ctx.scale(pc.z, pc.z);
       ctx.translate(-(this.W / 2 + pc.x), -(this.H / 2 + pc.y));
@@ -1344,6 +1428,10 @@ class Game {
     ctx.restore();
     this.stage.drawAmbient(ctx);
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
+    if (this._bossDim > 0) {
+      ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.62, this._bossDim / 100).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
     if (this.inferno && this.inferno.active) {
       const seconds = this.inferno.t / 60;
       const heat = Math.min(1, seconds / 40);
