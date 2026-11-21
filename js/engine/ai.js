@@ -151,7 +151,14 @@ const AI = {
     const auto = me.autoAim();
     /* 2a ultimate (IALES: Acao Final, indice 9) — a mais forte do jogo, a IA
        prioriza assim que ela fica pronta. */
-    if (ps[9] && ps[9].ready && ps[9].p.slot === 'ultimate') return cast(9);
+    /* KERNOR (chefe): fase 1 só padrões com buraco; a 2ª ult (buraco negro)
+       espera a fase 2 e não sai no quadro em que enche — sobra abertura. */
+    const kernor = me.def && me.def.id === 'kernor';
+    const kPhase = !kernor ? 0 : (me.hp > me.maxHp * 0.62 ? 1 : me.hp > me.maxHp * 0.32 ? 2 : 3);
+    if (ps[9] && ps[9].ready && ps[9].p.slot === 'ultimate') {
+      if (!kernor) return cast(9);
+      if (kPhase >= 2 && Math.random() < (kPhase === 3 ? 0.45 : 0.18)) return cast(9);
+    }
     if (ps[5] && ps[5].ready && ps[5].p.slot !== 'ultimate' && Math.random() < L.ult) return cast(5);
     if (ps[4] && ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);
     /* IALES tem 10 habilidades (0-9); a IA antes ignorava as 6-9 (Vírus,
@@ -167,6 +174,7 @@ const AI = {
       if ((k === 'pull' || k === 'beam') && dist < (st.p.range || 280)) return cast(i);
       if ((k === 'dash' || k === 'grabsteal') && dist > 90 && dist < 320) return cast(i);
       if (k === 'shadowport' && dist < 380) return cast(i);
+      if (k === 'kspikes' && dist > 70) return cast(i);
       if (['shot', 'pillar', 'zone', 'wall', 'blast', 'rain', 'barrage'].includes(k) && (dist > 150 || auto)) return cast(i);
       if (k === 'rush' && dist < 200) return cast(i);
       if (k === 'quake' && dist < (st.p.range || 150) + 20) return cast(i);

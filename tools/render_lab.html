@@ -69,6 +69,23 @@ async function bootInner() {
   const p1 = G.teams[0].members[0], p2 = G.teams[1].members[0];
   // pula o "READY/FIGHT" e coloca os dois em idle estável
   for (let i = 0; i < Math.max(0, CD); i++) { G.capturePrev(); G.tick(); }
+  const ACC = Q.get('acc') || '';
+  if (ACC) {
+    const on = {};
+    ACC.split(',').filter(Boolean).forEach((id) => { on[id] = true; });
+    W.eval('Profile.setting("acc", ' + JSON.stringify(on) + ')');
+  }
+  const CAST = Q.get('cast');
+  if (CAST != null && CAST !== '') {
+    p1.meter = 100; p1.ultimate = 100; p1.charge = [100, 100];
+    p1.cd = new Array(10).fill(0); p1.castLock = 0; p1.state = 'idle';
+    p1.tryCast(Number(CAST));
+  }
+  const SEEK = Q.get('seek') || '';
+  if (SEEK === 'mech') {
+    for (let i = 0; i < 800 && !(G.strikes && G.strikes.length); i++) { G.capturePrev(); G.tick(); }
+    for (let i = 0; i < 16; i++) { G.capturePrev(); G.tick(); }
+  }
   if (ACT) {
     if (ACT === 'jump') { p1.vy = -12; p1.onGround = false; p1.state = 'jump'; }
     else if (ACT === 'crouch') { p1.state = 'crouch'; }

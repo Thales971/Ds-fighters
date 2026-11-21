@@ -13,7 +13,7 @@
   SPRITE_LAYOUT.ver[id] = 'v74-kernor';
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     frames: Object.fromEntries(SPRITE_LAYOUT.poses.map((pose) => [pose, 4])),
-    headScan: { dy: 14 }, /* aureola acima da cabeca */
+    headScan: { dy: 36 }, /* a aureola e o primeiro pixel: o chapeu senta nos chifres, abaixo do anel */
     accHide: ['ko', 'jkick', 'kick'],
   });
   const visual = (row, color) => ({ visualSheet: id, visualRow: row, impactSheets: ['kernor-extra'], impactColor: color });
@@ -68,7 +68,7 @@
           desc: 'Espinhos brotam em fileira de uma ponta à outra, com BURACOS seguros: ache o buraco ou pule.' }, visual(7, '#d8d0d8')),
         Object.assign({ id: 'raio-do-bug', name: 'Raio do Bug', slot: 'extra', row: 8, kind: 'pillar', at: 'target', dmg: 14, stun: 24, launch: -6, delay: 26, cd: 90, sfx: 'thunder_cast', fx: { lock: 50, shock: 60 },
           desc: 'Uma mira trava no rival e o raio cai: SEM PODERES + ELETRIZADO.' }, visual(8, '#ff2a2a')),
-        Object.assign({ id: 'buraco-negro', name: 'Buraco Negro', slot: 'ultimate', row: 9, kind: 'kblackhole', dmg: 22, cd: 160, sfx: 'ultimate',
+        Object.assign({ id: 'buraco-negro', name: 'Buraco Negro', slot: 'ultimate', row: 9, kind: 'kblackhole', dmg: 22, cd: 160, sfx: 'ultimate', zoneTall: 1.35,
           desc: 'ULT 2: abre um buraco negro que PUXA o rival por ~3s (dano contínuo, LENTO, SEM PODERES) e termina numa explosão que não dá pra bloquear.' }, visual(9, '#a35bff')),
       ],
     },
