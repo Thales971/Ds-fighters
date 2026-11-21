@@ -4,7 +4,7 @@
    resultados, mascotes, resgate, opções, lista de golpes e lobby.
    ============================================================ */
 const SLOT_NAMES = { simple: 'SIMPLES', charge: 'CARGA', ultimate: 'ULTIMATE' };
-const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal' };
+const KIND_NAMES = { shot: 'Projétil', pillar: 'Coluna', dash: 'Investida', aura: 'Aura', beam: 'Raio', blast: 'Explosão', rush: 'Sequência', rain: 'Chuva', pull: 'Puxão', steal: 'Roubo', wall: 'Muralha', zone: 'Zona', barrage: 'Rajada', shadowport: 'Portal', kspikes: 'Espinhos', kradial: 'Leque', kblackhole: 'Buraco negro', hotreload: 'Recarga' };
 const ROSTER_4X8_SPRITES = new Set([]); // todas as folhas migradas pra 4x15 — nenhuma usa mais o size 800%
 
 /* ===== BUSCA/FILTRO NA GRADE DE SELECAO ===== */
@@ -675,7 +675,7 @@ const UI = {
       ${d.quotes && d.quotes.intro && d.quotes.intro.length ? `<div class="quotes">“${d.quotes.intro[0]}”</div>` : ''}
       <div class="statbars">${bar('FORÇA', st.power, 1.7)}${bar('VELOC.', st.speed, 1.5)}${bar('ALCANCE', (d.moves && d.moves.kick && d.moves.kick.range) || 64, 96)}</div>
       <div class="theme">${kit ? kit.theme : ''}${kit && kit.autoAim ? ' · <b>AUTO AIM</b>' : ''}</div>
-      <ul class="kit">${(kit ? kit.powers : []).slice(0, d.id === 'iales' ? 10 : 5).map((p, i) => `
+      <ul class="kit">${(kit ? kit.powers : []).slice(0, (d.id === 'iales' || d.id === 'kernor') ? 10 : 5).map((p, i) => `
         <li class="${p.slot}"><span class="ico" style="${Art.css('abil:' + d.id, p.row, 1, 34)}"></span>
           <span class="tx"><b>${p.name}</b><small>${SLOT_NAMES[p.slot] || p.slot} · ${KIND_NAMES[p.kind] || ''}</small><em>${p.desc || ''}</em></span>
           <kbd>${Input.label(keyFor, 'a' + i)}</kbd></li>`).join('')}</ul>`}`;

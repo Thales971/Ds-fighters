@@ -881,14 +881,13 @@ class Fighter {
         break;
       }
       case 'kradial': {
-        /* EXPLOSAO RADIAL (KERNOR): laminas de luz saem dele em leque
-           (8 direcoes, inclusive pra cima) — estilo chefe final */
+        /* LEVE DE LAMINAS (KERNOR): 8 laminas num meio-circulo pra cima.
+           O angulo entra no construtor — escrever vx depois era reescrito
+           no primeiro quadro e o leque virava um tiro so. */
         for (let k = 0; k < 8; k++) {
           const ang = -Math.PI + (k / 7) * Math.PI;
-          this.queue.push({ at: k * 2, fn: () => {
-            const pr = new Projectile(this, Object.assign({}, p, { kind: 'shot', speed: 9, big: false, multiHit: 1 }), { fid, dmg: p.dmg || 5, angle: 0, scale: 0.75 });
-            pr.vx = Math.cos(ang) * 9; pr.vy = Math.sin(ang) * 9; pr.x = this.x; pr.y = this.y - 120;
-            game.projectiles.push(pr);
+          this.queue.push({ at: 10, fn: () => {
+            game.projectiles.push(new Projectile(this, Object.assign({}, p, { kind: 'shot', speed: 7, homing: 0, seek: false }), { fid, dmg: p.dmg || 7, angle: ang, scale: 1.3, y: -140 }));
           } });
         }
         game.shake(6);
@@ -899,7 +898,9 @@ class Fighter {
            da dano continuo, deixa SEM PODERES e termina numa explosao */
         const rival = game.enemyOf(this);
         const bx = rival ? Math.max(120, Math.min(game.W - 120, (this.x + rival.x) / 2)) : game.W / 2;
-        game.zones.push(new Zone(this, { fid, key: 'fx2:kernor-extra', row: 0, x: bx, w: 300, time: 190, dmg: 0.12, slow: 60, fx: { lock: 30 }, power: p }));
+        game.zones.push(new Zone(this, { fid, key: 'fx2:kernor-extra', row: 0, x: bx, w: 280, time: 190, dmg: 0.12, slow: 60, fx: { lock: 30 }, power: Object.assign({}, p, { zoneTall: 1.35 }) }));
+        /* o vortice do atlas fica na tela o tempo do puxao (a zona sozinha achatava no chao) */
+        game.strikes.push(new Strike(this, { x: bx, delay: 4, w: 20, h: 20, dmg: 0, active: 0, duration: 170, sheet: { key: 'fx2:kernor-extra', row: 0, frames: 4 }, scale: 2.5, power: p }));
         this.kHole = { x: bx, t: 190 };
         game.floatText(bx, -320, 'BURACO NEGRO!', '#c06bff');
         game.strikes.push(new Strike(this, { x: bx, delay: 186, w: 260, h: 380, dmg: p.dmg || 22, stun: 34, launch: -12, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'explosion', shake: 14, warnColor: '#c06bff', unblockable: true }));

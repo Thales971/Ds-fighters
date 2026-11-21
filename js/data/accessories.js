@@ -17,7 +17,7 @@
 const ACC_LIST = [
   {
     id: 'gorro-natal', icon: '🎅', name: 'Gorro de Natal', slot: 'cabeca', fit: 'top', wMul: 1.3, seat: 0.42, xOff: 0,
-    desc: 'Todo mundo de gorro na luta. Padrão ligado no mês de festas.',
+    desc: 'Opcional. Só aparece se você ligar aqui — nunca entra sozinho.',
     src: 'assets/acc/gorro-natal.png',
   },
   {
@@ -56,8 +56,8 @@ for (const a of ACC_LIST) {
     ACC_IMAGES[a.id] = img;
   } catch (e) { /* sem DOM (teste): o desenho usa fallback */ }
 }
-/* Default: gorro de natal ligado; os demais desligados. */
-const ACC_DEFAULTS = { 'gorro-natal': true };
+/* Nenhum acessório entra sozinho. O jogador liga na tela ACESSÓRIOS. */
+const ACC_DEFAULTS = {};
 function accOn(id) {
   const s = (typeof Profile !== 'undefined' && Profile.setting('acc')) || null;
   const v = (s && s[id] !== undefined) ? s[id] : ACC_DEFAULTS[id];
