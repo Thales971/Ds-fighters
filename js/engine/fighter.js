@@ -862,6 +862,21 @@ class Fighter {
         game.spawnBurst('abil:jess', 4, this.x, this.y - 100, this.dir, 2.2);
         break;
       }
+      case 'hotreload': {
+        /* HOT RELOAD (ult exclusiva da STELLA): circulo estelar explode no
+           rival e a Stella RECARREGA TUDO — poderes simples sem recarga e as
+           duas barras de carga cheias na hora. */
+        const rival = game.enemyOf(this);
+        if (rival) game.strikes.push(new Strike(this, {
+          x: rival.x, delay: 14, w: 230, h: 360, dmg: p.dmg || 24, stun: 32, launch: -10, follow: rival,
+          sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'explosion', shake: 12, warnColor: '#ffd23a',
+        }));
+        for (let i = 0; i < this.cd.length; i++) if (i < 4) this.cd[i] = 0;
+        this.charge = [100, 100];
+        game.floatText(this.x, this.y - 250, 'HOT RELOAD! TUDO RECARREGADO', '#FFD23A');
+        game.spawnBurst('fx2:stella-extra', 1, this.x, this.y - 110, this.dir, 2.2);
+        break;
+      }
       case 'kunoult': {
         /* DRAGAO DAS MIL LAMINAS (ult exclusiva da KUNO): ela some (fantasma +
            invulneravel) e o dragao de laminas acerta o rival varias vezes; o
