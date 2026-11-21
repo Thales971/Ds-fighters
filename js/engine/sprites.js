@@ -27,6 +27,7 @@ const SpriteGen = {
     }
   },
   images: {},
+  failed: {},
   _flash: null,
   // Poses canônicas do motor — a ordem é a linha na folha (4x15).
   POSES: ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch', 'ckick',
@@ -58,8 +59,8 @@ const SpriteGen = {
     }
     ids.forEach((id) => {
       const img = new Image();
-      img.onload = () => { this.images[id] = img; this.reconcile(img, id); };
-      img.onerror = () => { this.images[id] = null; };
+      img.onload = () => { delete this.failed[id]; this.images[id] = img; this.reconcile(img, id); };
+      img.onerror = () => { this.failed[id] = true; this.images[id] = null; };
       img.src = SpriteGen.url(id);
     });
   },

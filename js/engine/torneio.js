@@ -344,12 +344,12 @@ var TORNEIO_LADDER = [
   { id: 'kernor', diff: 3, diffName: 'EXTREMO', map: 5, boss: true, line: 'PROCESSO KERNOR INICIADO.' },
 ];
 var TORNEIO_BUFFS = [
-  { id: 'dano', name: '+DANO', desc: '+12% de dano até o fim do torneio.' },
-  { id: 'vida', name: '+VIDA', desc: '+18% de vida máxima nas próximas lutas.' },
-  { id: 'ult', name: 'ULT INICIAL', desc: 'Entra na luta com 45% da ultimate.' },
-  { id: 'velo', name: '+VELOCIDADE', desc: '+8% de velocidade.' },
-  { id: 'medidor', name: 'MEDIDOR', desc: 'O medidor enche 15% mais rápido.' },
-  { id: 'escudo', name: 'PELE GROSSA', desc: 'Você toma 10% menos dano.' },
+  { id: 'dano', ico: 'ATK', name: '+ DANO', desc: '+12% de dano até o fim do torneio.' },
+  { id: 'vida', ico: 'HP', name: '+ VIDA', desc: '+18% de vida máxima nas próximas lutas.' },
+  { id: 'ult', ico: 'ULT', name: 'ULT INICIAL', desc: 'Entra na luta com 45% da ultimate.' },
+  { id: 'velo', ico: 'VEL', name: '+ VELOCIDADE', desc: '+8% de velocidade.' },
+  { id: 'medidor', ico: 'BAR', name: 'MEDIDOR', desc: 'O medidor enche 15% mais rápido.' },
+  { id: 'escudo', ico: 'DEF', name: 'PELE GROSSA', desc: 'Você toma 10% menos dano.' },
 ];
 function torneioRank(hpRatio, seconds, combo, boss) {
   const hp = Math.max(0, Math.min(1, hpRatio || 0));

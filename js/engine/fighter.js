@@ -313,7 +313,7 @@ class Fighter {
     return m;
   }
   defMult() {
-    let m = (1 / Math.sqrt(this.weight())) * (this.tourneyDef || 1);
+    let m = (1 / Math.sqrt(this.weight())) * (this.tourneyDef || 1) * (this.bossTaken || 1);
     if (this.has('def')) m *= 0.65;
     if (this.has('veil')) m *= 0.9;
     if (this.has('vuln')) m *= 1.2;

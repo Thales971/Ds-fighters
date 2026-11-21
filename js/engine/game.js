@@ -114,18 +114,29 @@ class Game {
        A geometria vem de SpriteGen.expectedHeight() — já corrigida a partir da
        imagem real, então layout.js velho não gera falso alarme nem boneco torto. */
     this.spriteWarnings = [];
-    const expectH = SpriteGen.expectedHeight();
-    for (const f of this.allFighters()) {
-      const img = SpriteGen.images[f.spriteKey()];
-      if (!img || !img.naturalWidth) this.spriteWarnings.push(f.def.id + ': folha nao carregou');
-      else if (img.naturalHeight !== expectH) this.spriteWarnings.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
-    }
-    // layout.js velho em cache já é corrigido em SpriteGen.reconcile(); avisa
-    // pra pessoa saber que o problema foi cache do aparelho, não o jogo.
-    if (SpriteGen.fixes && SpriteGen.fixes.length) this.spriteWarnings.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
+    this._sheetsPending = true;
+    this.refreshSpriteSheets();
     this.beginRound();
     this.applyCpuLevel();
     if (this.mode !== 'demo') AudioSys.playMusic((this.cfg && this.cfg.music) || 'battle'); else AudioSys.stopLoops && AudioSys.stopLoops();
+  }
+  /* Só avisa folha que falhou de verdade. Imagem ainda baixando não é erro. */
+  refreshSpriteSheets() {
+    const expectH = SpriteGen.expectedHeight();
+    const next = [];
+    let pending = false;
+    for (const f of this.allFighters()) {
+      const id = f.spriteKey();
+      const img = SpriteGen.images[id];
+      const failed = !!(SpriteGen.failed && SpriteGen.failed[id]);
+      if (!img && !failed) { pending = true; continue; }
+      if (img && !img.complete && !failed) { pending = true; continue; }
+      if (failed || (img && img.complete && !img.naturalWidth)) next.push(f.def.id + ': folha nao carregou');
+      else if (img && img.naturalHeight && img.naturalHeight !== expectH) next.push(f.def.id + ': folha ' + img.naturalHeight + 'px (esperado ' + expectH + 'px) — cache antigo, recarregue');
+    }
+    if (SpriteGen.fixes && SpriteGen.fixes.length) next.push(SpriteGen.fixes[0] + ' — recarregue com Ctrl+F5');
+    this.spriteWarnings = next;
+    this._sheetsPending = pending;
   }
   pickStage(id) {
     if (!id || id === 'random') return STAGE_LIST[((this.rnd ? this.rnd() : Math.random()) * STAGE_LIST.length) | 0];
@@ -231,7 +242,10 @@ class Game {
     p.bossPhase = true;
     /* A barra do chefe é 2000. O dano da luta final fica abaixo do Kernor
        jogável (500) para a IA extrema ainda deixar abertura. Fase 2 devolve parte. */
-    p.bossDmg = 0.58;
+    /* 2000 de vida. O golpe sai mais baixo que o Kernor jogável para a luta
+       ainda fechar em torno de 15–30% contra CPU difícil/extrema. */
+    p.bossDmg = 0.22;
+    p.bossTaken = 1.35;
     p.enrage = 0;
   }
   startAmbience() {
@@ -1121,6 +1135,7 @@ class Game {
   render(alpha = 1) {
     const ctx = this.ctx;
     if (!this.stage) return;
+    if (this._sheetsPending || (this.spriteWarnings && this.spriteWarnings.length)) this.refreshSpriteSheets();
     /* DEBUG DE HITBOX (treino): F9 liga/desliga — hitbox vermelho, hurtbox azul */
     if (this.cfg && this.cfg.mode === 'training' && Input.hit && Input.hit(['F9'])) {
       this.hitboxDebug = !this.hitboxDebug;

@@ -1035,7 +1035,7 @@ const UI = {
     while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
     const el = this.$('buff-list');
     if (el) {
-      el.innerHTML = pick.map((b) => `<button type="button" class="nav buff-card" data-buff="${b.id}"><b>${b.name}</b><small>${b.desc}</small></button>`).join('');
+      el.innerHTML = pick.map((b) => `<button type="button" class="buff-card" data-buff="${b.id}"><span class="buff-ico">${b.ico || '+'}</span><b>${b.name}</b><small>${b.desc}</small></button>`).join('');
       el.querySelectorAll('.buff-card').forEach((btn) => btn.addEventListener('click', () => {
         f.tourneyBuffs = (f.tourneyBuffs || []).concat(btn.dataset.buff);
         f.arcadeStep++;
