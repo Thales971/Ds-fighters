@@ -58,19 +58,39 @@ for (const a of ACC_LIST) {
 }
 /* Nenhum acessório entra sozinho. O jogador liga na tela ACESSÓRIOS. */
 const ACC_DEFAULTS = {};
+/* Saves antigos gravaram gorro-natal:true ao mexer em outro acessório,
+   porque o padrão antigo era copiado junto. Isso não é escolha do chapéu.
+   Um objeto só com o gorro, ou com _hatChosen, continua como o jogador deixou. */
+function accLive() {
+  if (typeof Profile === 'undefined' || typeof Profile.setting !== 'function') return null;
+  const raw = Profile.setting('acc');
+  if (!raw) return null;
+  if (raw._rev >= 1) return raw;
+  const next = Object.assign({}, raw, { _rev: 1 });
+  const others = ['bone', 'coroa', 'oculos', 'faixa', 'fone'].some((id) => raw[id]);
+  if (raw['gorro-natal'] === true && !raw._hatChosen && others) next['gorro-natal'] = false;
+  Profile.setting('acc', next);
+  return next;
+}
 function accOn(id) {
-  const s = (typeof Profile !== 'undefined' && Profile.setting('acc')) || null;
+  const s = accLive();
   const v = (s && s[id] !== undefined) ? s[id] : ACC_DEFAULTS[id];
   return !!v;
 }
 function accAnyOn() { return ACC_LIST.some((a) => accOn(a.id)); }
 /* Liga/desliga um acessório respeitando 1 por lugar: devolve as configurações novas. */
 function accToggle(settings, id, on) {
-  const s = Object.assign({}, ACC_DEFAULTS, settings || {});
+  const s = Object.assign({ _rev: 1 }, ACC_DEFAULTS, settings || {});
+  if (!settings || !settings._rev) {
+    const others = ['bone', 'coroa', 'oculos', 'faixa', 'fone'].some((k) => s[k]);
+    if (s['gorro-natal'] === true && !s._hatChosen && others && id !== 'gorro-natal') s['gorro-natal'] = false;
+    s._rev = 1;
+  }
   const acc = ACC_LIST.find((a) => a.id === id);
   if (!acc) return s;
   if (on) for (const o of ACC_LIST) if (o.slot === acc.slot && o.id !== id) s[o.id] = false;
   s[id] = !!on;
+  if (id === 'gorro-natal') s._hatChosen = !!on;
   return s;
 }
 /* Onde desenhar o acessório, em coordenadas da CÉLULA do sprite (antes da escala

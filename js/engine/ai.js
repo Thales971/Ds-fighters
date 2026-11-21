@@ -155,9 +155,14 @@ const AI = {
        espera a fase 2 e não sai no quadro em que enche — sobra abertura. */
     const kernor = me.def && me.def.id === 'kernor';
     const kPhase = !kernor ? 0 : (me.hp > me.maxHp * 0.62 ? 1 : me.hp > me.maxHp * 0.32 ? 2 : 3);
+    if (kernor) {
+      if (ps[9] && ps[9].ready) { if (m.kUltAt == null) m.kUltAt = me.frame; }
+      else m.kUltAt = null;
+    }
     if (ps[9] && ps[9].ready && ps[9].p.slot === 'ultimate') {
       if (!kernor) return cast(9);
-      if (kPhase >= 2 && Math.random() < (kPhase === 3 ? 0.45 : 0.18)) return cast(9);
+      /* espera ~0,6s depois da barra encher, aí ainda joga a moeda */
+      if (kPhase >= 2 && me.frame - m.kUltAt >= 36 && Math.random() < (kPhase === 3 ? 0.45 : 0.18)) return cast(9);
     }
     if (ps[5] && ps[5].ready && ps[5].p.slot !== 'ultimate' && Math.random() < L.ult) return cast(5);
     if (ps[4] && ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);

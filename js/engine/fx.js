@@ -44,9 +44,9 @@ const ART_SHEETS = {
   'fx2:kernor': { src: 'assets/abilities/kernor.png', size: 128, cols: 4, rows: 10, v: 'v74-kernor' },
   'fx2:kernor-extra': { src: 'assets/abilities/kernor-extra.png', size: 128, cols: 4, rows: 2, v: 'v74-kernor' },
   /* STELLA, Maga do Front-end (tools/build_stella_fx.py) */
-  'abil:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },
-  'fx2:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella' },
-  'fx2:stella-extra': { src: 'assets/abilities/stella-extra.png', size: 128, cols: 4, rows: 2, v: 'v73-stella' },
+  'abil:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella-franja' },
+  'fx2:stella': { src: 'assets/abilities/stella.png', size: 128, cols: 4, rows: 5, v: 'v73-stella-franja' },
+  'fx2:stella-extra': { src: 'assets/abilities/stella-extra.png', size: 128, cols: 4, rows: 2, v: 'v73-stella-franja' },
   /* KUNO (tools/build_kuno_fx.py) */
   'abil:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },
   'fx2:kuno': { src: 'assets/abilities/kuno.png', size: 128, cols: 4, rows: 5, v: 'v72-kuno' },

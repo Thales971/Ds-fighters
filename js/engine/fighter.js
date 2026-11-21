@@ -900,7 +900,7 @@ class Fighter {
         const bx = rival ? Math.max(120, Math.min(game.W - 120, (this.x + rival.x) / 2)) : game.W / 2;
         game.zones.push(new Zone(this, { fid, key: 'fx2:kernor-extra', row: 0, x: bx, w: 280, time: 190, dmg: 0.12, slow: 60, fx: { lock: 30 }, power: Object.assign({}, p, { zoneTall: 1.35 }) }));
         /* o vortice do atlas fica na tela o tempo do puxao (a zona sozinha achatava no chao) */
-        game.strikes.push(new Strike(this, { x: bx, delay: 4, w: 20, h: 20, dmg: 0, active: 0, duration: 170, sheet: { key: 'fx2:kernor-extra', row: 0, frames: 4 }, scale: 2.5, power: p }));
+        game.strikes.push(new Strike(this, { x: bx, delay: 4, w: 20, h: 20, dmg: 0, active: 0, duration: 200, sheet: { key: 'fx2:kernor-extra', row: 0, frames: 4 }, scale: 2.5, power: p }));
         this.kHole = { x: bx, t: 190 };
         game.floatText(bx, -320, 'BURACO NEGRO!', '#c06bff');
         game.strikes.push(new Strike(this, { x: bx, delay: 186, w: 260, h: 380, dmg: p.dmg || 22, stun: 34, launch: -12, sheet: { key, row: p.row, frames: 4 }, scale: 2.6, power: p, sound: 'explosion', shake: 14, warnColor: '#c06bff', unblockable: true }));

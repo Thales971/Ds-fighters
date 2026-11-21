@@ -67,7 +67,11 @@ const AudioSys = {
   loadAll() {
     const load = (name, url) => fetch(url).then((r) => r.arrayBuffer())
       .then((b) => new Promise((res, rej) => this.ctx.decodeAudioData(b, res, rej)))
-      .then((buf) => { this.buffers[name] = buf; })
+      .then((buf) => {
+        this.buffers[name] = buf;
+        const wait = this._loopWait && this._loopWait[name];
+        if (wait != null) { delete this._loopWait[name]; this.loop(name, true, wait); }
+      })
       .catch(() => {});
     SFX_FILES.forEach((n) => load(n, 'assets/audio/sfx/' + n + '.mp3'));
     VOICE_FILES.forEach((n) => load('v_' + n, 'assets/audio/voice/' + n + '.mp3'));
@@ -267,6 +271,14 @@ const AudioSys = {
   },
   loop(name, on, vol = 0.5) {
     if (!this.ctx) return;
+    if (!on) {
+      if (this._loopWait) delete this._loopWait[name];
+    } else if (!this.buffers[name]) {
+      /* o palco pediu o loop antes do mp3 decodificar: toca quando o buffer chegar */
+      this._loopWait = this._loopWait || {};
+      this._loopWait[name] = vol;
+      return;
+    }
     if (on && !this.loops[name] && this.buffers[name]) {
       const src = this.ctx.createBufferSource();
       src.buffer = this.buffers[name];
