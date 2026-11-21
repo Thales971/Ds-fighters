@@ -10,6 +10,15 @@
    - rain/storm: bônus de água/raio, fogo mais fraco, chão escorregadio
    - storm: raios caem com aviso e causam dano a qualquer lutador
    - snow: movimento mais lento; aurora: medidor +8%; heatwave: bônus elemental leve
+   - CLIMAS EXCLUSIVOS dos mapas novos do dono:
+     diaenoite (Metropole Dia & Noite): o LASER DIVISOR do meio dispara de
+       tempos em tempos (aviso + raio vermelho); quem fica do lado do DIA
+       ganha medidor 10% mais rapido
+     churrasco (Churrasco na Laje): fumaca e brasas da churrasqueira; cheiro
+       do churrasco cura os dois (1 vida a cada 2s) e de tempos em tempos sai
+       um ESPETINHO (energia) no chao
+     apagao (Data Center Abandonado): as luzes piscam e caem — APAGAO de
+       ~2,5s com surto eletrico que da choque em quem estiver no chao
    - bubbles (bolhas de sabao): bolhas sobem pela arena e ESTOURAM em quem
      encosta (ou num projetil) — cada bolha estourada por um lutador da +1,5
      de ultimate. Arte do dono em assets/weather/bubbles.png
@@ -73,6 +82,10 @@ class Weather {
     if (kind === 'fireflies') a.play('magic', { vol: 0.14 });
     if (kind === 'darkfog') a.play('dragon', { vol: 0.12 });
     if (kind === 'bubbles') a.play('magic', { vol: 0.12 });
+    if (kind === 'diaenoite') a.play('thunder_cast', { vol: 0.12 });
+    if (kind === 'churrasco') a.play('fire', { vol: 0.14 });
+    if (kind === 'apagao') a.play('hazard', { vol: 0.14 });
+    this._exAt = 420;
     if (this.game.onWeather) this.game.onWeather(kind);
   }
   stop() {
@@ -151,6 +164,7 @@ class Weather {
         }
       }
     }
+    if (fighting && (this.kind === 'diaenoite' || this.kind === 'churrasco' || this.kind === 'apagao')) this._exclusive();
     /* BOLHAS: lutador (ou projetil) que encosta estoura a bolha */
     if (fighting && this.kind === 'bubbles') this._popBubbles();
     /* sons ambiente dos climas novos */
@@ -168,6 +182,42 @@ class Weather {
       }
     }
     this.updateParticles();
+  }
+  /* efeitos dos 3 climas exclusivos (so rodam com a luta valendo) */
+  _exclusive() {
+    const g = this.game;
+    const rnd = () => (g.rnd ? g.rnd() : Math.random());
+    this._exAt = (this._exAt == null ? 420 : this._exAt) - 1;
+    if (this.kind === 'diaenoite') {
+      this._laserWarn = this._exAt <= 56 ? this._exAt : 0;
+      if (this._exAt <= 0) {
+        this._exAt = 540 + ((rnd() * 300) | 0);
+        g.hazard({ x: g.W / 2, label: 'LASER!', sheet: ['fx2:lightning', 3], dmg: 7, w: 90, warnColor: '#ff2a2a', fromSky: true, sound: 'thunder_cast', delay: 50 });
+      }
+    } else if (this.kind === 'churrasco') {
+      this._bbqAt = (this._bbqAt || 120) - 1;
+      if (this._bbqAt <= 0) {
+        this._bbqAt = 120;
+        for (const f of g.fighters()) if (f.alive && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + 1);
+      }
+      if (this._exAt <= 0) {
+        this._exAt = 720 + ((rnd() * 360) | 0);
+        if (g.spawnPickup) g.spawnPickup('nrg');
+        g.floatText(g.W / 2, -300, 'SAIU ESPETINHO!', '#ffb347');
+        g.audio.play('pickup', { vol: 0.2 });
+      }
+    } else if (this.kind === 'apagao') {
+      if (this._blackout > 0) this._blackout--;
+      if (this._exAt <= 0) {
+        this._exAt = 600 + ((rnd() * 300) | 0);
+        this._blackout = 150;
+        g.floatText(g.W / 2, -320, 'APAGÃO!', '#7dffb0');
+        g.audio.play('hazard', { vol: 0.2 });
+        const vivos = g.fighters().filter((f) => f.alive && Math.abs(f.y) < 20);
+        const alvo = vivos[(rnd() * vivos.length) | 0];
+        if (alvo) { alvo.chip(3, null); alvo.addStatus('shock', 60); g.floatText(alvo.x, alvo.y - 210, 'SURTO −3', '#7df9ff'); }
+      }
+    }
   }
   /* nova bolha: tipo (0 pequena, 1 media, 2 arco-iris, 3 cacho) e tamanho;
      'spread' espalha pela tela toda (inicio do clima), senao nasce no chao */
@@ -219,7 +269,7 @@ class Weather {
     }
     const W = this.game.W;
     const reduced = this.game.reduced;
-    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : this.kind === 'bubbles' ? 30 : 0;
+    const wantBase = this.kind === 'rain' ? 110 : this.kind === 'storm' ? 150 : this.kind === 'snow' ? 120 : this.kind === 'wind' ? 28 : this.kind === 'aurora' ? 48 : this.kind === 'heatwave' ? 22 : this.kind === 'fog' ? 10 : this.kind === 'darkfog' ? 12 : this.kind === 'fireflies' ? 24 : this.kind === 'leaves' ? 34 : this.kind === 'confetti' ? 40 : this.kind === 'fireworks' ? 18 : this.kind === 'hail' ? 32 : this.kind === 'eclipse' ? 14 : this.kind === 'rainbow' ? 0 : this.kind === 'clear' ? 10 : this.kind === 'bubbles' ? 30 : this.kind === 'diaenoite' ? 18 : this.kind === 'churrasco' ? 34 : this.kind === 'apagao' ? 26 : 0;
     const want = Math.max(0, Math.round(wantBase * (this.perfScale || 1))); /* perfScale: modo performance reduz particulas */
     const max = Math.floor(want * this.intensity * (reduced ? 0.35 : 1) * (this.game.qWeather || 1)); /* qualidade baixa/alta muda a densidade do clima */
     while (this.drops.length < max) {
@@ -248,10 +298,26 @@ class Weather {
       /* ONDA DE CALOR: algumas sao EMBERS subindo. */
       if (this.kind === 'heatwave') d.ember = (this.game.rnd ? this.game.rnd() : Math.random()) < 0.4;
       if (this.kind === 'bubbles') this._newBubble(d, true);
+      if (this.kind === 'diaenoite' || this.kind === 'churrasco' || this.kind === 'apagao') { d.x = roll * W; d.y = -20 - (this.game.rnd ? this.game.rnd() : Math.random()) * 480; d.smoke = this.kind === 'churrasco' && (this.game.rnd ? this.game.rnd() : Math.random()) < 0.45; }
       this.drops.push(d);
     }
     if (this.drops.length > max) this.drops.length = max;
     for (const d of this.drops) {
+      if (this.kind === 'diaenoite' || this.kind === 'apagao') {
+        /* brilhos (dia/noite) e poeira verde (data center) flutuando */
+        d.ph += 0.02 + d.s * 0.02;
+        d.x += Math.sin(d.ph) * 0.4 + this.wind * 0.3;
+        d.y -= this.kind === 'apagao' ? 0.12 : 0.25;
+        if (d.y < -520) { d.y = -10; d.x = Math.random() * W; }
+        continue;
+      }
+      if (this.kind === 'churrasco') {
+        /* fumaca sobe da churrasqueira (meio-direita) e se espalha; brasas sobem rapido */
+        if (d.smoke) { d.y -= 0.5 + d.s * 0.4; d.x += 0.25 + Math.sin((this.t + d.ph * 40) * 0.02) * 0.4; d.r = (d.r || 10) + 0.08; }
+        else { d.y -= 1.2 + d.s * 1.4; d.x += Math.sin(this.t * 0.05 + d.ph) * 0.6; }
+        if (d.y < -480 || d.x > W + 60) { d.y = -170 - Math.random() * 30; d.x = 560 + (Math.random() - 0.5) * 120; d.r = 10; }
+        continue;
+      }
       if (this.kind === 'bubbles') {
         /* BOLHAS: sobem devagar balancando; estourada, toca os 4 quadros do
            estouro e renasce no chao */
@@ -655,6 +721,27 @@ class Weather {
       /* Ceu limpo: poeira dourada flutuando bem sutil. */
       ctx.fillStyle = 'rgba(255,240,200,0.30)';
       for (const d of this.drops) ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+    } else if (this.kind === 'diaenoite' || this.kind === 'apagao') {
+      for (const d of this.drops) {
+        const day = d.x < W / 2;
+        ctx.globalAlpha = 0.35 + 0.45 * Math.abs(Math.sin(this.t * 0.04 + d.ph * 3));
+        ctx.fillStyle = this.kind === 'apagao' ? '#7dffb0' : (day ? '#fff6c8' : '#c9a2ff');
+        ctx.fillRect(Math.round(d.x), Math.round(d.y), d.s > 0.8 ? 3 : 2, d.s > 0.8 ? 3 : 2);
+      }
+      ctx.globalAlpha = 1;
+    } else if (this.kind === 'churrasco') {
+      for (const d of this.drops) {
+        if (d.smoke) {
+          ctx.globalAlpha = Math.max(0, 0.22 * (1 + d.y / 480));
+          ctx.fillStyle = '#d8d2cc';
+          ctx.beginPath(); ctx.arc(d.x, d.y, d.r || 10, 0, 6.3); ctx.fill();
+        } else {
+          ctx.globalAlpha = Math.max(0, 0.9 * (1 + d.y / 480));
+          ctx.fillStyle = d.s > 0.5 ? '#ffb347' : '#ff5a1f';
+          ctx.fillRect(Math.round(d.x), Math.round(d.y), 2, 2);
+        }
+      }
+      ctx.globalAlpha = 1;
     } else if (this.kind === 'bubbles') {
       const sp = this.sprites.bubbles;
       for (const d of this.drops) {
@@ -891,6 +978,34 @@ class Weather {
       night.addColorStop(0.45, 'rgba(8,12,36,0.16)');
       night.addColorStop(1, 'rgba(8,12,36,0.07)');
       ctx.fillStyle = night;
+      ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'diaenoite') {
+      /* linha do laser divisor pulsando; no aviso fica mais forte */
+      const warn = this._laserWarn || 0;
+      const k = warn ? 0.5 + 0.5 * Math.sin(this.t * 0.6) : 0.25 + 0.15 * Math.sin(this.t * 0.08);
+      const lg = ctx.createLinearGradient(W / 2 - 40, 0, W / 2 + 40, 0);
+      lg.addColorStop(0, 'rgba(255,40,40,0)');
+      lg.addColorStop(0.5, 'rgba(255,60,60,' + (k * 0.5).toFixed(3) + ')');
+      lg.addColorStop(1, 'rgba(255,40,40,0)');
+      ctx.fillStyle = lg;
+      ctx.fillRect(W / 2 - 40, 0, 80, H);
+    } else if (this.kind === 'churrasco') {
+      /* luz quente da churrasqueira + varal de lampadas piscando de leve */
+      const g = ctx.createRadialGradient(W * 0.56, H * 0.62, 20, W * 0.56, H * 0.62, W * 0.5);
+      g.addColorStop(0, 'rgba(255,150,60,' + (0.12 + 0.04 * Math.sin(this.t * 0.11)).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(255,150,60,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    } else if (this.kind === 'apagao') {
+      /* luz piscando sempre; no APAGAO a tela quase some (so silhuetas) */
+      const flick = (Math.sin(this.t * 0.9) > 0.92 || Math.sin(this.t * 0.37) > 0.97) ? 0.25 : 0;
+      const bo = this._blackout > 0 ? Math.min(0.8, this._blackout / 20, 0.8) * (0.85 + 0.15 * Math.sin(this.t * 0.5)) : 0;
+      const a = Math.max(flick, bo);
+      if (a > 0) { ctx.fillStyle = 'rgba(2,10,6,' + a.toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+      const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9);
+      vg.addColorStop(0, 'rgba(0,30,20,0)');
+      vg.addColorStop(1, 'rgba(0,30,20,0.35)');
+      ctx.fillStyle = vg;
       ctx.fillRect(0, 0, W, H);
     } else if (this.kind === 'bubbles') {
       /* BOLHAS: luz lavanda bem leve de cima + reflexo iridescente que

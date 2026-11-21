@@ -35,7 +35,7 @@ const TIPOS = Object.keys(WEATHER_INFO);
 let ruinsPool = [];
 for (const st of STAGES) for (const w of (st.weather || ['clear'])) if (!WEATHER_INFO[w]) ruinsPool.push(st.id + ':' + w);
 check('94 palcos: todos os climas dos pools existem em WEATHER_INFO (' + TIPOS.length + ' tipos)', ruinsPool.length === 0, ruinsPool.slice(0, 5).join(' | '));
-check('17 tipos de clima definidos (16 + bolhas de sabao)', TIPOS.length === 17 && TIPOS.includes('bubbles'), TIPOS.join(','));
+check('20 tipos de clima definidos (16 + bolhas + 3 exclusivos dos mapas novos)', TIPOS.length === 20 && ['bubbles', 'diaenoite', 'churrasco', 'apagao'].every((k) => TIPOS.includes(k)), TIPOS.join(','));
 
 // ===== 2. Sprites de clima existem e tem o tamanho certo =====
 const dims = { 'assets/weather/snowflakes.png': [168, 28], 'assets/weather/leaf.png': [16, 16], 'assets/weather/spark.png': [8, 8], 'assets/weather/petals.png': [42, 14], 'assets/weather/neon.png': [20, 10] };

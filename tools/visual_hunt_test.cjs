@@ -76,10 +76,10 @@ const res = await vm.runInContext(`
   return JSON.stringify(out);
 })()`, ctx);
 const R = JSON.parse(res);
-check('todos os ' + R.stages.length + ' palcos renderizaram 60 frames de verdade sem crash', R.crash.length === 0 && R.stages.length === 94, R.crash.slice(0, 4).join(' | ') || R.stages.length + '/94');
+check('todos os ' + R.stages.length + ' palcos renderizaram 60 frames de verdade sem crash', R.crash.length === 0 && R.stages.length === 97, R.crash.slice(0, 4).join(' | ') || R.stages.length + '/97');
 check('nenhum palco com vazamento de chroma-key magenta PURO (>200 px)', R.magBad.length === 0, R.magBad.slice(0, 5).join(' | ') || 'limpo');
 check('nenhum palco com tela vazia/preta (<0.5% de pixels acesos)', R.blankBad.length === 0, R.blankBad.slice(0, 5).join(' | ') || 'todos com conteudo');
-check('lutadores sempre dentro da tela e sem NaN nos 94 palcos', R.posBad.length === 0, R.posBad.slice(0, 5).join(' | ') || 'ok');
+check('lutadores sempre dentro da tela e sem NaN nos 97 palcos', R.posBad.length === 0, R.posBad.slice(0, 5).join(' | ') || 'ok');
 
 // salva 6 screenshots de palcos variados pra inspecao visual
 await vm.runInContext(`

@@ -234,6 +234,7 @@ class Fighter {
     if (this.game.weather && this.game.weather.kind === 'aurora') m *= 1.08;
     if (this.game.weather && this.game.weather.kind === 'fireflies') m *= 1.06; /* vagalumes: medidor +6% */
     if (this.game.weather && this.game.weather.kind === 'eclipse') m *= 1.10; /* eclipse: medidor +10% */
+    if (this.game.weather && this.game.weather.kind === 'diaenoite' && this.x < this.game.W / 2) m *= 1.10; /* lado do DIA: medidor +10% */
     return m;
   }
   gain(dealt, amount = 1) {

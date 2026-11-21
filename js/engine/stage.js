@@ -17,7 +17,7 @@ function stageBiome(def) {
   const night = /noite|night|noturna|halloween|codigocalipse|orbital|covil|cemiterio|mansao|cyberpunk|neon|datacenter|abismo|caverna|forja|fundicao|torrefa|pantano|citadel|madrugada|natal|anonovo|quermesse|arraial|junina|deploy|estudio/.test(hay)
     || wx.includes('darkfog') || wx.includes('eclipse') || wx.includes('aurora');
   const park = /parque|jardim|floresta|tijuca|ibirapuera|bosque|sitio|cafezal|arraial|quermesse|playground|divers|lago|mangue|sakura|colmeia|hive|pantano|escola|praca/.test(hay);
-  const urban = /rua|centro|terminal|estacao|feira|mercado|praca|lapa|santa teresa|quadra|sesi|pista|beco|paulista|teatro|largo|valinhos|senai|oficina|trabalho|hackerspace|biblioteca|pizzaria|cafe|estudio|salao|loja|copacabana|beira|telhado|ginasio|arquibancada|docker|porto|dojo|circo/.test(hay);
+  const urban = /rua|centro|terminal|estacao|feira|mercado|praca|lapa|santa teresa|quadra|sesi|pista|beco|paulista|teatro|largo|valinhos|senai|oficina|trabalho|hackerspace|biblioteca|pizzaria|cafe|estudio|salao|loja|copacabana|beira|telhado|ginasio|arquibancada|docker|porto|dojo|circo|laje|churrasco/.test(hay);
   return { water, night, park, urban };
 }
 const FAUNA_RULES = {
