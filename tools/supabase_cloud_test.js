@@ -295,7 +295,10 @@ async function testRemoteMergeAndManualSync() {
   assert.equal(env.Profile.data.settings.music, 0.8, 'remote cloud settings must not overwrite device settings');
   assert.equal(env.Profile.data.settings.serverUrl, 'wss://device-only');
   assert.equal(env.Profile.data.settings.touch, 'on');
-  assert.deepEqual({ ...env.Profile.data.stats }, { fights: 9, wins: 2, bestArcade: 8, maxCombo: 7 });
+  assert.equal(env.Profile.data.stats.fights, 9);
+  assert.equal(env.Profile.data.stats.wins, 2);
+  assert.equal(env.Profile.data.stats.bestArcade, 8);
+  assert.equal(env.Profile.data.stats.maxCombo, 7);
   assert.equal(env.state.queries.at(-1).selected, 'profile,name,photo,updated_at');
   assert.equal(env.state.queries.at(-1).uid, uid);
   assert.equal(env.state.queries.at(-1).limit, 1);

@@ -32,7 +32,7 @@ const Profile = {
   },
 
   _write(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* modo privado */ }
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; }
   },
 
   _accountKey(uid) {
@@ -63,8 +63,8 @@ const Profile = {
   _normalize(raw) {
     const base = this.defaults();
     const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
-    const unlocked = [...new Set((Array.isArray(source.unlocked) ? source.unlocked : [])
-      .filter((id) => typeof id === 'string' && id.length > 0))].slice(0, 64);
+    let unlocked = [...new Set((Array.isArray(source.unlocked) ? source.unlocked : [])
+      .filter((id) => typeof id === 'string' && id.length > 0))].slice(-64);
     const pets = (Array.isArray(source.pets) ? source.pets : [])
       .filter((id) => typeof id === 'string' && id.length > 0).slice(0, 2);
     while (pets.length < 2) pets.push(base.pets[pets.length] || 'none');
@@ -82,7 +82,10 @@ const Profile = {
     if (Object.prototype.hasOwnProperty.call(stats, 'bestSurvival')) {
       normalizedStats.bestSurvival = this._number(stats.bestSurvival, 0);
     }
-    const achievements = [...new Set((Array.isArray(source.achievements) ? source.achievements : []))].slice(0, 64);
+    const achievements = [...new Set((Array.isArray(source.achievements) ? source.achievements : []))].slice(-64);
+    const earnedKernor = achievements.includes('trofeu-torneio') || achievements.includes('arcade-campeao');
+    this._repairedKernor = earnedKernor && !unlocked.includes('kernor');
+    if (this._repairedKernor) unlocked = [...unlocked, 'kernor'].slice(-64);
     return Object.assign({}, source, {
       achievements,
       unlocked,
@@ -115,6 +118,7 @@ const Profile = {
     this.data = this._normalize(this._read(this.KEY));
     if (!this._read(this.DEVICE_SETTINGS_KEY)) this._saveDeviceSettings();
     else this._applyDeviceSettings(this.data);
+    if (this._repairedKernor) this.save();
     return this.data;
   },
 
@@ -129,6 +133,7 @@ const Profile = {
     // Uma conta que ainda não tem snapshot pode adotar o perfil anônimo local.
     this.data = this._normalize(stored || this._read(this.KEY));
     this._applyDeviceSettings(this.data);
+    if (this._repairedKernor) this.save();
     return this.data;
   },
 
@@ -139,15 +144,18 @@ const Profile = {
     this.accountUid = null;
     this.data = this._normalize(this._read(this.KEY));
     this._applyDeviceSettings(this.data);
+    if (this._repairedKernor) this.save();
     return this.data;
   },
 
   save() {
     this.data = this._normalize(this.data);
     this._saveDeviceSettings();
-    if (this.accountUid) this._write(this._accountKey(this.accountUid), this.data);
-    else this._write(this.KEY, this.data);
+    const profileOk = this.accountUid
+      ? this._write(this._accountKey(this.accountUid), this.data)
+      : this._write(this.KEY, this.data);
     if (typeof Cloud !== 'undefined' && Cloud && typeof Cloud.queueSave === 'function') Cloud.queueSave();
+    return profileOk;
   },
 
   _localCloudUpdatedAt() {
@@ -171,7 +179,7 @@ const Profile = {
     if (!remote || typeof remote !== 'object' || Array.isArray(remote)) return this.data;
     const local = this._normalize(this.data || this.load());
     const unique = (list) => [...new Set((Array.isArray(list) ? list : [])
-      .filter((id) => typeof id === 'string' && id.length > 0))].slice(0, 64);
+      .filter((id) => typeof id === 'string' && id.length > 0))].slice(-64);
     const stamp = remoteData && remoteData.updatedAt;
     const remoteTime = stamp && typeof stamp.toMillis === 'function' ? stamp.toMillis() :
       stamp && stamp.seconds != null ? Number(stamp.seconds) * 1000 : Number(stamp) || 0;
@@ -327,6 +335,30 @@ const Profile = {
   },
   hasPitoco() {
     return !!(this.data && this.data.pitocoUnlocked);
+  },
+  /* Troféu e o Kernor saem no mesmo save. Se o navegador recusar a gravação,
+     o retorno é false e a tela não diz que o desbloqueio ficou salvo. */
+  grantTournamentClear() {
+    this.data = this._normalize(this.data || this.load());
+    const ach = this.data.achievements;
+    const fresh = [];
+    for (const id of ['arcade-campeao', 'trofeu-torneio']) {
+      if (!ach.includes(id)) { ach.push(id); fresh.push(id); }
+    }
+    if (!this.data.unlocked.includes('kernor')) this.data.unlocked.push('kernor');
+    const stats = this.data.stats || (this.data.stats = {});
+    stats.bestArcade = Math.max(this._number(stats.bestArcade, 0), 7);
+    const wrote = this.save() === true;
+    const raw = wrote ? this._read(this.accountUid ? this._accountKey(this.accountUid) : this.KEY) : null;
+    const persisted = !!(raw && Array.isArray(raw.unlocked) && raw.unlocked.includes('kernor')
+      && Array.isArray(raw.achievements) && raw.achievements.includes('trofeu-torneio'));
+    if (typeof UI !== 'undefined' && UI.toast) {
+      for (const id of fresh) {
+        const a = (typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS : []).find((x) => x.id === id);
+        if (a) UI.toast('🏅 ' + a.name, 3200);
+      }
+    }
+    return persisted;
   },
   grantAchievement(id) {
     if (!id) return false;

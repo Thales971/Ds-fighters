@@ -126,7 +126,7 @@ for (const f of ['js/net/room-core.js', 'online-server/room-core.js']) {
 const prof = read('js/core/profile.js');
 check('Kernor entre os secretos e com desbloqueio proprio', /SECRET_IDS[^;]*'kernor'/.test(prof) && /ids = \['kernor'\]/.test(prof));
 const ui = read('js/ui/ui.js');
-check('chefe do torneio e o Kernor na chave fixa', /TORNEIO_LADDER/.test(read('js/engine/torneio.js')) && /bossFight: isBoss && opp === 'kernor'/.test(ui));
+check('chefe do torneio e o Kernor, e o substituto também entra como chefe', /id: 'kernor'[^}]*boss: true/.test(read('js/engine/torneio.js')) && /boss: !!row\.boss/.test(read('js/engine/torneio.js')) && /bossFight: isBoss,/.test(ui));
 check('Iales so no Versus', /modeBanned/.test(ui) && /iales[^\n]*versus/.test(ui));
 check('game.js aplica bossScale', /bossScale/.test(read('js/engine/game.js')));
 

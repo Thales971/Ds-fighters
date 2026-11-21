@@ -984,13 +984,7 @@ const UI = {
   buildArcade() {
     const f = this.flow;
     const me = FIGHTERS[f.picks[0][0]].id;
-    const standIn = { larper: 'ponteiro', 'cyber-psicopata': 'odette', rafael: 'emilio', 'dev-senior': 'jess', lyra: 'nunes', nimbo: 'fullstack', kernor: 'fullstack' };
-    const rows = (typeof TORNEIO_LADDER !== 'undefined' ? TORNEIO_LADDER : []);
-    f.ladder = rows.map((row) => {
-      if (row.id !== me) return Object.assign({}, row);
-      const id = standIn[row.id] || 'ponteiro';
-      return Object.assign({}, row, { id: id, boss: row.boss && id === 'kernor' });
-    });
+    f.ladder = typeof torneioLadderFor === 'function' ? torneioLadderFor(me) : [];
     f.arcadeStep = 0;
     f.afterWin = false;
     f.tourneyBuffs = [];
@@ -1030,14 +1024,14 @@ const UI = {
   },
   showBuffs() {
     const f = this.flow;
-    const pool = (typeof TORNEIO_BUFFS !== 'undefined' ? TORNEIO_BUFFS : []).filter((b) => !(f.tourneyBuffs || []).includes(b.id));
-    const pick = pool.slice();
-    while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
+    const pick = typeof torneioBuffChoices === 'function' ? torneioBuffChoices(f.tourneyBuffs) : [];
     const el = this.$('buff-list');
     if (el) {
-      el.innerHTML = pick.map((b) => `<button type="button" class="buff-card" data-buff="${b.id}"><span class="buff-ico">${b.ico || '+'}</span><b>${b.name}</b><small>${b.desc}</small></button>`).join('');
+      el.innerHTML = pick.length
+        ? pick.map((b) => `<button type="button" class="buff-card" data-buff="${b.id}"><span class="buff-ico">${b.ico || '+'}</span><b>${b.name}</b><small>${b.desc}</small></button>`).join('')
+        : '<button type="button" class="buff-card" data-buff=""><span class="buff-ico">OK</span><b>SEGUIR</b><small>Sem bônus novo. A próxima luta começa agora.</small></button>';
       el.querySelectorAll('.buff-card').forEach((btn) => btn.addEventListener('click', () => {
-        f.tourneyBuffs = (f.tourneyBuffs || []).concat(btn.dataset.buff);
+        if (btn.dataset.buff) f.tourneyBuffs = (f.tourneyBuffs || []).concat(btn.dataset.buff);
         f.arcadeStep++;
         f.afterWin = false;
         this.launchArcade();
@@ -1080,7 +1074,7 @@ const UI = {
     const stageId = tor ? tor[Math.min(tor.length - 1, row.map == null ? f.arcadeStep : row.map)] : STAGE_LIST[0].id;
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: stageId, weather: 'random',
-      bossFight: isBoss && opp === 'kernor',
+      bossFight: isBoss,
       tourneyBuffs: (f.tourneyBuffs || []).slice(),
       rivalLine: row.line || '',
       /* A dificuldade do menu NÃO entra aqui. Cada degrau da chave tem a sua. */
@@ -1128,6 +1122,8 @@ const UI = {
     if (!g || !g.running) return;
     this.photoMode = true;
     g.photo = { x: 0, y: 0, z: 1, hideF: false, filter: '', filterName: 'NORMAL' };
+    const filterBtn = this.$('btn-photo-filter');
+    if (filterBtn) filterBtn.textContent = 'FILTRO: NORMAL';
     if (typeof HUD !== 'undefined') HUD.hide();
     document.body.classList.add('photo');
     const bar = this.$('photo-bar');
@@ -1263,14 +1259,11 @@ const UI = {
         const cleared = f.arcadeStep >= (f.ladder || []).length - 1;
         if (cleared) {
           title = 'CAMPEÃO DO TORNEIO!';
-          Profile.record('bestArcade', 7);
-          Profile.grantAchievement('arcade-campeao');
-          Profile.grantAchievement('trofeu-torneio');
-          if (!Profile.data.unlocked.includes('kernor')) {
-            Profile.data.unlocked.push('kernor');
-            Profile.save();
-          }
-          rankHtml += '<p class="tourney-rank">Troféu do Núcleo. KERNOR liberado na seleção.</p>';
+          const alreadyKernor = Profile.isUnlocked('kernor');
+          const persisted = typeof Profile.grantTournamentClear === 'function' ? Profile.grantTournamentClear() : false;
+          rankHtml += (persisted || alreadyKernor)
+            ? '<p class="tourney-rank">Troféu do Núcleo. KERNOR liberado na seleção.</p>'
+            : '<p class="tourney-rank">Troféu do Núcleo. Não consegui gravar o desbloqueio neste navegador.</p>';
           f.afterWin = false;
         } else {
           Profile.record('bestArcade', f.arcadeStep + 1);
@@ -1457,7 +1450,7 @@ const UI = {
       <tr><td>Mover / pular / agachar</td><td><kbd>A D W S</kbd></td><td><kbd>← → ↑ ↓</kbd></td><td>Analógico / D-pad</td></tr>
       <tr><td>Soco · Chute</td><td>mouse esq. · dir.</td><td>${K(1, 'punch')} ${K(1, 'kick')}</td><td>□ ✕</td></tr>
       <tr><td>Poderes 1 a 5</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd></td><td><kbd>N1</kbd>…<kbd>N5</kbd></td><td>○ △ L1 R1 R2</td></tr>
-      <tr><td>Poderes 6 a 10 (KERNOR)</td><td><kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></td><td><kbd>N6</kbd>…<kbd>N0</kbd></td><td>L3 R3 Tpad</td></tr>
+      <tr><td>Poderes 6 a 10 (IALES e KERNOR)</td><td><kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></td><td><kbd>N6</kbd>…<kbd>N0</kbd></td><td>L3 R3 Tpad</td></tr>
       <tr><td>Troca (2x2)</td><td>${K(0, 'tag')}</td><td>${K(1, 'tag')}</td><td>L2</td></tr>
       <tr><td>Defender</td><td colspan="3">Segure para trás (em pé = alto, agachado = baixo)</td></tr>
       <tr><td>Dash / recuo</td><td colspan="3">Toque duas vezes para frente / para trás</td></tr>

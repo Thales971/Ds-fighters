@@ -71,6 +71,10 @@ class Game {
 
   /* ---------- configuração ---------- */
   start(cfg) {
+    /* Cada luta pode abrir o Kernor de novo. O flag antigo pulava a intro
+       na segunda vez que a página entrava no chefe. */
+    this._bossIntro = false;
+    this._bossDim = 0;
     this.cfg = Object.assign({ mode: 'versus', difficulty: 1, cpu: [false, true], roundsToWin: 2, timer: 180 }, cfg);
     this.mode = this.cfg.mode;
     this.time = 0;
@@ -225,7 +229,12 @@ class Game {
     const p = this.teams[0] && this.teams[0].members[0];
     if (!p) return;
     if (ids.indexOf('dano') >= 0) p.tourneyDmg = (p.tourneyDmg || 1) * 1.12;
-    if (ids.indexOf('vida') >= 0) { p.maxHp = Math.round(p.maxHp * 1.18); p.hp = p.maxHp; p.redHp = p.maxHp; }
+    if (ids.indexOf('vida') >= 0) {
+      const cap = typeof HP_LIMIT === 'number' ? HP_LIMIT : 500;
+      p.maxHp = Math.min(cap, Math.round(p.maxHp * 1.18));
+      p.hp = p.maxHp;
+      p.redHp = p.maxHp;
+    }
     if (ids.indexOf('ult') >= 0) p.ultimate = Math.max(p.ultimate, 45);
     if (ids.indexOf('velo') >= 0) p.tourneySpd = (p.tourneySpd || 1) * 1.08;
     if (ids.indexOf('medidor') >= 0) p.tourneyMeter = (p.tourneyMeter || 1) * 1.15;
@@ -730,7 +739,8 @@ class Game {
         this.audio.voice(finalRound ? 'final' : ('round' + Math.min(3, this.round)));
         if (this.round === 1) this.openingLines();
       }
-      if (this.roundStateTime === 8 && this.round === 1 && this.cfg.bossFight && !this._bossIntro) {
+      const bossF = this.teams[1] && this.teams[1].members[0];
+      if (this.roundStateTime === 8 && this.round === 1 && this.cfg.bossFight && bossF && bossF.def.id === 'kernor' && !this._bossIntro) {
         this._bossIntro = true;
         this._bossDim = 78;
         this.shake(18);

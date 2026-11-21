@@ -795,11 +795,10 @@
     if (!this.user) return false;
     let result = false;
     for (let attempt = 0; attempt < 4; attempt += 1) {
-      const revision = this._saveRevision;
       result = await this._upload();
-      if (!this.user || !this._dirty || this._saveRevision === revision) return result;
       clearTimeout(this._saveTimer);
       this._saveTimer = null;
+      if (!this.user || !this._dirty) return result;
     }
     return result;
   };

@@ -32,6 +32,7 @@
     _sessionId: 0,
     _dirty: false,
     _dirtyUid: '',
+    _saveRevision: 0,
 
     isConfigured() {
       const c = global.DS_FIREBASE_CONFIG;
@@ -283,11 +284,11 @@
         if (value === null || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && value.length <= 256)) settings[key] = value;
       });
       const stats = source.stats && typeof source.stats === 'object' ? source.stats : {};
-      const unlocked = Array.isArray(source.unlocked) ? source.unlocked.filter((id) => typeof id === 'string' && id.length > 0).slice(0, 64) : [];
+      const unlocked = Array.isArray(source.unlocked) ? source.unlocked.filter((id) => typeof id === 'string' && id.length > 0).slice(-64) : [];
       const pets = Array.isArray(source.pets) ? source.pets.filter((id) => typeof id === 'string' && id.length > 0).slice(0, 2) : ['tux', 'none'];
       while (pets.length < 2) pets.push('none');
       return {
-        unlocked: [...new Set(unlocked)].slice(0, 64),
+        unlocked: [...new Set(unlocked)].slice(-64),
         pets,
         name: String(source.name || 'Jogador').slice(0, 64),
         settings,
@@ -321,6 +322,7 @@
         if (this._isCurrent(sessionId, user, uid)) this._setStatus('offline', 'Sem conexão. O progresso ficará salvo neste navegador.');
         return false;
       }
+      const revision = this._saveRevision || 0;
       if (this._uploadPromise && this._uploadPromise.sessionId === sessionId) return this._uploadPromise.promise;
       let task;
       task = (async () => {
@@ -331,9 +333,22 @@
           await this._deps.firestoreFns.setDoc(ref, payload);
           if (!this._isCurrent(sessionId, user, uid)) return false;
           this._touchLocal(uid);
-          this._dirty = false;
-          this._dirtyUid = '';
-          this._setStatus('saved');
+          if ((this._saveRevision || 0) === revision) {
+            this._dirty = false;
+            this._dirtyUid = '';
+            this._setStatus('saved');
+          } else {
+            /* Um save entrou no meio do envio. O payload desta viagem
+               está velho: mantém sujo e manda o perfil novo em seguida. */
+            this._dirty = true;
+            this._dirtyUid = uid;
+            if (!this._saveTimer) {
+              this._saveTimer = setTimeout(() => {
+                this._saveTimer = null;
+                if (this._sessionId === sessionId && this._uid(this.user) === uid) void this._upload();
+              }, 0);
+            }
+          }
           return true;
         } catch (error) {
           if (!this._isCurrent(sessionId, user, uid)) return false;
@@ -372,11 +387,17 @@
           } finally { this._suppressQueue = false; }
         }
         if (!this._isCurrent(expectedSession, expectedUser, uid)) return false;
+        const revision = this._saveRevision || 0;
         await this._deps.firestoreFns.setDoc(ref, this._payload(expectedUser));
         if (!this._isCurrent(expectedSession, expectedUser, uid)) return false;
         this._touchLocal(uid);
-        this._dirty = false;
-        this._dirtyUid = '';
+        if ((this._saveRevision || 0) === revision) {
+          this._dirty = false;
+          this._dirtyUid = '';
+        } else {
+          this._dirty = true;
+          this._dirtyUid = uid;
+        }
         this._setStatus('saved');
         return true;
       } catch (error) {
@@ -394,6 +415,7 @@
       if (!this.user || !this._db || !this._deps) return;
       this._dirty = true;
       this._dirtyUid = uid;
+      this._saveRevision = (this._saveRevision || 0) + 1;
       clearTimeout(this._saveTimer);
       const sessionId = this._sessionId;
       this._saveTimer = setTimeout(() => {
@@ -406,7 +428,14 @@
       clearTimeout(this._saveTimer);
       this._saveTimer = null;
       if (!this.user) return false;
-      return this._upload();
+      let result = false;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        result = await this._upload();
+        clearTimeout(this._saveTimer);
+        this._saveTimer = null;
+        if (!this.user || !this._dirty) return result;
+      }
+      return result;
     },
   };
 

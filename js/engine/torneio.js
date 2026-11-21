@@ -351,6 +351,33 @@ var TORNEIO_BUFFS = [
   { id: 'medidor', ico: 'BAR', name: 'MEDIDOR', desc: 'O medidor enche 15% mais rápido.' },
   { id: 'escudo', ico: 'DEF', name: 'PELE GROSSA', desc: 'Você toma 10% menos dano.' },
 ];
+/* Se o jogador escolheu um rival da chave, entra um substituto.
+   A última luta continua sendo de chefe mesmo quando o Kernor é o jogador. */
+function torneioLadderFor(playerId) {
+  const standIn = { larper: 'ponteiro', 'cyber-psicopata': 'odette', rafael: 'emilio', 'dev-senior': 'jess', lyra: 'nunes', nimbo: 'fullstack', kernor: 'fullstack' };
+  return TORNEIO_LADDER.map((row) => {
+    if (row.id !== playerId) return Object.assign({}, row);
+    const id = standIn[row.id] || 'ponteiro';
+    return Object.assign({}, row, { id: id, boss: !!row.boss });
+  });
+}
+/* Sempre sobra escolha. Com os 6 bônus já pegos, os antigos voltam
+   para a tela não travar antes do chefe. */
+function torneioBuffChoices(owned) {
+  const all = TORNEIO_BUFFS.slice();
+  const have = new Set(owned || []);
+  const fresh = all.filter((b) => !have.has(b.id));
+  const pick = fresh.slice();
+  if (pick.length < 3) {
+    for (const b of all) {
+      if (!have.has(b.id)) continue;
+      if (pick.length >= 3) break;
+      pick.push(b);
+    }
+  }
+  while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
+  return pick;
+}
 function torneioRank(hpRatio, seconds, combo, boss) {
   const hp = Math.max(0, Math.min(1, hpRatio || 0));
   const time = Math.max(0, 1 - (seconds || 99) / (boss ? 140 : 75));
