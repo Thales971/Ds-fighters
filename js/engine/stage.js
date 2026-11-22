@@ -669,11 +669,14 @@ class StageRenderer {
       if (this.def.pixel) ctx.imageSmoothingEnabled = false;
       const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.002;
       const z = 1.08 + breathe + (zoomPulse || 0) * 0.01;
-      for (const layer of this.layers) {
+      this.layers.forEach((layer, li) => {
         const dw = W * z;
         const dh = H * z;
-        this.blitWide(ctx, layer.img, 0, 0, layer.img.naturalWidth || W, layer.img.naturalHeight || H, (W - dw) / 2, (H - dh) * 0.85 + (layer.y || 0), dw, dh, camX, layer.speed);
-      }
+        /* VIDA: cada camada oscila devagar no proprio ritmo (fundo respira, frente quase parada) */
+        const drift = this.reducedFlag ? 0 : Math.sin(this.t * 0.0026 + li * 1.9) * (6 - li * 1.8);
+        const bob = this.reducedFlag ? 0 : Math.sin(this.t * 0.0019 + li * 2.3) * (li === 0 ? 2 : 0.8);
+        this.blitWide(ctx, layer.img, 0, 0, layer.img.naturalWidth || W, layer.img.naturalHeight || H, (W - dw) / 2 + drift, (H - dh) * 0.85 + (layer.y || 0) + bob, dw, dh, camX, layer.speed);
+      });
     } else if (this.ready) {
       const [sx, sy, sw, sh] = this.frameRect();
       const breathe = this.reducedFlag ? 0 : Math.sin(this.t * 0.004) * 0.002;
@@ -683,7 +686,8 @@ class StageRenderer {
       const ox = (W - dw) / 2;
       const oy = (H - dh) * 0.85;
       ctx.save();
-      this.blitWide(ctx, this.img, sx, sy, sw, sh, ox, oy, dw, dh, camX, 0.16);
+      const drift = this.reducedFlag ? 0 : Math.sin(this.t * 0.0026) * 5; /* VIDA: fundo de imagem unica tambem respira */
+      this.blitWide(ctx, this.img, sx, sy, sw, sh, ox + drift, oy, dw, dh, camX, 0.16);
       ctx.beginPath();
       ctx.rect(0, H * 0.18, W, H * 0.64);
       ctx.clip();

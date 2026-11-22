@@ -95,7 +95,7 @@ const R = vm.runInContext(`(() => {
 check('Jester registrado (normal, nao secreto)', R.found && !R.secret, JSON.stringify(R.stats));
 check('kit: torta / sino / pirulito / code review / grande final', JSON.stringify(R.kinds) === JSON.stringify(['shot', 'blast', 'shot', 'barrage', 'jesterfinale']), R.names.join(' | '));
 check('balanceado com o FORCA do v14 (2.9) + ajuste geral', (R.stats.power >= 3.335 * 0.7 && R.stats.power <= 3.335 * 1.35), JSON.stringify(R.stats));
-check('na grade de selecao + folhas registradas + cache proprio', R.roster === 54 && /^v[67][0-9]/.test(R.rv) && R.sheets && /v67-jester/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
+check('na grade de selecao + folhas registradas + cache proprio', R.roster === 54 && /^v([6-9][0-9])/.test(R.rv) && R.sheets && /v67-jester/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
 
 const res = vm.runInContext(`(() => {
   const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };

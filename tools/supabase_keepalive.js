@@ -93,9 +93,33 @@ async function main() {
   throw last;
 }
 
+/* Diagnostico do LOGIN (so leitura, chave publica): mostra no log do Actions se
+   o provedor de email esta ligado, se o cadastro esta aberto, se exige
+   confirmacao por email e se as tabelas do ranking existem. Nunca derruba o job. */
+async function authReport() {
+  const { url, key } = readPublicConfig();
+  const out = {};
+  try {
+    const r = await fetch(url + '/auth/v1/settings', { headers: { apikey: key } });
+    const b = await r.json();
+    const ext = b.external || {};
+    out.auth = { http: r.status, email: ext.email, google: ext.google, signupAberto: b.disable_signup === false || b.disable_signup === undefined ? true : !b.disable_signup, exigeConfirmarEmail: b.mailer_autoconfirm === undefined ? null : !b.mailer_autoconfirm };
+  } catch (e) { out.auth = { erro: String(e && e.message || e) }; }
+  for (const t of ['ds_fighters_profiles', 'ds_fighters_ranking']) {
+    try {
+      const r = await fetch(url + '/rest/v1/' + t + '?select=*&limit=1', { headers: { apikey: key, Authorization: 'Bearer ' + key } });
+      out[t] = r.status;
+    } catch (e) { out[t] = 'erro'; }
+  }
+  return out;
+}
+
+module.exports.authReport = authReport;
+
 if (require.main === module) {
-  main().then((result) => {
+  main().then(async (result) => {
     console.log(JSON.stringify(result));
+    try { console.log('LOGIN/RANKING:', JSON.stringify(await authReport())); } catch (e) { /* so diagnostico */ }
   }).catch((error) => {
     console.error(error && error.message ? error.message : error);
     console.error('>> Se o projeto estiver pausado: supabase.com/dashboard -> projeto ownxbuailthavxgfxtem -> Restore. O keep-alive so impede NOVAS pausas.');

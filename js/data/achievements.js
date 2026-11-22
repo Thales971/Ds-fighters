@@ -30,5 +30,6 @@ const ACHIEVEMENTS = [
   { id: 'acessorio-1',   name: 'Estiloso',             desc: 'Ligue um acessório em um lutador' },
   { id: 'favoritos-5',   name: 'Colecionador',         desc: 'Marque 5 lutadores como favoritos' },
   { id: 'pet-1',         name: 'Melhor Amigo',         desc: 'Equipe um mascote' },
+  { id: 'login-1',       name: 'Humano Verificado',   desc: 'Entre com sua conta e libere o Captcha Guard e a raposa' },
   { id: 'pitoco-1',      name: 'O Cão Mais Fiel',     desc: 'Desbloqueie o mascote secreto' },
 ];

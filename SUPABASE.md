@@ -92,3 +92,22 @@ O banco real confirmou RLS habilitada, `anon SELECT = false`, permissões SELECT
 ## Decisão do proprietário
 
 Em 01/11/2026, o proprietário escolheu **deixar o Google para depois**. Não solicitar novamente a criação/configuração OAuth nesta etapa. O Supabase continua ativo com tabela privada e cliente integrado; o provedor Google permanece desativado, e o jogo mantém o progresso local até um login real ser habilitado. Nenhuma alteração adicional nos provedores ou nas tabelas anteriores foi feita por causa desse adiamento.
+
+## Login por email + ranking (nov/2026)
+
+O jogo entra **só com email e senha** (o botão do Google só aparece se o provedor
+Google estiver ligado no projeto). Para o login funcionar no projeto do jogo:
+
+1. **Authentication → Sign In / Providers → Email**: ligado. Se "Confirm email"
+   estiver ligado, a pessoa precisa clicar no link do email antes de entrar.
+2. **Authentication → URL Configuration**: em *Site URL* e *Redirect URLs*, o
+   endereço do jogo publicado (o link de confirmação volta para ele).
+3. **SQL Editor**: rode `supabase/sql/ds_fighters_ranking.sql` uma vez (cria o
+   ranking com RLS: todo mundo lê, cada conta só escreve a própria linha).
+
+Quem entra com conta libera o **CAPTCHA GUARD** e a **Raposa do Firefox**
+(só com login: sair da conta trava de novo).
+
+O keep-alive do GitHub Actions imprime no log uma linha `LOGIN/RANKING:` com o
+estado do provedor de email, do cadastro e das tabelas: é o jeito rápido de
+conferir a configuração sem abrir o painel.

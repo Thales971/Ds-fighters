@@ -153,7 +153,7 @@ async function main() {
   assert.ok(account, 'Account global is created');
   assert.match(env.box.innerHTML, /account-email-signin/);
   assert.match(env.box.innerHTML, /account-email-signup/);
-  assert.match(env.box.innerHTML, /account-signin/);
+  assert.doesNotMatch(env.box.innerHTML, /account-signin/, 'Google desligado: so email (sem botao do Google)');
 
   env.box.querySelector('#account-email-signin').dispatch('click');
   const email = env.box.querySelector('#account-email');

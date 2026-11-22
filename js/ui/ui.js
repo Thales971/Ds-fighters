@@ -47,6 +47,46 @@ function rosterPortraitStyle(id, px) {
      quando o cartão ficava maior que 48px. */
   return `--pcols:${cols};--prows:${rows};--pcol:${col};--prow:${row};background-image:url(${src})`;
 }
+/* ---------- DECORACAO DOS EVENTOS (aba Eventos) ----------
+   Cada evento ganha moldura + enfeites animados no cartao do calendario, nos
+   botoes de mapa e no destaque: Natal (festao de vinha, bolinhas, gelo e neve),
+   Halloween (morcegos, bruxa, aboboras e teia), Carnaval (confete, serpentina,
+   mascaras), Pascoa (ovos pintados, coelho, flores), Junina (bandeirinhas,
+   fogueira, milho), Criancas (baloes, pipa, pirulito) e Ano Novo (fogos,
+   brilhos, tacas). So CSS + emoji: nada de imagem nova pra baixar. */
+const EV_DECOR = {
+  natal: { top: 'garland', items: [['❄', 'fall', 12, 6], ['❄', 'fall', 38, 2], ['❄', 'fall', 64, 9], ['❄', 'fall', 86, 4]], corner: [['🎁', 'br'], ['⛄', 'bl']], balls: true, bottom: 'snowbank' },
+  halloween: { items: [['🦇', 'bat', 8, 18], ['🦇', 'bat2', 58, 30], ['🧙‍♀️', 'witch', 0, 12]], corner: [['🎃', 'br', 'glow'], ['🕸️', 'tl'], ['🎃', 'bl', 'glow']], bottom: 'fog' },
+  carnaval: { top: 'serpentina', items: [['🎊', 'spin', 80, 30], ['🪶', 'sway', 6, 40]], corner: [['🎭', 'br', 'sway'], ['🥁', 'bl']], confetti: true },
+  pascoa: { items: [['🦋', 'flutter', 20, 20], ['🌷', 'still', 70, 70]], corner: [['🐰', 'br', 'hop'], ['🌼', 'bl']], eggs: true },
+  junina: { top: 'flags', items: [['✨', 'twinkle', 30, 40], ['✨', 'twinkle', 70, 52]], corner: [['🔥', 'br', 'flicker'], ['🌽', 'bl']] },
+  criancas: { top: 'rainbow', items: [['🎈', 'rise', 10, 0], ['🎈', 'rise2', 82, 0], ['🪁', 'sway', 60, 18]], corner: [['🍭', 'br', 'spin-slow'], ['🧸', 'bl']] },
+  anonovo: { items: [['✨', 'twinkle', 14, 18], ['✨', 'twinkle2', 46, 10], ['✨', 'twinkle', 78, 24], ['🎆', 'pop', 64, 8]], corner: [['🥂', 'br'], ['🎉', 'bl', 'sway']], top: 'gold' },
+};
+function evDecor(id, kind) {
+  const d = EV_DECOR[id];
+  if (!d) return '';
+  const small = kind === 'card';
+  const out = [];
+  if (d.top) out.push(`<i class="evd-top evd-${d.top}"></i>`);
+  if (d.balls) {
+    const short = small || kind === 'btn'; /* no cartao e no botao do menu o fio e curto: nao cobre o texto */
+    const n = small ? 3 : kind === 'hero' ? 9 : 5;
+    for (let k = 0; k < n; k++) out.push(`<i class="evd-ball c${k % 4}" style="left:${Math.round((k + 0.5) * 100 / n)}%;--d:${(k % 3) * 0.4}s;--len:${short ? 3 + (k % 2) * 3 : 8 + (k % 3) * 6}px"></i>`);
+    out.push('<i class="evd-ice"></i>');
+  }
+  if (d.confetti) out.push('<i class="evd-confetti"></i>');
+  if (d.eggs) {
+    const n = small ? 2 : kind === 'hero' ? 5 : 3;
+    for (let k = 0; k < n; k++) out.push(`<i class="evd-egg e${k % 4}" style="right:${(small ? 20 : 28) + k * (small ? 14 : 20)}px"></i>`);
+  }
+  if (d.bottom) out.push(`<i class="evd-bottom evd-${d.bottom}"></i>`);
+  const items = small ? d.items.slice(0, 2) : d.items;
+  items.forEach(([e, anim, x, y], k) => out.push(`<i class="evd-it a-${anim}" style="left:${x}%;top:${y}%;--d:${k * 0.7}s">${e}</i>`));
+  (small ? d.corner.slice(0, 1) : d.corner).forEach(([e, pos, anim]) => out.push(`<i class="evd-c p-${pos}${anim ? ' a-' + anim : ''}">${e}</i>`));
+  return `<span class="evd" aria-hidden="true">${out.join('')}</span>`;
+}
+
 const UI = {
   hud: HUD,
   screen: null,
@@ -161,9 +201,117 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events', 'ladder', 'buffs', 'vs'].includes(this.screen)) return this.toMenu();
+    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'ranking', 'events', 'ladder', 'buffs', 'vs'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
+  /* ---------- RANKING (contas por email) ---------- */
+  _rankKind: 'wins',
+  enter_ranking() {
+    const tabs = document.querySelectorAll('#scr-ranking .rank-tabs .tab');
+    tabs.forEach((t) => {
+      if (t._rk) return;
+      t._rk = true;
+      t.addEventListener('click', () => { AudioSys.select(); this.renderRanking(t.dataset.rank); });
+    });
+    this.renderRanking(this._rankKind || 'wins');
+  },
+  async renderRanking(kind) {
+    this._rankKind = kind === 'tourney' ? 'tourney' : 'wins';
+    document.querySelectorAll('#scr-ranking .rank-tabs .tab').forEach((t) => t.classList.toggle('on', t.dataset.rank === this._rankKind));
+    const me = this.$('rank-me');
+    const list = this.$('rank-list');
+    if (!me || !list) return;
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]);
+    const st = (Profile.data && Profile.data.stats) || {};
+    if (Profile.loggedIn()) {
+      me.innerHTML = `<label for="rank-nick">Seu apelido no ranking</label>
+        <span class="rank-nick-row"><input id="rank-nick" maxlength="16" value="${esc(Ranking.nickname())}" /><button class="nav btn" id="rank-nick-save" type="button">SALVAR</button></span>
+        <small>Você: <b>${st.wins || 0}</b> vitórias · melhor torneio <b>${st.bestTourneySecs ? Ranking.fmtTime(st.bestTourneySecs) : '—'}</b></small>`;
+      const save = this.$('rank-nick-save');
+      if (save) save.addEventListener('click', async () => {
+        const v = String(this.$('rank-nick').value || '').replace(/[<>]/g, '').trim().slice(0, 16);
+        if (!v) { this.toast('Digite um apelido.'); return; }
+        Profile.data.name = v;
+        Profile.save();
+        const ok = await Ranking.submit(true);
+        this.toast(ok ? 'Apelido salvo no ranking!' : 'Não consegui falar com o ranking agora. Tente de novo.', 2600);
+        this.renderRanking(this._rankKind);
+      });
+      void Ranking.submit(true);
+    } else {
+      me.innerHTML = `<p>Você ainda não está no ranking. <b>FAÇA LOGIN</b> com email pra aparecer aqui (e ganhar o CAPTCHA GUARD e a RAPOSA DO FIREFOX).</p><button class="nav btn primary" id="rank-login" type="button">FAZER LOGIN</button>`;
+      const b = this.$('rank-login');
+      if (b) b.addEventListener('click', () => this.goLogin());
+    }
+    list.innerHTML = '<li class="rank-empty">Carregando…</li>';
+    const kindNow = this._rankKind;
+    const r = await Ranking.top(kindNow, 20);
+    if (this._rankKind !== kindNow || this.screen !== 'ranking') return;
+    if (!r.ok) {
+      list.innerHTML = `<li class="rank-empty">${r.error === 'missing' ? 'O ranking ainda não foi criado no Supabase (falta rodar supabase/sql/ds_fighters_ranking.sql).' : 'Sem conexão com o ranking agora. O jogo continua normal.'}</li>`;
+      return;
+    }
+    if (!r.rows.length) {
+      list.innerHTML = `<li class="rank-empty">${kindNow === 'tourney' ? 'Ninguém fechou o torneio com conta ainda. Seja o primeiro!' : 'Ninguém venceu com conta ainda. Seja o primeiro!'}</li>`;
+      return;
+    }
+    const myUid = Ranking._uid();
+    list.innerHTML = r.rows.map((row, i) => `<li class="${row.uid === myUid ? 'me' : ''}${i < 3 ? ' top' + (i + 1) : ''}"><span class="pos">${i + 1}º</span><span class="nm">${esc(row.name)}</span><span class="val">${kindNow === 'tourney' ? Ranking.fmtTime(row.best_tourney_secs) : row.wins + ' vit.'}</span></li>`).join('');
+  },
+  /* Vai pro menu e abre o formulario de conta (email) */
+  goLogin() {
+    this.closeLoginNudge();
+    this.toMenu();
+    setTimeout(() => {
+      if (typeof Account !== 'undefined' && Account.openSignup) Account.openSignup();
+    }, 80);
+  },
+  /* ---------- AVISO DE LOGIN (Lyra no balao) ---------- */
+  _nudgeShown: 0,
+  closeLoginNudge() {
+    const el = document.getElementById('login-nudge');
+    if (el) el.remove();
+  },
+  loginNudge(force) {
+    if (typeof Profile === 'undefined' || Profile.loggedIn()) return false;
+    if (typeof Cloud !== 'undefined' && Cloud.isConfigured && !Cloud.isConfigured()) return false;
+    if (!force && this._nudgeShown >= 2) return false; /* no maximo 2x por sessao sozinho */
+    if (document.getElementById('login-nudge')) return false;
+    this._nudgeShown += 1;
+    const cg = FIGHTERS.find((x) => x.id === 'captcha-guard');
+    const el = document.createElement('div');
+    el.id = 'login-nudge';
+    el.className = 'login-nudge';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'ln-title');
+    el.innerHTML = `
+      <div class="ln-card">
+        <div class="ln-talk">
+          <div class="ln-lyra" aria-hidden="true"></div>
+          <div class="ln-bubble"><b>LYRA:</b> Ei, dev! Se você limpar o navegador, todo o seu progresso vira <code>undefined</code>... Cria uma conta rapidinho que eu guardo tudo na nuvem pra você. E ainda te apresento dois amigos novos!</div>
+        </div>
+        <h2 id="ln-title">FAÇA LOGIN PARA SALVAR O SEU PROGRESSO E MUITO MAIS</h2>
+        <div class="ln-rewards">
+          <figure><span class="ln-fig ln-cg" style="--c:${cg ? cg.colors.accent : '#3FB8FF'}"></span><figcaption><b>CAPTCHA GUARD</b><small>lutador exclusivo</small></figcaption></figure>
+          <figure><span class="ln-fig ln-fox"></span><figcaption><b>RAPOSA DO FIREFOX</b><small>mascote exclusivo</small></figcaption></figure>
+        </div>
+        <p class="ln-small">Só email e senha. Seu progresso fica salvo em qualquer aparelho e você entra no RANKING.</p>
+        <div class="ln-actions">
+          <button class="nav btn primary" id="ln-go" type="button">FAZER LOGIN</button>
+          <button class="nav btn" id="ln-later" type="button">AGORA NÃO</button>
+        </div>
+      </div>`;
+    (document.getElementById('app') || document.body).appendChild(el);
+    el.querySelector('#ln-go').addEventListener('click', () => { AudioSys.select(); this.goLogin(); });
+    el.querySelector('#ln-later').addEventListener('click', () => { AudioSys.back(); this.closeLoginNudge(); });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); this.closeLoginNudge(); } });
+    el.addEventListener('click', (e) => { if (e.target === el) this.closeLoginNudge(); });
+    setTimeout(() => { const b = el.querySelector('#ln-go'); if (b) b.focus(); }, 40);
+    if (typeof AudioSys !== 'undefined' && AudioSys.play) AudioSys.play('pickup');
+    return true;
+  },
+
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
   renderConquistas() {
     const got = (Profile.data && Profile.data.achievements) || [];
@@ -269,7 +417,25 @@ const UI = {
   },
 
   /* ---------- menu ---------- */
+  /* Botao EVENTOS do menu com a cara do evento (no ar ou o proximo). */
+  decorateEventsButton() {
+    const btn = document.querySelector('#scr-menu .mm[data-go="events"]');
+    if (!btn || typeof Events === 'undefined') return;
+    const rows = Events.upcoming();
+    const now = rows.find((r) => r.active) || rows.filter((r) => !r.live).sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    if (!now) return;
+    if (btn.dataset.ev === now.ev.id && btn.querySelector('.evd')) return;
+    btn.classList.add('ev-btn');
+    btn.dataset.ev = now.ev.id;
+    const old = btn.querySelector('.evd');
+    if (old) old.remove();
+    btn.insertAdjacentHTML('afterbegin', evDecor(now.ev.id, 'btn'));
+    const small = btn.querySelector('small');
+    const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
+    if (small) small.textContent = now.active ? `${now.ev.icon} ${now.ev.name.toUpperCase()} NO AR!` : `${now.ev.icon} ${now.ev.name} em ${dias(now.daysUntil)} · mapas de festa`;
+  },
   buildMenuSide() {
+    try { this.decorateEventsButton(); } catch (e) { /* enfeite nao trava o menu */ }
     const s = Profile.data.stats;
     this.$('stats-card').innerHTML = `
       <h3>PERFIL</h3>
@@ -521,12 +687,15 @@ const UI = {
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
          interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
          O busto vem do atlas gerado a partir do idle real, na mesma escala. */
-      const thumb = lock ? '' : rosterPortraitStyle(d.id);
-      const lockLabel = tourneyCode ? 'Não entra no torneio' : 'Bloqueado — use um código';
-      return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? lockLabel : d.name}">
-        <span class="face${lock ? ' q' : ''}${thumb && !lock ? ' roster-portrait' : ''}" ${thumb && !lock ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
-        <span class="nm">${lock ? (tourneyCode && Profile.isUnlocked(d.id) ? d.name.split(' ')[0] : '???') : d.name.split(' ')[0]}</span>
-        ${lock ? `<span class="lk">&#128274;<small>${tourneyCode ? 'FORA' : 'CÓDIGO'}</small></span>` : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
+      /* recompensa de login: a foto aparece (isca), com cadeado LOGIN */
+      const loginLock = lock && !offline && Profile.isLoginLocked(d.id);
+      const thumb = lock && !loginLock ? '' : rosterPortraitStyle(d.id);
+      const showFace = thumb && (!lock || loginLock);
+      const lockLabel = loginLock ? 'Faça login para liberar' : tourneyCode ? 'Não entra no torneio' : 'Bloqueado — use um código';
+      return `<button class="cell ${lock ? 'locked' : ''}${loginLock ? ' login-lock' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? lockLabel : d.name}">
+        <span class="face${lock && !loginLock ? ' q' : ''}${showFace ? ' roster-portrait' : ''}" ${showFace ? `style="${thumb}"` : ''} aria-hidden="true">${lock && !loginLock ? '?' : ''}</span>
+        <span class="nm">${lock && !loginLock ? (tourneyCode && Profile.isUnlocked(d.id) ? d.name.split(' ')[0] : '???') : d.name.split(' ')[0]}</span>
+        ${lock ? `<span class="lk">&#128274;<small>${loginLock ? 'LOGIN' : tourneyCode ? 'FORA' : 'CÓDIGO'}</small></span>` : d.secret ? '<span class="sx">SECRETO</span>' : d.loginReward ? '<span class="sx">CONTA</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
         <span class="favbtn${favs.has(d.id) ? ' on' : ''}" role="button" tabindex="-1" data-fav="${d.id}" title="Favoritar (tecla F)" aria-label="Favoritar ${d.id}">★</span>
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
@@ -723,7 +892,7 @@ const UI = {
     el.innerHTML = `
       <div class="who">${ti === 0 ? 'P1' : f.p2Human ? 'P2' : f.mode === 'training' ? 'BONECO' : 'CPU'}${f.need > 1 ? ` · ${f.picks[ti].length}/${f.need}` : ''}</div>
       <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(${SpriteGen.faceUrl(id)})"></span>`).join('')}</div>
-      ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>${tourneyCode && Profile.isUnlocked(d.id) ? d.name : '???'}</h3><p class="bio">${tourneyCode ? 'Personagem de código. Não pode ser escolhido no torneio. O Kernor continua só como chefe final.' : 'Lutador secreto. Resgate um código no menu para liberar.'}</p>` : `
+      ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock && Profile.isLoginLocked(d.id) ? `<div class="big-sprite login-lock" style="background-image:url(${SpriteGen.url(d.id)})"></div><h3 style="--c:${d.colors.accent}">${d.name}</h3><p class="bio"><b>🔒 FAÇA LOGIN PARA LIBERAR.</b> Crie sua conta com email no menu principal e ele é seu (junto com a Raposa do Firefox).</p>` : lock ? `<div class="big-sprite locked"></div><h3>${tourneyCode && Profile.isUnlocked(d.id) ? d.name : '???'}</h3><p class="bio">${tourneyCode ? 'Personagem de código. Não pode ser escolhido no torneio. O Kernor continua só como chefe final.' : 'Lutador secreto. Resgate um código no menu para liberar.'}</p>` : `
       <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
       <div class="ttl">${d.title}</div>
@@ -810,6 +979,7 @@ const UI = {
       this.toast(msg);
       return;
     }
+    if (f.mode !== 'training' && Profile.isLoginLocked(d.id)) { AudioSys.back(); this.loginNudge(true); return; }
     if (f.mode !== 'training' && !Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
     if (f.picks[who].includes(i)) { AudioSys.back(); return; }
     f.picks[who].push(i);
@@ -958,17 +1128,17 @@ const UI = {
     const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
     const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
     const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
-    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" data-ev="${now.ev.id}" style="${stage ? `background-image:url(${stage.image})` : ''}">${evDecor(now.ev.id, 'hero')}
       <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
     </div>` : '';
     this.$('events-upcoming').innerHTML = rows.map((r) => {
       const tag = r.active ? (r.live ? (r.daysLeft <= 0 ? 'hoje' : 'agora') : 'teste') : r.live ? 'hoje' : `em ${dias(r.daysUntil)}`;
-      return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
+      return `<article class="ev-card${r.active ? ' on' : ''}" data-ev="${r.ev.id}">${evDecor(r.ev.id, 'card')}<b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
     }).join('');
     const activeId = now && now.active ? now.ev.id : '';
     const maps = STAGE_LIST.filter((s) => s.event);
     maps.sort((a, b) => (a.event === activeId ? 0 : 1) - (b.event === activeId ? 0 : 1));
-    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}" data-ev="${s.event}">${evDecor(s.event, 'map')}<span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
     this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
       b.addEventListener('click', () => {
         this.startFlow('versus', { stage: b.dataset.id });
@@ -1050,6 +1220,7 @@ const UI = {
     const me = FIGHTERS[f.picks[0][0]].id;
     f.ladder = typeof torneioLadderFor === 'function' ? torneioLadderFor(me) : [];
     f.arcadeStep = 0;
+    f.tourneySecs = 0; /* RANKING: soma dos segundos de luta (vitorias e derrotas) */
     f.afterWin = false;
     f.tourneyBuffs = [];
     f.tourneyScore = 0;
@@ -1321,6 +1492,7 @@ const UI = {
     next.hidden = true;
     let rankHtml = '';
     if (game.mode === 'arcade') {
+      f.tourneySecs = (f.tourneySecs || 0) + (Number(res.seconds) || 0);
       if (res.winner === 0) {
         const p0 = game.teams[0].members[0];
         const row = (f.ladder || [])[f.arcadeStep] || {};
@@ -1335,6 +1507,9 @@ const UI = {
         const cleared = f.arcadeStep >= (f.ladder || []).length - 1;
         if (cleared) {
           title = 'CAMPEÃO DO TORNEIO!';
+          if (typeof Profile.recordTourneyTime === 'function' && Profile.recordTourneyTime(f.tourneySecs)) {
+            rankHtml += `<p class="tourney-rank">Novo recorde: torneio em <b>${typeof Ranking !== 'undefined' ? Ranking.fmtTime(f.tourneySecs) : f.tourneySecs + 's'}</b> de luta${Profile.loggedIn() ? ' — já está no RANKING!' : '. Faça login pra entrar no RANKING.'}</p>`;
+          }
           const alreadyKernor = Profile.isUnlocked('kernor');
           const persisted = typeof Profile.grantTournamentClear === 'function' ? Profile.grantTournamentClear() : false;
           rankHtml += (persisted || alreadyKernor)
@@ -1385,7 +1560,13 @@ const UI = {
       if (gen !== (this._launchGen || 0)) return;
       if (this.screen === 'menu' || this.screen === 'title') return;
       this.show('results');
+      /* AVISO DE LOGIN: depois da 2a luta (e de novo la pela 8a) pra quem nao tem conta */
+      if (game.mode !== 'online' && (this._fightsThisSession === 2 || this._fightsThisSession === 8)) {
+        setTimeout(() => { if (this.screen === 'results') this.loginNudge(false); }, 700);
+      }
     }, 900);
+    if (game.mode !== 'demo') this._fightsThisSession = (this._fightsThisSession || 0) + 1;
+    if (typeof Ranking !== 'undefined' && Profile.loggedIn()) setTimeout(() => { void Ranking.submit(game.mode === 'arcade'); }, 1500);
     AudioSys.playMusic('menu');
   },
 
@@ -1400,13 +1581,15 @@ const UI = {
     const hasPit = typeof Profile !== 'undefined' && Profile.hasPitoco && Profile.hasPitoco();
     grid.innerHTML = PETS.map((p) => {
       const locked = !!p.secret && !hasPit; /* segredo travado mostra SILHUETA, nao some */
+      /* recompensa de login: mostra o bicho (isca) com cadeado e o aviso */
+      const loginLocked = !!p.login && !Profile.loggedIn();
       const spr = locked
         ? `<span class="pet-spr sil" title="???">?</span>`
-        : `<span class="pet-spr ${p.row < 0 ? 'none' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v47-maresprites)' : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
+        : `<span class="pet-spr ${p.row < 0 && !p.img ? 'none' : ''}${loginLocked ? ' login-lock' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v47-maresprites)' : p.img ? `background-image:url(${p.img})` : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
       const name = locked ? '???' : p.name;
-      const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : p.buff;
+      const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : loginLocked ? '🔒 FAÇA LOGIN para liberar. ' + p.buff : p.buff;
       return `
-      <button class="nav pet ${locked ? 'locked' : ''} ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
+      <button class="nav pet ${locked || loginLocked ? 'locked' : ''}${loginLocked ? ' login' : ''} ${p.id === cur ? 'on' : ''}" data-id="${p.id}">
         ${spr}
         <b>${name}</b><small>${desc}</small>${p.id === cur ? '<em>EQUIPADO</em>' : ''}
       </button>`;
@@ -1414,6 +1597,7 @@ const UI = {
     grid.querySelectorAll('.pet').forEach((b) => b.addEventListener('click', () => {
       if (b.classList.contains('locked')) {
         AudioSys.play('deny');
+        if (b.classList.contains('login')) { this.loginNudge(true); return; }
         UI.toast('🔒 Mascote secreto — resgaste o código PITOCO.', 2600);
         return;
       }
@@ -1559,7 +1743,7 @@ const UI = {
       const kit = POWERS[id];
       const lock = !Profile.isUnlocked(id);
       pick.querySelectorAll('.mp').forEach((b) => b.classList.toggle('on', b.dataset.id === id));
-      this.$('moves-list').innerHTML = lock ? `<h3>???</h3><p>Lutador secreto. Resgate um código para ver as habilidades.</p>` : `
+      this.$('moves-list').innerHTML = lock ? (Profile.isLoginLocked(id) ? `<h3>${d.name}</h3><p>🔒 Faça login (conta por email) para liberar este lutador e ver as habilidades.</p>` : `<h3>???</h3><p>Lutador secreto. Resgate um código para ver as habilidades.</p>`) : `
         <div class="moves-hero" style="background-image:url(${SpriteGen.url(d.id)})"></div>
         <h3 style="--c:${d.colors.accent}">${d.name} <small>${d.title}</small></h3><p class="sub small">${kit.theme}${kit.autoAim ? ' · Todos os ataques com AUTO AIM' : ''}</p>
         <ul class="kit big">${kit.powers.map((p, i) => `<li class="${p.slot}"><span class="ico anim" style="${Art.css('abil:' + id, p.row, 0, 64)};--row:${p.row}"></span>

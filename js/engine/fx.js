@@ -72,7 +72,12 @@ const ART_SHEETS = {
   'fx2:lyra': { src: 'assets/abilities/lyra.png', size: 128, cols: 4, rows: 5, v: 'v65-lyra' },
   'fx2:lyra-extra': { src: 'assets/abilities/lyra-extra.png', size: 128, cols: 4, rows: 2, v: 'v65-lyra' },
   'fx2:dev-senior-electric': { src: 'assets/abilities/dev-senior-electric.png', size: 128, cols: 4, rows: 1 },
+  /* CAPTCHA GUARD (tools/build_captcha_fx.py) — so com login */
+  'abil:captcha-guard': { src: 'assets/abilities/captcha-guard.png', size: 128, cols: 4, rows: 5, v: 'v82-captcha' },
+  'fx2:captcha-guard': { src: 'assets/abilities/captcha-guard.png', size: 128, cols: 4, rows: 5, v: 'v82-captcha' },
+  'fx2:captcha-guard-extra': { src: 'assets/abilities/captcha-guard-extra.png', size: 128, cols: 4, rows: 4, v: 'v82-captcha' },
   pets: { src: 'assets/pets/pets.png', size: 96, cols: 4 },
+  firefox: { src: 'assets/pets/firefox.png', size: 96, cols: 4, v: 'v82-raposa' },
   pitoco: { src: 'assets/pets/pitoco.png', size: 96, cols: 4 },
   bichos: { src: 'assets/fauna/bichos.png', size: 96, cols: 4, rows: 10 },
   flora: { src: 'assets/fauna/flora.png', size: 128, cols: 4, rows: 5 },

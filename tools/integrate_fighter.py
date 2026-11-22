@@ -890,7 +890,43 @@ KERNOR_POSES = {
     'win':     ([(2, 3, 1, False), (2, 1, 0, False), (2, 3, 1, False), (2, 1, 0, False)], 220, BASE),
 }
 
+# CAPTCHA GUARD (so com login). Folhas (si): 0=4aa3b504 (idle/andar/corrida | poder/pulo/aterrissa/agacha),
+# 1=15329d07 (guarda/bloqueio/soco/chute | voadora/gancho/tiro/provoca), 2=896141b5 (pistola),
+# 3=f9b64307 (carga/feixe), 4=f0fdff9e (dano/KO/vitoria).
+CAPTCHA_POSES = {
+    'idle':    ([(1, 0, 0, False)] * 4, 200, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 2, 0, False), (0, 1, 0, False), (0, 2, 0, False)], 198, BASE),
+    'jump':    ([(0, 1, 1, False)] * 4, 185, AIR),
+    'crouch':  ([(0, 2, 1, False)] * 4, 140, BASE),
+    'punch':   ([(1, 0, 0, False), (1, 2, 0, False), (1, 2, 0, False), (1, 0, 0, False)], 200, BASE),
+    'kick':    ([(1, 0, 0, False), (1, 3, 0, False), (1, 3, 0, False), (1, 0, 0, False)], 200, BASE),
+    'cpunch':  ([(4, 2, 1, False)] * 4, 150, BASE),
+    'ckick':   ([(0, 3, 1, False)] * 4, 135, BASE),
+    'jpunch':  ([(1, 1, 1, False)] * 4, 185, AIR),
+    'jkick':   ([(1, 0, 1, False)] * 4, 175, AIR),
+    'special': ([(2, 0, 0, False), (2, 1, 1, False), (2, 0, 1, False), (2, 0, 1, False)], 200, BASE),
+    'hit':     ([(4, 0, 0, False), (4, 1, 0, False), (4, 0, 0, False), (4, 1, 0, False)], 196, BASE),
+    'block':   ([(1, 1, 0, False)] * 4, 198, BASE),
+    'ko':      ([(4, 3, 0, False)] * 4, 85, BASE),
+    'win':     ([(4, 3, 1, False), (2, 3, 1, False), (4, 3, 1, False), (2, 3, 1, False)], 205, BASE),
+}
+
 FIGHTERS = {
+    'captcha-guard': {
+        'src_dir': 'Pitoco-pet/Rafael-personagem/Captcha-guard-personagem',
+        'sheets': ['4aa3b504-fc16-4e1c-9663-1643c47d11e1.jpg', '15329d07-6b0b-43bd-b00a-894d5c777f1f.jpg',
+                   '896141b5-5a76-4c0f-93a1-df2e77e30e56.jpg', 'f9b64307-3581-4d97-b861-0501393135e9.jpg',
+                   'f0fdff9e-cd2b-4b3f-a6e8-b41276bb45d9.jpg'],
+        'poses': CAPTCHA_POSES,
+        'ui_cell': (1, 0, 0, False),
+        'row_bands': [(0, 448), (448, 896)],
+        'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
+        'col_bands_per': {4: [(0, 296), (296, 580), (580, 842), (842, 1184)]},
+        'strict_magenta': True,
+        'holes': True,
+        'no_idle_shake': True,
+        'abilities_keep': True,  # atlas animado: tools/build_captcha_fx.py
+    },
     'kernor': {
         'src_dir': 'Kernor-chefe-torneio',
         'sheets': ['kernelor sprite 1.jpg', 'Kernelor sprite 2.jpg', 'Kernelor sprite 3.jpg'],
@@ -1196,7 +1232,7 @@ def desat_metal(fig, k):
 SHEET_POST = {}
 
 
-def build_sheet(cells, pose_map):
+def build_sheet(cells, pose_map, no_idle_shake=False):
     sheet = Image.new('RGBA', (1280, 3900), (0, 0, 0, 0))
     for pose_i, pose in enumerate(POSES_ORDER):
         keys, target_h, foot_y = pose_map[pose]
@@ -1210,7 +1246,7 @@ def build_sheet(cells, pose_map):
             fig = figure_rgba(crop, mask, bg)
             if SHEET_POST.get(si):
                 fig = desat_metal(fig, SHEET_POST[si])
-            shake = SHAKE_DEFAULT if len(set(map(tuple, keys))) == 1 else 0
+            shake = SHAKE_DEFAULT if len(set(map(tuple, keys))) == 1 and not (no_idle_shake and pose == 'idle') else 0
             place(sheet, fig, target_h, foot_y, frame, pose_i,
                   dx=shake[frame] if shake else 0, flip=flip)
     return sheet
@@ -1346,11 +1382,12 @@ def main():
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
-            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'), denoise=cfg.get('denoise', False))
+            cb = (cfg.get('col_bands_per') or {}).get(si, cfg.get('col_bands'))
+            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cb, denoise=cfg.get('denoise', False))
             for k, v in sc.items():
                 cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
-        sheet = build_sheet(cells, cfg['poses'])
+        sheet = build_sheet(cells, cfg['poses'], cfg.get('no_idle_shake', False))
         sheet.save(ROOT / f'assets/sprites/{fid}.png')
         if not cfg.get('abilities_keep'):
             ab = cfg['abilities']

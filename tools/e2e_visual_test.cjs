@@ -20,15 +20,22 @@ let fails = 0, n = 0;
 const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
 fs.mkdirSync('.vibe/e2e', { recursive: true });
 
+// SpriteGen.load() (ao carregar sprites.js) pede as folhas com '?v=...': no Node
+// isso FALHA de forma assincrona e marca failed[id]. Se a falha chegasse depois
+// do carregamento abaixo, a luta mostrava 'folha nao carregou' em vermelho no
+// topo e o texto contava como magenta (teste intermitente). Espera as falhas
+// assentarem antes de carregar de verdade.
+await new Promise((r) => setTimeout(r, 400));
 // carrega TODOS os sprites DENTRO do vm (SpriteGen so existe la)
 const res = await vm.runInContext(`
 (async () => {
-  const load = async (id, p) => { try { SpriteGen.images[id] = await loadImage(p); return true; } catch (e) { return false; } };
+  const load = async (id, p) => { try { SpriteGen.images[id] = await loadImage(p); delete SpriteGen.failed[id]; return true; } catch (e) { return false; } };
   const loadArt = async (k, p) => { try { Art.images[k] = await loadImage(p); return true; } catch (e) { return false; } };
   return {
     jess: await load('jess', 'assets/sprites/jess.png'),
     du: await load('du', 'assets/sprites/du.png'),
     henrico: await load('henrico', 'assets/sprites/henrico.png'),
+    stack: await load('stack', 'assets/sprites/stack.png'), /* cena da fauna: du x stack */
     atlasJess: await loadArt('abil:jess', 'assets/abilities/jess.png') && await loadArt('fx2:jess', 'assets/abilities/jess.png'),
     atlasDu: await loadArt('abil:du', 'assets/abilities/du.png') && await loadArt('fx2:du', 'assets/abilities/du.png'),
     bichos: await loadArt('bichos', 'assets/fauna/bichos.png'),
@@ -125,8 +132,10 @@ for (let i = 0; i < d4.length; i += 4) {
   if (d4[i+3] > 60 && d4[i+1] < 90 && d4[i] > 150 && d4[i+2] > 90 && d4[i+1] < d4[i] - 100) mag4++;
 }
 globalThis.__mag4 = mag4;
+globalThis.__warn4 = (g4.spriteWarnings || []).length;
 `, ctx);
 check('fauna com sprites: zero magenta na tela', ctx.__mag4 < 50, ctx.__mag4 + ' px');
+check('cena da fauna sem aviso de folha faltando', ctx.__warn4 === 0, ctx.__warn4 + ' avisos');
 
 // ==== 5. TORCIDA na arquibancada com a folha REAL ====
 await vm.runInContext(`

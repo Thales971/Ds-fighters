@@ -574,6 +574,7 @@ class Game {
     }
     const perfect = winner && winner.hp >= winner.maxHp - 0.5;
     this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
+    if (this.stage.eventKO) this.stage.eventKO(loser.x, GROUND_Y - 110); /* mapa de evento: chuva tematica */
     this.audio.voice(perfect ? 'perfect' : 'ko');
     this.audio.play('crowd', { vol: 0.6 });
     this.shake(14);
@@ -1362,6 +1363,8 @@ class Game {
     ctx.translate(sx, sy);
     this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
     if (this.stage.drawRays && !this.photo) this.stage.drawRays(ctx);
+    if (this.stage.drawLife) this.stage.drawLife(ctx);             /* sombras de nuvem + brilho no piso */
+    if (this.stage.drawEventBack) this.stage.drawEventBack(ctx);   /* especiais do evento (fundo) */
     if (this.freeze > 0) {
       ctx.fillStyle = 'rgba(0,0,10,0.62)';
       ctx.fillRect(-20, -20, W + 40, H + 40);
@@ -1455,6 +1458,7 @@ class Game {
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
+    if (this.stage.drawEventFront) this.stage.drawEventFront(ctx); /* especiais do evento (frente) + chuva do K.O. */
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
     if (this._bossDim > 0) {
       ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.62, this._bossDim / 100).toFixed(3) + ')';

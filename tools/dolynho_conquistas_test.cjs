@@ -28,9 +28,9 @@ check('profile.js: SECRET_IDS tem 5 secretos incl. dolynho + branch de resgate p
 check('achievements.js: 28 conquistas, ids unicos, todas com name+desc', /const ACHIEVEMENTS = \[/.test(achSrc));
 {
   const ids = [...achSrc.matchAll(/id: '([^']+)'/g)].map((m) => m[1]);
-  check('29 conquistas com ids unicos e completos (com a do torneio)', ids.length === 29 && new Set(ids).size === 29, ids.length + ' ids');
+  check('30 conquistas com ids unicos e completos (torneio + login)', ids.length === 30 && new Set(ids).size === 30, ids.length + ' ids');
   const entries = achSrc.match(/\{ id: '[^']+',[^}]*\}/g) || [];
-  check('todas as conquistas tem name e desc', entries.length === 29 && entries.every((e) => /name:/.test(e) && /desc:/.test(e)));
+  check('todas as conquistas tem name e desc', entries.length === 30 && entries.every((e) => /name:/.test(e) && /desc:/.test(e)));
 }
 check('hooks de grant: game.js (combo-30, vitoria-10/50, recordStage), fighter.js (ultimate-1, bloqueio-25), ui.js (arcade-3, survival-5, foto-1, acessorio-1, favoritos-5, pet-1)', gameSrc.indexOf("grantAchievement('combo-30')") >= 0 && gameSrc.indexOf("grantAchievement('vitoria-10')") >= 0 && gameSrc.indexOf('recordStage(this.cfg.stage)') >= 0 && ftrSrc.indexOf("grantAchievement('ultimate-1')") >= 0 && ftrSrc.indexOf("grantAchievement('bloqueio-25')") >= 0 && ['arcade-3', 'survival-5', 'foto-1', 'acessorio-1', 'favoritos-5', 'pet-1'].every((id) => uiSrc.indexOf("grantAchievement('" + id + "')") >= 0));
 check('profile.js: recordStage conta palcos e da estagios-10; unlockPitoco da pitoco-1', profSrc.indexOf('recordStage(stageId)') >= 0 && profSrc.indexOf("grantAchievement('estagios-10')") >= 0 && profSrc.indexOf("grantAchievement('pitoco-1')") >= 0);
@@ -238,7 +238,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
 
   ui.renderConquistas();
   const cqHtml = ui.__els['conquistas-list'].innerHTML;
-  check('renderConquistas: barra de progresso + 2/29 + cartao .medal.on no primeiro-ko + recordes', cqHtml.indexOf('cq-bar') >= 0 && cqHtml.indexOf('2/29') >= 0 && /medal on/.test(cqHtml) && cqHtml.indexOf('RECORDES') >= 0 && cqHtml.indexOf('DU MAGMA') >= 0, cqHtml.slice(0, 120));
+  check('renderConquistas: barra de progresso + 2/30 + cartao .medal.on no primeiro-ko + recordes', cqHtml.indexOf('cq-bar') >= 0 && cqHtml.indexOf('2/30') >= 0 && /medal on/.test(cqHtml) && cqHtml.indexOf('RECORDES') >= 0 && cqHtml.indexOf('DU MAGMA') >= 0, cqHtml.slice(0, 120));
   check('renderConquistas: medalhas novas listadas (Fotógrafo, Turista, O Cão Mais Fiel...)', cqHtml.indexOf('Turista') >= 0 && cqHtml.length > 3000, 'len=' + cqHtml.length);
 
   ui.renderPets();

@@ -87,7 +87,7 @@ const R = vm.runInContext(`(() => {
 check('Kuno registrada (normal, nao secreta)', R.found && !R.secret, JSON.stringify(R.stats));
 check('kit: kunai / lamina lunar / passo das sombras / fumaca / dragao', JSON.stringify(R.kinds) === JSON.stringify(['shot', 'dash', 'aura', 'zone', 'kunoult']), R.names.join(' | '));
 check('balanceada com o FORCA do v14 (1.7) + ajuste geral', (R.stats.power >= 1.785 * 0.7 && R.stats.power <= 1.785 * 1.35), JSON.stringify(R.stats));
-check('na grade de selecao + folhas registradas + cache proprio', R.roster === 57 && /^v7[2-9]/.test(R.rv) && R.sheets && /v72-kuno/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
+check('na grade de selecao + folhas registradas + cache proprio', R.roster === 57 && /^v(7[2-9]|8[0-9])/.test(R.rv) && R.sheets && /v72-kuno/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
 
 const res = vm.runInContext(`(() => {
   const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };
