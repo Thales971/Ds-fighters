@@ -529,6 +529,7 @@ class Game {
         if (d >= 26 && !this.reduced) this.hitstop = Math.max(this.hitstop, 7);
       }
     }
+    if (!blocked && d >= 12 && this.impactHit && this.qFxOn !== false) this.impactHit(victim, d);
     if (!blocked) {
       if (victim.redHp < victim.hp) victim.redHp = victim.hp;
       this._hitPulse = true;
@@ -575,6 +576,7 @@ class Game {
     const perfect = winner && winner.hp >= winner.maxHp - 0.5;
     this.announce('K.O.!', '#ff3b30', perfect ? 'PERFEITO!' : (winner ? winner.def.name + ' venceu o round' : ''));
     if (this.stage.eventKO) this.stage.eventKO(loser.x, GROUND_Y - 110); /* mapa de evento: chuva tematica */
+    if (this.impactKO) this.impactKO(loser); /* K.O. explode em cacos + onda de choque */
     this.audio.voice(perfect ? 'perfect' : 'ko');
     this.audio.play('crowd', { vol: 0.6 });
     this.shake(14);
@@ -879,6 +881,7 @@ class Game {
     }
     this.bursts = this.bursts.filter((b) => b.age < b.dur);
     for (const s of this.sparks) { s.x += s.vx; s.y += s.vy; s.vy += (s.gravity || 0.28); s.life--; }
+    if (this.updateImpact) this.updateImpact();
     this.sparks = this.sparks.filter((s) => s.life > 0);
     for (const t of this.texts) { t.y += t.vy; t.life--; }
     this.texts = this.texts.filter((t) => t.life > 0);
@@ -1368,6 +1371,7 @@ class Game {
     if (this.freeze > 0) {
       ctx.fillStyle = 'rgba(0,0,10,0.62)';
       ctx.fillRect(-20, -20, W + 40, H + 40);
+      if (this.drawUltFx) this.drawUltFx(ctx, W, H, GROUND_Y); /* linhas de velocidade + luz + faixas de cinema */
     }
     ctx.save();
     ctx.translate(0, GROUND_Y);
@@ -1479,6 +1483,7 @@ class Game {
       }
       ctx.globalAlpha = 1;
     }
+    if (this.drawImpact) this.drawImpact(ctx); /* ondas de choque + cacos do K.O. */
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
     /* foreground do palco (grama alta na frente dos lutadores) fica sobre os

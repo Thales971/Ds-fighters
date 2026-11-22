@@ -404,7 +404,15 @@ const UI = {
   cutIn(f, p) {
     if (this.game && this.game.mode === 'demo') return;
     const c = this.$('cutin');
-    c.querySelector('.ci-face').style.backgroundImage = `url(${SpriteGen.faceUrl(f.def.id)})`;
+    const faceEl = c.querySelector('.ci-face');
+    faceEl.style.backgroundImage = `url(${SpriteGen.faceUrl(f.def.id)})`;
+    faceEl.classList.remove('portrait');
+    /* RETRATO GRANDE no corte da ult (corpo inteiro); sem retrato, fica o rosto */
+    const pid = f.def.id;
+    const pimg = new Image();
+    pimg.onload = () => { if (c.dataset.fid === pid) { faceEl.style.backgroundImage = `url(${pimg.src})`; faceEl.classList.add('portrait'); } };
+    c.dataset.fid = pid;
+    pimg.src = `assets/ui/portrait-${pid}.png?v=` + (((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.ver) || {})[pid] || 'v1');
     c.querySelector('.ci-name').textContent = f.def.name;
     c.querySelector('.ci-move').textContent = p.name || '';
     c.style.setProperty('--accent', f.def.colors.accent || '#ffd27d');
@@ -413,7 +421,7 @@ const UI = {
     void c.offsetWidth;
     c.classList.add('on');
     clearTimeout(this._cutT);
-    this._cutT = setTimeout(() => c.classList.remove('on'), 900);
+    this._cutT = setTimeout(() => c.classList.remove('on'), 1100);
   },
 
   /* ---------- menu ---------- */
