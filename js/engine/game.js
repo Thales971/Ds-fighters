@@ -266,8 +266,8 @@ class Game {
     /* 0.22 de dano e 1.35 de dano recebido deixava um botão-mash vencer:
        o chefe quase não batia e virava saco. Agora ele bate de verdade e
        não toma dano extra. A fase 2 ainda aumenta o golpe. */
-    p.bossDmg = 0.34;
-    p.bossTaken = 1.12;
+    p.bossDmg = 0.6; /* era 0.34: com 2000 de vida o chefe virava saco de pancada (o Nimbo dava mais trabalho) */
+    p.bossTaken = 1;
     p.enrage = 0;
   }
   startAmbience() {

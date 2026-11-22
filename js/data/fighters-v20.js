@@ -70,9 +70,9 @@
         }, visual(3, '#E8E4D8')),
         Object.assign({
           id: 'parar-relogio', name: 'Parar o Relógio', slot: 'ultimate', row: 4,
-          kind: 'blast', at: 'target', dmg: 30, stun: 60, radius: 300, cd: 1350, sfx: 'ultimate',
-          fx: { freeze: 180, paralyze: 180, slow: 240, meterSlow: 240 },
-          desc: 'CONGELA o oponente por 3 segundos — só Ponteiro age. A hora é dele.',
+          kind: 'blast', at: 'target', dmg: 22, stun: 45, radius: 300, cd: 1350, sfx: 'ultimate',
+          fx: { freeze: 120, paralyze: 120, slow: 150, meterSlow: 150 }, /* nerf nov/2026: 3s -> 2s, dano 30 -> 22 */
+          desc: 'CONGELA o oponente por 2 segundos — só Ponteiro age. A hora é dele.',
         }, visual(4, '#00FFFF')),
       ],
     },

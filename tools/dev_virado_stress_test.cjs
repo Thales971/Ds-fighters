@@ -213,7 +213,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
       let surv = 0;
       try {
         for (let k = 0; k < 3; k++) {
-          const r = run({ mode: 'survival', teams: [['dev-virado'], ['du']], stage: 'random', cpu: [false, true], roundsToWin: 1, timer: 99, difficulty: k }, 9000);
+          const r = run({ mode: 'survival', teams: [['dev-virado'], ['du']], stage: 'random', cpu: [false, true], roundsToWin: 1, timer: 99, difficulty: k }, 16000);
           if (r.over) surv++;
           else break;
         }

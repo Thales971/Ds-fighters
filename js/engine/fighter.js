@@ -295,9 +295,10 @@ class Fighter {
     return m;
   }
   /* ultimate ja depende da barra cheia: fica fora do anti-spam */
-  spamDmgMult(p) { if (p && p.slot === 'ultimate') return 1; return (this.spamHeat || 0) >= 3 ? Math.max(0.35, 1 - 0.22 * (this.spamHeat - 2)) : 1; }
+  spamDmgMult(p) { if (p && p.slot === 'ultimate') return 1; return (this.spamHeat || 0) >= 2 ? Math.max(0.3, 1 - 0.25 * (this.spamHeat - 1)) : 1; }
   dmgMult(p) {
-    let m = p ? this.spamDmgMult(p) : 1;
+    /* spam: habilidade com calor perde ate 70%; o golpe basico de quem esta spamando perde metade disso */
+    let m = p ? this.spamDmgMult(p) : (1 + this.spamDmgMult()) / 2;
     m *= (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1) * (this.tourneyDmg || 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
@@ -808,13 +809,13 @@ class Fighter {
     }
     /* ANTI-SPAM (todos os modos, so jogador humano): habilidade atras de
        habilidade sem respiro esquenta. A partir do 3o seguido o dano das
-       habilidades cai (ate -65%). Segurar ~3s entre habilidades esfria. */
+       habilidades cai (ate -70%). Segurar ~3s entre habilidades esfria. */
     if (p.slot !== 'ultimate' && this.game && this.game.cfg && this.game.cfg.cpu && !this.game.cfg.cpu[this.team]) {
       const now = this.frame || 0;
       const gap = now - (this._lastCastF == null ? -9999 : this._lastCastF);
       this.spamHeat = gap < 200 ? (this.spamHeat || 0) + 1 : Math.max(0, (this.spamHeat || 0) - Math.floor(gap / 200));
       this._lastCastF = now;
-      if (this.spamHeat >= 3) this.flashText('SPAM! DANO -' + Math.round((1 - this.spamDmgMult()) * 100) + '%', '#ff7a3a');
+      if (this.spamHeat >= 2) this.flashText('SPAM! DANO -' + Math.round((1 - this.spamDmgMult()) * 100) + '%', '#ff7a3a');
     }
     this.cast = { p, i, t: 0, fired: false };
     this.state = 'cast';
@@ -1605,7 +1606,7 @@ class Fighter {
       /* FASE 2 do chefe: abaixo de metade da vida, fúria + super armadura */
       if (this.bossPhase && this.alive && this.hp > 0 && this.hp <= this.maxHp * 0.5) {
         if (!this.enrage) {
-          this.enrage = 1.24;
+          this.enrage = 1.3;
           this.game.announce('FASE 2', '#ff2a4a', 'NÚCLEO EM FÚRIA');
           this.game.shake(16);
           this.game._bossDim = 40;

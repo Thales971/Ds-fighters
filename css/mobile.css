@@ -173,3 +173,22 @@ body.mobile:not(.landscape)[data-screen="fight"] .turn-phone { display: flex; fl
 .turn-phone b { font-size: 16px; line-height: 1.6; color: var(--gold); }
 .turn-phone p { max-width: 280px; font: 16px/1.5 system-ui, sans-serif; color: #fff; }
 body.mobile:not(.landscape)[data-screen="fight"] #touch-controls { visibility: hidden; }
+
+/* ---- celular (v78): telas sem a luta de demonstração por baixo ---- */
+/* fora da luta, a arena de demonstração aparecia por baixo dos painéis
+   (bonecos lutando embaixo da chave/seleção = "sprite duplo") */
+body.mobile:not([data-screen="fight"]):not([data-screen="title"]) #game-view { visibility: hidden; }
+/* bônus em retrato: um cartão por linha, sem estourar a tela */
+body.mobile:not(.landscape) .buff-list { grid-template-columns: 1fr; }
+body.mobile:not(.landscape) .buff-card { min-height: 0; flex-direction: row; text-align: left; padding: 10px; }
+body.mobile .buff-card small { font-size: 9px; line-height: 1.4; }
+/* chave na horizontal: linhas compactas e botões sempre à vista */
+body.mobile.landscape [data-screen="ladder"] .panel { max-height: calc(var(--viewport-height, 100vh) - 16px); overflow-y: auto; padding-top: 8px; padding-bottom: 8px; }
+body.mobile.landscape [data-screen="ladder"] h2 { margin: 0 0 4px; font-size: 14px; }
+body.mobile.landscape [data-screen="ladder"] .sub { margin: 0 0 4px; }
+body.mobile.landscape .lad-row { padding: 0 6px; min-height: 26px; }
+body.mobile.landscape .lad-face { width: 22px; height: 22px; }
+body.mobile [data-screen="ladder"] .row { position: sticky; bottom: 0; background: inherit; padding-top: 6px; }
+body.mobile #scr-buffs .panel, body.mobile #scr-ladder .panel { width: min(780px, calc(100vw - 16px)); box-sizing: border-box; }
+body.mobile .buff-card { min-width: 0; }
+body.mobile .buff-card small { white-space: normal; overflow-wrap: anywhere; }
