@@ -835,6 +835,7 @@ class Game {
     }
   }
   tickEntities() {
+    if (this.weatherReact) this.weatherReact(); /* poca espirra, pegada na neve, folha no dash */
     for (const p of this.projectiles) p.update(this);
     this.clashProjectiles();
     for (const s of this.strikes) s.update(this);
@@ -1383,6 +1384,7 @@ class Game {
     const busy = (f) => (f.state === 'attack' || f.state === 'cast' || f.state === 'rush' ? 1 : 0);
     const fs = this.fighters().concat(this.allFighters().filter((m) => m.assistT > 0)).sort((p, q) => busy(p) - busy(q));
     if (!(this.photo && this.photo.hideF)) {
+      if (this.drawWeatherGround) this.drawWeatherGround(ctx); /* pegadas na neve */
       fs.forEach((f) => f.drawBack(ctx));
       fs.forEach((f) => f.draw(ctx));
     }
@@ -1484,6 +1486,7 @@ class Game {
       ctx.globalAlpha = 1;
     }
     if (this.drawImpact) this.drawImpact(ctx); /* ondas de choque + cacos do K.O. */
+    if (this.drawWeatherFront) this.drawWeatherFront(ctx); /* folhas levantadas no dash */
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
     /* foreground do palco (grama alta na frente dos lutadores) fica sobre os

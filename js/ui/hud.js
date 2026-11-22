@@ -74,6 +74,10 @@ const HUD = {
   combo(ti, n, dmg) {
     const el = this.$('combo-' + ti);
     el.innerHTML = `<b>${n}</b> HITS${dmg ? ` <i>· ${Math.round(dmg)} dano</i>` : ''}${n >= 8 ? '<em>INSANO!</em>' : n >= 5 ? '<em>BRUTAL!</em>' : ''}`;
+    /* combo cresce e esquenta a cor conforme sobe (3 hits amarelo -> 10+ vermelho) */
+    el.style.setProperty('--cs', String(1 + Math.min(0.7, Math.max(0, n - 2) * 0.06)));
+    el.style.setProperty('--ch', String(Math.max(0, 50 - Math.min(50, (n - 2) * 6))));
+    el.classList.toggle('hot', n >= 8);
     el.classList.remove('pop');
     void el.offsetWidth;
     el.classList.add('pop', 'on');
