@@ -153,5 +153,6 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
 SPRITE_LAYOUT.perFighter.kotlin = Object.assign(SPRITE_LAYOUT.perFighter.kotlin || {}, { scale: 1.22 });
 SPRITE_LAYOUT.ver = SPRITE_LAYOUT.ver || {};
 SPRITE_LAYOUT.ver['winx-exe'] = 'v79-winx-recorte';
+SPRITE_LAYOUT.ver['dev-veterano'] = 'v79-devvet-recorte';
 
 /* Fim do layout. */

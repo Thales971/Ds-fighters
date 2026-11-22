@@ -285,6 +285,27 @@ WINX_POSES = {
     'win':     ([(1, 4, False)] * 4, 195, BASE),
 }
 
+# DEV VETERANO reformulado (folha 4x5 do dono, fundo magenta). (col, linha, flip):
+# l0 idle/andar/correr/pulo | l1 agachado/guarda/soco/soco | l2 chute/saca/mira/tiro
+# l3 giro/hit/KO/ajoelhado | l4 vitoria/idle2/tiro forte/idle3
+DEVVET_POSES = {
+    'idle':    ([(0, 0, False), (1, 4, False), (0, 0, False), (3, 4, False)], 195, BASE),
+    'walk':    ([(1, 0, False), (2, 0, False), (1, 0, False), (2, 0, False)], 190, BASE),
+    'jump':    ([(3, 0, False)] * 4, 175, AIR),
+    'crouch':  ([(0, 1, False)] * 4, 135, BASE),
+    'punch':   ([(1, 1, False), (2, 1, False), (3, 1, False), (2, 1, False)], 190, BASE),
+    'kick':    ([(0, 2, False)] * 4, 185, BASE),
+    'cpunch':  ([(0, 1, False)] * 4, 135, BASE),
+    'ckick':   ([(3, 3, False)] * 4, 140, BASE),
+    'jpunch':  ([(3, 1, False)] * 4, 175, AIR),
+    'jkick':   ([(0, 2, False)] * 4, 175, AIR),
+    'special': ([(1, 2, False), (2, 2, False), (3, 2, False), (0, 3, False)], 195, BASE),
+    'hit':     ([(1, 3, False)] * 4, 185, BASE),
+    'block':   ([(1, 1, False)] * 4, 190, BASE),
+    'ko':      ([(2, 3, False)] * 4, 80, BASE),
+    'win':     ([(0, 4, False)] * 4, 195, BASE),
+}
+
 # Grika reformulada: folha1 (si=0: idle/andar/pulo/agachar | garra-L/chute-L/tiro-L/hit-L)
 # folha2 (si=1: chute/idle/tiro/garra | agachar/KO/pulo-ar/vitoria). 4-tuplas (si,ci,ri,flip).
 GRIKA_POSES = {
@@ -1102,6 +1123,14 @@ FIGHTERS = {
         'row_bands': [(19, 461), (470, 960), (960, 1440)],
         'col_bands': [(0, 640), (640, 1280), (1280, 1920)],
         'dark_bg': True,
+    },
+    'dev-veterano': {
+        'sheet': 'dev veterano reformulado.jpg',
+        'abilities': 'habilidades-dev-veterano.png',
+        'abilities_keep': True,
+        'holes': True,
+        'poses': DEVVET_POSES,
+        'ui_cell': (0, 0, False),
     },
     'winx-exe': {
         'holes': True,  # o fundo entre as pernas ficava preso (triangulo escuro)
