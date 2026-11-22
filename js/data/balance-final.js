@@ -67,6 +67,7 @@ const BALANCE_FINAL = {
   'miko': { power: 2.474, hp: 349, speed: 1.12, weight: 0.9, meterRate: 1.25 }, /* MIKO */
   'kuno': { power: 2.106, hp: 291, speed: 1.3, weight: 0.85, meterRate: 1.3 }, /* KUNO */
   'stella': { power: 2.333, hp: 324, speed: 1.15, weight: 0.88, meterRate: 1.3 }, /* STELLA */
+  'captcha-guard': { power: 2.45, hp: 340, speed: 1.12, weight: 1.06, meterRate: 1.32 }, /* CAPTCHA GUARD (so com login: acima da media de proposito) */
 };
 (() => {
   for (const f of FIGHTERS) {

@@ -757,3 +757,52 @@ body.mobile .install-btn { top: max(8px, env(safe-area-inset-top)); right: max(8
 /* treino guiado -> primeira luta */
 .first-fight { z-index: 60; width: min(420px, calc(100vw - 32px)); text-align: center; }
 .first-fight .row { justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- RECOMPENSA DE LOGIN (Captcha Guard + Raposa do Firefox) ---------- */
+.cell.locked.login-lock .face { filter: grayscale(.55) brightness(.75); }
+.cell.login-lock .lk small { color: var(--cyan); }
+.big-sprite.login-lock { filter: grayscale(.45) brightness(.8); position: relative; }
+.pet-spr.login-lock { filter: grayscale(.5) brightness(.8); }
+.pet.login small { color: #9fe8ff; }
+
+/* ---------- AVISO DE LOGIN: a Lyra no balao ---------- */
+.login-nudge { position: absolute; inset: 0; z-index: 85; display: grid; place-items: center; background: rgba(5, 2, 14, .78); animation: lnFade .25s ease-out; }
+.ln-card { width: 720px; max-width: calc(100% - 32px); padding: 18px 22px 16px; background: var(--panel); border: 3px solid var(--cyan); box-shadow: 0 0 0 3px #10203a, 0 0 28px rgba(63, 208, 255, .35); text-align: center; }
+.ln-talk { display: flex; align-items: flex-end; gap: 14px; text-align: left; }
+.ln-lyra { flex: 0 0 120px; height: 135px; background: url(../assets/ui/portrait-lyra.png) center bottom / contain no-repeat; animation: lnBob 1.6s ease-in-out infinite; }
+.ln-bubble { position: relative; flex: 1; margin-bottom: 26px; padding: 12px 14px; background: #fff; color: #1a1030; border: 3px solid #1a1030; border-radius: 10px; font-size: 9px; line-height: 1.7; }
+.ln-bubble::before { content: ''; position: absolute; left: -16px; bottom: 14px; border: 8px solid transparent; border-right-color: #1a1030; }
+.ln-bubble::after { content: ''; position: absolute; left: -10px; bottom: 16px; border: 6px solid transparent; border-right-color: #fff; }
+.ln-bubble b { color: #2b2f8c; }
+.ln-bubble code { color: #b0207a; }
+.ln-card h2 { margin: 6px 0 10px; font-size: 15px; line-height: 1.5; color: var(--gold); text-shadow: 2px 2px 0 #5a2a00; }
+.ln-rewards { display: flex; justify-content: center; gap: 30px; margin: 4px 0 8px; }
+.ln-rewards figure { margin: 0; display: flex; align-items: center; gap: 10px; }
+.ln-fig { width: 74px; height: 74px; border: 3px solid var(--cyan); background: #0a1428 center / contain no-repeat; image-rendering: auto; }
+.ln-cg { background-image: url(../assets/ui/face-captcha-guard.png); border-color: var(--c, var(--cyan)); }
+.ln-fox { background-image: url(../assets/ui/face-firefox.png); border-color: #ff8a2a; }
+.ln-rewards figcaption { text-align: left; font-size: 9px; line-height: 1.6; }
+.ln-rewards figcaption small { display: block; color: #9fe8ff; font-size: 7px; }
+.ln-small { margin: 4px 0 12px; font-size: 8px; line-height: 1.6; color: #cfc6ff; }
+.ln-actions { display: flex; justify-content: center; gap: 12px; }
+@keyframes lnFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lnBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+body.reduced .ln-lyra, body.reduced .login-nudge { animation: none; }
+
+/* ---------- RANKING ---------- */
+.rank-tabs { display: flex; gap: 8px; margin: 8px 0; }
+.rank-tabs .tab.on { border-color: var(--gold); color: var(--gold); }
+.rank-me { margin: 6px 0 10px; font-size: 8px; line-height: 1.7; }
+.rank-me label { display: block; margin-bottom: 4px; color: #cfc6ff; }
+.rank-nick-row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.rank-me input { flex: 0 1 240px; padding: 6px 8px; background: #0a0618; color: #fff; border: 2px solid var(--line); font-size: 10px; user-select: text; }
+.rank-list { list-style: none; margin: 0 0 12px; padding: 0; max-height: 270px; overflow-y: auto; }
+.rank-list li { display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-bottom: 1px solid var(--line); font-size: 10px; }
+.rank-list li .pos { width: 40px; color: #9b8cd6; }
+.rank-list li .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-list li .val { color: var(--lime); }
+.rank-list li.top1 .pos { color: var(--gold); }
+.rank-list li.top2 .pos { color: #d8d8e8; }
+.rank-list li.top3 .pos { color: #e09a5a; }
+.rank-list li.me { background: rgba(63, 208, 255, .12); }
+.rank-list li.rank-empty { color: #9b8cd6; font-size: 8px; line-height: 1.7; }

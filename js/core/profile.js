@@ -13,6 +13,10 @@ const Profile = {
      Winx.exe e Qwen sao personagens NORMAIS (sem codigo). */
   SECRET_IDS: ['du', 'iales', 'felipinho', 'maximilian', 'dolynho', 'kernor'],
   LEGACY_IDS: ['du', 'iales', 'felipinho'],
+  /* RECOMPENSA DE LOGIN: so libera com conta (email) conectada. Nao entram em
+     codigo nenhum — sair da conta trava de novo. */
+  LOGIN_IDS: ['captcha-guard'],
+  LOGIN_PETS: ['firefox'],
   data: null,
   accountUid: null,
 
@@ -82,6 +86,8 @@ const Profile = {
     if (Object.prototype.hasOwnProperty.call(stats, 'bestSurvival')) {
       normalizedStats.bestSurvival = this._number(stats.bestSurvival, 0);
     }
+    /* RANKING: menor tempo (segundos de luta somados) pra fechar o torneio */
+    if (this._number(stats.bestTourneySecs, 0) > 0) normalizedStats.bestTourneySecs = this._number(stats.bestTourneySecs, 0);
     const achievements = [...new Set((Array.isArray(source.achievements) ? source.achievements : []))].slice(-64);
     const earnedKernor = achievements.includes('trofeu-torneio') || achievements.includes('arcade-campeao');
     this._repairedKernor = earnedKernor && !unlocked.includes('kernor');
@@ -135,6 +141,19 @@ const Profile = {
     this._applyDeviceSettings(this.data);
     if (this._repairedKernor) this.save();
     return this.data;
+  },
+
+  /* Primeira vez que a conta entra: medalha + aviso do Captcha Guard e da raposa.
+     Chamado pelo cartao de conta DEPOIS da sincronizacao (salvar no meio da troca
+     de conta deixava o perfil local "mais novo" que o da nuvem). */
+  loginReward() {
+    if (!this.loggedIn() || !this.data || this.data.loginRewardSeen) return false;
+    this.data.loginRewardSeen = true;
+    if (typeof UI !== 'undefined' && UI.toast) {
+      setTimeout(() => UI.toast('🔓 Conta conectada! Liberados: CAPTCHA GUARD e a RAPOSA DO FIREFOX.', 5200), 400);
+    }
+    this.grantAchievement('login-1');
+    return true;
   },
 
   deactivateAccount(uid) {
@@ -201,6 +220,8 @@ const Profile = {
       bestArcade: Math.max(this._number(ls.bestArcade, 0), this._number(rs.bestArcade, 0)),
       maxCombo: Math.max(this._number(ls.maxCombo, 0), this._number(rs.maxCombo, 0)),
     };
+    const bt = [this._number(ls.bestTourneySecs, 0), this._number(rs.bestTourneySecs, 0)].filter((v) => v > 0);
+    if (bt.length) mergedStats.bestTourneySecs = Math.min(...bt);
     if (Object.prototype.hasOwnProperty.call(ls, 'bestSurvival') || Object.prototype.hasOwnProperty.call(rs, 'bestSurvival')) {
       mergedStats.bestSurvival = Math.max(this._number(ls.bestSurvival, 0), this._number(rs.bestSurvival, 0));
     }
@@ -219,7 +240,14 @@ const Profile = {
     return this.data;
   },
 
+  loggedIn() {
+    return !!this.accountUid;
+  },
+  isLoginLocked(id) {
+    return this.LOGIN_IDS.includes(id) && !this.loggedIn();
+  },
   isUnlocked(id) {
+    if (this.LOGIN_IDS.includes(id)) return this.loggedIn();
     return !this.SECRET_IDS.includes(id) || (this.data && Array.isArray(this.data.unlocked) && this.data.unlocked.includes(id));
   },
 
@@ -311,6 +339,7 @@ const Profile = {
     const pet = PETS.find((p) => p.id === id) || PETS[0];
     /* pet secreto travado (ex.: PITOCO sem desbloquear) nao pode ser equipado */
     if (pet.secret && !this.hasPitoco()) return PETS[0];
+    if (pet.login && !this.loggedIn()) return PETS[0]; /* raposa: so com conta */
     return pet;
   },
 
@@ -319,6 +348,7 @@ const Profile = {
     this.data = this._normalize(this.data || this.load());
     const pet = PETS.find((p) => p.id === String(id || 'none'));
     if (pet && pet.secret && !this.hasPitoco()) return; /* so desbloqueado pode equipar */
+    if (pet && pet.login && !this.loggedIn()) return;
     this.data.pets[slot] = String(id || 'none');
     this.save();
   },
@@ -359,6 +389,17 @@ const Profile = {
       }
     }
     return persisted;
+  },
+  /* Torneio fechado em `secs` segundos de luta: guarda o melhor (menor). */
+  recordTourneyTime(secs) {
+    const v = Math.round(Number(secs) || 0);
+    if (v <= 0) return false;
+    this.data = this._normalize(this.data || this.load());
+    const cur = this._number(this.data.stats.bestTourneySecs, 0);
+    if (cur && cur <= v) return false;
+    this.data.stats.bestTourneySecs = v;
+    this.save();
+    return true;
   },
   grantAchievement(id) {
     if (!id) return false;

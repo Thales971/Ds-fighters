@@ -192,3 +192,9 @@ body.mobile [data-screen="ladder"] .row { position: sticky; bottom: 0; backgroun
 body.mobile #scr-buffs .panel, body.mobile #scr-ladder .panel { width: min(780px, calc(100vw - 16px)); box-sizing: border-box; }
 body.mobile .buff-card { min-width: 0; }
 body.mobile .buff-card small { white-space: normal; overflow-wrap: anywhere; }
+/* aviso de login e ranking no celular */
+body.mobile .ln-card { padding: 12px; }
+body.mobile .ln-lyra { flex-basis: 90px; height: 100px; }
+body.mobile .ln-card h2 { font-size: 12px; }
+body.mobile .ln-rewards { gap: 14px; }
+body.mobile .ln-fig { width: 56px; height: 56px; }

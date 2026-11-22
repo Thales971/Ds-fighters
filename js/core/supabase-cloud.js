@@ -308,7 +308,7 @@
     if (this._initPromise) return this._initPromise;
     const currentConfig = readConfig();
     if (!currentConfig) {
-      this._setStatus('unconfigured', 'Login com Google não configurado.');
+      this._setStatus('unconfigured', 'Login não configurado.');
       return false;
     }
     this._setStatus('loading');

@@ -4,9 +4,69 @@ const ROSTER_PORTRAITS = {
   "cell": 96,
   "cols": 7,
   "file": "assets/ui/roster-portraits.png",
-  "version": "v74-kernor",
+  "version": "v82-captcha",
   "order": [
-    "du","iales","felipinho","stack","gitmaster","bughunter","frontend","backend","devops","qa","scrum","fullstack","kotlin","hacker","java","merc","bhm","gemini","meta","mis","dev-senior","urbano","xeon","qwen","dolynho","thl","lobao","winx-exe","dandara-query","nina-vector","dev-veterano","hana","cyber-psicopata","grika","guarda-digital","engenheira-prompt","odette","john-vibe","nimbo","emilio","nunes","ponteiro","lia","nexo","maximilian","henrico","jess","dev-virado","milena","kira","cracker","rafael","lyra","larper","jester","domador","miko","kuno","stella","kernor"
+    "du",
+    "iales",
+    "felipinho",
+    "stack",
+    "gitmaster",
+    "bughunter",
+    "frontend",
+    "backend",
+    "devops",
+    "qa",
+    "scrum",
+    "fullstack",
+    "kotlin",
+    "hacker",
+    "java",
+    "merc",
+    "bhm",
+    "gemini",
+    "meta",
+    "mis",
+    "dev-senior",
+    "urbano",
+    "xeon",
+    "qwen",
+    "dolynho",
+    "thl",
+    "lobao",
+    "winx-exe",
+    "dandara-query",
+    "nina-vector",
+    "dev-veterano",
+    "hana",
+    "cyber-psicopata",
+    "grika",
+    "guarda-digital",
+    "engenheira-prompt",
+    "odette",
+    "john-vibe",
+    "nimbo",
+    "emilio",
+    "nunes",
+    "ponteiro",
+    "lia",
+    "nexo",
+    "maximilian",
+    "henrico",
+    "jess",
+    "dev-virado",
+    "milena",
+    "kira",
+    "cracker",
+    "rafael",
+    "lyra",
+    "larper",
+    "jester",
+    "domador",
+    "miko",
+    "kuno",
+    "stella",
+    "kernor",
+    "captcha-guard"
   ],
   "crops": {
     "du": {
@@ -220,8 +280,8 @@ const ROSTER_PORTRAITS = {
       "frame": "idle-0"
     },
     "dev-veterano": {
-      "x": 48,
-      "y": 43,
+      "x": 92,
+      "y": 42,
       "side": 136,
       "source": "assets/sprites/dev-veterano.png",
       "frame": "idle-0"
@@ -338,6 +398,20 @@ const ROSTER_PORTRAITS = {
       "source": "assets/sprites/jess.png",
       "frame": "idle-0"
     },
+    "dev-virado": {
+      "x": 95,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/dev-virado.png",
+      "frame": "idle-0"
+    },
+    "milena": {
+      "x": 96,
+      "y": 42,
+      "side": 136,
+      "source": "assets/sprites/milena.png",
+      "frame": "idle-0"
+    },
     "kira": {
       "x": 90,
       "y": 42,
@@ -413,6 +487,13 @@ const ROSTER_PORTRAITS = {
       "y": 23,
       "side": 136,
       "source": "assets/sprites/kernor.png",
+      "frame": "idle-0"
+    },
+    "captcha-guard": {
+      "x": 92,
+      "y": 37,
+      "side": 136,
+      "source": "assets/sprites/captcha-guard.png",
       "frame": "idle-0"
     }
   }

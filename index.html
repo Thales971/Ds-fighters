@@ -13,9 +13,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="DS Fighters" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v80-tuto" />
+  <link rel="stylesheet" href="css/style.css?v=v82-login" />
   <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
-  <link rel="stylesheet" href="css/mobile.css?v=v79-perf" />
+  <link rel="stylesheet" href="css/mobile.css?v=v82-login" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -92,6 +92,7 @@
         <button class="nav mm" data-go="custom"><span>MASCOTES</span><small>Equipe companheiros com bônus</small></button>
         <button class="nav mm" data-go="skins"><span>SKINS</span><small>EM BREVE</small></button>
         <button class="nav mm" data-go="acc"><span>ACESSÓRIOS</span><small>🎅 para todos os lutadores</small></button>
+        <button class="nav mm" data-go="ranking"><span>RANKING</span><small>Mais vitórias e torneio mais rápido</small></button>
         <button class="nav mm" data-go="conquistas"><span>CONQUISTAS</span><small>Medalhas e recordes</small></button>
         <button class="nav mm" data-go="redeem"><span>RESGATAR CÓDIGO</span><small>Libere lutadores secretos</small></button>
         <button class="nav mm" data-go="moves"><span>LISTA DE GOLPES</span><small>Controles e habilidades</small></button>
@@ -280,6 +281,19 @@
         <h2>CONQUISTAS &amp; RECORDES</h2>
         <div id="conquistas-list"></div>
         <button class="nav sm" data-go="menu"><span>VOLTAR</span></button>
+      </div>
+    </section>
+    <section class="screen" id="scr-ranking" data-screen="ranking">
+      <div class="panel">
+        <h2>RANKING</h2>
+        <p class="sub" id="rank-sub">Só contas conectadas (email) entram no ranking.</p>
+        <div class="rank-tabs" role="tablist">
+          <button class="nav tab on" data-rank="wins" role="tab">MAIS VITÓRIAS</button>
+          <button class="nav tab" data-rank="tourney" role="tab">TORNEIO MAIS RÁPIDO</button>
+        </div>
+        <div class="rank-me" id="rank-me"></div>
+        <ol class="rank-list" id="rank-list" aria-live="polite"></ol>
+        <button class="nav btn" data-back>VOLTAR</button>
       </div>
     </section>
     <section class="screen" id="scr-redeem" data-screen="redeem">
@@ -502,14 +516,15 @@
   </script>
   <script src="assets/stages/sheets.js?v=v47-maresprites"></script>
   <script src="assets/maps/anim.js?v=v47-maresprites"></script>
-  <script src="js/data/achievements.js?v=v47-maresprites"></script>
-  <script src="js/core/profile.js?v=v81-stats"></script>
+  <script src="js/data/achievements.js?v=v82-login"></script>
+  <script src="js/core/profile.js?v=v82-login"></script>
   <script src="js/config/firebase-config.js?v=v47-maresprites"></script>
   <script src="js/core/cloud.js?v=v75-review"></script>
   <script src="js/config/supabase-config.js?v=v47-maresprites"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=v75-review"></script>
+  <script src="js/core/supabase-cloud.js?v=v82-login"></script>
   <script src="js/core/match-stats.js?v=v81-stats"></script>
+  <script src="js/core/ranking.js?v=v82-ranking"></script>
   <script src="js/data/fighters.js?v=v47-maresprites"></script>
   <script src="js/data/fighters-v10.js?v=v47-maresprites"></script>
   <script src="js/data/fighters-v11.js?v=v47-maresprites"></script>
@@ -558,11 +573,12 @@
   <script src="js/data/fighters-kuno.js?v=v72-kuno"></script>
   <script src="js/data/fighters-stella.js?v=v73-stella"></script>
   <script src="js/data/fighters-kernor.js?v=v78-kernor-ia"></script>
+  <script src="js/data/fighters-captcha.js?v=v82-captcha"></script>
   <script src="js/data/balance-v14.js?v=v79-pr127"></script>
-  <script src="js/data/balance-final.js?v=v81-pontas"></script>
+  <script src="js/data/balance-final.js?v=v82-login"></script>
   <script src="js/data/kits-v15.js?v=v79-kits"></script>
   <script src="js/data/balance.js?v=v53-torneio"></script>
-  <script src="js/data/pets.js?v=v47-maresprites"></script>
+  <script src="js/data/pets.js?v=v82-login"></script>
   <script src="js/data/accessories.js?v=v57-acessorios"></script>
   <script src="js/data/stages.js?v=v80-semarenagit"></script>
   <script src="js/data/stages-v21.js?v=v54-ambiente"></script>
@@ -570,13 +586,13 @@
   <script src="js/data/stages-events.js?v=v47-maresprites"></script>
   <script src="js/data/stages-brasil.js?v=v47-maresprites"></script>
   <script src="js/engine/sprites.js?v=v79-sprites"></script>
-  <script src="js/engine/fx.js?v=v80-devvet"></script>
+  <script src="js/engine/fx.js?v=v82-login"></script>
   <script src="js/data/voice-book.js?v=v47-maresprites"></script>
   <script src="js/engine/audio.js?v=v80-sons"></script>
   <script src="js/engine/input.js?v=v47-maresprites"></script>
   <script src="js/ui/viewport.js?v=v47-maresprites"></script>
   <script src="js/engine/projectile.js?v=v72-kuno"></script>
-  <script src="js/engine/fighter.js?v=v81-parry"></script>
+  <script src="js/engine/fighter.js?v=v82-login"></script>
   <script src="js/engine/vfx.js?v=v47-maresprites"></script>
   <script src="js/engine/weather.js?v=v81-aurora"></script>
   <script src="js/engine/mechanics.js?v=v55-revisao"></script>
@@ -585,12 +601,12 @@
   <script src="js/engine/ai.js?v=v78-kernor-ia"></script>
   <script src="js/engine/game.js?v=v80-raios"></script>
   <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=v74-kernor"></script>
+  <script src="js/net/room-core.js?v=v82-login"></script>
   <script src="js/net/online.js?v=v47-maresprites"></script>
   <script src="js/ui/hud.js?v=v76-cooldown"></script>
-  <script src="js/data/roster-portraits.js?v=v74-kernor"></script>
-  <script src="js/ui/ui.js?v=v81-stats"></script>
-  <script src="js/ui/account.js?v=v47-maresprites"></script>
+  <script src="js/data/roster-portraits.js?v=v82-captcha"></script>
+  <script src="js/ui/ui.js?v=v82-login"></script>
+  <script src="js/ui/account.js?v=v82-login"></script>
   <script src="js/main.js?v=v79-perf"></script>
   <script src="js/net/tournament.js?v=v47-maresprites"></script>
 </body>

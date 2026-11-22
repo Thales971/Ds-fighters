@@ -18,6 +18,8 @@ const PETS = [
   { id: 'dragao', name: 'Dragãozinho', row: 10, buff: 'A cada 4º acerto de habilidade aplica QUEIMADURA (60f) no rival.', fx: { burnOnHit: 60 } },
   { id: 'fenix', name: 'Fênix de Fogo', row: 11, buff: 'A cada 5º acerto de habilidade causa EXPLOSÃO extra; +6% de dano.', fx: { explodeOnHit: 2, dmg: 0.06 } },
   { id: 'robot', name: 'Robôzinho CI', row: 12, buff: 'Medidores de carga enchem 25% mais rápido e +6% de velocidade.', fx: { meter: 0.25, speed: 0.06 } },
+  /* RECOMPENSA DE LOGIN: so equipa com a conta conectada (Profile.LOGIN_PETS). Acima da media de proposito. */
+  { id: 'firefox', name: 'Raposa do Firefox', row: -3, sheet: 'firefox', img: 'assets/pets/firefox.png?v=v82-raposa', buff: 'Rápida como o navegador: +12% de velocidade, +10% de dano, +6% de defesa e regenera 0,5 HP/s. Só com login.', fx: { speed: 0.12, dmg: 0.10, def: 0.06, regen: 0.5 / 60 }, login: true },
   /* O SEGREDO: so existe por codigo — digite PITOCO na tela de pet. Apelao DE PROPOSITO. */
   { id: 'pitoco', name: 'Pitoco', row: -2, buff: 'Cara de coitado: 50% dos golpes erram sozinhos e o dono regenera 15 HP/s. Proibido em torneio.', fx: { pitoco: true, regen: 15 / 60, dodge: 0.5 }, secret: true },
 ];

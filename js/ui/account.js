@@ -52,8 +52,13 @@
       return cloud.status === 'loading' || cloud.status === 'signing' || cloud.status === 'signing-out';
     },
 
+    /* LOGIN SO POR EMAIL (pedido do dono): o formulario aparece sempre que o
+       Supabase nao disser que o email esta DESLIGADO. Antes exigia a resposta
+       da sonda de configuracao (emailEnabled === true); se a sonda demorava ou
+       falhava, o cartao so mostrava o botao do Google "aguardando configuracao"
+       e parecia erro do Supabase. */
     _emailAvailable(cloud) {
-      return cloud.provider === 'supabase' && cloud.emailEnabled === true;
+      return cloud.provider === 'supabase' && cloud.emailEnabled !== false && cloud.authReachable !== false;
     },
 
     _signupAvailable(cloud) {
@@ -268,28 +273,27 @@
     _renderSignedOut(cloud, status, emailAvailable, signupAvailable) {
       const busy = this._busy(cloud);
       const unreachable = cloud.provider === 'supabase' && cloud.authReachable === false;
-      const googleDisabled = cloud.provider === 'supabase' && cloud.googleEnabled === false;
-      const googleBlocked = googleDisabled || unreachable;
-      const googleHelp = unreachable
-        ? 'A nuvem não respondeu. O jogo continua salvo neste navegador. Quando o Supabase voltar, toque em tentar de novo.'
-        : googleDisabled ?
-        (emailAvailable ? 'Google está desativado. Use email e senha para sincronizar seu progresso.' : 'Supabase conectado. Falta ativar o provedor Google no painel do projeto.') :
-        'Salve desbloqueios e estatísticas em qualquer dispositivo.';
-      const googleLabel = busy ? 'CONECTANDO…' : unreachable ? 'NUVEM INDISPONÍVEL' : googleDisabled ? 'GOOGLE AGUARDANDO CONFIGURAÇÃO' : 'ENTRAR COM GOOGLE';
-      const emailHelp = emailAvailable ?
-        (signupAvailable ? 'Entre ou crie uma conta com email e senha.' : 'O cadastro está desativado; contas existentes ainda podem entrar.') : '';
+      const emailOff = cloud.provider === 'supabase' && cloud.emailEnabled === false;
+      /* Google so aparece se estiver LIGADO no projeto; o padrao e so email. */
+      const googleOn = cloud.provider !== 'supabase' || cloud.googleEnabled === true;
+      const help = unreachable
+        ? 'A nuvem não respondeu. O jogo continua salvo neste navegador. Toque em tentar de novo.'
+        : emailOff
+          ? 'O login por email está desligado no painel do Supabase (Authentication → Sign In / Providers → Email).'
+          : signupAvailable
+            ? 'Crie sua conta com email e senha: salve o progresso, entre no RANKING e libere o CAPTCHA GUARD e a RAPOSA DO FIREFOX.'
+            : 'O cadastro está desativado; contas existentes ainda podem entrar.';
       this.box.innerHTML = `
         <section class="account-card" aria-labelledby="account-title">
           <h3 id="account-title">CONTA</h3>
           <p class="account-state" id="account-state">${this._escape(status)}</p>
-          ${cloud.error ? `<p class="account-error" role="alert">${this._escape(cloud.error)}</p>` : `<p class="account-help">${this._escape(googleHelp)}</p>`}
-          <button class="account-action account-signin" type="button" ${busy || googleBlocked ? 'disabled aria-disabled="true"' : ''}>${googleLabel}</button>
+          ${cloud.error ? `<p class="account-error" role="alert">${this._escape(cloud.error)}</p>` : `<p class="account-help">${this._escape(help)}</p>`}
           ${unreachable ? '<button class="account-action account-retry" type="button">TENTAR DE NOVO</button>' : ''}
           ${emailAvailable ? `<div class="account-email-actions" role="group" aria-label="Acesso por email">
-            <p class="account-help">${this._escape(emailHelp)}</p>
-            <button class="account-action account-email-signin" id="account-email-signin" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>ENTRAR</button>
             ${signupAvailable ? '<button class="account-action account-email-signup" id="account-email-signup" type="button" ' + (busy ? 'disabled aria-disabled="true"' : '') + '>CRIAR CONTA</button>' : ''}
+            <button class="account-action account-email-signin" id="account-email-signin" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>${busy ? 'CONECTANDO…' : 'ENTRAR'}</button>
           </div>` : ''}
+          ${googleOn ? `<button class="account-action account-signin" type="button" ${busy ? 'disabled aria-disabled="true"' : ''}>${busy ? 'CONECTANDO…' : 'ENTRAR COM GOOGLE'}</button>` : ''}
         </section>`;
 
       const googleButton = this.box.querySelector('.account-signin');
@@ -302,6 +306,15 @@
       if (emailSignin) emailSignin.addEventListener('click', () => this._openAuth('signin'));
       const emailSignup = this.box.querySelector('#account-email-signup');
       if (emailSignup) emailSignup.addEventListener('click', () => this._openAuth('signup'));
+    },
+
+    /* Atalho do aviso de login (Lyra): abre o formulario e rola ate ele. */
+    openSignup() {
+      const cloud = global.Cloud;
+      if (!this.box || !cloud) return false;
+      this._openAuth(this._signupAvailable(cloud) ? 'signup' : 'signin');
+      try { this.box.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { /* navegador antigo */ }
+      return true;
     },
 
     _afterRender(cloud) {
@@ -327,9 +340,9 @@
         this.box.innerHTML = `
           <section class="account-card account-disabled" aria-labelledby="account-title">
             <h3 id="account-title">CONTA</h3>
-            <p class="account-state">LOGIN COM GOOGLE NÃO CONFIGURADO</p>
-            <p class="account-help">O dono do jogo precisa configurar o Supabase ou Firebase para ativar a nuvem.</p>
-            <button class="account-action" type="button" disabled aria-disabled="true">LOGIN COM GOOGLE NÃO CONFIGURADO</button>
+            <p class="account-state">LOGIN NÃO CONFIGURADO</p>
+            <p class="account-help">O dono do jogo precisa configurar o Supabase para ativar a nuvem.</p>
+            <button class="account-action" type="button" disabled aria-disabled="true">LOGIN NÃO CONFIGURADO</button>
           </section>`;
         return;
       }
@@ -341,6 +354,10 @@
         this._renderRecoveryForm(cloud, status);
       } else if (user) {
         this._clearAuthState();
+        const prof = typeof Profile !== 'undefined' ? Profile : null;
+        if (prof && typeof prof.loginReward === 'function' && cloud.status !== 'syncing' && cloud.status !== 'loading') {
+          try { prof.loginReward(); } catch (e) { /* recompensa nao pode travar o cartao */ }
+        }
         const profile = typeof Profile !== 'undefined' ? Profile : null;
         const name = this._escape(user.displayName || (profile && profile.data && profile.data.name) || 'Jogador');
         const photo = user.photoURL ? this._escape(user.photoURL) : '';
