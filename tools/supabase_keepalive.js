@@ -70,11 +70,35 @@ async function touchSupabase() {
 
 module.exports = { touchSupabase, readPublicConfig };
 
+/* Chamada reserva: se a funcao ds_fighters_touch nao existir (404), uma leitura
+   simples na API REST ja conta como atividade do projeto. */
+async function fallbackPing() {
+  const { url, key } = readPublicConfig();
+  const r = await fetch(url + '/rest/v1/ds_fighters_profiles?select=uid&limit=1', { headers: { apikey: key, Authorization: 'Bearer ' + key } });
+  if (pausedText(r.status, await r.text())) throw Object.assign(new Error('Projeto Supabase PAUSADO (HTTP ' + r.status + '). Restaure no painel.'), { code: 'project_paused' });
+  return { ok: r.status < 500, fallback: true, status: r.status };
+}
+
+/* 3 tentativas com espera (falha de rede passageira nao derruba o dia) */
+async function main() {
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try { return await touchSupabase(); } catch (e) {
+      last = e;
+      if (e && e.code === 'keepalive_failed' && e.status === 404) { try { return await fallbackPing(); } catch (e2) { last = e2; } }
+      if (e && e.code === 'project_paused') break;
+      await new Promise((r) => setTimeout(r, 15000 * (i + 1)));
+    }
+  }
+  throw last;
+}
+
 if (require.main === module) {
-  touchSupabase().then((result) => {
+  main().then((result) => {
     console.log(JSON.stringify(result));
   }).catch((error) => {
     console.error(error && error.message ? error.message : error);
+    console.error('>> Se o projeto estiver pausado: supabase.com/dashboard -> projeto ownxbuailthavxgfxtem -> Restore. O keep-alive so impede NOVAS pausas.');
     process.exit(1);
   });
 }

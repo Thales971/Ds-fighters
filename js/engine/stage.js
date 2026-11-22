@@ -1009,7 +1009,7 @@ class StageRenderer {
       ctx.closePath();
       ctx.fill();
     }
-    ctx.fillStyle = R.col;
+    ctx.fillStyle = "#fff4dc"; /* poeira em branco quente: com luz rosada ela virava pontinho magenta */
     for (const m of R.motes) {
       const y = (m.y - t * 0.15 * m.s + H * 2) % (H * 0.85);
       const x = m.x + Math.sin(t * 0.01 + m.ph) * 12;
