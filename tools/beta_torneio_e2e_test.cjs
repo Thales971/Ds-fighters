@@ -225,17 +225,31 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await m.goto(url);
       await m.waitForFunction(() => typeof UI !== 'undefined' && UI.game && typeof FIGHTERS !== 'undefined', null, { timeout: 30000 });
       await sleep(400);
+      const demo = await m.evaluate(async () => {
+        UI.show('menu');
+        await new Promise((res) => setTimeout(res, 300));
+        const t0 = UI.game.time; await new Promise((res) => setTimeout(res, 600));
+        return { hidden: document.body.classList.contains('demo-hidden'), parado: UI.game.time === t0, mode: UI.game.mode };
+      });
+      if (name === 'horizontal') check('celular: luta de demonstracao escondida e PARADA no menu (economia)', demo.hidden && demo.parado, JSON.stringify(demo));
       const r = await m.evaluate(async () => {
         UI.launch({ mode: 'versus', teams: [['jess'], ['larper']], stage: 'torneio-praca-hello-world', cpu: [false, true], roundsToWin: 2, timer: 99 });
         for (let i = 0; i < 120 && !(UI.screen === 'fight' && UI.game.running && UI.game.roundState === 'fight' && UI.game.activeOf(0).def.id === 'jess'); i++) await new Promise((res) => setTimeout(res, 100));
         if (typeof AppViewport !== 'undefined' && AppViewport.fit) AppViewport.fit();
         const vis = (sel) => { const e = document.querySelector(sel); if (!e) return false; const cs = getComputedStyle(e); const rc = e.getBoundingClientRect(); return cs.display !== 'none' && cs.visibility !== 'hidden' && rc.width > 0 && rc.height > 0; };
         const over = [...document.querySelectorAll('.tbtns button')].filter((bt) => bt.scrollWidth > bt.clientWidth + 2).length;
-        return { mobile: document.body.classList.contains('mobile'), stick: vis('#stick, .stick'), dpad: vis('.dpad'), turn: vis('.turn-phone'), over };
+        const res0 = { mobile: document.body.classList.contains('mobile'), stick: vis('#stick, .stick'), dpad: vis('.dpad'), turn: vis('.turn-phone'), over };
+        UI.togglePause ? UI.togglePause() : UI.show('pause');
+        await new Promise((res) => setTimeout(res, 200));
+        res0.pauseArena = getComputedStyle(document.getElementById('game-view')).visibility !== 'hidden' && !document.body.classList.contains('demo-hidden');
+        res0.perfToast = [...document.querySelectorAll('.toast, #toast')].some((t) => /performance/i.test(t.textContent));
+        return res0;
       });
       if (name === 'horizontal') {
         check('celular horizontal: joystick visivel, direcional escondido', r.mobile && r.stick && !r.dpad, JSON.stringify(r));
         check('celular horizontal: texto dos botoes cabe', r.over === 0, 'vazando ' + r.over);
+        check('celular: arena continua visivel na PAUSA', r.pauseArena, JSON.stringify(r));
+        check('celular: comeca no modo leve sem aviso de "fps baixo"', !r.perfToast, JSON.stringify(r));
       } else {
         check('celular em retrato: pede pra girar', r.mobile && r.turn, JSON.stringify(r));
       }

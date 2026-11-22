@@ -111,10 +111,15 @@ function preloadAll() {
     /* selecao com palco ao vivo: o demo fica 100% coberto atras da tela
        (z 20 > canvas), entao nem ticka nem renderiza ele — sobra GPU pro jogo */
     const selBgOn = (typeof UI !== 'undefined' && UI.screen === 'select' && !!UI._selBg);
+    /* CELULAR: a luta de demonstracao fica escondida fora da tela de titulo
+       (css: body.demo-hidden). Escondida, nem calcula nem desenha: bateria e fps. */
+    const demoHidden = document.body.classList.contains('mobile') && game.mode === 'demo' && typeof UI !== 'undefined' && UI.screen !== 'title';
+    if (demoHidden !== document.body.classList.contains('demo-hidden')) document.body.classList.toggle('demo-hidden', demoHidden);
+    const skipGame = selBgOn || demoHidden;
     while (acc >= STEP && steps < 5) {
       Input.pollPads();
       UI.tick();
-      if (!selBgOn) { game.capturePrev(); game.tick(); Net.frame(game); }
+      if (!skipGame) { game.capturePrev(); game.tick(); Net.frame(game); }
       Input.endFrame();
       acc -= STEP;
       steps++;
@@ -123,7 +128,7 @@ function preloadAll() {
     const cap = Number(Profile.data.settings.fpsCap) || 0;
     if (!cap || now - lastDraw >= 1000 / cap - 1) {
       lastDraw = now;
-      if (game.stage && !selBgOn) game.render(Math.max(0, Math.min(1, acc / STEP)));
+      if (game.stage && !skipGame) game.render(Math.max(0, Math.min(1, acc / STEP)));
       fpsFrames++;
     }
     if (now - fpsT >= 500) {
@@ -144,7 +149,10 @@ function preloadAll() {
          Qualidade "Baixo" nas opcoes tranca direto no nivel 2. */
       try {
         const q = (Profile.data.settings && Profile.data.settings.quality) || 'medium';
-        if (!window.__perf) window.__perf = { level: q === 'low' ? 2 : 0, bad: 0, good: 0 };
+        /* celular comeca no nivel 1 (leve) em vez de esperar o fps cair; quem
+           escolheu qualidade "alta" nas opcoes comeca no 0 */
+        const mob = document.body.classList.contains('mobile');
+        if (!window.__perf) window.__perf = { level: q === 'low' ? 2 : (mob && q !== 'high') ? 1 : 0, bad: 0, good: 0, quiet: mob };
         const P = window.__perf;
         if (q === 'low') P.level = 2;
         else {
