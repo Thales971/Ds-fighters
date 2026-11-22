@@ -1644,6 +1644,11 @@ class Fighter {
       return;
     }
     if (this.has('shock')) input = this.shockInput(input);
+    /* VERTIGEM (ult da Mis): pro humano a tela vira de cabeca pra baixo (game.js).
+       CPU (ou humano com movimento reduzido) nao ve tela nenhuma: os controles invertem. */
+    if (this.has('vertigo') && input && this.game && this.game.cfg && ((this.game.cfg.cpu && this.game.cfg.cpu[this.team]) || this.game.reduced)) {
+      input = Object.assign({}, input, { left: input.right, right: input.left, up: input.down, down: input.up });
+    }
     if (this.has('glitch')) input = this.glitchInput(input);
     if (this.has('daltonic')) input = this.daltonicInput(input);
     if (this.has('shuffled')) input = this.shuffledInput(input);
