@@ -47,6 +47,46 @@ function rosterPortraitStyle(id, px) {
      quando o cartão ficava maior que 48px. */
   return `--pcols:${cols};--prows:${rows};--pcol:${col};--prow:${row};background-image:url(${src})`;
 }
+/* ---------- DECORACAO DOS EVENTOS (aba Eventos) ----------
+   Cada evento ganha moldura + enfeites animados no cartao do calendario, nos
+   botoes de mapa e no destaque: Natal (festao de vinha, bolinhas, gelo e neve),
+   Halloween (morcegos, bruxa, aboboras e teia), Carnaval (confete, serpentina,
+   mascaras), Pascoa (ovos pintados, coelho, flores), Junina (bandeirinhas,
+   fogueira, milho), Criancas (baloes, pipa, pirulito) e Ano Novo (fogos,
+   brilhos, tacas). So CSS + emoji: nada de imagem nova pra baixar. */
+const EV_DECOR = {
+  natal: { top: 'garland', items: [['❄', 'fall', 12, 6], ['❄', 'fall', 38, 2], ['❄', 'fall', 64, 9], ['❄', 'fall', 86, 4]], corner: [['🎁', 'br'], ['⛄', 'bl']], balls: true, bottom: 'snowbank' },
+  halloween: { items: [['🦇', 'bat', 8, 18], ['🦇', 'bat2', 58, 30], ['🧙‍♀️', 'witch', 0, 12]], corner: [['🎃', 'br', 'glow'], ['🕸️', 'tl'], ['🎃', 'bl', 'glow']], bottom: 'fog' },
+  carnaval: { top: 'serpentina', items: [['🎊', 'spin', 80, 30], ['🪶', 'sway', 6, 40]], corner: [['🎭', 'br', 'sway'], ['🥁', 'bl']], confetti: true },
+  pascoa: { items: [['🦋', 'flutter', 20, 20], ['🌷', 'still', 70, 70]], corner: [['🐰', 'br', 'hop'], ['🌼', 'bl']], eggs: true },
+  junina: { top: 'flags', items: [['✨', 'twinkle', 30, 40], ['✨', 'twinkle', 70, 52]], corner: [['🔥', 'br', 'flicker'], ['🌽', 'bl']] },
+  criancas: { top: 'rainbow', items: [['🎈', 'rise', 10, 0], ['🎈', 'rise2', 82, 0], ['🪁', 'sway', 60, 18]], corner: [['🍭', 'br', 'spin-slow'], ['🧸', 'bl']] },
+  anonovo: { items: [['✨', 'twinkle', 14, 18], ['✨', 'twinkle2', 46, 10], ['✨', 'twinkle', 78, 24], ['🎆', 'pop', 64, 8]], corner: [['🥂', 'br'], ['🎉', 'bl', 'sway']], top: 'gold' },
+};
+function evDecor(id, kind) {
+  const d = EV_DECOR[id];
+  if (!d) return '';
+  const small = kind === 'card';
+  const out = [];
+  if (d.top) out.push(`<i class="evd-top evd-${d.top}"></i>`);
+  if (d.balls) {
+    const short = small || kind === 'btn'; /* no cartao e no botao do menu o fio e curto: nao cobre o texto */
+    const n = small ? 3 : kind === 'hero' ? 9 : 5;
+    for (let k = 0; k < n; k++) out.push(`<i class="evd-ball c${k % 4}" style="left:${Math.round((k + 0.5) * 100 / n)}%;--d:${(k % 3) * 0.4}s;--len:${short ? 3 + (k % 2) * 3 : 8 + (k % 3) * 6}px"></i>`);
+    out.push('<i class="evd-ice"></i>');
+  }
+  if (d.confetti) out.push('<i class="evd-confetti"></i>');
+  if (d.eggs) {
+    const n = small ? 2 : kind === 'hero' ? 5 : 3;
+    for (let k = 0; k < n; k++) out.push(`<i class="evd-egg e${k % 4}" style="right:${(small ? 20 : 28) + k * (small ? 14 : 20)}px"></i>`);
+  }
+  if (d.bottom) out.push(`<i class="evd-bottom evd-${d.bottom}"></i>`);
+  const items = small ? d.items.slice(0, 2) : d.items;
+  items.forEach(([e, anim, x, y], k) => out.push(`<i class="evd-it a-${anim}" style="left:${x}%;top:${y}%;--d:${k * 0.7}s">${e}</i>`));
+  (small ? d.corner.slice(0, 1) : d.corner).forEach(([e, pos, anim]) => out.push(`<i class="evd-c p-${pos}${anim ? ' a-' + anim : ''}">${e}</i>`));
+  return `<span class="evd" aria-hidden="true">${out.join('')}</span>`;
+}
+
 const UI = {
   hud: HUD,
   screen: null,
@@ -377,7 +417,25 @@ const UI = {
   },
 
   /* ---------- menu ---------- */
+  /* Botao EVENTOS do menu com a cara do evento (no ar ou o proximo). */
+  decorateEventsButton() {
+    const btn = document.querySelector('#scr-menu .mm[data-go="events"]');
+    if (!btn || typeof Events === 'undefined') return;
+    const rows = Events.upcoming();
+    const now = rows.find((r) => r.active) || rows.filter((r) => !r.live).sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    if (!now) return;
+    if (btn.dataset.ev === now.ev.id && btn.querySelector('.evd')) return;
+    btn.classList.add('ev-btn');
+    btn.dataset.ev = now.ev.id;
+    const old = btn.querySelector('.evd');
+    if (old) old.remove();
+    btn.insertAdjacentHTML('afterbegin', evDecor(now.ev.id, 'btn'));
+    const small = btn.querySelector('small');
+    const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
+    if (small) small.textContent = now.active ? `${now.ev.icon} ${now.ev.name.toUpperCase()} NO AR!` : `${now.ev.icon} ${now.ev.name} em ${dias(now.daysUntil)} · mapas de festa`;
+  },
   buildMenuSide() {
+    try { this.decorateEventsButton(); } catch (e) { /* enfeite nao trava o menu */ }
     const s = Profile.data.stats;
     this.$('stats-card').innerHTML = `
       <h3>PERFIL</h3>
@@ -1070,17 +1128,17 @@ const UI = {
     const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
     const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
     const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
-    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" style="${stage ? `background-image:url(${stage.image})` : ''}">
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" data-ev="${now.ev.id}" style="${stage ? `background-image:url(${stage.image})` : ''}">${evDecor(now.ev.id, 'hero')}
       <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
     </div>` : '';
     this.$('events-upcoming').innerHTML = rows.map((r) => {
       const tag = r.active ? (r.live ? (r.daysLeft <= 0 ? 'hoje' : 'agora') : 'teste') : r.live ? 'hoje' : `em ${dias(r.daysUntil)}`;
-      return `<article class="ev-card${r.active ? ' on' : ''}"><b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
+      return `<article class="ev-card${r.active ? ' on' : ''}" data-ev="${r.ev.id}">${evDecor(r.ev.id, 'card')}<b>${r.ev.icon} ${r.ev.name}</b><small>${Events.fmt(r.window.start)} – ${Events.fmt(r.window.end)}</small><em>${tag}</em></article>`;
     }).join('');
     const activeId = now && now.active ? now.ev.id : '';
     const maps = STAGE_LIST.filter((s) => s.event);
     maps.sort((a, b) => (a.event === activeId ? 0 : 1) - (b.event === activeId ? 0 : 1));
-    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}"><span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}" data-ev="${s.event}">${evDecor(s.event, 'map')}<span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
     this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
       b.addEventListener('click', () => {
         this.startFlow('versus', { stage: b.dataset.id });

@@ -806,3 +806,120 @@ body.reduced .ln-lyra, body.reduced .login-nudge { animation: none; }
 .rank-list li.top3 .pos { color: #e09a5a; }
 .rank-list li.me { background: rgba(63, 208, 255, .12); }
 .rank-list li.rank-empty { color: #9b8cd6; font-size: 8px; line-height: 1.7; }
+
+/* ---------- DECORACAO DOS EVENTOS (evDecor em ui.js) ---------- */
+.ev-card[data-ev], .ev-map[data-ev], .ev-hero[data-ev], .mm.ev-btn[data-ev] { position: relative; }
+.evd { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+.ev-hero .ev-hero-copy { z-index: 3; }
+.ev-hero .evd-c.p-bl, .ev-map .evd-c.p-bl { display: none; }
+.ev-map[data-ev] > b, .ev-map[data-ev] > small { position: relative; z-index: 3; text-shadow: 1px 1px 0 #000; }
+.ev-map[data-ev] { padding-top: 10px; }
+.evd i { position: absolute; font-style: normal; line-height: 1; }
+.ev-card[data-ev] { padding-top: 11px; }
+.ev-card[data-ev] > b, .ev-card[data-ev] > small, .ev-card[data-ev] > em { position: relative; z-index: 3; text-shadow: 1px 1px 0 #000; }
+.evd-it { font-size: 16px; animation: evFloat 3s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.ev-card .evd-it { font-size: 9px; opacity: .85; }
+.ev-hero .evd-it { font-size: 26px; }
+.evd-c { font-size: 18px; filter: drop-shadow(1px 1px 0 #000); }
+.ev-card .evd-c { font-size: 11px; }
+.ev-hero .evd-c { font-size: 34px; }
+.evd-c.p-br { right: 3px; bottom: 2px; } .evd-c.p-bl { left: 3px; bottom: 2px; }
+.evd-c.p-tl { left: 2px; top: 10px; } .evd-c.p-tr { right: 2px; top: 10px; }
+.evd-top { left: 0; right: 0; top: 0; height: 8px; }
+.ev-hero .evd-top { height: 14px; }
+
+/* NATAL: festao de vinha, bolinhas penduradas, pingentes de gelo, neve */
+[data-ev="natal"] { border-color: #c8102e !important; background-color: rgba(14, 40, 26, .94) !important; box-shadow: inset 0 0 0 2px #1f7a3a; }
+.evd-garland { background: radial-gradient(circle at 5px 5px, #2e9d4a 4px, #145c2a 5px, transparent 6px) 0 -1px / 10px 9px repeat-x, linear-gradient(#0f4a22, #0f4a22) 0 2px / 100% 3px no-repeat; }
+.ev-hero .evd-garland { background-size: 16px 14px, 100% 5px; }
+.evd-ball { top: 6px; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; transform-origin: 50% calc(-1 * var(--len)); transform: translateY(var(--len)); animation: evSwing 2.4s ease-in-out infinite; animation-delay: var(--d); box-shadow: inset -1px -1px 0 rgba(0,0,0,.35), inset 1px 1px 0 rgba(255,255,255,.6); }
+.evd-ball::before { content: ''; position: absolute; left: 3px; bottom: 6px; width: 1px; height: var(--len); background: #d8c27a; }
+.ev-hero .evd-ball { width: 14px; height: 14px; margin-left: -7px; top: 10px; }
+.ev-hero .evd-ball::before { left: 6px; bottom: 13px; }
+.evd-ball.c0 { background: #e2203a; } .evd-ball.c1 { background: #ffd24a; } .evd-ball.c2 { background: #3a8bff; } .evd-ball.c3 { background: #d8d8e8; }
+.evd-ice { left: 0; right: 0; top: 7px; height: 6px; background: linear-gradient(to bottom right, #e6f8ff 50%, transparent 50%) 0 0 / 8px 6px repeat-x, linear-gradient(to bottom left, #bfeaff 50%, transparent 50%) 4px 0 / 8px 6px repeat-x; opacity: .9; }
+.ev-hero .evd-ice { top: 12px; height: 10px; background-size: 14px 10px; background-position: 0 0, 7px 0; }
+.evd-snowbank { display: none; }
+.a-fall { color: #fff; animation: evFall 4s linear infinite !important; animation-delay: var(--d) !important; text-shadow: 0 0 3px #9fe8ff; }
+
+/* HALLOWEEN: morcegos, bruxa voando, aboboras brilhando, teia, nevoa */
+[data-ev="halloween"] { border-color: #ff7a1a !important; background-color: rgba(30, 10, 40, .95) !important; box-shadow: inset 0 0 14px rgba(255, 110, 20, .35); }
+.a-bat { animation: evBat 4.5s ease-in-out infinite !important; animation-delay: var(--d) !important; }
+.a-bat2 { animation: evBat 5.5s ease-in-out infinite reverse !important; }
+.a-witch { animation: evWitch 9s linear infinite !important; font-size: 18px !important; }
+.ev-hero .a-witch { font-size: 30px !important; }
+.a-glow { animation: evGlow 1.8s ease-in-out infinite; }
+.evd-fog { left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(transparent, rgba(160, 120, 200, .28)); }
+
+/* CARNAVAL: confete, serpentina, mascara, pena */
+[data-ev="carnaval"] { border-color: #ffd400 !important; background-color: rgba(48, 14, 70, .94) !important; box-shadow: inset 0 0 0 2px #19b35a; }
+.evd-confetti { inset: 0; opacity: .55; background:
+  radial-gradient(circle, #ff3b8d 1.5px, transparent 2px) 0 0 / 23px 19px,
+  radial-gradient(circle, #ffd400 1.5px, transparent 2px) 7px 9px / 29px 23px,
+  radial-gradient(circle, #19d36a 1.5px, transparent 2px) 13px 4px / 31px 17px,
+  radial-gradient(circle, #3fd0ff 1.5px, transparent 2px) 3px 12px / 19px 27px;
+  animation: evConfetti 6s linear infinite; }
+.evd-serpentina { background: repeating-linear-gradient(90deg, #ff3b8d 0 12px, #ffd400 12px 24px, #19d36a 24px 36px, #3fd0ff 36px 48px); clip-path: polygon(0 0, 100% 0, 100% 40%, 0 100%); }
+.a-spin { animation: evSpin 3s linear infinite !important; }
+.a-sway { animation: evSway 2.6s ease-in-out infinite !important; }
+
+/* PASCOA: ovos pintados, coelho pulando, flores, borboleta */
+[data-ev="pascoa"] { border-color: #ffb6d9 !important; background-color: rgba(40, 30, 64, .94) !important; box-shadow: inset 0 0 0 2px #a8f0c8; }
+.evd-egg { bottom: 3px; width: 10px; height: 13px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; box-shadow: inset -1px -1px 0 rgba(0,0,0,.2); }
+.ev-hero .evd-egg { width: 18px; height: 24px; }
+.evd-egg.e0 { background: repeating-linear-gradient(0deg, #ffb6d9 0 3px, #fff 3px 5px); }
+.evd-egg.e1 { background: repeating-linear-gradient(0deg, #a8f0c8 0 3px, #fff7a8 3px 5px); }
+.evd-egg.e2 { background: radial-gradient(circle at 50% 40%, #fff 2px, transparent 3px) 0 0 / 5px 5px, #b6c8ff; }
+.evd-egg.e3 { background: repeating-linear-gradient(45deg, #ffd27d 0 2px, #ff9ec8 2px 4px); }
+.a-hop { animation: evHop 1.4s ease-in-out infinite; }
+.a-flutter { animation: evFlutter 3.2s ease-in-out infinite !important; }
+.a-still { animation: none !important; }
+
+/* JUNINA: bandeirinhas, fogueira, milho, faisca */
+[data-ev="junina"] { border-color: #ff9a1a !important; background-color: rgba(52, 22, 12, .94) !important; box-shadow: inset 0 -10px 18px rgba(255, 120, 20, .25); }
+.evd-flags { height: 10px; background: repeating-linear-gradient(90deg, #ff3b30 0 10px, #ffd400 10px 20px, #3a8bff 20px 30px, #19b35a 30px 40px, #ff4fd8 40px 50px);
+  -webkit-mask: conic-gradient(from -45deg at 50% 100%, transparent 90deg, #000 90deg) 0 0 / 10px 10px repeat-x;
+  mask: conic-gradient(from -45deg at 50% 100%, transparent 90deg, #000 90deg) 0 0 / 10px 10px repeat-x; }
+.ev-hero .evd-flags { height: 16px; mask-size: 16px 16px; -webkit-mask-size: 16px 16px; }
+.evd-flags::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: #f0e0b0; }
+.a-flicker { animation: evFlicker .5s steps(2) infinite; }
+.a-twinkle, .a-twinkle2 { animation: evTwinkle 1.6s ease-in-out infinite !important; animation-delay: var(--d) !important; }
+.a-twinkle2 { animation-duration: 2.2s !important; }
+
+/* CRIANCAS: arco-iris, baloes subindo, pipa, pirulito */
+[data-ev="criancas"] { border-color: #3fd0ff !important; background-color: rgba(20, 30, 70, .94) !important; }
+.evd-rainbow { height: 5px; background: linear-gradient(90deg, #ff3b30, #ff9a1a, #ffd400, #19b35a, #3a8bff, #8a4bff); }
+.ev-hero .evd-rainbow { height: 8px; }
+.a-rise { animation: evRise 5s linear infinite !important; animation-delay: var(--d) !important; }
+.a-rise2 { animation: evRise 6.5s linear infinite !important; animation-delay: 1.5s !important; }
+.a-spin-slow { animation: evSpin 6s linear infinite; }
+
+/* ANO NOVO: brilhos dourados, fogos, tacas */
+[data-ev="anonovo"] { border-color: #ffd27d !important; background-color: rgba(10, 14, 44, .95) !important; box-shadow: inset 0 0 12px rgba(255, 210, 125, .3); }
+.evd-gold { height: 3px; background: linear-gradient(90deg, transparent, #ffd27d, #fff3c4, #ffd27d, transparent); animation: evShine 2.4s linear infinite; background-size: 200% 100%; }
+.a-pop { animation: evPop 2.2s ease-out infinite !important; }
+
+@keyframes evFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes evSwing { 0%, 100% { transform: translateY(var(--len)) rotate(-10deg); } 50% { transform: translateY(var(--len)) rotate(10deg); } }
+@keyframes evFall { from { transform: translateY(-14px); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(70px); opacity: 0; } }
+@keyframes evBat { 0% { transform: translate(0, 0) scaleX(1); } 25% { transform: translate(30px, -8px) scaleX(.7); } 50% { transform: translate(60px, 4px) scaleX(1); } 75% { transform: translate(30px, 10px) scaleX(.7); } 100% { transform: translate(0, 0) scaleX(1); } }
+@keyframes evWitch { from { left: -20%; transform: translateY(0); } 50% { transform: translateY(-6px); } to { left: 110%; transform: translateY(0); } }
+@keyframes evGlow { 0%, 100% { filter: drop-shadow(0 0 2px #ff7a1a); } 50% { filter: drop-shadow(0 0 8px #ffb020); } }
+@keyframes evConfetti { from { background-position: 0 0, 7px 9px, 13px 4px, 3px 12px; } to { background-position: 0 38px, 7px 55px, 13px 38px, 3px 66px; } }
+@keyframes evSpin { to { transform: rotate(360deg); } }
+@keyframes evSway { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+@keyframes evHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-7px); } 60% { transform: translateY(-7px); } }
+@keyframes evFlutter { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(16px, -8px); } 66% { transform: translate(30px, 4px); } }
+@keyframes evFlicker { 0% { transform: scale(1, 1); } 100% { transform: scale(1.08, .94); } }
+@keyframes evTwinkle { 0%, 100% { opacity: .2; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes evRise { from { transform: translateY(130%); } to { transform: translateY(-140%); } }
+@keyframes evShine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes evPop { 0% { transform: scale(.2); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+body.reduced .evd i, body.reduced .evd-confetti, body.reduced .evd-gold { animation: none !important; }
+
+/* botao EVENTOS do menu principal: veste o evento do momento (ou o proximo) */
+.mm.ev-btn[data-ev] > span:not(.evd), .mm.ev-btn[data-ev] > small { position: relative; z-index: 3; text-shadow: 1px 1px 0 #000; }
+.mm.ev-btn[data-ev] { padding-top: 10px; }
+.mm.ev-btn .evd-it { font-size: 12px; }
+.mm.ev-btn .evd-c { font-size: 15px; }
+.mm.ev-btn .evd-c.p-bl { display: none; }
