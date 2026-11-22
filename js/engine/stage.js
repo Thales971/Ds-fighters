@@ -976,17 +976,19 @@ class StageRenderer {
      balancando devagar e poeira brilhando no ar, na cor da luz do proprio
      mapa. Barato (3 gradientes cacheados + ~24 pontos) e some no perf 2. */
   drawRays(ctx) {
-    if (this.reducedFlag || this.perfVignetteOff) return;
+    if (this.reducedFlag || this.perfVignetteOff || !ctx.createLinearGradient || !ctx.moveTo) return;
     const d = this.def || {};
     if (d.rays === false) return;
     const W = this.W, H = this.H;
     if (!this._rays) {
       let h = 0; for (const ch of String(d.id || 'x')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-      const col = d.rayColor || (d.lights && d.lights[0] && d.lights[0].color) || '#fff2c8';
+      let col = d.rayColor || (d.lights && d.lights[0] && d.lights[0].color) || '#fff2c8';
+      if (/^\s*\d+\s*,\s*\d+\s*,\s*\d+\s*$/.test(String(col))) col = 'rgb(' + col + ')'; /* luzes guardadas como '150,200,255' */
       const left = (h & 1) === 0;
       const mk = (i) => {
         const g = ctx.createLinearGradient(0, 0, 0, H * 0.9);
-        g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+        try { g.addColorStop(0, col); } catch (e) { g.addColorStop(0, '#fff2c8'); }
+        g.addColorStop(1, 'rgba(0,0,0,0)');
         return { g, x: (left ? 0.12 : 0.55) * W + i * W * (0.13 + ((h >> (i + 2)) & 3) * 0.02), w: 70 + ((h >> (i * 3)) & 63), ph: i * 2.1 + (h % 7) };
       };
       this._rays = { list: [mk(0), mk(1), mk(2)], skew: left ? 0.32 : -0.32, motes: Array.from({ length: 24 }, (_, i) => ({ x: ((h >> (i % 16)) * 37 + i * 97) % W, y: (i * 61 + (h % 200)) % (H * 0.8), s: 0.4 + ((i * 13) % 10) / 10, ph: i * 0.7 })), col };
