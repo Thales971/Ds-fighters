@@ -2,8 +2,10 @@ name: Supabase keep-alive
 
 on:
   schedule:
-    # Todo dia às 12:15 UTC. O cron do GitHub só dispara na branch padrão.
-    - cron: '15 12 * * *'
+    # Duas vezes por dia (00:15 e 12:15 UTC). O plano gratis pausa depois de
+    # 7 dias sem atividade; com 2 toques por dia sobra folga mesmo se o GitHub
+    # atrasar ou pular execucoes. O cron do GitHub so dispara na branch padrao.
+    - cron: '15 0,12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -13,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Gravar atividade no Postgres
         env:
           # Opcional. Sem o segredo, o script usa a chave publicável já
