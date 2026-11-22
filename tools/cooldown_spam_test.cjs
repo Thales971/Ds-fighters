@@ -117,4 +117,22 @@ const heat = vm.runInContext(`(() => {
 })()`, ctx);
 check('anti-spam: 5 habilidades coladas esquentam e cortam o dano', heat.m0 === 1 && heat.hot.heat >= 3 && heat.hot.mult < 0.7 && heat.hot.dmgHot < heat.hot.dmgBasic, JSON.stringify(heat));
 check('anti-spam: CPU nao esquenta; quem espera ~3s entre habilidades tambem nao', heat.cpuHeat === 0 && heat.calmHeat === 0, JSON.stringify(heat));
+/* MIS: a vertigem da ult inverte os controles da CPU (a tela so vira pro humano) */
+const vert = vm.runInContext(`(() => {
+  const none = PETS.find((p) => p.id === 'none') || PETS[0];
+  const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };
+  const out = {};
+  for (const v of [false, true]) {
+    const g = new Game(cv);
+    g.start({ mode: 'versus', teams: [['mis'], ['jess']], stage: 'treino-dojo', cpu: [false, true], difficulty: 2, roundsToWin: 1, timer: 99, pets: [none, none] });
+    for (let i = 0; i < 300 && g.roundState !== 'fight'; i++) g.tick();
+    const m = g.activeOf(0), c = g.activeOf(1);
+    m.x = 300; c.x = 700;
+    let toward = 0;
+    for (let i = 0; i < 90; i++) { if (v) c.status.vertigo = c.now + 60; const x0 = c.x; g.tick(); if (c.x < x0 - 0.5) toward++; }
+    out[v ? 'com' : 'sem'] = toward;
+  }
+  return out;
+})()`, ctx);
+check('Mis: vertigem inverte os controles da CPU', vert.sem > 30 && vert.com < vert.sem / 3, JSON.stringify(vert));
 process.exit(fails ? 1 : 0);
