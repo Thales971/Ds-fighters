@@ -1118,6 +1118,8 @@ const UI = {
     const isBoss = !!row.boss;
     const tor = (typeof TORNEIO !== 'undefined' && TORNEIO.stages.length) ? TORNEIO.stages : null;
     const stageId = tor ? tor[Math.min(tor.length - 1, row.map == null ? f.arcadeStep : row.map)] : STAGE_LIST[0].id;
+    let tourneyPet = Profile.petFor(0);
+    if (tourneyPet && tourneyPet.id === 'pitoco') { tourneyPet = PETS[0]; this.toast('O PITOCO é proibido no torneio. Você entra sem mascote.', 3000); }
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: stageId, weather: 'random',
       bossFight: isBoss,
@@ -1126,7 +1128,8 @@ const UI = {
       /* A dificuldade do menu NÃO entra aqui. Cada degrau da chave tem a sua. */
       cpuDifficulty: row.diff == null ? 1 : row.diff,
       difficulty: row.diff == null ? 1 : row.diff,
-      cpu: [false, true], pets: [Profile.petFor(0), PETS[0]],
+      /* PITOCO e "proibido em torneio" (15 HP/s + 50% de esquiva): entra sem mascote */
+      cpu: [false, true], pets: [tourneyPet, PETS[0]],
       roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99,
       music: isBoss ? 'boss' : 'battle',
     });

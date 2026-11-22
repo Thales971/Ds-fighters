@@ -10,8 +10,8 @@
 const AI_LEVELS = [
   { name: 'Fácil', react: 26, block: 0.18, lowRead: 0.25, antiAir: 0.05, punish: 0.05, combo: 1, ability: 0.006, ult: 0.004, aggro: 0.05, mistake: 0.25, dodge: 0.02, throw: 0.002, spacing: 150 },
   { name: 'Normal', react: 15, block: 0.45, lowRead: 0.55, antiAir: 0.18, punish: 0.3, combo: 3, ability: 0.014, ult: 0.012, aggro: 0.1, mistake: 0.1, dodge: 0.06, throw: 0.006, spacing: 125 },
-  { name: 'Difícil', react: 8, block: 0.72, lowRead: 0.8, antiAir: 0.45, punish: 0.65, combo: 5, ability: 0.026, ult: 0.03, aggro: 0.16, mistake: 0.03, dodge: 0.14, throw: 0.012, spacing: 110 },
-  { name: 'Pesadelo', react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.04, ult: 0.08, aggro: 0.22, mistake: 0, dodge: 0.3, throw: 0.02, spacing: 100 },
+  { name: 'Difícil', react: 8, block: 0.72, lowRead: 0.8, antiAir: 0.45, punish: 0.65, combo: 5, ability: 0.045, ult: 0.05, aggro: 0.16, mistake: 0.03, dodge: 0.14, throw: 0.012, spacing: 110 },
+  { name: 'Pesadelo', react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.07, ult: 0.1, aggro: 0.22, mistake: 0, dodge: 0.3, throw: 0.02, spacing: 100 },
 ];
 
 /* Ajuste só do torneio, por degrau (1 médio, 2 difícil, 3 extremo).

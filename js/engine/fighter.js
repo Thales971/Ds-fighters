@@ -294,9 +294,10 @@ class Fighter {
     if (w === 'heatwave' && ['agua', 'water', 'gelo', 'ice'].includes(el)) m *= 0.95;
     return m;
   }
-  spamDmgMult() { return (this.spamHeat || 0) >= 3 ? Math.max(0.35, 1 - 0.22 * (this.spamHeat - 2)) : 1; }
+  /* ultimate ja depende da barra cheia: fica fora do anti-spam */
+  spamDmgMult(p) { if (p && p.slot === 'ultimate') return 1; return (this.spamHeat || 0) >= 3 ? Math.max(0.35, 1 - 0.22 * (this.spamHeat - 2)) : 1; }
   dmgMult(p) {
-    let m = p ? this.spamDmgMult() : 1;
+    let m = p ? this.spamDmgMult(p) : 1;
     m *= (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1) * (this.tourneyDmg || 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
@@ -467,7 +468,7 @@ class Fighter {
       }
     }
     /* anti-spam: habilidade "quente" tambem atordoa menos */
-    if (atk && o.power && o.stun && atk.spamDmgMult() < 1) o = Object.assign({}, o, { stun: Math.max(4, Math.round(o.stun * atk.spamDmgMult())) });
+    if (atk && o.power && o.stun && atk.spamDmgMult(o.power) < 1) o = Object.assign({}, o, { stun: Math.max(4, Math.round(o.stun * atk.spamDmgMult(o.power))) });
     let d = dmg * (atk ? atk.dmgMult(o.power) : 1) * this.defMult();
     let comboIndex = 0;
     if (atk && game.combo.owner === atk && game.combo.until > game.time) comboIndex = game.combo.count;
@@ -606,7 +607,7 @@ class Fighter {
     const fx = Object.assign({}, o.ability ? sig.ability : sig.basic, p && p.fx);
     if (!fx) return;
     /* anti-spam: efeitos (queimar, lento, sem poderes...) duram menos quando a habilidade sai no spam */
-    const spamM = p && atk.spamDmgMult ? atk.spamDmgMult() : 1;
+    const spamM = p && atk.spamDmgMult ? atk.spamDmgMult(p) : 1;
     if (spamM < 1) for (const k in fx) if (typeof fx[k] === 'number' && k !== 'drain') fx[k] = Math.round(fx[k] * spamM);
     const game = this.game;
     const thermalPrepared = this.has('chill') || this.has('burn');
@@ -808,7 +809,7 @@ class Fighter {
     /* ANTI-SPAM (todos os modos, so jogador humano): habilidade atras de
        habilidade sem respiro esquenta. A partir do 3o seguido o dano das
        habilidades cai (ate -65%). Segurar ~3s entre habilidades esfria. */
-    if (this.game && this.game.cfg && this.game.cfg.cpu && !this.game.cfg.cpu[this.team]) {
+    if (p.slot !== 'ultimate' && this.game && this.game.cfg && this.game.cfg.cpu && !this.game.cfg.cpu[this.team]) {
       const now = this.frame || 0;
       const gap = now - (this._lastCastF == null ? -9999 : this._lastCastF);
       this.spamHeat = gap < 200 ? (this.spamHeat || 0) + 1 : Math.max(0, (this.spamHeat || 0) - Math.floor(gap / 200));
@@ -1556,7 +1557,7 @@ class Fighter {
     if (this.def.id === 'nunes' && this.alive && this.onGround && this.hp > 0
         && !(game.inferno && game.inferno.active) && this.now % 10 === 0
         && game.zones && game.zones.some((z) => z.owner === this && Math.abs(this.x - z.x) < z.w / 2)) {
-      this.hp = Math.min(this.maxHp, this.hp + 1.4);
+      this.hp = Math.min(this.maxHp, this.hp + 0.7); /* era 1.4 (8,4 HP/s): curava rapido demais */
     }
     this.syncControlMemory();
     this.frame++;
