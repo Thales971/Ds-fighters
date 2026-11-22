@@ -483,6 +483,30 @@ class Fighter {
     const lowBlock = this.blocking && this.crouching;
     const canBlock = this.onGround && !unblockable && ['idle', 'walk', 'block', 'crouchblock', 'blockstun'].includes(this.state);
     const blocked = canBlock && ((height === 'high' && standBlock) || (height === 'low' && lowBlock) || (height === 'mid' && (standBlock || lowBlock)));
+    /* PARRY (nov/2026): defender nos 8 primeiros quadros da guarda anula o dano
+       (nem chip), nao sofre blockstun e, se o golpe for de perto, o atacante
+       fica aberto. A CPU so consegue as vezes (mais no dificil). */
+    if (blocked && atk && atk !== this && !o.hazard && this.now - (this._blockStart == null ? -999 : this._blockStart) <= 8) {
+      const isCpu = game.cfg && game.cfg.cpu && game.cfg.cpu[this.team];
+      const lvl = this.aiLevel == null ? 1 : this.aiLevel;
+      if (!isCpu || Math.random() < [0.05, 0.12, 0.25, 0.4][Math.max(0, Math.min(3, lvl))]) {
+        this._blockStart = -999; /* um parry por apertada */
+        this.blockstun = 0;
+        this.state = this.crouching ? 'crouchblock' : 'block';
+        this.stateTime = 0;
+        if (!(game.audio.play && game.audio.play('metal', { vol: 0.8 }))) game.audio.block();
+        game.spawnBurst('impact', 2, this.x - sign * 14, this.y - 100, -sign, 2.2);
+        if (game.floatText) game.floatText(this.x, this.y - 210, 'PARRY!', '#7df9ff');
+        if (game.shake) game.shake(5);
+        this.gain(true, 0.8);
+        if (!o.projectile && atk.onGround && Math.abs(atk.x - this.x) < 220) {
+          atk.state = 'hit'; atk.stateTime = 0; atk.hitstun = Math.max(atk.hitstun || 0, 26);
+          atk.attack = null; atk.vx = -atk.dir * 3;
+        }
+        this._parries = (this._parries || 0) + 1;
+        return true;
+      }
+    }
     if (blocked) {
       this._blocked = (this._blocked || 0) + 1;
       if (this._blocked >= 25) Profile.grantAchievement('bloqueio-25');
@@ -514,6 +538,13 @@ class Fighter {
       d -= absorb;
       game.spawnBurst('water', 2, this.x, this.y - 100, 1, 1.5);
       if (d <= 0) { game.floatText(this.x, this.y - 200, 'ESCUDO', '#7de0ff'); return true; }
+    }
+    /* TETO DA ULTIMATE (nov/2026): cada ultimate tira no maximo 30% da vida
+       maxima do alvo, somando todos os acertos dela. Luta nao se decide num botao. */
+    if (atk && o.power && o.power.slot === 'ultimate') {
+      if (this._ultFrom !== atk || this._ultSeqSeen !== atk._ultSeq) { this._ultFrom = atk; this._ultSeqSeen = atk._ultSeq; this._ultTaken = 0; }
+      d = Math.max(0, Math.min(d, this.maxHp * 0.3 - this._ultTaken));
+      this._ultTaken += d;
     }
     this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(0, this.hp - d);
     if (atk) { atk.stats.dmg += d; atk.stats.hits++; }
@@ -805,6 +836,7 @@ class Fighter {
     }
     else {
       this.ultimate = 0;
+      this._ultSeq = (this._ultSeq || 0) + 1; /* cada ult conta o teto de 30% do zero */
       this.cd[i] = 150;
       this.spamShared = Math.max(this.spamShared || 0, 70);
     }
@@ -2072,6 +2104,9 @@ class Fighter {
     if (leftEdge) this.lastLeft = this.now;
     if (input.up) { this.doJump(input); return; }
     const back = (this.dir === 1 && input.left) || (this.dir === -1 && input.right);
+    /* PARRY: lembra o quadro em que a guarda comecou (segurou pra tras agora) */
+    if (back && !this._backHeld) this._blockStart = this.now;
+    this._backHeld = !!back;
     /* POSTURA DEFENSIVA: andar pra tras deixa a guarda alta — absorve 15% */
     this.guardUp = !!(back && !input.down && this.canAct() && this.state !== 'attack' && !this.cast);
     if (input.down) {

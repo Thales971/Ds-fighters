@@ -100,7 +100,9 @@ check('seis bônus usados ainda deixam escolha', out.buffs.length === 3, out.buf
 check('bônus de vida não passa de 500', out.playerHp <= 500, 'hp ' + out.playerHp);
 check('substituto do chefe não ganha a barra de 2000', out.standHp <= 500 && out.standHp !== 2000, 'hp ' + out.standHp);
 check('a intro do Kernor toca de novo numa luta nova', out.introReset && out.introPlayed, 'reset ' + out.introReset + ' tocou ' + out.introPlayed);
-for (const f of out.fauna) check(f.id + ' tem bicho, planta, clima e luz', f.animals > 0 && f.flora > 0 && f.weather && f.lights > 0, JSON.stringify(f));
+/* mapas em chamas / de pedra / de fabrica ficam SEM planta (pedido do dono) */
+const SEM_PLANTA = ['torneio-cidade-git', 'torneio-fortaleza-do-dev', 'torneio-fabrica-de-builds'];
+for (const f of out.fauna) check(f.id + (SEM_PLANTA.includes(f.id) ? ' tem bicho, clima e luz (e nenhuma planta)' : ' tem bicho, planta, clima e luz'), f.animals > 0 && (SEM_PLANTA.includes(f.id) ? f.flora === 0 : f.flora > 0) && f.weather && f.lights > 0, JSON.stringify(f));
 const git = out.fauna.find((f) => f.id === 'torneio-cidade-git');
 check('Cidade Git nasce morcego vivo', git && git.bats > 0, JSON.stringify(git));
 console.log(out.rows.map((r) => r.id + ' ia=' + r.level + ' andar=' + r.move + ' golpes=' + r.atk + ' hab=' + r.abi + ' hp=' + r.hp).join('\n'));

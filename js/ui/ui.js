@@ -1312,6 +1312,7 @@ const UI = {
   },
   onMatchEnd(res, game) {
     HUD.hide();
+    if (typeof MatchStats !== 'undefined') MatchStats.record(game, res); /* resultado anonimo pro balanceamento */
     const f = this.flow || {};
     const human = game.mode === 'online' ? game.cfg.localTeam : 0;
     const vsHuman = game.mode === 'versus' && !game.cfg.cpu[1];

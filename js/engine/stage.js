@@ -972,6 +972,52 @@ class StageRenderer {
     }
     ctx.restore();
   }
+  /* FEIXES DE LUZ + POEIRA (nov/2026): todo mapa ganha luz descendo do ceu
+     balancando devagar e poeira brilhando no ar, na cor da luz do proprio
+     mapa. Barato (3 gradientes cacheados + ~24 pontos) e some no perf 2. */
+  drawRays(ctx) {
+    if (this.reducedFlag || this.perfVignetteOff || !ctx.createLinearGradient || !ctx.moveTo || !ctx.closePath) return;
+    const d = this.def || {};
+    if (d.rays === false) return;
+    const W = this.W, H = this.H;
+    if (!this._rays) {
+      let h = 0; for (const ch of String(d.id || 'x')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      let col = d.rayColor || (d.lights && d.lights[0] && d.lights[0].color) || '#fff2c8';
+      if (/^\s*\d+\s*,\s*\d+\s*,\s*\d+\s*$/.test(String(col))) col = 'rgb(' + col + ')'; /* luzes guardadas como '150,200,255' */
+      const left = (h & 1) === 0;
+      const mk = (i) => {
+        const g = ctx.createLinearGradient(0, 0, 0, H * 0.9);
+        try { g.addColorStop(0, col); } catch (e) { g.addColorStop(0, '#fff2c8'); }
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        return { g, x: (left ? 0.12 : 0.55) * W + i * W * (0.13 + ((h >> (i + 2)) & 3) * 0.02), w: 70 + ((h >> (i * 3)) & 63), ph: i * 2.1 + (h % 7) };
+      };
+      this._rays = { list: [mk(0), mk(1), mk(2)], skew: left ? 0.32 : -0.32, motes: Array.from({ length: 24 }, (_, i) => ({ x: ((h >> (i % 16)) * 37 + i * 97) % W, y: (i * 61 + (h % 200)) % (H * 0.8), s: 0.4 + ((i * 13) % 10) / 10, ph: i * 0.7 })), col };
+    }
+    const R = this._rays, t = this.t;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const r of R.list) {
+      const a = 0.05 + 0.035 * Math.sin(t * 0.012 + r.ph);
+      const sway = Math.sin(t * 0.004 + r.ph) * 18;
+      ctx.globalAlpha = Math.max(0, a);
+      ctx.fillStyle = r.g;
+      ctx.beginPath();
+      ctx.moveTo(r.x + sway, -10);
+      ctx.lineTo(r.x + sway + r.w, -10);
+      ctx.lineTo(r.x + sway + r.w * 1.9 + H * R.skew, H * 0.9);
+      ctx.lineTo(r.x + sway + H * R.skew, H * 0.9);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = R.col;
+    for (const m of R.motes) {
+      const y = (m.y - t * 0.15 * m.s + H * 2) % (H * 0.85);
+      const x = m.x + Math.sin(t * 0.01 + m.ph) * 12;
+      ctx.globalAlpha = 0.25 + 0.35 * Math.abs(Math.sin(t * 0.03 + m.ph));
+      ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.restore();
+  }
   drawVignette(ctx) {
     if (this.perfVignetteOff) return; /* modo performance nivel 2 */
     if (!this.vignette) {

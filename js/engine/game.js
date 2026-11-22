@@ -390,6 +390,19 @@ class Game {
     const key = p.visualSheet ? 'fx2:' + p.visualSheet : 'abil:' + fid;
     const row = Number.isInteger(p.visualRow) ? p.visualRow : p.row;
     this.spawnBurst(key, row, x, y, owner.dir, p.big ? 1.3 : 0.9);
+    /* camada de som do ELEMENTO no acerto (fogo crepita, gelo tilinta, veneno
+       borbulha, choque estala, agua espirra, metal bate) — baixinha, por cima do soco */
+    if (this.audio && this.audio.play) {
+      const f = p.fx || {};
+      const e = String(el || '');
+      const snd = (f.burn || /fogo|fire|magma|termic|brasa/.test(e)) ? 'fire'
+        : (f.chill || f.freeze || /gelo|ice|frio/.test(e)) ? 'ice'
+          : (f.poison || /veneno|acido|poison|toxi/.test(e)) ? 'poison'
+            : (f.shock || /neon|raio|trovao|eletric|electric/.test(e)) ? 'zap'
+              : /agua|water|chuva|database/.test(e) ? 'water'
+                : /metal|cromo|chrome|mecha|lata|veterano/.test(e) ? 'metal' : null;
+      if (snd) this.audio.play(snd, { vol: 0.32, gap: 90 });
+    }
     const sheets = p.impactSheets || (p.impactSheet ? [p.impactSheet] : (p.visualSheet ? [] : [fx.sheet]));
     sheets.forEach((sheet) => this.spawnBurst(sheet, 3, x, y, owner.dir, 2.2));
     for (let k = 0; k < Math.max(1, Math.round((this.reduced ? 4 : 10) * (this.qFx || 1))); k++) this.spark(x, y, p.impactColor || fx.color);
@@ -1348,6 +1361,7 @@ class Game {
     }
     ctx.translate(sx, sy);
     this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
+    if (this.stage.drawRays && !this.photo) this.stage.drawRays(ctx);
     if (this.freeze > 0) {
       ctx.fillStyle = 'rgba(0,0,10,0.62)';
       ctx.fillRect(-20, -20, W + 40, H + 40);

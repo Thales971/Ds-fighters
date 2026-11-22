@@ -582,7 +582,8 @@ class Weather {
         }
       }
     }
-    const img = this._auroraImg, d = img.data;
+    const img = this._auroraImg, d = img && img.data;
+    if (!d) return; /* contexto sem pixels (teste/navegador antigo): sem aurora, sem erro */
     for (let p = 0, q = 0; p < buf.length; p += 3, q += 4) {
       d[q] = buf[p] > 255 ? 255 : buf[p];
       d[q + 1] = buf[p + 1] > 255 ? 255 : buf[p + 1];
