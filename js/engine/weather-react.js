@@ -106,7 +106,7 @@
       ctx.fillStyle = l.col;
       ctx.save();
       ctx.translate(l.x, l.y);
-      ctx.rotate(l.rot);
+      if (ctx.rotate) ctx.rotate(l.rot);
       if (ctx.ellipse) { ctx.beginPath(); ctx.ellipse(0, 0, 4, 2, 0, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-3, -1, 6, 3);
       ctx.restore();
     }

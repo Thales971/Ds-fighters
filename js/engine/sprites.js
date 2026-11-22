@@ -309,7 +309,7 @@ const SpriteGen = {
       // pivô no pé: o boneco estica/achata/inclina sem sair do chão
       const py = L.baseline * sc;
       ctx.translate(0, py);
-      if (xf.rot) ctx.rotate(xf.rot * dir);
+      if (xf.rot && ctx.rotate) ctx.rotate(xf.rot * dir);
       ctx.scale(xf.sx, xf.sy);
       ctx.translate(0, -py);
     }

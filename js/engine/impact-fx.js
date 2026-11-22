@@ -82,7 +82,7 @@
       ctx.fillStyle = p.col;
       ctx.save();
       ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
+      if (ctx.rotate) ctx.rotate(p.rot);
       ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.66);
       ctx.restore();
     }

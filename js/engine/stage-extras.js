@@ -53,7 +53,7 @@
     ctx.save();
     ctx.globalAlpha = alpha == null ? 1 : alpha;
     ctx.translate(x, y);
-    if (rot) ctx.rotate(rot);
+    if (rot) if (ctx.rotate) ctx.rotate(rot);
     if (flip) ctx.scale(-1, 1);
     ctx.drawImage(s, -s.width / 2, -s.height / 2);
     ctx.restore();
@@ -160,9 +160,9 @@
     /* raios girando (2 camadas em sentidos opostos = brilho vivo) */
     ctx.globalAlpha = 0.35 * pulse;
     ctx.translate(S.x, S.y);
-    ctx.rotate(t * 0.0012);
+    if (ctx.rotate) ctx.rotate(t * 0.0012);
     ctx.drawImage(S.spr.rays, -320, -320);
-    ctx.rotate(-t * 0.0026);
+    if (ctx.rotate) ctx.rotate(-t * 0.0026);
     ctx.globalAlpha = 0.18 * pulse;
     ctx.drawImage(S.spr.rays, -280, -280, 560, 560);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
