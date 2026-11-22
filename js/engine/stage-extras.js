@@ -516,4 +516,120 @@
       S.parts.push({ ch: set[k % set.length], size: 18 + ((Math.random() * 12) | 0), x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, rot: 0, vr: (Math.random() - 0.5) * 0.2, life: 110 + Math.random() * 40 });
     }
   };
+
+  /* ---------------- FUNDO VIVO POR MAPA ----------------
+     Elementos animados posicionados em cima do desenho de cada mapa (coords de
+     tela com a camera no centro; acompanham o parallax da camada do meio):
+       smoke   fumaca subindo da chamine            {x, y}
+       neon    letreiro de neon piscando/zumbindo   {x, y, w, h, c}
+       water   brilhos e ondinhas na agua           {x0, x1, y0, y1}
+       foam    espuma da onda indo e voltando       {x0, x1, y}
+       twinkle luzinhas piscando (arvore, varal)    {x, y, w, h}
+       lantern lanterna/lampiao tremeluzindo        {x, y, c}               */
+  const LIVING = {
+    'natal-praca': [{ t: 'twinkle', x: 110, y: 90, w: 110, h: 230 }, { t: 'twinkle', x: 710, y: 90, w: 110, h: 230 }, { t: 'smoke', x: 250, y: 150 }],
+    'campos-jordao': [{ t: 'smoke', x: 20, y: 30 }, { t: 'smoke', x: 892, y: 36 }, { t: 'smoke', x: 326, y: 222 }, { t: 'lantern', x: 215, y: 158, c: '255,200,120' }, { t: 'lantern', x: 727, y: 196, c: '255,200,120' }],
+    'rua-centro-noite': [{ t: 'neon', x: 30, y: 120, w: 90, h: 34, c: '255,90,200' }, { t: 'neon', x: 700, y: 100, w: 110, h: 34, c: '90,170,255' }, { t: 'neon', x: 905, y: 140, w: 50, h: 60, c: '255,80,160' }, { t: 'water', x0: 200, x1: 760, y0: 330, y1: 400 }],
+    'cyberpunk': [{ t: 'neon', x: 100, y: 10, w: 50, h: 120, c: '255,70,150' }, { t: 'neon', x: 185, y: 75, w: 50, h: 115, c: '80,255,210' }, { t: 'neon', x: 345, y: 20, w: 45, h: 145, c: '80,200,255' }, { t: 'neon', x: 875, y: 20, w: 65, h: 170, c: '255,80,190' }, { t: 'neon', x: 815, y: 180, w: 60, h: 50, c: '90,255,230' }, { t: 'water', x0: 60, x1: 900, y0: 380, y1: 450 }],
+    '01-neon-rooftop': [{ t: 'neon', x: 60, y: 260, w: 120, h: 40, c: '255,80,200' }, { t: 'neon', x: 760, y: 250, w: 130, h: 40, c: '80,200,255' }, { t: 'water', x0: 40, x1: 920, y0: 330, y1: 400 }],
+    'parque-lago': [{ t: 'water', x0: 280, x1: 880, y0: 290, y1: 340 }],
+    'represa': [{ t: 'water', x0: 40, x1: 940, y0: 270, y1: 420 }],
+    'anonovo-copacabana': [{ t: 'foam', x0: 0, x1: 960, y: 232 }, { t: 'water', x0: 0, x1: 960, y0: 190, y1: 228 }],
+    'paraty': [{ t: 'water', x0: 380, x1: 960, y0: 300, y1: 400 }],
+    'japan': [{ t: 'lantern', x: 232, y: 292, c: '255,150,90' }, { t: 'lantern', x: 830, y: 270, c: '255,170,100' }, { t: 'water', x0: 520, x1: 680, y0: 360, y1: 440 }],
+  };
+  P.drawLiving = function (ctx) {
+    if (this._evOff() || !ctx.fillRect) return;
+    const d = this.def || {};
+    const list = d.living || LIVING[d.id];
+    if (!list) return;
+    const t = this.t;
+    const shift = -(this._cam || 0) * 0.44 * 78;
+    if (!this._livP) this._livP = [];
+    ctx.save();
+    ctx.translate(shift, 0);
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i];
+      if (e.t === 'smoke') {
+        /* fiapos de fumaca subindo, abrindo e sumindo (bolinhas cinza translucidas) */
+        for (let k = 0; k < 7; k++) {
+          const c = ((t * 0.6 + k * 26 + i * 40) % 180) / 180;
+          const r = 5 + c * 16;
+          ctx.globalAlpha = (1 - c) * 0.32;
+          ctx.fillStyle = 'rgba(225,225,232,1)';
+          if (ctx.arc) { ctx.beginPath(); ctx.arc(e.x + Math.sin(c * 5 + k) * 6 + c * 22 * (1 + ((this._wind || 0) * 0.5)), e.y - c * 90, r, 0, Math.PI * 2); ctx.fill(); }
+        }
+      } else if (e.t === 'neon') {
+        /* zumbido do neon: brilho que respira + falha rapida de vez em quando */
+        const fail = ((t + i * 97) % 300) < 6 && ((t >> 1) % 2 === 0);
+        const a = fail ? 0.05 : 0.22 + 0.08 * Math.sin(t * 0.09 + i);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = a;
+        if (ctx.createRadialGradient) {
+          const cx = e.x + e.w / 2, cy = e.y + e.h / 2, R = Math.max(e.w, e.h) * 0.9;
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+          g.addColorStop(0, 'rgba(' + e.c + ',0.9)');
+          g.addColorStop(1, 'rgba(' + e.c + ',0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (e.t === 'water') {
+        /* brilhos cintilando + linhas de onda deslizando */
+        ctx.globalCompositeOperation = 'lighter';
+        const w = e.x1 - e.x0, h = e.y1 - e.y0;
+        for (let k = 0; k < 18; k++) {
+          const x = e.x0 + ((k * 137 + t * (0.3 + (k % 3) * 0.15)) % w);
+          const y = e.y0 + ((k * 61) % Math.max(1, h));
+          ctx.globalAlpha = Math.max(0, Math.sin(t * 0.06 + k * 1.7)) * 0.5;
+          ctx.fillStyle = '#fffbe8';
+          ctx.fillRect(x, y, 3 + (k % 3) * 2, 1);
+        }
+        for (let k = 0; k < 4; k++) {
+          const y = e.y0 + ((k + 0.5) / 4) * h;
+          const x = e.x0 + ((t * 0.4 + k * 140) % (w + 120)) - 60;
+          ctx.globalAlpha = 0.12;
+          ctx.fillStyle = '#dff4ff';
+          ctx.fillRect(x, y, 60, 1);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (e.t === 'foam') {
+        /* espuma da onda indo e voltando na areia */
+        const off = Math.sin(t * 0.025) * 6;
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 0.05);
+        ctx.fillStyle = '#ffffff';
+        for (let x = e.x0; x < e.x1; x += 12) {
+          const yy = e.y + off + Math.sin(x * 0.04 + t * 0.06) * 2;
+          ctx.fillRect(x, yy, 8, 2);
+        }
+      } else if (e.t === 'twinkle') {
+        const cols = ['#ff4a4a', '#ffd84a', '#5aff7a', '#5ab4ff', '#ffffff'];
+        ctx.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 16; k++) {
+          const x = e.x + ((k * 53) % e.w), y = e.y + ((k * 89) % e.h);
+          const on = Math.sin(t * 0.1 + k * 2.3) > 0.2;
+          if (!on) continue;
+          ctx.globalAlpha = 0.85;
+          ctx.fillStyle = cols[k % cols.length];
+          ctx.fillRect(x - 1, y - 1, 3, 3);
+          ctx.globalAlpha = 0.25;
+          ctx.fillRect(x - 3, y - 3, 7, 7);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (e.t === 'lantern') {
+        const fl = 0.75 + 0.25 * Math.sin(t * 0.21 + i) * Math.sin(t * 0.13 + i * 2);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.4 * fl;
+        if (ctx.createRadialGradient) {
+          const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 46);
+          g.addColorStop(0, 'rgba(' + e.c + ',0.9)');
+          g.addColorStop(1, 'rgba(' + e.c + ',0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(e.x - 46, e.y - 46, 92, 92);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+    ctx.restore();
+  };
 })();

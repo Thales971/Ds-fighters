@@ -205,3 +205,22 @@ function preloadAll() {
   });
   window.addEventListener('appinstalled', () => { btn.hidden = true; });
 })();
+
+/* PARALLAX DO TITULO: logo e fundo da tela inicial seguem o mouse de leve
+   (camadas em profundidades diferentes). Desliga com movimento reduzido. */
+(() => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  let raf = 0, mx = 0, my = 0;
+  window.addEventListener('pointermove', (e) => {
+    if (document.body.classList.contains('reduced') || document.body.classList.contains('mobile')) return;
+    mx = (e.clientX / Math.max(1, window.innerWidth)) - 0.5;
+    my = (e.clientY / Math.max(1, window.innerHeight)) - 0.5;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const root = document.getElementById('app') || document.body;
+      root.style.setProperty('--px', mx.toFixed(3));
+      root.style.setProperty('--py', my.toFixed(3));
+    });
+  }, { passive: true });
+})();

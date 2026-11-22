@@ -1368,6 +1368,7 @@ class Game {
     this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
     if (this.stage.drawRays && !this.photo) this.stage.drawRays(ctx);
     if (this.stage.drawLife) this.stage.drawLife(ctx);             /* sombras de nuvem + brilho no piso */
+    if (this.stage.drawLiving) this.stage.drawLiving(ctx);         /* fundo vivo: fumaca, neon, agua, lanternas */
     if (this.stage.drawEventBack) this.stage.drawEventBack(ctx);   /* especiais do evento (fundo) */
     if (this.freeze > 0) {
       ctx.fillStyle = 'rgba(0,0,10,0.62)';

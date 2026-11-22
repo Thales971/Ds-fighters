@@ -172,8 +172,27 @@ const UI = {
       }
     }
   },
+  /* MENU VIVO: desfile de lutadores liberados andando no rodape (anim de
+     andar da propria folha), sorteados a cada entrada no menu. */
+  buildParade() {
+    const box = document.getElementById('menu-parade');
+    if (!box || typeof SpriteGen === 'undefined' || typeof FIGHTERS === 'undefined') return;
+    if (document.body.classList.contains('reduced') || document.body.classList.contains('perf-xlow')) { box.innerHTML = ''; return; }
+    const pool = FIGHTERS.filter((f) => f.id !== 'boneco-treino' && Profile.isUnlocked(f.id));
+    const pick = [];
+    while (pick.length < Math.min(5, pool.length)) {
+      const f = pool[(Math.random() * pool.length) | 0];
+      if (!pick.includes(f)) pick.push(f);
+    }
+    const rowOf = (id) => { try { return SpriteGen.rowOf('walk', id); } catch (e) { return 1; } };
+    box.innerHTML = pick.map((f, k) => {
+      const dur = 22 + (k % 3) * 5;
+      return `<span class="pz" style="--d:${-(k * dur) / pick.length}s;--t:${dur}s;--row:${rowOf(f.id)};background-image:url(${SpriteGen.url(f.id)})"></span>`;
+    }).join('');
+  },
   show(name, push) {
     if (name === 'conquistas' && typeof ACHIEVEMENTS !== 'undefined') this.renderConquistas();
+    if (name === 'menu' && this.screen !== 'menu') { try { this.buildParade(); } catch (e) { /* enfeite */ } }
     if (this.screen !== name) Input.releaseAll();
     if (push && this.screen) this.stack.push(this.screen);
     else if (!push) this.stack = [];

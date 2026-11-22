@@ -658,6 +658,7 @@ class StageRenderer {
   }
   /* camX: deslocamento da câmera (−1..1) para parallax */
   drawBack(ctx, camX, zoomPulse) {
+    this._cam = camX || 0; /* fundo vivo (stage-extras) acompanha o parallax */
     const W = this.W;
     const H = this.H;
     ctx.save();
