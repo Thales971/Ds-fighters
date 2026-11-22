@@ -753,3 +753,7 @@ body.perf-xlow .select-live, body.perf-xlow .sel-stage-tag, body.perf-xlow .titl
 .install-btn:hover, .install-btn:focus { background: var(--cyan); color: #120a24; }
 .install-btn[hidden] { display: none; }
 body.mobile .install-btn { top: max(8px, env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right)); min-height: 40px; font-size: 9px; }
+
+/* treino guiado -> primeira luta */
+.first-fight { z-index: 60; width: min(420px, calc(100vw - 32px)); text-align: center; }
+.first-fight .row { justify-content: center; gap: 10px; flex-wrap: wrap; }

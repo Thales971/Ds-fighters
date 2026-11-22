@@ -368,23 +368,26 @@ const UI = {
     /* Passos guiados: cada um tem objetivo + detector. Concluiu tudo = jogador
        deixa de ser novo (Profile tutorialDone) e o botao some do menu. */
     const T = this;
+    /* texto do passo conforme o aparelho: teclado/mouse no PC, joystick/botoes no celular */
+    const mob = typeof document !== 'undefined' && document.body && document.body.classList.contains('mobile');
+    const K = (pc, touch) => (mob ? touch : pc);
     this.tutorial = {
       step: 0,
       moved: 0, lastX: null, jumps: 0, crouches: 0, punches: 0, kicks: 0,
       chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0, doubleJumps: 0, dashes: 0,
       steps: [
-        { title: 'ANDE', sub: 'A / D (ou setas) para mover', done: () => T.tutorial.moved > 260 },
-        { title: 'PULE', sub: 'W para pular', done: () => T.tutorial.jumps > 0 },
-        { title: 'AGACHE', sub: 'S para agachar', done: () => T.tutorial.crouches > 20 },
-        { title: 'SOCOS', sub: 'Botao esquerdo do mouse (ou J) — de 3 socos', done: () => T.tutorial.punches >= 3 },
-        { title: 'CHUTES', sub: 'Botao direito do mouse (ou K) — de 3 chutes', done: () => T.tutorial.kicks >= 3 },
-        { title: 'COMBO', sub: 'No acerto, encadeie soco-soco-chute (combo-alvo)', done: () => T.tutorial.chains >= 2 },
-        { title: 'HABILIDADE', sub: 'Teclas 1 e 2 — solte duas habilidades', done: () => T.tutorial.casts >= 2 },
-        { title: 'ULTIMATE', sub: 'Tecla 5 — solte a ultimate', done: () => T.tutorial.ults >= 1 },
-        { title: 'BLOQUEIO', sub: 'Segure para tras perto do boneco para bloquear', done: () => T.tutorial.blocks > 30 },
-        { title: 'JUMP-CANCEL', sub: 'Acerte um soco e aperte W na hora do hit', done: () => T.tutorial.jumpCancels >= 1 },
-        { title: 'DOUBLE JUMP', sub: 'No ar, aperte W de novo — pulo extra pra todos', done: () => T.tutorial.doubleJumps >= 1 },
-        { title: 'DASH', sub: 'Toque duas vezes A ou D para o dash', done: () => T.tutorial.dashes >= 1 },
+        { title: 'ANDE', sub: K('A / D (ou setas) para mover', 'Arraste o joystick para os lados'), done: () => T.tutorial.moved > 260 },
+        { title: 'PULE', sub: K('W para pular', 'Joystick para CIMA para pular'), done: () => T.tutorial.jumps > 0 },
+        { title: 'AGACHE', sub: K('S para agachar', 'Joystick para BAIXO para agachar'), done: () => T.tutorial.crouches > 20 },
+        { title: 'SOCOS', sub: K('Botao esquerdo do mouse (ou J) — de 3 socos', 'Toque em SOCO 3 vezes'), done: () => T.tutorial.punches >= 3 },
+        { title: 'CHUTES', sub: K('Botao direito do mouse (ou K) — de 3 chutes', 'Toque em CHUTE 3 vezes'), done: () => T.tutorial.kicks >= 3 },
+        { title: 'COMBO', sub: K('No acerto, encadeie soco-soco-chute (combo-alvo)', 'Acertou? Emende SOCO, SOCO, CHUTE'), done: () => T.tutorial.chains >= 2 },
+        { title: 'HABILIDADE', sub: K('Teclas 1 e 2 — solte duas habilidades', 'Toque nos botões 1 e 2 (habilidades)'), done: () => T.tutorial.casts >= 2 },
+        { title: 'ULTIMATE', sub: K('Tecla 5 — solte a ultimate', 'Toque no botão 5 (ultimate)'), done: () => T.tutorial.ults >= 1 },
+        { title: 'BLOQUEIO', sub: K('Segure para tras perto do boneco para bloquear', 'Segure o joystick para TRÁS perto do boneco'), done: () => T.tutorial.blocks > 30 },
+        { title: 'JUMP-CANCEL', sub: K('Acerte um soco e aperte W na hora do hit', 'Acerte um SOCO e jogue o joystick pra cima na hora'), done: () => T.tutorial.jumpCancels >= 1 },
+        { title: 'DOUBLE JUMP', sub: K('No ar, aperte W de novo — pulo extra pra todos', 'No ar, joystick pra cima de novo'), done: () => T.tutorial.doubleJumps >= 1 },
+        { title: 'DASH', sub: K('Toque duas vezes A ou D para o dash', 'Toque o joystick 2 vezes rápido pro lado'), done: () => T.tutorial.dashes >= 1 },
       ],
     };
     this.tutorialBanner();
@@ -404,6 +407,29 @@ const UI = {
     if (bt) bt.hidden = true;
     UI.banner('TREINO CONCLUÍDO!', '#ffd27d', 'Voce ja sabe jogar — boa sorte nas lutas!');
     AudioSys.voice('win');
+    /* do treino direto pra PRIMEIRA LUTA (CPU facil, mesmo lutador) — o novato
+       nao se perde no monte de modos do menu */
+    setTimeout(() => this.offerFirstFight(), 2600);
+  },
+  offerFirstFight() {
+    if (typeof document === 'undefined' || document.getElementById('first-fight')) return;
+    const g = this.game;
+    const me = g && g.activeOf && g.activeOf(0) ? g.activeOf(0).def.id : 'jess';
+    const box = document.createElement('div');
+    box.id = 'first-fight';
+    box.className = 'panel first-fight';
+    box.innerHTML = '<h2>PRONTO PRA LUTAR?</h2><p class="sub">Uma luta de verdade contra a CPU no fácil, com o seu lutador.</p>'
+      + '<div class="row"><button class="nav btn primary" id="ff-go" type="button">PRIMEIRA LUTA</button>'
+      + '<button class="nav btn" id="ff-stay" type="button">CONTINUAR TREINANDO</button></div>';
+    (document.getElementById('app') || document.body).appendChild(box);
+    const close = () => box.remove();
+    box.querySelector('#ff-stay').onclick = () => { AudioSys.back(); close(); };
+    box.querySelector('#ff-go').onclick = () => {
+      AudioSys.select(); close();
+      const rival = (FIGHTERS.find((d) => !d.secret && d.id !== me && d.id !== 'boneco-treino') || { id: 'larper' }).id;
+      this.launch({ mode: 'versus', teams: [[me], [rival]], stage: 'random', cpu: [false, true], difficulty: 0, roundsToWin: 2, timer: 99, pets: [Profile.petFor(0), PETS[0]] });
+    };
+    setTimeout(() => { const b = box.querySelector('#ff-go'); if (b) b.focus(); }, 30);
   },
   tutorialTick() {
     const t = this.tutorial;
@@ -1554,7 +1580,7 @@ const UI = {
           tuto.classList.add('hidden');
           Profile.data.seenOnlineTuto = true;
           Profile.save();
-          AudioSys.confirm();
+          AudioSys.select();
         });
       }
     }
