@@ -1414,6 +1414,35 @@ class Game {
       ctx.fillStyle = shine;
       ctx.fillRect(-20, -2, W + 40, 12);
       ctx.restore();
+    } else if (this.qFxOn !== false && !this.reduced && typeof StageRenderer !== 'undefined' && StageRenderer.polishOf) {
+      /* PISO POLIDO (gelo, neon, dojo, salao, laboratorio...): reflexo mais
+         nitido que o molhado, com a cor do proprio chao e sem escurecer o mapa */
+      const pol = StageRenderer.polishOf(this.stageDef);
+      if (pol) {
+        ctx.save();
+        ctx.scale(1, -pol.squash);
+        ctx.globalAlpha = pol.alpha * (this.quality === 'high' ? 1.2 : 1);
+        if (!(this.photo && this.photo.hideF)) {
+          for (const f of fs) {
+            if (f.alive === false) continue;
+            try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+          }
+        }
+        ctx.restore();
+        const fade = ctx.createLinearGradient(0, 0, 0, 90);
+        fade.addColorStop(0, 'rgba(10,12,24,0)');
+        fade.addColorStop(1, 'rgba(10,12,24,' + pol.fade + ')');
+        ctx.fillStyle = fade;
+        ctx.fillRect(-20, 2, W + 40, 90);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const shine = ctx.createLinearGradient(0, -1, 0, 6);
+        shine.addColorStop(0, 'rgba(' + pol.tint + ',0.14)');
+        shine.addColorStop(1, 'rgba(' + pol.tint + ',0)');
+        ctx.fillStyle = shine;
+        ctx.fillRect(-20, -1, W + 40, 7);
+        ctx.restore();
+      }
     }
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
@@ -1504,6 +1533,8 @@ class Game {
     if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
     if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
+    /* GRAFICO ALTO: bloom nas luzes/efeitos (so no Alto, sem modo performance) */
+    if (this.quality === 'high' && !this.reduced && !(this.perfLevel > 0) && this.stage.drawBloom) this.stage.drawBloom(ctx);
     this.applyChroma(ctx, W, H); /* aberracao cromatica no topo da cena (HUD fica nitido) */
     /* LETTERBOX de cinema: 2 barras pretas entram deslizando quando o drama liga
        (HP baixo, ou round final de partida com mais de 1 round) — junto com a

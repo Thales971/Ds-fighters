@@ -44,3 +44,23 @@ A playlist sorteia uma faixa por luta sem repetir imediatamente quando houver al
 36. **System of a Down — Toxicity** — 3:44.
 37. **Three Days Grace — I Hate Everything About You** — 3:40.
 38. **Three Days Grace — Riot** — 3:28.
+
+## Músicas novas (nov/2026) e volume por faixa
+
+Entraram **37 faixas novas** (Three Days Grace — álbuns *Life Starts Now* e *One-X*,
+Skillet, Starset, Breaking Benjamin, Weezer). Tudo que está na pasta `rock/AMV/`
+também toca na **luta contra o chefe** (lista `boss`, agora com 60 faixas).
+
+As faixas novas vieram masterizadas bem mais altas (≈ −6 LUFS) que as antigas
+(≈ −17 LUFS) e com pico acima de 0 dB. Sem ajuste, a música estouraria quando
+uma delas fosse sorteada. Nenhum arquivo de áudio foi alterado: cada faixa da
+playlist tem agora um campo `gain` (0–1), medido em LUFS, e o jogo toca a faixa
+nesse volume.
+
+**Colocou música nova?** Coloque o MP3 em `assets/music/rock/` (ou em
+`rock/AMV/` para também tocar no chefe) e rode:
+
+    python3 tools/music_playlist.py
+
+O script inclui na playlist o que ainda não está lá (uma vez só, mesmo que a
+mesma música esteja copiada em várias pastas) e mede o volume de todas.
