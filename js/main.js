@@ -33,13 +33,20 @@ function buildPreloadUrls() {
 function netHudText() {
   const N = typeof Net !== 'undefined' ? Net : null;
   const g = window.DSGame;
-  if (!g || g.mode !== 'online' || !N || !N.room) return '🌐 offline · partida local';
-  const ping = N.ping > 0 ? Math.round(N.ping) + ' ms' : 'medindo…';
+  if (!g || g.mode !== 'online' || !N || !N.room) {
+    /* fora do online nao tem rede: mostra que a partida e local + o fps real */
+    const fpsEl = document.getElementById('fps');
+    const fps = fpsEl && fpsEl.textContent ? ' · ' + fpsEl.textContent : '';
+    return '🎮 partida local (sem rede)' + fps;
+  }
+  const p = typeof N.displayPing === 'function' ? N.displayPing() : (N.ping > 0 ? N.ping : null);
+  const ping = p == null ? 'medindo…' : (p < 1 ? '<1' : Math.round(p)) + ' ms';
+  const q = p == null ? '' : p < 60 ? ' 🟢' : p < 130 ? ' 🟡' : ' 🔴';
   const code = (N.room && N.room.code) || '—';
   const role = (typeof N.isHost === 'function' && N.isHost()) ? 'anfitrião' : 'convidado';
   const tr = N.transport === 'ws' ? 'WS' : 'P2P';
   const pl = (N.room.players && N.room.players.length) || (N.room.config && N.room.config.players) || 1;
-  return '🌐 ' + ping + ' · sala ' + code + ' · ' + tr + ' · ' + role + ' · ' + pl + ' jog.';
+  return '🌐 ping ' + ping + q + ' · sala ' + code + ' · ' + tr + ' · ' + role + ' · ' + pl + ' jog.';
 }
 
 /* Pré-carrega TUDO com progresso real antes de liberar o título. Se algum

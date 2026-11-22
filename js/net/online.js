@@ -430,6 +430,23 @@ const Net = {
   },
   myPlayer() { return this.room ? this.room.players.find((p) => p.id === this.me) : null; },
   isHost() { return this.room && this.room.hostId === this.me; },
+  /* Ping que importa pra quem esta jogando: o convidado ve o proprio; o
+     anfitriao P2P ve o pior ping dos convidados (o dele contra a sala local e 0).
+     null = ainda medindo. */
+  displayPing() {
+    if (this.isHost() && this.transport === 'p2p') {
+      const now = performance.now();
+      const vals = Object.values(this.peerPings || {}).filter((p) => now - p.at < 10000).map((p) => p.ms);
+      return vals.length ? Math.max.apply(null, vals) : null;
+    }
+    return this.lastPongAt ? this.ping : null;
+  },
+  refreshLobbyPing() {
+    const el = this.$('lobby-ping');
+    if (!el) return;
+    const p = this.displayPing();
+    el.textContent = p == null ? (this.isHost() ? 'anfitrião · esperando convidado' : 'ping: medindo…') : (this.isHost() ? 'anfitrião · ' : '') + 'ping ' + (p < 1 ? '<1' : p) + ' ms';
+  },
   openPicker() {
     if (!this.room) return;
     UI.startFlow('online', { need: this.room.mode === '2x2' ? 2 : 1 });
@@ -553,7 +570,17 @@ const Net = {
       case 'pong':
         this.lastPongAt = performance.now();
         this.ping = Math.max(0, Math.round(performance.now() - Number(m.at || performance.now())));
-        if (this.$('lobby-ping')) this.$('lobby-ping').textContent = this.isHost() ? 'você é o anfitrião' : `ping ${this.ping} ms`;
+        /* convidado P2P: conta o ping real pro anfitriao (servidor WS antigo nao
+           conhece 'rtt', entao so no P2P, onde a sala roda no navegador do anfitriao) */
+        if (this.room && !this.isHost() && this.transport === 'p2p') this.send('rtt', { ms: this.ping });
+        this.refreshLobbyPing();
+        break;
+      case 'rtt':
+        if (m && m.id && Number.isFinite(Number(m.ms))) {
+          this.peerPings = this.peerPings || {};
+          this.peerPings[m.id] = { ms: Math.round(Number(m.ms)), name: String(m.name || '').slice(0, 24), at: performance.now() };
+          this.refreshLobbyPing();
+        }
         break;
       case 'chat':
         this.addChat(m.from, m.text);

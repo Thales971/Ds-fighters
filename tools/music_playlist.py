@@ -7,7 +7,7 @@
    entra na lista "boss" (toca na luta final contra o chefe).
 2. Mede o volume real (EBU R128, LUFS integrado) de cada faixa da playlist e
    grava "gain" (0..1): faixas muito altas (masterizacao moderna, -6 a -8 LUFS)
-   sao abaixadas ate o alvo das faixas antigas (-17 LUFS). Nao reescreve
+   sao abaixadas ate o alvo (-12 LUFS; as antigas, a -17, ficam em 1.0). Nao reescreve
    nenhum arquivo de audio (nunca apaga nem recodifica musica do dono).
 
 Uso: python3 tools/music_playlist.py [--so-ganho]
@@ -25,7 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PL = ROOT / 'assets/music/playlist.json'
 ROCK = 'assets/music/rock'
-TARGET = -17.0
+TARGET = -12.0  # -17 deixava as faixas novas (masterizadas a -6) baixas demais; as antigas (-17) ficam em 1.0
 
 ALBUMS = {'Life Starts Now': 'Three Days Grace', 'One-X': 'Three Days Grace'}
 KNOWN = {  # musica solta -> banda (so quando o nome do arquivo nao traz a banda)
@@ -107,7 +107,7 @@ def main():
         m['gain'] = round(min(1.0, 10 ** ((TARGET - v) / 20)), 3)
     pl['_como_usar'] = ('Faixas do proprietario. Sorteio por luta, sem repeticao consecutiva; ducking durante o narrador. '
                         'A lista "boss" (pasta rock/AMV) toca na luta final contra o chefe no torneio. '
-                        'Cada faixa tem "gain" (volume medido em LUFS, alvo -17): rode python3 tools/music_playlist.py '
+                        'Cada faixa tem "gain" (volume medido em LUFS, alvo -12): rode python3 tools/music_playlist.py '
                         'depois de colocar musica nova em assets/music/rock.')
     PL.write_text(json.dumps(pl, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     loud = sorted(((t.get('lufs') or 0), t['title']) for t in pl['tracks'])[-5:]

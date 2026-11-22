@@ -28,7 +28,7 @@ const AudioSys = {
   _voicePlaying: Object.create(null),
   _speechSequence: 0,
   musicMixFactor: 0.7,
-  musicDuckFactor: 0.25,
+  musicDuckFactor: 0.55, /* narrador fala quase sempre (combo, luta, final): 0.25 deixava a musica muda */
   /* 0 = rock no fundo, ambiente inteiro. 1 = rock no teto do volume do jogador e ambiente abafado. */
   intensity: 0,
   intensityTarget: 0,
@@ -98,7 +98,7 @@ const AudioSys = {
   },
   musicVolume() {
     const mix = this.musicMixAt(this.intensity || 0);
-    const duck = this.voiceActive > 0 ? this.safeVol(this.musicDuckFactor, 0.25) : 1;
+    const duck = this.voiceActive > 0 ? this.safeVol(this.musicDuckFactor, 0.55) : 1;
     return this.safeVol(this.vol('music') * mix * duck);
   },
   /* Ambiente (chuva, vento, público do palco) cede espaço ao rock. Não passa de 28% no auge. */
