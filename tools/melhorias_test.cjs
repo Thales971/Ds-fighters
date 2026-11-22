@@ -83,6 +83,7 @@ def.hp = def.maxHp;
 /* def anda pra tras (pra longe do atk) */
 def.update({ left: true, right: false, down: false, up: false, punch: false, kick: false });
 const guardAtivo = def.guardUp === true;
+def._blockStart = -999; /* este teste mede a guarda alta, nao o parry (que anula o 1o golpe logo que a guarda comeca) */
 check('andar pra tras ativa a GUARDA ALTA', guardAtivo, 'guardUp=' + def.guardUp);
 /* dano com guarda vs sem guarda */
 const danoSem = (() => { g.combo = { owner: null, count: 0, until: 0 }; def.guardUp = false; const hp0 = def.hp; def.takeHit(20, { attacker: atk }); return hp0 - def.hp; })();
