@@ -61,10 +61,12 @@ const AppViewport = {
     const controls = touch && !touch.classList.contains('hidden');
     if (controls) {
       const dpad = touch.querySelector('.dpad');
+      const stick = touch.querySelector('.stick');
+      const mover = dpad && dpad.offsetWidth ? dpad : stick;
       const actions = touch.querySelector('.tbtns');
       if (landscape) {
-        left += (dpad ? dpad.offsetWidth : 136) + 16;
-        right += (actions ? actions.offsetWidth : 140) + 16;
+        left += (mover ? mover.offsetWidth : 120) + 16;
+        right += (actions ? actions.offsetWidth : 160) + 16;
         top += 40;
       } else {
         top += 52;

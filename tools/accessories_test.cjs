@@ -48,7 +48,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
   const acc = vm.runInContext(`JSON.stringify({ list: ACC_LIST.map(a=>a.id), anyDefault: accAnyOn(), gorroDefault: accOn('gorro-natal'), unknownDefault: accOn('nao-existe'), hasImg: !!ACC_IMAGES['gorro-natal'] })`, ctx);
   const A = JSON.parse(acc);
   check('ACC_LIST tem o gorro-natal + ACC_IMAGES carregou', A.list.includes('gorro-natal') && A.hasImg, acc);
-  check('accOn: gorro-natal LIGADO por padrao, desconhecido desligado, accAnyOn true', A.gorroDefault === true && A.unknownDefault === false && A.anyDefault === true);
+  check('accOn: nenhum acessório ligado por padrão', A.gorroDefault === false && A.unknownDefault === false && A.anyDefault === false);
   const persist = vm.runInContext(`(function(){ Profile.setting('acc', { 'gorro-natal': false }); const off = accOn('gorro-natal'); Profile.setting('acc', { 'gorro-natal': true }); return JSON.stringify([off, accOn('gorro-natal'), accAnyOn()]); })()`, ctx);
   { const pv = JSON.parse(persist); check('toggle persiste em Profile.setting(acc): desliga(false) e religa(true)', pv[0] === false && pv[1] === true && pv[2] === true, persist); }
 

@@ -221,7 +221,17 @@ class Game {
   applyCpuLevel() {
     if (!this.cfg || this.cfg.cpuDifficulty == null || !this.teams || !this.teams[1]) return;
     const level = (typeof AI !== 'undefined' && AI.level) ? AI.level(this.cfg.cpuDifficulty) : this.cfg.cpuDifficulty;
-    for (const f of this.teams[1].members) f.aiLevel = level;
+    const tune = this.mode === 'arcade' && AI.tourneyTune ? AI.tourneyTune(level) : null;
+    const body = this.mode === 'arcade' && AI.tourneyBody ? AI.tourneyBody(level) : null;
+    for (const f of this.teams[1].members) {
+      f.aiLevel = level;
+      if (tune) f.aiTune = tune;
+      /* O chefe usa bossDmg/bossTaken. Os outros degraus escalam aqui. */
+      if (body && !f.bossDmg) {
+        f.tourneyDmg = body.dmg;
+        f.tourneyDef = body.taken;
+      }
+    }
   }
   applyTourneyBuffs() {
     const ids = this.cfg.tourneyBuffs || [];
@@ -253,8 +263,11 @@ class Game {
        jogável (500) para a IA extrema ainda deixar abertura. Fase 2 devolve parte. */
     /* 2000 de vida. O golpe sai mais baixo que o Kernor jogável para a luta
        ainda fechar em torno de 15–30% contra CPU difícil/extrema. */
-    p.bossDmg = 0.22;
-    p.bossTaken = 1.35;
+    /* 0.22 de dano e 1.35 de dano recebido deixava um botão-mash vencer:
+       o chefe quase não batia e virava saco. Agora ele bate de verdade e
+       não toma dano extra. A fase 2 ainda aumenta o golpe. */
+    p.bossDmg = 0.34;
+    p.bossTaken = 1.12;
     p.enrage = 0;
   }
   startAmbience() {

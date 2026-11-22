@@ -42,9 +42,10 @@ function rosterPortraitStyle(id, px) {
   const rows = Math.ceil(order.length / cols);
   const col = idx % cols;
   const row = (idx / cols) | 0;
-  const cell = px || 48;
   const src = `${book.file}?v=${book.version || 'v36-portraits1'}`;
-  return `background-image:url(${src});background-size:${cols * cell}px ${rows * cell}px;background-position:${-col * cell}px ${-row * cell}px;background-repeat:no-repeat`;
+  /* Uma célula só, no tamanho do cartão. Tamanho fixo em px cortava o vizinho
+     quando o cartão ficava maior que 48px. */
+  return `--pcols:${cols};--prows:${rows};--pcol:${col};--prow:${row};background-image:url(${src})`;
 }
 const UI = {
   hud: HUD,
@@ -160,7 +161,7 @@ const UI = {
       if (this.flow && this.flow.mode === 'online') { this.show('online'); return; }
       return this.toMenu();
     }
-    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events'].includes(this.screen)) return this.toMenu();
+    if (['acc', 'custom', 'rules', 'redeem', 'options', 'moves', 'online', 'skins', 'conquistas', 'events', 'ladder', 'buffs', 'vs'].includes(this.screen)) return this.toMenu();
     if (this.screen === 'stage') return this.show('select');
   },
   /* CONQUISTAS & RECORDES: medalhas do perfil + melhores marcas */
@@ -196,12 +197,30 @@ const UI = {
         ${topWinners ? `<h4>MAIS VITORIOSOS</h4><ul class="tops">${topWinners}</ul>` : ''}
       </div>`;
   },
+  /* Cancela a carta VS e a tela de resultado. Sem isso o MENU voltava ao
+     menu e, um segundo depois, a luta começava por cima e travava a tela. */
+  cancelFlowTimers() {
+    this._launchGen = (this._launchGen || 0) + 1;
+    clearTimeout(this._vsTimer);
+    clearTimeout(this._endTimer);
+    this._vsTimer = 0;
+    this._endTimer = 0;
+  },
   toMenu() {
+    this.cancelFlowTimers();
+    if (this.flow) this.flow._buffLock = false;
+    this.photoMode = false;
+    if (this.game) {
+      this.game.paused = false;
+      this.game.photo = null;
+    }
+    if (typeof Input !== 'undefined' && Input.releaseAll) Input.releaseAll();
     /* vindo do titulo a demo ja esta rodando: continua a mesma luta no fundo */
     const demoOn = this.game.running && this.game.mode === 'demo';
     if (this.game.running && !demoOn) this.game.stop();
     HUD.hide();
-    Net.leave(true);
+    try { Net.leave(true); } catch (e) { /* sala nenhuma não pode prender o menu */ }
+    if (typeof AudioSys.stopLoops === 'function') AudioSys.stopLoops();
     if (!demoOn) this.$('stage-wrap').classList.remove('on');
     this.show('menu');
     if (!demoOn) this.startDemo();
@@ -295,10 +314,13 @@ const UI = {
     const list = (typeof RoomCore !== 'undefined' && RoomCore.ONLINE_BANNED) || ['iales', 'kernor'];
     return list.includes(id);
   },
-  /* Lutador proibido no modo: online (lista do RoomCore) e o IALES so joga no VERSUS. */
+  /* Lutador proibido no modo: online (lista do RoomCore), o IALES só no
+     Versus, e todo personagem de código fora do torneio — mesmo liberado.
+     O Kernor continua só como chefe da chave, não como lutador do jogador. */
   modeBanned(id, mode) {
     if (mode === 'online') return this.onlineBanned(id);
     if (id === 'iales' && mode !== 'versus') return true;
+    if (mode === 'arcade' && typeof Profile !== 'undefined' && Profile.SECRET_IDS.includes(id)) return true;
     return false;
   },
   startDemo() {
@@ -468,15 +490,17 @@ const UI = {
       }
       const d = FIGHTERS[i];
       const offline = UI.modeBanned(d.id, f.mode);
+      const tourneyCode = f.mode === 'arcade' && typeof Profile !== 'undefined' && Profile.SECRET_IDS.includes(d.id);
       const lock = f.mode === 'training' ? false : (offline || !Profile.isUnlocked(d.id));
       /* Foto SO aparece para lutadores desbloqueados — travado e silhueta de
          interrogacao, sem vazar nem a cara nem o sprite (pedido do dono).
          O busto vem do atlas gerado a partir do idle real, na mesma escala. */
       const thumb = lock ? '' : rosterPortraitStyle(d.id);
-      return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? 'Bloqueado — use um código' : d.name}">
-        <span class="face${lock ? ' q' : ''}${thumb ? ' roster-portrait' : ''}" ${thumb ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
-        <span class="nm">${lock ? '???' : d.name.split(' ')[0]}</span>
-        ${lock ? '<span class="lk">&#128274;<small>CÓDIGO</small></span>' : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
+      const lockLabel = tourneyCode ? 'Não entra no torneio' : 'Bloqueado — use um código';
+      return `<button class="cell ${lock ? 'locked' : ''} ${d.secret ? 'secret' : ''}" data-i="${i}" aria-label="${lock ? lockLabel : d.name}">
+        <span class="face${lock ? ' q' : ''}${thumb && !lock ? ' roster-portrait' : ''}" ${thumb && !lock ? `style="${thumb}"` : ''} aria-hidden="true">${lock ? '?' : ''}</span>
+        <span class="nm">${lock ? (tourneyCode && Profile.isUnlocked(d.id) ? d.name.split(' ')[0] : '???') : d.name.split(' ')[0]}</span>
+        ${lock ? `<span class="lk">&#128274;<small>${tourneyCode ? 'FORA' : 'CÓDIGO'}</small></span>` : d.secret ? '<span class="sx">SECRETO</span>' : ''}${!lock && typeof Balance !== 'undefined' && Balance.buffFor(d) ? '<span class="sx buff">BUFF</span>' : ''}
         <span class="favbtn${favs.has(d.id) ? ' on' : ''}" role="button" tabindex="-1" data-fav="${d.id}" title="Favoritar (tecla F)" aria-label="Favoritar ${d.id}">★</span>
         <span class="cur c1"></span><span class="cur c2"></span>
       </button>`;
@@ -663,7 +687,8 @@ const UI = {
       return;
     }
     const d = FIGHTERS[idx] || null;
-    const lock = d && !Profile.isUnlocked(d.id);
+    const tourneyCode = !!(d && f.mode === 'arcade' && Profile.SECRET_IDS.includes(d.id));
+    const lock = d && (tourneyCode || !Profile.isUnlocked(d.id));
     const isRandom = idx >= FIGHTERS.length;
     const kit = d ? POWERS[d.id] : null;
     const st = d ? d.stats : null;
@@ -672,7 +697,7 @@ const UI = {
     el.innerHTML = `
       <div class="who">${ti === 0 ? 'P1' : f.p2Human ? 'P2' : f.mode === 'training' ? 'BONECO' : 'CPU'}${f.need > 1 ? ` · ${f.picks[ti].length}/${f.need}` : ''}</div>
       <div class="picked-row">${pickedIds.map((id) => `<span style="background-image:url(${SpriteGen.faceUrl(id)})"></span>`).join('')}</div>
-      ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>???</h3><p class="bio">Lutador secreto. Resgate um código no menu para liberar.</p>` : `
+      ${isRandom ? `<div class="big-sprite q">?</div><h3>ALEATÓRIO</h3><p class="bio">Deixe o destino escolher.</p>` : lock ? `<div class="big-sprite locked"></div><h3>${tourneyCode && Profile.isUnlocked(d.id) ? d.name : '???'}</h3><p class="bio">${tourneyCode ? 'Personagem de código. Não pode ser escolhido no torneio. O Kernor continua só como chefe final.' : 'Lutador secreto. Resgate um código no menu para liberar.'}</p>` : `
       <div class="big-sprite" style="background-image:url(${SpriteGen.url(d.id)})"></div>
       <h3 style="--c:${d.colors.accent}">${d.name}</h3>
       <div class="ttl">${d.title}</div>
@@ -751,7 +776,14 @@ const UI = {
       i = pool[(Math.random() * pool.length) | 0];
     }
     const d = FIGHTERS[i];
-    if (this.modeBanned(d.id, f.mode)) { AudioSys.back(); this.toast(d.name + (f.mode === 'online' ? ' não pode ser usado no online.' : ' só pode ser usado no modo Versus.')); return; }
+    if (this.modeBanned(d.id, f.mode)) {
+      AudioSys.back();
+      const msg = f.mode === 'arcade' && Profile.SECRET_IDS.includes(d.id)
+        ? 'Personagem de código não entra no torneio. O Kernor segue como chefe.'
+        : d.name + (f.mode === 'online' ? ' não pode ser usado no online.' : ' só pode ser usado no modo Versus.');
+      this.toast(msg);
+      return;
+    }
     if (f.mode !== 'training' && !Profile.isUnlocked(d.id)) { AudioSys.back(); this.toast('Lutador secreto — resgate um código no menu!'); return; }
     if (f.picks[who].includes(i)) { AudioSys.back(); return; }
     f.picks[who].push(i);
@@ -976,7 +1008,13 @@ const UI = {
     if (lineEl) lineEl.textContent = cfg.rivalLine || '';
     this.show('vs');
     AudioSys.play('hazard', { vol: 0.7 });
-    setTimeout(then, Profile.reducedMotion() ? 900 : 2200);
+    const gen = this._launchGen || 0;
+    clearTimeout(this._vsTimer);
+    this._vsTimer = setTimeout(() => {
+      if (gen !== (this._launchGen || 0) || this.screen !== 'vs') return;
+      if (typeof Input !== 'undefined' && Input.releaseAll) Input.releaseAll();
+      then();
+    }, Profile.reducedMotion() ? 900 : 2200);
   },
   enter_fight() {},
 
@@ -1013,6 +1051,8 @@ const UI = {
     if (you) you.textContent = me ? me.name : '';
     const menu = this.$('btn-ladder-menu');
     if (menu) menu.onclick = () => this.toMenu();
+    const vsMenu = this.$('btn-vs-menu');
+    if (vsMenu) vsMenu.onclick = () => this.toMenu();
     const go = this.$('btn-ladder-go');
     const last = f.afterWin && f.arcadeStep >= f.ladder.length - 1;
     if (go) {
@@ -1024,6 +1064,7 @@ const UI = {
   },
   showBuffs() {
     const f = this.flow;
+    f._buffLock = false;
     const pick = typeof torneioBuffChoices === 'function' ? torneioBuffChoices(f.tourneyBuffs) : [];
     const el = this.$('buff-list');
     if (el) {
@@ -1031,12 +1072,17 @@ const UI = {
         ? pick.map((b) => `<button type="button" class="buff-card" data-buff="${b.id}"><span class="buff-ico">${b.ico || '+'}</span><b>${b.name}</b><small>${b.desc}</small></button>`).join('')
         : '<button type="button" class="buff-card" data-buff=""><span class="buff-ico">OK</span><b>SEGUIR</b><small>Sem bônus novo. A próxima luta começa agora.</small></button>';
       el.querySelectorAll('.buff-card').forEach((btn) => btn.addEventListener('click', () => {
+        if (f._buffLock) return;
+        f._buffLock = true;
         if (btn.dataset.buff) f.tourneyBuffs = (f.tourneyBuffs || []).concat(btn.dataset.buff);
         f.arcadeStep++;
         f.afterWin = false;
+        if (typeof Input !== 'undefined' && Input.releaseAll) Input.releaseAll();
         this.launchArcade();
       }));
     }
+    const menu = this.$('btn-buff-menu');
+    if (menu) menu.onclick = () => this.toMenu();
     this.show('buffs');
   },
   launchSurvival() {
@@ -1303,7 +1349,13 @@ const UI = {
       <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
     this.$('stage-wrap').classList.remove('on');
     this.buildMenuSide();
-    setTimeout(() => this.show('results'), 900);
+    const gen = this._launchGen || 0;
+    clearTimeout(this._endTimer);
+    this._endTimer = setTimeout(() => {
+      if (gen !== (this._launchGen || 0)) return;
+      if (this.screen === 'menu' || this.screen === 'title') return;
+      this.show('results');
+    }, 900);
     AudioSys.playMusic('menu');
   },
 
@@ -1394,7 +1446,8 @@ const UI = {
     document.querySelectorAll('[data-set]').forEach((el) => {
       const k = el.dataset.set;
       const v = Profile.setting(k);
-      if (el.type === 'checkbox') el.checked = k === 'shake' || k === 'smooth' ? v !== false : !!v;
+      if (el.type === 'checkbox') el.checked = (k === 'shake' || k === 'smooth' || k === 'haptic') ? v !== false : !!v;
+      else if (el.type === 'range' && (v == null || v === '')) el.value = el.getAttribute('value') || el.min;
       else if (k === 'reducedMotion') el.value = v === true ? 'on' : v === false ? 'off' : 'auto';
       else el.value = v == null ? '' : v;
       el.addEventListener('input', () => {
@@ -1402,7 +1455,7 @@ const UI = {
         if (k === 'reducedMotion') val = el.value === 'on' ? true : el.value === 'off' ? false : null;
         Profile.setting(k, val);
         AudioSys.applyVolumes();
-        if (k === 'touch') this.updateTouch();
+        if (k === 'touch' || k === 'touchScale' || k === 'touchOpacity' || k === 'touchDpad') this.updateTouch();
         if (k === 'quality' && this.game && this.game.applyQuality) this.game.applyQuality(); /* aplica na hora */
         if (k === 'serverUrl') this.$('net-url').value = val;
         document.body.classList.toggle('reduced', Profile.reducedMotion());
@@ -1416,6 +1469,12 @@ const UI = {
     const on = (t === 'on' || (t === 'auto' && (coarse || navigator.maxTouchPoints > 0))) && this.screen === 'fight';
     const controls = this.$('touch-controls');
     if (!on && !controls.classList.contains('hidden')) Input.releaseAll();
+    const scale = Number(Profile.setting('touchScale'));
+    const opacity = Number(Profile.setting('touchOpacity'));
+    controls.style.setProperty('--touch-scale', String(Number.isFinite(scale) && scale > 0 ? scale : 1));
+    controls.style.setProperty('--touch-opacity', String(Number.isFinite(opacity) ? opacity : 0.72));
+    const dpad = controls.querySelector('.dpad');
+    if (dpad) dpad.hidden = Profile.setting('touchDpad') !== true;
     controls.classList.toggle('hidden', !on);
     controls.setAttribute('aria-hidden', String(!on));
     if (on) this.updateTouchPowers();

@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css?v=v59-app" />
   <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
-  <link rel="stylesheet" href="css/mobile.css?v=v56-titulo" />
+  <link rel="stylesheet" href="css/mobile.css?v=v76-mobile" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -198,6 +198,9 @@
         <h2>ESCOLHA UM BÔNUS</h2>
         <p class="sub">Vale até o fim desta chave.</p>
         <div class="buff-list" id="buff-list"></div>
+        <div class="row">
+          <button class="nav btn" id="btn-buff-menu" type="button">MENU</button>
+        </div>
       </div>
     </section>
 
@@ -208,6 +211,7 @@
         <div class="vs-side p2" id="vs-1"></div>
       </div>
       <div class="vs-stage" id="vs-stage"></div>
+      <button class="nav btn" id="btn-vs-menu" type="button">MENU</button>
     </section>
 
     <section class="screen" id="scr-pause" data-screen="pause">
@@ -309,6 +313,10 @@
           <label class="chk"><input type="checkbox" data-set="showFps" /> Mostrar FPS</label>
           <label class="chk"><input type="checkbox" data-set="showNet" /> Mostrar ping e rede na luta</label>
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
+          <label>Tamanho dos botões <input type="range" min="0.8" max="1.35" step="0.05" value="1" data-set="touchScale" /></label>
+          <label>Opacidade dos botões <input type="range" min="0.35" max="1" step="0.05" value="0.72" data-set="touchOpacity" /></label>
+          <label class="chk"><input type="checkbox" data-set="touchDpad" /> Mostrar também o direcional</label>
+          <label class="chk"><input type="checkbox" data-set="haptic" checked /> Vibração ao tocar</label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
         <p class="sub small">Trilha atual: <span id="now-playing">—</span> · Envie seus rocks para <code>assets/music/rock/</code> e liste em <code>playlist.json</code>.</p>
@@ -439,7 +447,8 @@
     <div id="net-hud" class="fps net-hud" hidden>🌐 —</div>
     <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
-      <div class="dpad">
+      <div class="stick" id="stick" aria-label="Joystick"><i></i></div>
+      <div class="dpad" hidden>
         <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
         <button data-k="KeyA" class="t-left" aria-label="Mover para esquerda">◀</button>
         <button data-k="KeyD" class="t-right" aria-label="Mover para direita">▶</button>
@@ -463,6 +472,7 @@
       <div class="touch-toolbar"><button data-k="Escape" aria-label="Pausar luta">PAUSA</button><button id="btn-fullscreen" aria-label="Alternar tela cheia">TELA CHEIA</button></div>
       <p class="mobile-only mobile-landscape-hint">Em paisagem a arena fica maior.</p>
     </div>
+    <div class="turn-phone"><b>GIRE O CELULAR</b><p>A luta é na horizontal. A arena fica no meio e os botões nos cantos.</p></div>
   </div>
 
   <script src="assets/sprites/layout.js?v=v47-maresprites"></script>
@@ -562,20 +572,20 @@
   <script src="js/engine/input.js?v=v47-maresprites"></script>
   <script src="js/ui/viewport.js?v=v47-maresprites"></script>
   <script src="js/engine/projectile.js?v=v72-kuno"></script>
-  <script src="js/engine/fighter.js?v=v74-kernor"></script>
+  <script src="js/engine/fighter.js?v=v76-torneio-ia"></script>
   <script src="js/engine/vfx.js?v=v47-maresprites"></script>
   <script src="js/engine/weather.js?v=v74-torneio"></script>
   <script src="js/engine/mechanics.js?v=v55-revisao"></script>
   <script src="js/engine/torneio.js?v=v75-review"></script>
   <script src="js/engine/stage.js?v=v75-review"></script>
-  <script src="js/engine/ai.js?v=v47-maresprites"></script>
-  <script src="js/engine/game.js?v=v75-review"></script>
+  <script src="js/engine/ai.js?v=v76-torneio-ia"></script>
+  <script src="js/engine/game.js?v=v76-torneio-ia"></script>
   <script src="js/vendor/peerjs.min.js"></script>
   <script src="js/net/room-core.js?v=v74-kernor"></script>
   <script src="js/net/online.js?v=v47-maresprites"></script>
-  <script src="js/ui/hud.js?v=v66-larper"></script>
+  <script src="js/ui/hud.js?v=v76-cooldown"></script>
   <script src="js/data/roster-portraits.js?v=v74-kernor"></script>
-  <script src="js/ui/ui.js?v=v75-review"></script>
+  <script src="js/ui/ui.js?v=v76-torneio-ia"></script>
   <script src="js/ui/account.js?v=v47-maresprites"></script>
   <script src="js/main.js?v=v62-cracker"></script>
   <script src="js/net/tournament.js?v=v47-maresprites"></script>

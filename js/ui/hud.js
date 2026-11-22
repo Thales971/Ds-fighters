@@ -176,9 +176,11 @@ const HUD = {
         const ps = f.powerState(i);
         el.classList.toggle('ready', !!ps.ready);
         el.classList.toggle('locked', !!ps.locked);
-        el.querySelector('.cool').style.height = (ps.ready ? 0 : (1 - Math.max(0, Math.min(1, ps.pct || 0))) * 100) + '%';
+        const cover = ps.ready ? 0 : Math.round((1 - Math.max(0, Math.min(1, ps.pct || 0))) * 100);
+        el.querySelector('.cool').style.setProperty('--cd', String(cover));
         const pc = el.querySelector('.pct');
-        const txt = ps.need ? 'AFO ' + ps.need : ps.ready || ps.locked ? '' : ps.p && ps.p.slot === 'simple' ? '' : Math.floor((ps.pct || 0) * 100) + '%';
+        const secs = ps.left > 0 ? (Math.ceil(ps.left / 6) / 10) + 's' : '';
+        const txt = ps.need ? 'AFO ' + ps.need : ps.ready || ps.locked ? '' : secs;
         if (pc.textContent !== txt) pc.textContent = txt;
       });
     });

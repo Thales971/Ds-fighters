@@ -697,15 +697,21 @@ class Fighter {
     if (this.has('locked')) return { ready: false, pct: 0, locked: true, p };
     if (p.slot === 'simple' || p.slot === 'extra') {
       const prof = this.spamProfile();
-      const total = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT);
-      return { ready: this.cd[i] <= 0 && (this.spamShared || 0) <= 0, pct: 1 - this.cd[i] / total, p };
+      const total = Math.max(prof.floor, (p.cd || 50) * ABILITY_CD_MULT, prof.shared);
+      const left = Math.max(this.cd[i] || 0, this.spamShared || 0, this.castLock || 0);
+      return { ready: left <= 0, pct: 1 - left / Math.max(1, total), left, p };
     }
     if (p.slot === 'charge') {
       const v = this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter];
-      return { ready: v >= 100 && this.cd[i] <= 0, pct: v / 100, p };
+      const cap = Math.max(90, p.cd || 45);
+      const cdLeft = this.cd[i] || 0;
+      const cdPct = 1 - cdLeft / cap;
+      return { ready: v >= 100 && cdLeft <= 0, pct: Math.min(v / 100, cdPct), left: cdLeft, p };
     }
     const needOk = !p.needAfo || this.afo >= p.needAfo;
-    return { ready: this.ultimate >= 100 && needOk && this.cd[i] <= 0, pct: this.ultimate / 100, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
+    const ultLeft = this.cd[i] || 0;
+    const ultPct = this.ultimate / 100;
+    return { ready: this.ultimate >= 100 && needOk && ultLeft <= 0, pct: Math.min(ultPct, 1 - ultLeft / 150), left: ultLeft, p, need: needOk ? 0 : `${this.afo}/${p.needAfo}` };
   }
   canAct() {
     return !['ko', 'hit', 'win', 'blockstun', 'cast', 'rush', 'throw', 'thrown', 'down', 'tagout'].includes(this.state) && !this.benched && !this.has('paralyze');
@@ -716,8 +722,10 @@ class Fighter {
   spamProfile() {
     if (this._spam == null) {
       const prof = (POWERS[this.def.id] && POWERS[this.def.id].spamProfile) || 'standard';
+      /* chain ainda encadeia no acerto, mas 34 quadros era golpe atrás de
+         golpe. O piso vale em todo modo: arcade, versus, torneio, survival. */
       this._spam = prof === 'chain'
-        ? { castLock: 34, floor: 95, shared: 34 }
+        ? { castLock: 48, floor: 120, shared: 80 }
         : prof === 'heavy'
           ? { castLock: 60, floor: 155, shared: 155 }
           : { castLock: 50, floor: 130, shared: 130 };
@@ -740,7 +748,11 @@ class Fighter {
     if (!st.p) return false;
     if (st.locked) { this.flashText('PODERES ROUBADOS!', '#ff3b5c'); return false; }
     if (!st.ready) {
-      if (st.p.slot !== 'simple') this.flashText(st.p.slot === 'ultimate' ? 'ULTIMATE CARREGANDO' : 'CARREGANDO ' + Math.round(st.pct * 100) + '%');
+      if ((this.frame || 0) - (this._cdMsgFrame || -99) > 24) {
+        this._cdMsgFrame = this.frame || 0;
+        const msg = st.p.slot === 'ultimate' && this.ultimate < 100 ? 'ULTIMATE CARREGANDO' : 'RECARREGANDO';
+        this.flashText(msg);
+      }
       return false;
     }
     const cancelable = (this.state === 'attack' && this.hasHit) || (this.state === 'cast' && this.cast && this.cast.fired && (this.cast.hit || this.hasHit));
@@ -778,10 +790,13 @@ class Fighter {
     else if (p.slot === 'charge') {
       this.charge[p.meter == null ? (i === 2 ? 0 : 1) : p.meter] = 0;
       this.cd[i] = Math.max(90, (p.cd || 45));
+      /* Medidor infinito (treino) não pode soltar a carga de novo no quadro seguinte. */
+      this.spamShared = Math.max(this.spamShared || 0, Math.min(80, prof.shared));
     }
     else {
       this.ultimate = 0;
       this.cd[i] = 150;
+      this.spamShared = Math.max(this.spamShared || 0, 70);
     }
     this.cast = { p, i, t: 0, fired: false };
     this.state = 'cast';
@@ -1572,7 +1587,7 @@ class Fighter {
       /* FASE 2 do chefe: abaixo de metade da vida, fúria + super armadura */
       if (this.bossPhase && this.alive && this.hp > 0 && this.hp <= this.maxHp * 0.5) {
         if (!this.enrage) {
-          this.enrage = 1.18;
+          this.enrage = 1.24;
           this.game.announce('FASE 2', '#ff2a4a', 'NÚCLEO EM FÚRIA');
           this.game.shake(16);
           this.game._bossDim = 40;
