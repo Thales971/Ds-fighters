@@ -192,10 +192,10 @@ function testOverlappingVoicesDuckAndResume() {
   assert.equal(second, true, 'a new narrator is allowed despite the play gap');
   assert.equal(webAudio.sources.length, 2, 'only distinct overlapping narrator buffers start');
   assert.equal(audio.voiceActive, 2, 'overlapping voices increment the active counter');
-  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'music ducks to one quarter while voices play');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * audio.musicDuckFactor, 'music ducks by musicDuckFactor while voices play');
   webAudio.sources[0].emitEnded();
   assert.equal(audio.voiceActive, 1, 'the first ended narrator decrements the counter');
-  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'music remains ducked until the last narrator ends');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * audio.musicDuckFactor, 'music remains ducked until the last narrator ends');
   webAudio.sources[1].emitEnded();
   assert.equal(audio.voiceActive, 0, 'the last ended narrator clears the counter');
   closeTo(audio.music.volume, 0.35 * audio.musicMixFactor, 'music resumes after the last narrator ends');
@@ -242,7 +242,7 @@ function testMissingVoiceAndMusicReplacement() {
   audio.playMusic('battle');
   assert.notEqual(audio.music, oldMusic, 'replacing music creates a new HTMLAudio element');
   assert.equal(oldMusic.paused, true, 'replaced music is stopped');
-  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'replacement inherits active voice ducking');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * audio.musicDuckFactor, 'replacement inherits active voice ducking');
   webAudio.sources[0].emitEnded();
   closeTo(audio.music.volume, 0.35 * audio.musicMixFactor, 'replacement restores after the active voice ends');
 }
@@ -300,7 +300,7 @@ function testEndOfTrackAdvancesWithoutStaleCallbacks() {
   audio.voice('a');
   first.onended();
   assert.equal(audio.music.src, 'own-b', 'ending a track chooses a different next track');
-  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * 0.25, 'new track remains ducked during narration');
+  closeTo(audio.music.volume, 0.35 * audio.musicMixFactor * audio.musicDuckFactor, 'new track remains ducked during narration');
   audio.playMusic('menu');
   const menu = audio.music;
   assert.equal(menu.loop, true, 'the menu keeps its own loop');
@@ -347,7 +347,7 @@ function testIntensityRisesAndEasesWithoutJumping() {
 
   audio.voice('a');
   const ducked = audio.music.volume + (audio.musicHot ? audio.musicHot.volume : 0);
-  closeTo(ducked, 0.35 * 0.25, 'narrator ducks both rock layers to a quarter');
+  closeTo(ducked, 0.35 * audio.musicDuckFactor, 'narrator ducks both rock layers by the duck factor');
   const voiceSrc = audio.ctx.sources.find((src) => src.buffer === audio.buffers.v_a);
   voiceSrc.emitEnded();
 

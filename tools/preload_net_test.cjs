@@ -78,7 +78,10 @@ check('online anfitriao P2P: "37 ms · sala ABC123 · P2P · anfitrião · 2 jog
 const t2 = vm.runInContext(`(function(){ Net = { room: { code: 'ZZ9Y8X', players: [{}] }, ping: 0, transport: 'ws', isHost: () => false }; return netHudText(); })()`, ctx);
 check('convidado WS ping medindo: WS + convidado + medindo', /WS/.test(t2) && /convidado/.test(t2) && /medindo/.test(t2) && /ZZ9Y8X/.test(t2), t2);
 const t3 = vm.runInContext(`(function(){ Net = { room: null, ping: 0 }; return netHudText(); })()`, ctx);
-check('sem sala online -> offline/local', /offline/.test(t3) && /local/.test(t3), t3);
+check('sem sala online -> partida local (sem rede)', /local/.test(t3) && /sem rede/.test(t3), t3);
+/* anfitriao P2P: o ping dele contra a sala local e 0 — mostra o ping do convidado (displayPing) */
+const tHost = vm.runInContext(`(function(){ window.DSGame = { mode: 'online' }; Net = { room: { code: 'ABC123', players: [{}, {}] }, ping: 0, transport: 'p2p', isHost: () => true, displayPing: () => 88 }; return netHudText(); })()`, ctx);
+check('anfitriao P2P mostra o ping do convidado (88 ms), nao medindo', /88 ms/.test(tHost) && !/medindo/.test(tHost), tHost);
 const t4 = vm.runInContext(`(function(){ window.DSGame = { mode: 'versus' }; Net = { room: null }; return netHudText(); })()`, ctx);
 check('luta local (nao online) -> offline · partida local', /partida local/.test(t4), t4);
 

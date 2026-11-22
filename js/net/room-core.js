@@ -347,6 +347,16 @@
           return;
         }
         case 'ping': send(c, { t: 'pong', at: Number.isFinite(Number(m.at)) ? Number(m.at) : 0 }); return;
+        /* PING DO CONVIDADO: o anfitriao P2P mede ping contra a propria sala
+           local (sempre 0 ms). O convidado manda o ping real dele e a sala
+           repassa pros outros da sala (o anfitriao mostra no HUD de rede). */
+        case 'rtt': {
+          if (!r || !me) return;
+          const ms = Math.max(0, Math.min(9999, Math.round(Number(m.ms) || 0)));
+          me.rtt = ms;
+          broadcast(r, { t: 'rtt', id: me.id, name: me.name, ms }, me.id);
+          return;
+        }
         default: send(c, { t: 'error', msg: 'Mensagem desconhecida.' });
       }
     }
