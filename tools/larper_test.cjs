@@ -88,7 +88,7 @@ const R = vm.runInContext(`(() => {
 })()`, ctx);
 check('Larper registrada (normal, nao secreta)', R.found && !R.secret, JSON.stringify(R.stats));
 check('kit: bola toxica / granada / garra acida / poca corrosiva / nuvem da morte', JSON.stringify(R.kinds) === JSON.stringify(['shot', 'shot', 'dash', 'zone', 'blast']), R.names.join(' | '));
-check('balanceada com o FORCA do v14 (2.0)', Math.abs(R.stats.power - 2.2) < 0.01, JSON.stringify(R.stats));
+check('balanceada com o FORCA do v14 (2.25)', Math.abs(R.stats.power - 2.475) < 0.01, JSON.stringify(R.stats));
 check('na grade de selecao + folhas registradas + cache proprio', R.roster === 53 && /^v[67][0-9]/.test(R.rv) && R.sheets && /v66-larper/.test(R.url), R.roster + ' ' + R.rv + ' ' + R.url);
 
 const res = vm.runInContext(`(() => {

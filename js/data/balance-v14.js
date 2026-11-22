@@ -12,18 +12,18 @@
    ============================================================ */
 (() => {
   const FORCA = {
-    'cyber-psicopata': 0.78,      /* v2 (arte e kit novos, leve buff): 45% -> ~53% */
+    'cyber-psicopata': 0.88,      /* v2 (arte e kit novos, leve buff): 45% -> ~53% */
     'nunes': 0.417,               /* torneio: 59% */
     'emilio': 0.425,              /* torneio: 47% */
     'engenheira-prompt': 0.449,   /* torneio: 53% */
     'meta': 0.549,                /* torneio: 53% */
     'gemini': 0.554,              /* torneio: 60% */
     'odette': 0.559,              /* torneio: 49% */
-    'dev-senior': 0.574,          /* torneio: 46% */
+    'dev-senior': 0.9,          /* torneio: 46% */
     'henrico': 0.61,              /* torneio: 45% */
     'qwen': 0.678,                /* torneio: 54% */
     'urbano': 0.72,               /* torneio: 57% */
-    'nimbo': 0.743,               /* torneio: 50% */
+    'nimbo': 0.86,               /* torneio: 50% */
     'kotlin': 0.792,              /* torneio: 49% */
     'scrum': 0.793,               /* torneio: 43% */
     'thl': 0.822,                 /* torneio: 45% */
@@ -32,15 +32,15 @@
     'bhm': 0.878,                 /* torneio: 45% */
     'nina-vector': 0.883,         /* torneio: 52% */
     'merc': 0.902,                /* torneio: 64% */
-    'gitmaster': 0.91,            /* torneio: 59% */
+    'gitmaster': 1.0,            /* torneio: 59% */
     'xeon': 0.939,                /* torneio: 53% */
-    'rafael': 1.013,              /* torneio: 49% */
+    'rafael': 1.3,              /* torneio: 49% */
     'dandara-query': 1.051,       /* torneio: 43% */
-    'dev-veterano': 1.087,        /* torneio: 48% */
+    'dev-veterano': 1.16,        /* torneio: 48% */
     'guarda-digital': 1.09,       /* torneio: 51% */
     'hana': 1.102,                /* torneio: 54% */
     'stack': 1.161,               /* torneio: 50% */
-    'john-vibe': 1.169,           /* torneio: 48% */
+    'john-vibe': 1.3,           /* torneio: 48% */
     'devops': 1.179,              /* torneio: 44% */
     'dev-virado': 1.199,          /* torneio: 54% */
     'hacker': 1.203,              /* torneio: 52% */
@@ -59,8 +59,8 @@
     'backend': 2.2,               /* torneio: 45% */
     'nexo': 2.2,                  /* torneio: 34% */
     'qa': 2.2,                    /* torneio: 53% */
-    'lyra': 2.05,                 /* nova (maga do JS): ~51% */
-    'larper': 2.0,                /* nova (veneno): ~50% */
+    'lyra': 2.3,                 /* nova (maga do JS): ~51% */
+    'larper': 2.25,                /* nova (veneno): ~50% */
     'domador': 2.05,              /* novo (pgAdmin): ~50% */
     'stella': 2.25,               /* nova (maga do front-end): ~50% */
     'kuno': 1.7,                  /* nova (kunoichi): ~50% */
@@ -68,10 +68,16 @@
     'jester': 2.9,                /* novo (bobo): ~46% CPU x CPU — as irritacoes (tela cega/girando,
                                      controle eletrizado, botoes embaralhados) pesam mais contra gente */
   };
+  /* nov/2026 (pedido do dono, depois de jogar): buff no Dev Senior (as
+     nanomaquinas davam ~14 de dano), Nimbo, Rafael, Dev Veterano, Lyra,
+     Larper, Cyber, Kage Commit e John; o Ponteiro perde so DANO (vida igual). */
+  const DANO = {
+    'ponteiro': 0.8,
+  };
   for (const f of FIGHTERS) {
     const m = FORCA[f.id];
     if (!m || !f.stats) continue;
-    f.stats.power = +((f.stats.power || 1) * m).toFixed(3);
+    f.stats.power = +((f.stats.power || 1) * m * (DANO[f.id] || 1)).toFixed(3);
     f.stats.hp = Math.round((f.stats.hp || 100) * m);
   }
 })();

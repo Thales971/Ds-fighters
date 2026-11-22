@@ -22,7 +22,7 @@ const TOURNEY_AI = {
   3: { react: 5, block: 0.84, lowRead: 0.86, antiAir: 0.62, punish: 0.86, combo: 5, ability: 0.12, ult: 0.12, aggro: 0.2, mistake: 0.02, dodge: 0.16, spacing: 110 },
 };
 const TOURNEY_BODY = {
-  1: { dmg: 1.06, taken: 0.98 },
+  1: { dmg: 1, taken: 1.02 },
   2: { dmg: 1.2, taken: 0.9 },
   3: { dmg: 1.26, taken: 0.88 },
 };
