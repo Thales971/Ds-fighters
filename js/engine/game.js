@@ -1396,7 +1396,7 @@ class Game {
       if (!(this.photo && this.photo.hideF)) {
         for (const f of fs) {
           if (f.alive === false) continue;
-          try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+          this._reflecting = true; try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ } this._reflecting = false;
         }
       }
       ctx.restore();
@@ -1425,7 +1425,7 @@ class Game {
         if (!(this.photo && this.photo.hideF)) {
           for (const f of fs) {
             if (f.alive === false) continue;
-            try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ }
+            this._reflecting = true; try { f.draw(ctx); } catch (e) { /* reflexo nunca quebra o frame */ } this._reflecting = false;
           }
         }
         ctx.restore();
