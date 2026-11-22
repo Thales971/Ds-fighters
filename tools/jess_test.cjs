@@ -42,7 +42,7 @@ for (let i = 0; i < 5; i++) {
   const f = g.activeOf(0), o = g.activeOf(1);
   f.x = 300; o.x = 500; f.dir = 1; o.dir = -1;
   f.hp = f.maxHp; o.hp = o.maxHp; o.status = {};
-  f.state = 'idle'; f.cast = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100;
+  f.state = 'idle'; f.cast = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.charge = [100, 100]; f.ultimate = 100;
   g.zones = []; g.projectiles = []; g.strikes = [];
   const ok = f.tryCast(i);
   let minHp = o.maxHp;
@@ -57,14 +57,14 @@ check('Jess: as 5 funcionam (ult e buff)', dmgOk >= 4, dmgOk + '/5');
 const gd = mk('jess', 'du');
 const fj = gd.activeOf(0), od = gd.activeOf(1);
 fj.x = 300; od.x = 500; fj.dir = 1;
-fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.state = 'idle'; fj.cast = null; fj.ultimate = 100;
+fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.spamShared = 0; fj.state = 'idle'; fj.cast = null; fj.ultimate = 100;
 fj.tryCast(4);
 for (let t = 0; t < 70; t++) gd.tick(); /* a ult tem ~50 ticks de windup */
 check('DALTONIC: rival marcado', od.has('daltonic') === true);
 check('DALTONIC: Jess com lifesteal', fj.has('lifesteal') === true);
 fj.hp = fj.maxHp * 0.5;
 od.hp = od.maxHp;
-fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.state = 'idle'; fj.cast = null;
+fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.spamShared = 0; fj.state = 'idle'; fj.cast = null;
 fj.tryCast(0);
 const hpAntes = fj.hp;
 for (let t = 0; t < 220; t++) gd.tick();

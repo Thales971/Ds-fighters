@@ -111,9 +111,9 @@ check('dificuldade CRESCENTE (scores nao decrescem ate o chefe)', arc.cresc, arc
 
 // ===== 5. codigo do modo: rounds rapidos e chefe com musica boss =====
 const uiSrc = fs.readFileSync('js/ui/ui.js', 'utf8');
-check("ui.js: torneio rapido (1 round/99s) e chefe (2 rounds/180s, difficulty 3)", /roundsToWin: isBoss \? 2 : 1/.test(uiSrc) && /timer: isBoss \? 180 : 99/.test(uiSrc) && /difficulty: isBoss \? 3/.test(uiSrc));
+check("ui.js: torneio rapido (1 round/99s) e chefe (2 rounds/180s, dificuldade por degrau da chave)", /roundsToWin: isBoss \? 2 : 1/.test(uiSrc) && /timer: isBoss \? 180 : 99/.test(uiSrc) && /cpuDifficulty: row\.diff/.test(uiSrc));
 check("ui.js: chefe entra com music 'boss'", /music: isBoss \? 'boss' : 'battle'/.test(uiSrc));
-check('ui.js: escada pega os 6 mais fortes por score (slice(0, 6))', /slice\(0, 6\)/.test(uiSrc) && /projectile\|cycle\|multi/.test(uiSrc));
+check('ui.js: chave fixa do torneio (torneioLadderFor)', /torneioLadderFor\(me\)/.test(uiSrc));
 const html = fs.readFileSync('index.html', 'utf8');
 check('menu tem botao TORNEIO ATÉ O CHEFE', /TORNEIO ATÉ O CHEFE/.test(html));
 

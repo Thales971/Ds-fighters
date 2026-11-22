@@ -1181,7 +1181,7 @@ class Game {
       }
     }
     /* Limpa em espaço de tela. Se limpar depois do zoom, as bordas ficam com o quadro anterior. */
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (ctx.setTransform) ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.W, this.H);
     /* MODO FOTO: camera livre (pan/zoom/filtro) sobre a cena — o jogo continua pausado */
     const pc = this.photo;

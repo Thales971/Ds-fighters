@@ -58,7 +58,7 @@ body.mobile .cell .face { width: 100%; height: auto; aspect-ratio: 1; }
 body.mobile .cell .nm { font-size: 6px; padding: 5px 0; }
 body.mobile .sel-help { font: 13px/1.6 system-ui, sans-serif; max-width: none; margin: 14px 0 6px; }
 body.mobile .sel-card { min-height: 300px; padding: 12px; }
-body.mobile .sel-card .big-sprite { position: relative; left: 50%; margin: -34px 0 -72px -160px; transform: scale(.65); }
+body.mobile .sel-card .big-sprite { position: relative; left: 50%; margin: -34px 0 -44px -160px; transform: scale(.65); }
 body.mobile .sel-card.p2 .big-sprite { transform: scale(.65) scaleX(-1); }
 body.mobile .sel-card .big-sprite.q, body.mobile .sel-card .big-sprite.locked { left: auto; width: 100%; margin: 0; transform: none; height: 100px; font-size: 56px; }
 body.mobile .sel-card h3 { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
@@ -155,6 +155,7 @@ body.mobile #hud .statuses span { font: 700 calc(8px / var(--arena-scale))/1.4 s
 body.mobile #hud .statuses { max-height: calc(26px / var(--arena-scale)); overflow: hidden; }
 body.mobile .hud-stage, body.mobile .speech { display: none; }
 body.mobile .tbtns button { position: relative; }
+body.mobile #touch-controls .tbtns button { font-size: 7px; letter-spacing: -0.5px; padding: 0; overflow: hidden; }
 .touch-key { position: absolute; bottom: 1px; right: 2px; color: #fff; background: rgba(0,0,0,.85); padding: 2px 3px; border-radius: 4px; }
 body.mobile .mobile-landscape-hint { max-width: 42%; }
 /* busca/filtro na grade de selecao no mobile: ferramentas empilham e o campo ocupa a largura */

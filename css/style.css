@@ -126,12 +126,13 @@ body.mobile .sel-back { position: static; display: inline-flex; margin: 0 0 8px;
 .picked-row { position: absolute; top: 22px; left: 8px; display: flex; gap: 3px; z-index: 2; }
 .sel-card.p2 .picked-row { left: auto; right: 8px; }
 .picked-row span { width: 28px; height: 28px; background-size: cover; border: 2px solid var(--gold); image-rendering: pixelated; }
-.big-sprite { width: 320px; height: 260px; margin: -52px 0 -74px -33px; background-size: 1280px 3900px; background-position: 0 0; image-rendering: pixelated; animation: idle4 .7s steps(4) infinite; transform: scale(.7); }
+.big-sprite { width: 320px; height: 260px; margin: -52px 0 -40px -33px; background-size: 1280px 3900px; background-position: 0 0; image-rendering: pixelated; animation: idle4 .7s steps(4) infinite; transform: scale(.7); }
 .sel-card.p2 .big-sprite { transform: scale(.7) scaleX(-1); }
 .big-sprite.ready { background-position-y: -3640px; animation: idle2 .6s steps(2) infinite; }
 .big-sprite.q, .big-sprite.locked { animation: none; display: grid; place-items: center; font-size: 80px; color: #6b4fb3; height: 200px; margin: 0; width: 100%; transform: none; }
 .big-sprite.locked::before { content: '🔒'; font-size: 60px; }
 @keyframes idle4 { from { background-position-x: 0; } to { background-position-x: -1280px; } }
+@keyframes idle4h { from { background-position-x: 0; } to { background-position-x: -640px; } }
 @keyframes idle2 { from { background-position-x: 0; } to { background-position-x: -640px; } }
 body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { animation: none; }
 .sel-card h3 { position: relative; z-index: 2; margin: 0; font-size: 12px; color: var(--c, var(--gold)); text-shadow: 2px 2px 0 #000; text-align: center; }
@@ -171,7 +172,7 @@ body.reduced .big-sprite, body.reduced .vs-sprite, body.reduced .win-sprite { an
 .cell { position: relative; width: 54px; height: 70px; padding: 0; border: 3px solid #3a2766; background: linear-gradient(#2a1650, #120a24); cursor: pointer; color: #fff; overflow: visible; }
 .cell { overflow: hidden; }
 .cell .face { display: block; width: 48px; height: 48px; background-size: cover; image-rendering: pixelated; }
-.cell .face.roster-portrait, .lad-face {
+.cell .face.roster-portrait, .lad-face, .mp.roster-portrait {
   background-color: transparent; image-rendering: pixelated; animation: none; overflow: hidden;
   background-repeat: no-repeat;
   background-size: calc(var(--pcols, 7) * 100%) calc(var(--prows, 9) * 100%);
@@ -332,8 +333,9 @@ body.reduced .pet-spr { animation: none; }
 .moves-keys { max-height: 96px; overflow: auto; text-align: left; }
 .moves-pick { max-height: 112px; overflow: auto; }
 .moves-list { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; align-items: start; text-align: left; }
-.moves-hero { width: 160px; height: 130px; margin: 0; grid-row: 1 / span 4; position: sticky; top: 0; background-repeat: no-repeat; background-size: 640px 1950px; background-position: 0 0; image-rendering: pixelated; animation: idle4 .8s steps(4) infinite; }
+.moves-hero { width: 160px; height: 130px; margin: 0; grid-row: 1 / span 4; position: sticky; top: 0; background-repeat: no-repeat; background-size: 640px 1950px; background-position: 0 0; image-rendering: pixelated; animation: idle4h .8s steps(4) infinite; }
 .mp.on, .mp:focus { border-color: var(--gold); }
+.mp.roster-portrait { background-color: #1a1038; }
 .moves-list { text-align: left; }
 .moves-list h3 { color: var(--c); font-size: 11px; margin: 4px 0; }
 .moves-list h3 small { color: #c9b8ff; font-size: 7px; }

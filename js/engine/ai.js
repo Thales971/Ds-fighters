@@ -10,21 +10,21 @@
 const AI_LEVELS = [
   { name: 'Fácil', react: 26, block: 0.18, lowRead: 0.25, antiAir: 0.05, punish: 0.05, combo: 1, ability: 0.006, ult: 0.004, aggro: 0.05, mistake: 0.25, dodge: 0.02, throw: 0.002, spacing: 150 },
   { name: 'Normal', react: 15, block: 0.45, lowRead: 0.55, antiAir: 0.18, punish: 0.3, combo: 3, ability: 0.014, ult: 0.012, aggro: 0.1, mistake: 0.1, dodge: 0.06, throw: 0.006, spacing: 125 },
-  { name: 'Difícil', react: 8, block: 0.72, lowRead: 0.8, antiAir: 0.45, punish: 0.65, combo: 5, ability: 0.026, ult: 0.03, aggro: 0.16, mistake: 0.03, dodge: 0.14, throw: 0.012, spacing: 110 },
-  { name: 'Pesadelo', react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.04, ult: 0.08, aggro: 0.22, mistake: 0, dodge: 0.3, throw: 0.02, spacing: 100 },
+  { name: 'Difícil', react: 8, block: 0.72, lowRead: 0.8, antiAir: 0.45, punish: 0.65, combo: 5, ability: 0.045, ult: 0.05, aggro: 0.16, mistake: 0.03, dodge: 0.14, throw: 0.012, spacing: 110 },
+  { name: 'Pesadelo', react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.07, ult: 0.1, aggro: 0.22, mistake: 0, dodge: 0.3, throw: 0.02, spacing: 100 },
 ];
 
 /* Ajuste só do torneio, por degrau (1 médio, 2 difícil, 3 extremo).
    O Versus continua nos AI_LEVELS. */
 const TOURNEY_AI = {
-  1: { react: 14, block: 0.5, lowRead: 0.58, antiAir: 0.22, punish: 0.4, combo: 3, ability: 0.016, ult: 0.014, aggro: 0.12, mistake: 0.09, dodge: 0.06, spacing: 124 },
-  2: { react: 8, block: 0.74, lowRead: 0.8, antiAir: 0.48, punish: 0.7, combo: 4, ability: 0.028, ult: 0.035, aggro: 0.18, mistake: 0.03, dodge: 0.12, spacing: 112 },
-  3: { react: 5, block: 0.84, lowRead: 0.86, antiAir: 0.62, punish: 0.74, combo: 5, ability: 0.036, ult: 0.05, aggro: 0.2, mistake: 0.02, dodge: 0.16, spacing: 110 },
+  1: { react: 14, block: 0.5, lowRead: 0.58, antiAir: 0.22, punish: 0.5, combo: 3, ability: 0.05, ult: 0.04, aggro: 0.12, mistake: 0.09, dodge: 0.06, spacing: 124 },
+  2: { react: 8, block: 0.74, lowRead: 0.8, antiAir: 0.48, punish: 0.8, combo: 4, ability: 0.09, ult: 0.08, aggro: 0.18, mistake: 0.03, dodge: 0.12, spacing: 112 },
+  3: { react: 5, block: 0.84, lowRead: 0.86, antiAir: 0.62, punish: 0.86, combo: 5, ability: 0.12, ult: 0.12, aggro: 0.2, mistake: 0.02, dodge: 0.16, spacing: 110 },
 };
 const TOURNEY_BODY = {
-  1: { dmg: 1, taken: 1 },
-  2: { dmg: 1.06, taken: 0.94 },
-  3: { dmg: 1.06, taken: 0.96 },
+  1: { dmg: 1.04, taken: 1 },
+  2: { dmg: 1.12, taken: 0.94 },
+  3: { dmg: 1.18, taken: 0.92 },
 };
 
 const AI = {
@@ -138,7 +138,11 @@ const AI = {
     const punishP = me.aiTune ? L.punish : L.punish * 0.5;
     if (!recovering) m.punished = false;
     /* Uma punição por buraco, não um teste a cada quadro (isso virava 100%). */
-    if (!m.punished && recovering && dist < 160 && me.onGround && me.canAct() && Math.random() < punishP) {
+    /* TORNEIO: quem so aperta habilidade fica parado no cast. A CPU encurta
+       a distancia enquanto o rival conjura e pune de mais longe. */
+    if (me.aiTune && opp.state === 'cast' && !recovering && dist > 110 && dist < 320 && me.onGround && me.canAct() && Math.random() < 0.35 + lvl * 0.15) { fwd(); return input; }
+    const punishRange = me.aiTune && opp.state === 'cast' ? 230 : 160;
+    if (!m.punished && recovering && dist < punishRange && me.onGround && me.canAct() && Math.random() < punishP) {
       m.punished = true;
       m.combo = this.routes(me, L);
       m.step = 1;

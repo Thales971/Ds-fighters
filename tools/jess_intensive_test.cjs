@@ -30,7 +30,7 @@ const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' +
 const g1 = mk('jess', 'du');
 const fj = g1.activeOf(0), od = g1.activeOf(1);
 fj.x = 300; od.x = 500; fj.dir = 1;
-fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.state = 'idle'; fj.cast = null; fj.ultimate = 100;
+fj.cd = [0,0,0,0,0,0,0,0,0,0]; fj.castLock = 0; fj.spamShared = 0; fj.state = 'idle'; fj.cast = null; fj.ultimate = 100;
 fj.tryCast(4);
 for (let t = 0; t < 70; t++) g1.tick();
 let durou = 0;
@@ -53,7 +53,7 @@ check('LIFESTEAL: cura exatamente 25% do dano', Math.abs(curou - danoDado * 0.25
 const g3 = mk('jess', 'du');
 const f3 = g3.activeOf(0), o3 = g3.activeOf(1);
 f3.x = 300; o3.x = 500; f3.dir = 1;
-f3.cd = [0,0,0,0,0,0,0,0,0,0]; f3.castLock = 0; f3.state = 'idle'; f3.cast = null;
+f3.cd = [0,0,0,0,0,0,0,0,0,0]; f3.castLock = 0; f3.spamShared = 0; f3.state = 'idle'; f3.cast = null;
 f3.tryCast(0); /* To Be */
 let marcou = false;
 for (let t = 0; t < 200; t++) { g3.tick(); if (o3.has('vuln')) { marcou = true; break; } }
@@ -252,7 +252,7 @@ const gU = mk('jess', 'du');
 const fU = gU.activeOf(0), oU = gU.activeOf(1);
 check('kit da Jess: 5 poderes, slot 4 = ultimate daltonic', fU.ownKit().length === 5 && fU.ownKit()[4].slot === 'ultimate', fU.ownKit().map(p => p.id).join(','));
 fU.x = 300; oU.x = 500; fU.dir = 1;
-fU.cd = [0,0,0,0,0,0,0,0,0,0]; fU.castLock = 0; fU.state = 'idle'; fU.cast = null; fU.ultimate = 100;
+fU.cd = [0,0,0,0,0,0,0,0,0,0]; fU.castLock = 0; fU.spamShared = 0; fU.state = 'idle'; fU.cast = null; fU.ultimate = 100;
 fU.tryCast(4);
 for (let t = 0; t < 70; t++) gU.tick();
 check('ult aplicou daltonic + slow no rival e lifesteal na Jess', oU.has('daltonic') && oU.has('slow') && fU.has('lifesteal'));
@@ -269,7 +269,7 @@ gV.start({ mode: 'versus', teams: [['du'], ['jess']], stage: 'treino-dojo', cpu:
 for (let t = 0; t < 700 && gV.roundState !== 'fight'; t++) gV.tick();
 const pv = gV.activeOf(0), jv = gV.activeOf(1);
 jv.x = 400; pv.x = 300; jv.dir = -1;
-jv.cd = [0,0,0,0,0,0,0,0,0,0]; jv.castLock = 0; jv.state = 'idle'; jv.cast = null; jv.ultimate = 100;
+jv.cd = [0,0,0,0,0,0,0,0,0,0]; jv.castLock = 0; jv.spamShared = 0; jv.state = 'idle'; jv.cast = null; jv.ultimate = 100;
 jv.tryCast(4);
 for (let t = 0; t < 80; t++) { gV.tick(); gV.render(); }
 const togD = toggles.filter((t) => t[0] === 'daltonic');
@@ -286,7 +286,7 @@ check('classe .daltonic DESLIGA ao fim do status', offD[offD.length-1][1] === fa
 const gW = mk('jess', 'du');
 const fW = gW.activeOf(0), oW = gW.activeOf(1);
 fW.x = 300; oW.x = 520; fW.dir = 1; oW.dir = -1;
-fW.cd = [0,0,0,0,0,0,0,0,0,0]; fW.castLock = 0; fW.state = 'idle'; fW.cast = null; fW.ultimate = 100;
+fW.cd = [0,0,0,0,0,0,0,0,0,0]; fW.castLock = 0; fW.spamShared = 0; fW.state = 'idle'; fW.cast = null; fW.ultimate = 100;
 fW.tryCast(4);
 for (let t = 0; t < 70; t++) gW.tick();
 check('rival daltonic no teste de caminho', oW.has('daltonic') === true);
@@ -307,7 +307,7 @@ const pressA = (slot) => {
   const inp = { left: false, right: false, down: false, up: false, punch: false, kick: false };
   for (let k = 0; k < 10; k++) inp['a' + k] = false;
   inp['a' + slot] = true;
-  oW.state = 'idle'; oW.cast = null; oW.castLock = 0; oW.cd = oW.cd.map(() => 0); oW.ultimate = 100; oW.charge = [100, 100]; oW.onGround = true; oW.vx = 0; oW.benched = false;
+  oW.state = 'idle'; oW.cast = null; oW.castLock = 0; oW.spamShared = 0; oW.cd = oW.cd.map(() => 0); oW.ultimate = 100; oW.charge = [100, 100]; oW.onGround = true; oW.vx = 0; oW.benched = false;
   oW.buf.punch = 0; oW.buf.kick = 0; for (let k = 0; k < 10; k++) oW.buf['a' + k] = 0; /* limpa resto do press anterior */
   const antes = casts.length;
   oW.update(Object.assign({}, inp));
