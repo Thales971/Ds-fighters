@@ -92,6 +92,10 @@ const AudioSys = {
     const t = this.safeVol(intensity, 0);
     return calm + (hot - calm) * t;
   },
+  trackGain(g) {
+    const n = Number(g);
+    return Number.isFinite(n) && n > 0 ? Math.min(1, n) : 1;
+  },
   musicVolume() {
     const mix = this.musicMixAt(this.intensity || 0);
     const duck = this.voiceActive > 0 ? this.safeVol(this.musicDuckFactor, 0.25) : 1;
@@ -131,8 +135,10 @@ const AudioSys = {
       if (!el) return;
       try { el.playbackRate = rate; } catch (e) { /* o elemento recusou a taxa */ }
     };
-    if (this.music) this.music.volume = this.safeVol(level * (1 - cross));
-    if (this.musicHot) this.musicHot.volume = this.safeVol(level * cross);
+    /* gain da faixa (playlist.json, medido em LUFS por tools/music_playlist.py):
+       musica masterizada muito alta nao estoura perto das antigas */
+    if (this.music) this.music.volume = this.safeVol(level * (1 - cross) * this.trackGain(this.musicGain));
+    if (this.musicHot) this.musicHot.volume = this.safeVol(level * cross * this.trackGain(this.musicHotGain));
     setRate(this.music);
     setRate(this.musicHot);
   },
@@ -404,6 +410,7 @@ const AudioSys = {
       }
     };
     this.music = a;
+    this.musicGain = track.gain;
     this.musicCross = 0;
     this._hotDone = false; /* nova faixa principal: libera UMA hot */
     this.hotWanted = false;
@@ -498,6 +505,7 @@ const AudioSys = {
     a.onended = () => { if (this.musicHot === a) this._stopHot(); };
     a.onerror = () => { if (this.musicHot === a) this._stopHot(); };
     this.musicHot = a;
+    this.musicHotGain = next.gain;
     this.hotWanted = true;
     this.nowPlaying = next.title || next.file.split('/').pop();
     try {

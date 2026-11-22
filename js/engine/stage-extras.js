@@ -3,8 +3,12 @@
    So visual (nao mexe em hitbox, rede ou dano).
 
    drawLife (TODOS os mapas):
-     - sombras de nuvem atravessando o chao (mapas abertos)
+     - nuvens passando no ceu (mapas abertos; de noite, nuvens escuras)
      - brilho que varre o piso de tempos em tempos
+   polishOf: mapas de piso brilhante (gelo, neon, dojo, salao...) ganham
+     reflexo dos lutadores no chao (desenhado em game.js)
+   drawSun: luz solar nos mapas abertos de dia (halo, raios girando, lens flare)
+   drawBloom: no grafico ALTO, brilho (bloom) nas luzes e efeitos
      (as camadas de fundo tambem oscilam devagar: drift em stage.js drawBack)
 
    drawEventBack / drawEventFront (mapas de evento; na semana do evento, uma
@@ -66,37 +70,145 @@
   };
 
   /* ---------------- vida em todos os mapas ---------------- */
-  const INDOOR = /lab|salao|loja|cafe|mansao|fabrica|datacenter|underwater|abismo|biblioteca|dojo|ginasio|quadra|escritorio|server|caverna|cave|catedral|metro|subsolo|arcade/;
+  const INDOOR = /lab|salao|loja|cafe|mansao|fabrica|datacenter|corredor|sala-deploy|hackerspace|underwater|abismo|biblioteca|treino-dojo|estudio|oficina|senai-valinhos|arquibancada|pizzaria|area-de-trabalho|orbital|crystal|caverna|kali|chocolate/;
+  const NIGHT = /noite|night|neblina|cemiterio|halloween|cyberpunk|neon|quermesse|reveillon|paulista|copacabana|chaos|kernel-noite|madrugada/;
+
+  /* nuvem macia: 9 bolhas de gradiente sobrepostas, desenhada 1x por variante */
+  function cloudSprite(seed, dark) {
+    if (typeof document === 'undefined') return null;
+    try {
+      const c = document.createElement('canvas');
+      c.width = 300; c.height = 110;
+      const x = c.getContext('2d');
+      if (!x || !x.createRadialGradient) return null;
+      let r = seed * 9301 + 49297;
+      const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+      const col = dark ? '90,96,120' : '255,255,255';
+      for (let i = 0; i < 9; i++) {
+        const cx = 50 + rnd() * 200, cy = 50 + rnd() * 26 - (Math.abs(cx - 150) < 60 ? 14 : 0), rr = 26 + rnd() * 30;
+        const g = x.createRadialGradient(cx, cy, 0, cx, cy, rr);
+        g.addColorStop(0, 'rgba(' + col + ',0.55)');
+        g.addColorStop(0.6, 'rgba(' + col + ',0.32)');
+        g.addColorStop(1, 'rgba(' + col + ',0)');
+        x.fillStyle = g;
+        x.fillRect(cx - rr, cy - rr, rr * 2, rr * 2);
+      }
+      return c;
+    } catch (e) { return null; }
+  }
+
+  /* LUZ SOLAR (mapas abertos de dia): sol num canto do ceu com halo quente,
+     raios girando devagar e reflexos de lente (lens flare) atravessando a tela
+     em direcao ao centro. Sprites cacheados; tudo em 'lighter'. */
+  function sunSprites(high) {
+    if (typeof document === 'undefined') return null;
+    try {
+      const mk = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d')); return c; };
+      const glow = mk(512, 512, (x) => {
+        const g = x.createRadialGradient(256, 256, 0, 256, 256, 256);
+        g.addColorStop(0, 'rgba(255,252,235,0.95)');
+        g.addColorStop(0.08, 'rgba(255,240,190,0.75)');
+        g.addColorStop(0.25, 'rgba(255,205,120,0.28)');
+        g.addColorStop(0.6, 'rgba(255,170,80,0.08)');
+        g.addColorStop(1, 'rgba(255,150,60,0)');
+        x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+      });
+      const rays = mk(640, 640, (x) => {
+        x.translate(320, 320);
+        const n = high ? 18 : 12;
+        for (let i = 0; i < n; i++) {
+          x.rotate((Math.PI * 2) / n);
+          const len = 200 + ((i * 53) % 110);
+          const g = x.createLinearGradient(0, 0, len, 0);
+          g.addColorStop(0, 'rgba(255,236,180,0.5)');
+          g.addColorStop(1, 'rgba(255,200,120,0)');
+          x.fillStyle = g;
+          x.beginPath(); x.moveTo(0, -3); x.lineTo(len, -(10 + (i % 3) * 6)); x.lineTo(len, 10 + (i % 3) * 6); x.lineTo(0, 3); x.closePath(); x.fill();
+        }
+      });
+      const ghost = (col) => mk(128, 128, (x) => {
+        const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, 'rgba(' + col + ',0.0)');
+        g.addColorStop(0.7, 'rgba(' + col + ',0.22)');
+        g.addColorStop(0.92, 'rgba(' + col + ',0.35)');
+        g.addColorStop(1, 'rgba(' + col + ',0)');
+        x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+      });
+      return { glow, rays, ghosts: [ghost('255,210,140'), ghost('140,220,255'), ghost('190,255,170'), ghost('255,170,120')] };
+    } catch (e) { return null; }
+  }
+  P.drawSun = function (ctx) {
+    const d = this.def || {};
+    if (d.sun === false || this._indoor || this._night) return;
+    const wk = this.game && this.game.weather && this.game.weather.kind;
+    if (/rain|storm|snow|hail|darkfog|fog|eclipse|aurora/.test(String(wk || ''))) return; /* sol so com tempo aberto */
+    const high = this.game && this.game.quality === 'high';
+    if (this._sun === undefined) {
+      let h = 0; for (const ch of String(d.id || 'x')) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
+      const left = (h & 2) === 0;
+      this._sun = { spr: sunSprites(high), x: left ? 110 + (h % 90) : this.W - 110 - (h % 90), y: 70 + (h % 40) };
+    }
+    const S = this._sun;
+    if (!S.spr) return;
+    const t = this.t;
+    const pulse = 0.88 + 0.12 * Math.sin(t * 0.02);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    /* halo */
+    ctx.globalAlpha = 0.55 * pulse;
+    ctx.drawImage(S.spr.glow, S.x - 256, S.y - 256);
+    /* raios girando (2 camadas em sentidos opostos = brilho vivo) */
+    ctx.globalAlpha = 0.35 * pulse;
+    ctx.translate(S.x, S.y);
+    ctx.rotate(t * 0.0012);
+    ctx.drawImage(S.spr.rays, -320, -320);
+    ctx.rotate(-t * 0.0026);
+    ctx.globalAlpha = 0.18 * pulse;
+    ctx.drawImage(S.spr.rays, -280, -280, 560, 560);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    /* lens flare: fantasmas na linha sol -> centro da tela, oscilando de leve */
+    const cx = this.W / 2, cy = this.H * 0.45;
+    const steps = high ? [0.35, 0.6, 0.85, 1.15, 1.4] : [0.45, 0.85, 1.3];
+    steps.forEach((k, i) => {
+      const fx = S.x + (cx - S.x) * k + Math.sin(t * 0.01 + i) * 3;
+      const fy = S.y + (cy - S.y) * k;
+      const r = 14 + ((i * 17) % 30) + (i === 2 ? 20 : 0);
+      ctx.globalAlpha = 0.5 * pulse;
+      ctx.drawImage(S.spr.ghosts[i % S.spr.ghosts.length], fx - r, fy - r, r * 2, r * 2);
+    });
+    ctx.restore();
+  };
+
   P.drawLife = function (ctx) {
     if (this._fxOff() || !ctx.createRadialGradient) return;
     const d = this.def || {};
     if (d.life === false) return;
     const W = this.W, H = this.H, gy = this.groundY, t = this.t;
-    if (this._indoor == null) this._indoor = INDOOR.test(String(d.id || '') + ' ' + String(d.name || '').toLowerCase());
+    const key = String(d.id || '') + ' ' + String(d.name || '').toLowerCase();
+    if (this._indoor == null) { this._indoor = d.indoor != null ? !!d.indoor : INDOOR.test(key); this._night = NIGHT.test(key); }
     ctx.save();
-    /* sombras de nuvem: 2 manchas largas e suaves andando com o vento */
-    if (!this._indoor) {
-      if (!this._cloudShadow && typeof document !== 'undefined') {
-        try {
-          const c = document.createElement('canvas');
-          c.width = 256; c.height = 64;
-          const x = c.getContext('2d');
-          const g = x.createRadialGradient(128, 32, 4, 128, 32, 128);
-          g.addColorStop(0, 'rgba(0,0,0,0.16)');
-          g.addColorStop(1, 'rgba(0,0,0,0)');
-          x.fillStyle = g;
-          x.fillRect(0, 0, 256, 64);
-          this._cloudShadow = c;
-        } catch (e) { this._cloudShadow = false; }
-      }
-      if (this._cloudShadow) {
-        const wind = 0.35 + Math.abs(this._wind || 0) * 0.6;
-        for (let i = 0; i < 2; i++) {
-          const span = W + 700;
-          const x = ((t * wind * (0.8 + i * 0.35) + i * 530) % span) - 350;
-          ctx.drawImage(this._cloudShadow, x, gy - 40 + i * 18, 520 - i * 120, 90);
+    this.drawSun(ctx);
+    /* NUVENS PASSANDO NO CEU (mapas abertos): andam com o vento, em 2 alturas;
+       de noite ficam cinza-azuladas e mais fracas. Qualidade alta: 4 nuvens. */
+    if (!this._indoor && d.clouds !== false) {
+      if (!this._clouds) {
+        this._clouds = [];
+        const high = this.game && this.game.quality === 'high';
+        const n = high ? 4 : 2;
+        for (let i = 0; i < n; i++) {
+          this._clouds.push({ spr: cloudSprite(i + 3, this._night), y: 40 + (i % 2) * 46 + i * 6, sc: 0.8 + (i % 3) * 0.35, sp: 0.18 + (i % 3) * 0.09, off: i * 410 });
         }
       }
+      const wind = 1 + Math.abs(this._wind || 0) * 1.5;
+      for (const c of this._clouds) {
+        if (!c.spr) continue;
+        const w = c.spr.width * c.sc, h = c.spr.height * c.sc;
+        const span = W + w + 200;
+        const x = ((t * c.sp * wind + c.off) % span) - w - 100;
+        ctx.globalAlpha = this._night ? 0.45 : 0.62;
+        ctx.drawImage(c.spr, x, c.y, w, h);
+      }
+      ctx.globalAlpha = 1;
     }
     /* brilho que varre o piso a cada ~9s */
     const cyc = t % 540;
@@ -112,6 +224,50 @@
       ctx.fillRect(sx - 90, gy - 4, 180, H - gy + 4);
     }
     ctx.restore();
+  };
+
+  /* PISO POLIDO: mapas de chao brilhante ganham reflexo dos lutadores
+     (game.js desenha). Molhado (chuva/mare) continua no reflexo antigo. */
+  const POLISH = [
+    [/kernel|natal-praca|gelo|ice|artic/, { alpha: 0.24, squash: 0.5, tint: '200,235,255', fade: 0.25 }],
+    [/neon|cyberpunk|chrome|cromada|metropole|rua-centro-noite|paulista|orbital|crystal/, { alpha: 0.22, squash: 0.42, tint: '150,210,255', fade: 0.32 }],
+    [/dojo|sesi$|quadra-sesi|arquibancada|salao|mansao|loja|biblioteca|estacao|teatro/, { alpha: 0.18, squash: 0.45, tint: '255,220,170', fade: 0.3 }],
+    [/lab|datacenter|corredor|sala-deploy|hackerspace|chocolate|estudio/, { alpha: 0.18, squash: 0.42, tint: '170,230,255', fade: 0.34 }],
+  ];
+  StageRenderer.polishOf = function (def) {
+    if (!def) return null;
+    if (def.reflect === false) return null;
+    if (def.reflect && typeof def.reflect === 'object') return def.reflect;
+    const key = String(def.id || '') + ' ' + String(def.name || '').toLowerCase();
+    for (const [re, cfg] of POLISH) if (re.test(key)) return cfg;
+    return def.reflect ? POLISH[2][1] : null;
+  };
+
+  /* GRAFICO ALTO: bloom barato — copia a tela reduzida 1/4, eleva a 8a potencia
+     (so o que e claro sobrevive) e soma de volta com 'lighter'. */
+  P.drawBloom = function (ctx) {
+    const cv = ctx.canvas;
+    if (!cv || typeof document === 'undefined' || !ctx.setTransform) return;
+    try {
+      const sw = Math.max(1, (cv.width / 4) | 0), sh = Math.max(1, (cv.height / 4) | 0);
+      if (!this._bloom || this._bloom.width !== sw) { this._bloom = document.createElement('canvas'); this._bloom.width = sw; this._bloom.height = sh; }
+      const b = this._bloom.getContext('2d');
+      b.globalCompositeOperation = 'copy';
+      b.globalAlpha = 1;
+      b.imageSmoothingEnabled = true;
+      b.drawImage(cv, 0, 0, sw, sh);
+      b.globalCompositeOperation = 'multiply';
+      b.drawImage(this._bloom, 0, 0);
+      b.drawImage(this._bloom, 0, 0);
+      b.drawImage(this._bloom, 0, 0); /* ^8: so luz forte (neon, magia, faisca) brilha; o resto nao embaca */
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.5;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(this._bloom, 0, 0, cv.width, cv.height);
+      ctx.restore();
+    } catch (e) { this.drawBloom = () => {}; /* navegador sem suporte: desliga */ }
   };
 
   /* ---------------- especiais de evento ---------------- */
