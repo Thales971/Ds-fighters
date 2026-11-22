@@ -14,8 +14,23 @@ const AI_LEVELS = [
   { name: 'Pesadelo', react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.04, ult: 0.08, aggro: 0.22, mistake: 0, dodge: 0.3, throw: 0.02, spacing: 100 },
 ];
 
+/* Ajuste só do torneio, por degrau (1 médio, 2 difícil, 3 extremo).
+   O Versus continua nos AI_LEVELS. */
+const TOURNEY_AI = {
+  1: { react: 14, block: 0.5, lowRead: 0.58, antiAir: 0.22, punish: 0.4, combo: 3, ability: 0.016, ult: 0.014, aggro: 0.12, mistake: 0.09, dodge: 0.06, spacing: 124 },
+  2: { react: 8, block: 0.74, lowRead: 0.8, antiAir: 0.48, punish: 0.7, combo: 4, ability: 0.028, ult: 0.035, aggro: 0.18, mistake: 0.03, dodge: 0.12, spacing: 112 },
+  3: { react: 5, block: 0.84, lowRead: 0.86, antiAir: 0.62, punish: 0.74, combo: 5, ability: 0.036, ult: 0.05, aggro: 0.2, mistake: 0.02, dodge: 0.16, spacing: 110 },
+};
+const TOURNEY_BODY = {
+  1: { dmg: 1, taken: 1 },
+  2: { dmg: 1.06, taken: 0.94 },
+  3: { dmg: 1.06, taken: 0.96 },
+};
+
 const AI = {
   _mem: new WeakMap(),
+  tourneyTune(level) { return TOURNEY_AI[level] || null; },
+  tourneyBody(level) { return TOURNEY_BODY[level] || null; },
   /** Converte o valor salvo (0..3 ou o antigo 0.6..2.2) em nível inteiro. */
   level(d) {
     if (d == null) return 1;
@@ -63,13 +78,16 @@ const AI = {
     const input = this.blank();
     if (!opp || !me.alive || me.benched) return input;
     const lvl = this.level(difficulty);
-    const L = AI_LEVELS[lvl];
+    let L = AI_LEVELS[lvl];
+    if (me.aiTune) L = Object.assign({}, L, me.aiTune);
     const m = this.mind(me);
     // percepção atrasada: lê o estado do rival de L.react quadros atrás
     m.hist.push({ x: opp.x, st: opp.state, atk: opp.attack ? opp.attack.height : null, ground: opp.onGround });
     if (m.hist.length > 40) m.hist.shift();
     const seen = m.hist[Math.max(0, m.hist.length - 1 - L.react)];
     const dist = Math.abs(seen.x - me.x);
+    if (opp.state === 'attack' || opp.state === 'cast' || opp.state === 'rush') m.spam = Math.min(90, (m.spam || 0) + 1);
+    else m.spam = Math.max(0, (m.spam || 0) - 2);
     const toRight = opp.x > me.x;
     const fwd = () => { if (toRight) input.right = true; else input.left = true; };
     const back = () => { if (toRight) input.left = true; else input.right = true; };
@@ -89,10 +107,17 @@ const AI = {
 
     // 2) defesa planejada
     if (m.plan === 'block' && m.planT > 0) {
-      m.planT--;
-      back();
-      input.down = m.low;
-      return input;
+      const atkNow = opp.attack;
+      const activeNow = (atkNow && (atkNow.startup || 0) + (atkNow.active || 0)) || 0;
+      const oppRecover = opp.state === 'attack' && atkNow && opp.stateTime > activeNow;
+      if (!oppRecover) {
+        m.planT--;
+        back();
+        input.down = m.low;
+        return input;
+      }
+      m.plan = '';
+      m.planT = 0;
     }
     const seenAtk = seen.st === 'attack' || seen.st === 'cast' || seen.st === 'rush';
     if (me.def.id === 'merc' && m.plan === 'dodge' && m.planT > 0) {
@@ -107,10 +132,26 @@ const AI = {
       if (m.dodgeSign < 0) input.left = true; else input.right = true;
       return input;
     }
-    if (seenAtk && dist < 210 && me.onGround && me.canAct() && Math.random() < L.block) {
+    const atk = opp.attack;
+    const activeFrames = (atk && (atk.startup || 0) + (atk.active || 0)) || 0;
+    const recovering = (opp.state === 'attack' && atk && opp.stateTime > activeFrames) || (opp.state === 'cast' && opp.cast && opp.cast.fired);
+    const punishP = me.aiTune ? L.punish : L.punish * 0.5;
+    if (!recovering) m.punished = false;
+    /* Uma punição por buraco, não um teste a cada quadro (isso virava 100%). */
+    if (!m.punished && recovering && dist < 160 && me.onGround && me.canAct() && Math.random() < punishP) {
+      m.punished = true;
+      m.combo = this.routes(me, L);
+      m.step = 1;
+      m.wait = 12;
+      this.press(input, m.combo[0]);
+      fwd();
+      return input;
+    }
+    const threat = (seenAtk || (opp.state === 'attack' && !recovering)) && !recovering;
+    if (threat && dist < 220 && me.onGround && me.canAct() && Math.random() < L.block) {
       m.plan = 'block';
-      m.planT = 8 + L.react;
-      m.low = seen.atk === 'low' ? Math.random() < L.lowRead : Math.random() < 0.15;
+      m.planT = 6 + Math.min(8, L.react);
+      m.low = (seen.atk === 'low' || (atk && atk.height === 'low')) ? Math.random() < L.lowRead : Math.random() < (me.aiTune ? 0.08 : 0.15);
       back();
       input.down = m.low;
       return input;
@@ -123,18 +164,9 @@ const AI = {
     }
     if (!me.canAct()) return input;
     // 4) anti-aéreo
-    if (!seen.ground && dist < 150 && me.onGround && Math.random() < L.antiAir * 0.5) {
+    const airP = me.aiTune ? Math.min(1, L.antiAir) : L.antiAir * 0.5;
+    if (!opp.onGround && dist < 180 && me.onGround && Math.random() < airP) {
       input.down = true; input.punch = true; return input;
-    }
-    // 5) punição de golpe errado / habilidade em recuperação
-    const recovering = (opp.state === 'attack' && opp.attack && opp.stateTime > opp.attack.startup + opp.attack.active && !opp.hasHit) || (opp.state === 'cast' && opp.cast && opp.cast.fired);
-    if (recovering && dist < 140 && me.onGround && Math.random() < L.punish * 0.5) {
-      m.combo = this.routes(me, L);
-      m.step = 1;
-      m.wait = 14;
-      this.press(input, m.combo[0]);
-      fwd();
-      return input;
     }
     // rival tonto: combo máximo
     if (opp.has('dizzy') && dist < 160) {
@@ -147,7 +179,7 @@ const AI = {
     if (m.cd > 0) { if (dist > L.spacing + 40) fwd(); return input; }
     // 6) habilidades / ultimate
     const ps = me.currentKit().map((_, i) => me.powerState(i));
-    const cast = (i) => { input['a' + i] = true; m.cd = 18 + (3 - lvl) * 14; return input; };
+    const cast = (i) => { input['a' + i] = true; m.cd = me.aiTune ? (8 + (3 - lvl) * 4) : (18 + (3 - lvl) * 14); return input; };
     const auto = me.autoAim();
     /* 2a ultimate (IALES: Acao Final, indice 9) — a mais forte do jogo, a IA
        prioriza assim que ela fica pronta. */
@@ -196,8 +228,12 @@ const AI = {
       }
     }
     // 8) movimentação e espaçamento
-    const ideal = auto ? 100 : L.spacing + Math.sin(me.frame * 0.02) * 30;
-    if (dist > ideal) fwd();
+    const ideal = auto ? 100 : L.spacing + Math.sin(me.frame * 0.013 + (m.spam || 0)) * (me.aiTune ? 18 : 30);
+    const wallL = me.x < 150;
+    const wallR = me.x > (me.game.W || 960) - 150;
+    if (wallL && dist > 70) input.right = true;
+    else if (wallR && dist > 70) input.left = true;
+    else if (dist > ideal) fwd();
     else if (dist < 64 && Math.random() < 0.35) back();
     if (me.onGround && Math.random() < 0.004 + L.aggro * 0.02) { input.up = true; if (dist > 120) fwd(); }
     /* DOUBLE JUMP: no ar, usa o pulo extra pra perseguir, pressionar ou escapar */

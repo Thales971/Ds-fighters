@@ -1,0 +1,27 @@
+// Checagens de regra que não precisam de navegador.
+const fs = require('fs');
+const path = require('path');
+const ROOT = path.resolve(__dirname, '..');
+const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
+let fails = 0, n = 0;
+const check = (name, c, x) => { n++; console.log((c ? 'OK   ' : 'FALHA') + ' ' + name + (x ? ' — ' + x : '')); if (!c) fails++; };
+const ui = read('js/ui/ui.js');
+const game = read('js/engine/game.js');
+const fighter = read('js/engine/fighter.js');
+const room = read('js/net/room-core.js');
+const acc = read('js/data/accessories.js');
+const html = read('index.html');
+check('torneio barra personagem de código', /mode === 'arcade' && typeof Profile !== 'undefined' && Profile\.SECRET_IDS\.includes\(id\)/.test(ui));
+check('nota em PT-BR no cartão do torneio', ui.includes('Personagem de código. Não pode ser escolhido no torneio'));
+check('Iales só no Versus', /id === 'iales' && mode !== 'versus'/.test(ui));
+check('Kernor e Iales fora do online', /ONLINE_BANNED = \['iales', 'kernor'\]/.test(room));
+check('chefe com 2000 de vida', /p\.maxHp = 2000/.test(game));
+check('fase 2 do chefe', /FASE 2/.test(fighter));
+check('recarga global ligada', /ABILITY_CD_MULT = 2/.test(fighter));
+check('anti-spam compartilhado no chain', /shared: 80/.test(fighter));
+check('chapéu não entra sozinho', /const ACC_DEFAULTS = \{\}/.test(acc));
+check('joystick e aviso de girar o celular', html.includes('id="stick"') && html.includes('GIRE O CELULAR'));
+check('direcional começa escondido', /class="dpad" hidden/.test(html));
+check('menu do torneio cancela o timer da luta', ui.includes('cancelFlowTimers'));
+console.log(fails ? fails + ' falhas' : n + '/' + n + ' ok');
+process.exit(fails ? 1 : 0);
