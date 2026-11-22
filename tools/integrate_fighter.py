@@ -60,9 +60,11 @@ def drop_edge_slivers(sub, min_sz):
         keep |= comp
     return keep
 
-def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True):
+def load_sheet(path, min_sz=350, row_bands=None, col_bands=None, flood=True, denoise=False):
     """Detecta bg pelas bordas e o grid por projecao; extrai figuras."""
     im = Image.open(path).convert('RGB')
+    if denoise:  # folha JPEG pequena: tira os blocos de compressao antes de ampliar
+        im = im.filter(ImageFilter.MedianFilter(3))
     a = np.array(im).astype(int)
     bg = np.median(np.concatenate([
         a[0:8, :].reshape(-1, 3), a[-8:, :].reshape(-1, 3),
@@ -1129,6 +1131,8 @@ FIGHTERS = {
         'abilities': 'habilidades-dev-veterano.png',
         'abilities_keep': True,
         'holes': True,
+        'strict_magenta': True,
+        'denoise': True,  # JPEG pequeno (1184x896): sem isso fica pixelado ao ampliar
         'poses': DEVVET_POSES,
         'ui_cell': (0, 0, False),
     },
@@ -1320,6 +1324,14 @@ def build_ui(cells, ui_cell):
     return face, port
 
 
+def kill_magenta(path):
+    im = Image.open(path).convert('RGBA'); a = np.array(im)
+    r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
+    m = (r > 140) & (b > 140) & (g < 90) & (abs(r - b) < 70)
+    a[m, 3] = 0
+    Image.fromarray(a).save(path)
+
+
 def main():
     ids = sys.argv[1:] or list(FIGHTERS)
     for fid in ids:
@@ -1334,7 +1346,7 @@ def main():
         SHEET_POST.clear()
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
-            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'))
+            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cfg.get('col_bands'), denoise=cfg.get('denoise', False))
             for k, v in sc.items():
                 cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
@@ -1348,6 +1360,9 @@ def main():
         face, port = build_ui(cells, cfg['ui_cell'])
         face.save(ROOT / f'assets/ui/face-{fid}.png')
         port.save(ROOT / f'assets/ui/portrait-{fid}.png')
+        if cfg.get('denoise'):  # folha JPEG: borda magenta que sobrou depois do filtro
+            for pth in (ROOT / f'assets/sprites/{fid}.png', ROOT / f'assets/ui/face-{fid}.png', ROOT / f'assets/ui/portrait-{fid}.png'):
+                kill_magenta(pth)
         print('ok', fid)
 
 
