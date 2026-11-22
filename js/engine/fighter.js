@@ -294,8 +294,10 @@ class Fighter {
     if (w === 'heatwave' && ['agua', 'water', 'gelo', 'ice'].includes(el)) m *= 0.95;
     return m;
   }
+  spamDmgMult() { return (this.spamHeat || 0) >= 3 ? Math.max(0.35, 1 - 0.22 * (this.spamHeat - 2)) : 1; }
   dmgMult(p) {
-    let m = (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1) * (this.tourneyDmg || 1);
+    let m = p ? this.spamDmgMult() : 1;
+    m *= (this.def.stats.power || 1) * (this.balanceBuff ? this.balanceBuff.power : 1) * (this.tourneyDmg || 1);
     if (this.has('atk')) m *= 1.35;
     if (this.has('rage')) m *= this.status.rageMult || 1.5;
     if (this.has('aura') && this.aura && this.aura.dmgMult) m *= this.aura.dmgMult;
@@ -464,6 +466,8 @@ class Fighter {
         return false;
       }
     }
+    /* anti-spam: habilidade "quente" tambem atordoa menos */
+    if (atk && o.power && o.stun && atk.spamDmgMult() < 1) o = Object.assign({}, o, { stun: Math.max(4, Math.round(o.stun * atk.spamDmgMult())) });
     let d = dmg * (atk ? atk.dmgMult(o.power) : 1) * this.defMult();
     let comboIndex = 0;
     if (atk && game.combo.owner === atk && game.combo.until > game.time) comboIndex = game.combo.count;
@@ -601,6 +605,9 @@ class Fighter {
     const sig = (typeof SIGNATURES !== 'undefined' && SIGNATURES[owner]) || {};
     const fx = Object.assign({}, o.ability ? sig.ability : sig.basic, p && p.fx);
     if (!fx) return;
+    /* anti-spam: efeitos (queimar, lento, sem poderes...) duram menos quando a habilidade sai no spam */
+    const spamM = p && atk.spamDmgMult ? atk.spamDmgMult() : 1;
+    if (spamM < 1) for (const k in fx) if (typeof fx[k] === 'number' && k !== 'drain') fx[k] = Math.round(fx[k] * spamM);
     const game = this.game;
     const thermalPrepared = this.has('chill') || this.has('burn');
     if (fx.blind) this.addStatus('blind', fx.blind);
@@ -797,6 +804,16 @@ class Fighter {
       this.ultimate = 0;
       this.cd[i] = 150;
       this.spamShared = Math.max(this.spamShared || 0, 70);
+    }
+    /* ANTI-SPAM (todos os modos, so jogador humano): habilidade atras de
+       habilidade sem respiro esquenta. A partir do 3o seguido o dano das
+       habilidades cai (ate -65%). Segurar ~3s entre habilidades esfria. */
+    if (this.game && this.game.cfg && this.game.cfg.cpu && !this.game.cfg.cpu[this.team]) {
+      const now = this.frame || 0;
+      const gap = now - (this._lastCastF == null ? -9999 : this._lastCastF);
+      this.spamHeat = gap < 200 ? (this.spamHeat || 0) + 1 : Math.max(0, (this.spamHeat || 0) - Math.floor(gap / 200));
+      this._lastCastF = now;
+      if (this.spamHeat >= 3) this.flashText('SPAM! DANO -' + Math.round((1 - this.spamDmgMult()) * 100) + '%', '#ff7a3a');
     }
     this.cast = { p, i, t: 0, fired: false };
     this.state = 'cast';

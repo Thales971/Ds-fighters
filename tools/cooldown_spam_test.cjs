@@ -98,4 +98,23 @@ check('o segundo golpe do mesmo combo causa menos dano', scaled.second > 0 && sc
 const mult = vm.runInContext('ABILITY_CD_MULT', ctx);
 check('o multiplicador global de recarga está ligado', mult >= 2, String(mult));
 console.log(fails ? fails + ' falhas' : n + '/' + n + ' ok');
+/* ANTI-SPAM por "calor": habilidade atras de habilidade (humano) perde dano,
+   atordoamento e duracao de efeitos; CPU e quem respira entre elas nao. */
+const heat = vm.runInContext(`(() => {
+  const none = PETS.find((p) => p.id === 'none') || PETS[0];
+  const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };
+  const g = new Game(cv);
+  g.start({ mode: 'versus', teams: [['jess'], ['larper']], stage: 'treino-dojo', cpu: [false, true], difficulty: 1, roundsToWin: 1, timer: 99, pets: [none, none] });
+  const me = g.teams[0].members[0], cpu = g.teams[1].members[0];
+  const go = (f, gap) => { for (let k = 0; k < 5; k++) { f.frame = (f.frame || 0) + gap; f.state = 'idle'; f.cast = null; f.castLock = 0; f.spamShared = 0; f.cd = f.cd.map(() => 0); f.tryCast(0); } };
+  const m0 = me.spamDmgMult();
+  go(me, 120);
+  const hot = { heat: me.spamHeat, mult: me.spamDmgMult(), dmgHot: me.dmgMult({}), dmgBasic: me.dmgMult() };
+  go(cpu, 120);
+  const calm = g.teams[0].members[0];
+  calm.spamHeat = 0; go(calm, 260);
+  return { m0, hot, cpuHeat: cpu.spamHeat || 0, calmHeat: calm.spamHeat };
+})()`, ctx);
+check('anti-spam: 5 habilidades coladas esquentam e cortam o dano', heat.m0 === 1 && heat.hot.heat >= 3 && heat.hot.mult < 0.7 && heat.hot.dmgHot < heat.hot.dmgBasic, JSON.stringify(heat));
+check('anti-spam: CPU nao esquenta; quem espera ~3s entre habilidades tambem nao', heat.cpuHeat === 0 && heat.calmHeat === 0, JSON.stringify(heat));
 process.exit(fails ? 1 : 0);
