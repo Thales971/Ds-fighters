@@ -85,7 +85,7 @@ o.x = f.x + 400;
 for (let t = 0; t < 60; t++) g.tick();
 check('fora do campo: sem lentidão', !o.has('slow'), 'slow=' + o.has('slow'));
 
-// 6) Ultimate: Parar o Relógio — congela 3s (180f)
+// 6) Ultimate: Parar o Relógio — congela 2s (120f) depois do nerf de nov/2026
 reset();
 f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.state = 'idle';
 check('ULT cast', f.tryCast(4) === true);
@@ -94,7 +94,7 @@ check('oponente CONGELADO', o.has('freeze') || o.has('paralyze'), 'freeze=' + o.
 // congelamento total desde o cast da ult (janela completa de 300 ticks)
 let congeladoTotal = 0;
 for (let t = 0; t < 300; t++) { g.tick(); o.hp = o.maxHp; if (o.has('freeze') || o.has('paralyze')) congeladoTotal++; }
-check('congelamento da ult ~3s (180f)', congeladoTotal >= 140 && congeladoTotal <= 260, congeladoTotal + ' frames congelado');
+check('congelamento da ult ~2s (120f)', congeladoTotal >= 90 && congeladoTotal <= 170, congeladoTotal + ' frames congelado');
 // recarga da ult: 45s = 2700 frames com anti-spam
 reset();
 f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.spamShared = 0; f.castLock = 0; f.state = 'idle';

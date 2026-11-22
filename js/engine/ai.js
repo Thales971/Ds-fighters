@@ -19,7 +19,7 @@ const AI_LEVELS = [
 const TOURNEY_AI = {
   1: { react: 14, block: 0.5, lowRead: 0.58, antiAir: 0.22, punish: 0.55, combo: 3, ability: 0.06, ult: 0.05, aggro: 0.12, mistake: 0.09, dodge: 0.06, spacing: 124 },
   2: { react: 8, block: 0.74, lowRead: 0.8, antiAir: 0.48, punish: 0.8, combo: 4, ability: 0.09, ult: 0.08, aggro: 0.18, mistake: 0.03, dodge: 0.12, spacing: 112 },
-  3: { react: 5, block: 0.84, lowRead: 0.86, antiAir: 0.62, punish: 0.86, combo: 5, ability: 0.12, ult: 0.12, aggro: 0.2, mistake: 0.02, dodge: 0.16, spacing: 110 },
+  3: { react: 3, block: 0.93, lowRead: 0.97, antiAir: 0.8, punish: 0.95, combo: 7, ability: 0.12, ult: 0.12, aggro: 0.22, mistake: 0, dodge: 0.3, spacing: 100 }, /* EXTREMO = Pesadelo de verdade */
 };
 const TOURNEY_BODY = {
   1: { dmg: 1, taken: 1.02 },
@@ -197,7 +197,11 @@ const AI = {
     }
     if (ps[9] && ps[9].ready && ps[9].p.slot === 'ultimate') {
       if (!kernor) return cast(9);
-      if (kPhase >= 2 && m.kUltAt != null && me.frame - m.kUltAt >= 36 && Math.random() < (kPhase === 3 ? 0.45 : 0.18)) return cast(9);
+      /* Kernor JOGAVEL (CPU no versus/arcade): solta o buraco negro sem esperar fase.
+         CHEFE: fase 1 tambem usa (raro), fase 2/3 bem mais. Nunca no quadro em que enche. */
+      const wait = m.kUltAt != null && me.frame - m.kUltAt >= 36;
+      const pUlt = !me.bossPhase ? 0.3 : kPhase === 3 ? 0.45 : kPhase === 2 ? 0.22 : 0.05;
+      if (wait && Math.random() < pUlt) return cast(9);
     }
     if (ps[5] && ps[5].ready && ps[5].p.slot !== 'ultimate' && Math.random() < L.ult) return cast(5);
     if (ps[4] && ps[4].ready && Math.random() < L.ult && (dist < 300 || auto || ['blast', 'rain', 'barrage', 'pillar', 'steal', 'quake', 'afo2'].includes(ps[4].p.kind))) return cast(4);
@@ -205,10 +209,13 @@ const AI = {
        Format C:, Agarrão) — metade do kit do campeão ficava parada.
        Agora a IA considera TODOS os slots extras, na ordem 8..6 (as ultimates
        seguem pelo galho do ps[4]/ps[5] acima). */
-    for (const i of [8, 7, 6, 3, 2, 1, 0]) {
+    /* KERNOR: usa as 10 (o 5 - chuva de meteoros - antes so saia na sorte da ult),
+       com o dobro de vontade, e os golpes que caem NO ALVO saem a qualquer distancia. */
+    for (const i of kernor ? [8, 7, 6, 5, 3, 2, 1, 0] : [8, 7, 6, 3, 2, 1, 0]) {
       const st = ps[i];
-      if (!st || !st.ready || st.p.slot === 'ultimate' || Math.random() > L.ability) continue;
+      if (!st || !st.ready || st.p.slot === 'ultimate' || Math.random() > L.ability * (kernor ? 2 : 1)) continue;
       const k = st.p.kind;
+      if (kernor && (st.p.at === 'target' || ['rain', 'barrage', 'kspikes', 'wall'].includes(k))) return cast(i);
       if (k === 'aura') { if (me.hp < me.maxHp * 0.75 || Math.random() < 0.3) return cast(i); continue; }
       if (k === 'steal') return cast(i);
       if ((k === 'pull' || k === 'beam') && dist < (st.p.range || 280)) return cast(i);

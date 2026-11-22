@@ -74,9 +74,64 @@
   const DANO = {
     'ponteiro': 0.8,
   };
+  /* AJUSTE GERAL (nov/2026, pedido do dono): torneio CPU x CPU de TODOS os
+     normais (5.724 lutas por rodada, 2 rodadas com sementes diferentes).
+     Antes: 20%..87% de vitorias (desvio 14,3). Depois: desvio ~8. Multiplica
+     forca (dano) e vida por cima do FORCA. Os de codigo ficam de fora.
+     Refazer: node tools/balance_sim.cjs --games 2 --out sim.json */
+  const AJUSTE = {
+    'qwen': 0.758,
+    'cracker': 0.771,
+    'domador': 0.795,
+    'jester': 0.824,
+    'stella': 0.828,
+    'xeon': 0.829,
+    'miko': 0.882,
+    'qa': 0.886,
+    'java': 0.928,
+    'dev-senior': 0.94,
+    'dev-veterano': 0.94,
+    'larper': 0.94,
+    'lyra': 0.94,
+    'nexo': 0.94,
+    'nimbo': 0.94,
+    'grika': 0.944,
+    'rafael': 0.952,
+    'gitmaster': 1.022,
+    'guarda-digital': 1.022,
+    'kira': 1.022,
+    'nina-vector': 1.028,
+    'bughunter': 1.036,
+    'merc': 1.04,
+    'jess': 1.042,
+    'frontend': 1.051,
+    'scrum': 1.07,
+    'hacker': 1.076,
+    'devops': 1.079,
+    'mis': 1.079,
+    'meta': 1.082,
+    'stack': 1.085,
+    'milena': 1.087,
+    'winx-exe': 1.088,
+    'odette': 1.09,
+    'hana': 1.092,
+    'henrico': 1.096,
+    'nunes': 1.12,
+    'engenheira-prompt': 1.179,
+    'kuno': 1.18,
+    'thl': 1.182,
+    'fullstack': 1.218,
+    'dandara-query': 1.232,
+    'emilio': 1.234,
+    'urbano': 1.234,
+    'backend': 1.253,
+    'bhm': 1.267,
+    'lia': 1.306,
+    'dev-virado': 1.408,
+  };
   for (const f of FIGHTERS) {
-    const m = FORCA[f.id];
-    if (!m || !f.stats) continue;
+    const m = (FORCA[f.id] || 1) * (AJUSTE[f.id] || 1);
+    if (m === 1 || !f.stats || f.secret) continue;
     f.stats.power = +((f.stats.power || 1) * m * (DANO[f.id] || 1)).toFixed(3);
     f.stats.hp = Math.round((f.stats.hp || 100) * m);
   }

@@ -1606,7 +1606,7 @@ class Fighter {
       /* FASE 2 do chefe: abaixo de metade da vida, fúria + super armadura */
       if (this.bossPhase && this.alive && this.hp > 0 && this.hp <= this.maxHp * 0.5) {
         if (!this.enrage) {
-          this.enrage = 1.24;
+          this.enrage = 1.3;
           this.game.announce('FASE 2', '#ff2a4a', 'NÚCLEO EM FÚRIA');
           this.game.shake(16);
           this.game._bossDim = 40;

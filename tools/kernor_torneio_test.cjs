@@ -114,7 +114,7 @@ const res = vm.runInContext(`(() => {
   }
   return out;
 })()`, ctx);
-check('efeitos duram menos no Kernor', res.burn > 0 && res.burn < 100, 'burn ' + res.burn);
+check('efeitos duram METADE no Kernor', res.burn > 0 && res.burn <= 50, 'burn ' + res.burn);
 check('buraco negro puxa o rival', res.pull > 30, Math.round(res.pull) + 'px');
 check('10 poderes + 6 mapas sem erro', res.errs.length === 0, res.errs.join(' | '));
 check('lutas nos 6 mapas terminam', res.ends.length === 6 && res.ends.every((e) => +e.split(':')[1] < 9000), res.ends.join(','));

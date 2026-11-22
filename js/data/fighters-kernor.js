@@ -26,7 +26,7 @@
     colors: { skin: '#3a3a40', hair: '#1a1a1e', shirt: '#2a2a30', pants: '#222228', shoes: '#18181c', accent: '#ff2a4a' },
     traits: { horns: true, halo: true, stone: true },
     stats: { power: 3.9, speed: 1.0, weight: 1.35, hp: 500, meterRate: 1.45 }, /* top 2 do jogo: ~96% contra os normais (so o Iales acima) */
-    statusResist: 0.4,
+    statusResist: 0.5, /* todo status negativo dura METADE nele */
     secret: true,
     boss: true,
     quotes: {
@@ -74,5 +74,5 @@
     },
   });
   Object.assign(ELEMENT_FX, { kernel: { sheet: id, color: '#ff2a4a' }, [id]: { sheet: id, color: '#ff2a4a' } });
-  Object.assign(SIGNATURES, { [id]: { trait: 'CHEFE FINAL', desc: '10 habilidades, resiste a efeitos (duram 40% menos) e ataca em padrões: espinhos com buracos, leque de lâminas, meteoros, orbes e buraco negro.', basic: {}, ability: {} } });
+  Object.assign(SIGNATURES, { [id]: { trait: 'CHEFE FINAL', desc: '10 habilidades, resiste a efeitos (duram 50% menos) e ataca em padrões: espinhos com buracos, leque de lâminas, meteoros, orbes e buraco negro.', basic: {}, ability: {} } });
 })();
