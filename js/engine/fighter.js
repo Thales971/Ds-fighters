@@ -2303,8 +2303,12 @@ class Fighter {
     const ease = (k) => 1 - Math.pow(1 - Math.max(0, Math.min(1, k)), 3);
     switch (pose) {
       case 'idle': case 'win': {
+        /* respirar: peito sobe/desce + leve balanco de peso de um pe pro outro */
         const b = Math.sin(t * 0.075);
-        sy = 1 + b * 0.014; sx = 1 - b * 0.008;
+        sy = 1 + b * 0.018; sx = 1 - b * 0.01;
+        rot = Math.sin(t * 0.031) * 0.012;
+        dx = Math.sin(t * 0.031) * 1.2;
+        if (pose === 'win') dy = -Math.abs(Math.sin(t * 0.09)) * 3;
         break;
       }
       case 'walk': {
@@ -2338,7 +2342,7 @@ class Fighter {
         if (mv) {
           const st = this.stateTime;
           if (st < mv.startup) { const k = st / Math.max(1, mv.startup); dx = -3 * k; rot = -0.03 * k; }
-          else if (st < mv.startup + mv.active + 2) { dx = 6; rot = 0.03; sx = 1.02; }
+          else if (st < mv.startup + mv.active + 2) { dx = 9; rot = 0.04; sx = 1.06; sy = 0.98; } /* esticada no golpe */
           else { const k = 1 - (st - mv.startup - mv.active) / Math.max(1, mv.recovery); dx = 6 * Math.max(0, k); rot = 0.03 * Math.max(0, k); }
         }
       }
@@ -2347,7 +2351,14 @@ class Fighter {
       const k = (this.landT / 9) * (0.5 + 0.5 * (this.landHard || 0.5));
       sy *= 1 - 0.06 * k; sx *= 1 + 0.05 * k;
     }
-    return { sx, sy, rot, dx, dy };
+    /* SUAVIZACAO: a transformacao persegue o alvo (lerp) em vez de pular de
+       pose em pose — troca de golpe/andar/parado sai sem "estalo". Golpe ativo
+       e dano entram mais rapido (impacto), o resto acomoda devagar. */
+    const S = this._xfS || (this._xfS = { sx: 1, sy: 1, rot: 0, dx: 0, dy: 0 });
+    const fast = this.state === 'hit' || (this.attack && this.stateTime >= this.attack.startup && this.stateTime < this.attack.startup + this.attack.active + 2);
+    const a = fast ? 0.65 : 0.3;
+    S.sx += (sx - S.sx) * a; S.sy += (sy - S.sy) * a; S.rot += (rot - S.rot) * a; S.dx += (dx - S.dx) * a; S.dy += (dy - S.dy) * a;
+    return { sx: S.sx, sy: S.sy, rot: S.rot, dx: S.dx, dy: S.dy };
   }
   draw(ctx) {
     if (this.benched || this.hidden || this._netHide > 0) return;
@@ -2414,6 +2425,26 @@ class Fighter {
       ctx.fill();
       ctx.restore();
     }
+    /* SOMBRA PROJETADA pela luz do mapa (sol, lampada ou luz de cima): copia
+       achatada do proprio sprite, preta, inclinada pro lado oposto da luz.
+       Some no pulo. So onde ctx.filter funciona (testado 1x). */
+    if (!game.reduced && !game._reflecting && game.qFxOn !== false && Fighter.silhouetteOk() && !this.has('cloak')) {
+      const st = game.stage;
+      const lx = st && st._sun ? st._sun.x : st && st.lights && st.lights.length ? st.lights[0].x : (game.W || 960) / 2;
+      const ly = st && st._sun ? st._sun.y : st && st.lights && st.lights.length ? st.lights[0].y : -200;
+      const skew = Math.max(-1.3, Math.min(1.3, (this.x - lx) / Math.max(160, 520 - Math.max(0, ly))));
+      const fade = Math.max(0, 1 - Math.abs(this.y) / 140);
+      if (fade > 0.05) {
+        ctx.save();
+        ctx.globalAlpha *= 0.42 * fade;
+        ctx.filter = 'brightness(0) blur(1px)';
+        ctx.translate(this.x, 0);
+        ctx.transform(1, 0, -skew * 0.9, -0.34, 0, 0); /* deitada no chao, na frente do pe */
+        ctx.translate(-this.x, 0);
+        SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, 0, false, null, null, 0);
+        ctx.restore();
+      }
+    }
     if (this.has('rage') || this.has('armor')) {
       ctx.shadowColor = this.has('rage') ? '#ff4b1c' : '#ffd27d';
       ctx.shadowBlur = 18;
@@ -2470,6 +2501,23 @@ class Fighter {
     if (daltonicHere) {
       this._drawDaltonicCloud(ctx);
       ctx.filter = 'grayscale(1) blur(1.2px) brightness(0.9)';
+    }
+    /* TRANSICAO ENTRE POSES: nos 5 quadros depois de trocar de pose, a pose
+       anterior ainda aparece por baixo, sumindo (crossfade) — 4 quadros por
+       pose deixam de "pular". */
+    if (!game.reduced && !game._reflecting && game.qFxOn !== false) {
+      const key = pose + ':' + frame;
+      if (this._poseKey !== key) {
+        if (this._poseKey && this._lastPose !== pose) this._blend = { pose: this._lastPose, frame: this._lastFrame, t: 5 };
+        this._poseKey = key; this._lastPose = pose; this._lastFrame = frame;
+      }
+      if (this._blend && this._blend.t > 0) {
+        const ga = ctx.globalAlpha;
+        ctx.globalAlpha = ga * (this._blend.t / 5) * 0.55;
+        SpriteGen.blit(ctx, this.spriteKey(), this._blend.pose, this._blend.frame, this.dir, this.x, this.y, false, null, xf, skinHue);
+        ctx.globalAlpha = ga;
+        this._blend.t--;
+      }
     }
     SpriteGen.blit(ctx, this.spriteKey(), pose, frame, this.dir, this.x, this.y, this.flashWhite > 0 && this.frame % 2 === 0, null, xf, skinHue);
     ctx.filter = 'none';
@@ -2595,3 +2643,21 @@ class Fighter {
     if (s[27] != null) this.castLock = s[27];
   }
 }
+
+/* ctx.filter brightness(0) funciona neste navegador? (Safari antigo ignora
+   filter e a "sombra" sairia colorida). Testado 1x num canvas 2x2. */
+Fighter.silhouetteOk = function () {
+  if (Fighter._silOk !== undefined) return Fighter._silOk;
+  Fighter._silOk = false;
+  try {
+    if (typeof document === 'undefined') return false;
+    const c = document.createElement('canvas'); c.width = c.height = 2;
+    const x = c.getContext('2d');
+    if (!x || !('filter' in x)) return false;
+    x.filter = 'brightness(0)';
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, 2, 2);
+    const d = x.getImageData(0, 0, 1, 1).data;
+    Fighter._silOk = d[0] < 30 && d[3] > 200;
+  } catch (e) { Fighter._silOk = false; }
+  return Fighter._silOk;
+};

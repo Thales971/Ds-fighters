@@ -485,7 +485,9 @@ body.reduced .skill.ultimate.ready .ico, body.reduced .life.low .fill, body.redu
 body.reduced #banner.on { animation: bannerFade 1.5s forwards; }
 @keyframes bannerFade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 #cutin { position: absolute; left: 0; right: 0; top: 180px; height: 120px; z-index: 25; pointer-events: none; opacity: 0; }
-#cutin .ci-bg { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent); opacity: .85; clip-path: polygon(0 18%, 100% 0, 100% 82%, 0 100%); }
+#cutin .ci-bg { position: absolute; inset: 0; background: repeating-linear-gradient(100deg, rgba(255,255,255,.22) 0 3px, transparent 3px 26px), linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent); background-size: 260px 100%, 100% 100%; opacity: .9; clip-path: polygon(0 18%, 100% 0, 100% 82%, 0 100%); animation: ciLines .35s linear infinite; }
+@keyframes ciLines { to { background-position: -260px 0, 0 0; } }
+#cutin .ci-face.portrait { top: -96px; width: 230px; height: 260px; background-size: contain; background-repeat: no-repeat; background-position: center bottom; image-rendering: auto; filter: drop-shadow(6px 6px 0 #000) drop-shadow(0 0 14px var(--accent)); }
 #cutin .ci-face { position: absolute; left: 120px; top: -20px; width: 160px; height: 160px; background-size: cover; image-rendering: pixelated; filter: drop-shadow(6px 6px 0 #000); }
 #cutin .ci-name { position: absolute; left: 300px; top: 26px; font-size: 22px; color: #000; text-shadow: 2px 2px 0 #fff; }
 #cutin .ci-move { position: absolute; left: 300px; top: 64px; font-size: 13px; color: #fff; text-shadow: 3px 3px 0 #000; }
@@ -923,3 +925,33 @@ body.reduced .evd i, body.reduced .evd-confetti, body.reduced .evd-gold { animat
 .mm.ev-btn .evd-it { font-size: 12px; }
 .mm.ev-btn .evd-c { font-size: 15px; }
 .mm.ev-btn .evd-c.p-bl { display: none; }
+body.reduced #cutin .ci-bg { animation: none; }
+
+/* HUD ANIMADO: numero do combo cresce e esquenta (amarelo -> vermelho), tremendo no 8+ */
+.hud-combo b { display: inline-block; transform: scale(var(--cs, 1)); transform-origin: left bottom; color: hsl(var(--ch, 50), 100%, 60%); transition: transform .12s, color .2s; }
+.hud-combo.pop b { animation: pop .25s cubic-bezier(.2, 1.8, .4, 1); }
+.hud-combo.hot.pop b, .hud-combo.hot b { animation: pop .25s cubic-bezier(.2, 1.8, .4, 1), comboShake .12s steps(2) .25s infinite; }
+@keyframes comboShake { 0% { transform: scale(var(--cs, 1)) translate(-1px, 0); } 100% { transform: scale(var(--cs, 1)) translate(1px, -1px); } }
+body.reduced .hud-combo.hot b { animation: none; }
+/* transicao entre telas: entra com um leve zoom + brilho */
+@keyframes scrIn { from { opacity: 0; transform: scale(1.03); filter: brightness(1.6); } to { opacity: 1; transform: none; filter: none; } }
+
+/* ---------- MENU VIVO ---------- */
+.menu-parade { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; overflow: hidden; pointer-events: none; z-index: 1; opacity: .85; -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.menu-parade .pz { position: absolute; bottom: 4px; left: 0; width: 134px; height: 109px; background-size: 537px auto; background-repeat: no-repeat; background-position: 0 calc(var(--row, 1) * -109px); image-rendering: pixelated; filter: drop-shadow(0 4px 0 rgba(0,0,0,.45)); animation: pzWalk .6s steps(4) infinite, pzCross var(--t, 24s) linear var(--d, 0s) infinite; }
+@keyframes pzWalk { from { background-position-x: 0; } to { background-position-x: -537px; } }
+@keyframes pzCross { from { transform: translateX(-160px); } to { transform: translateX(980px); } }
+.menu-motes { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.menu-motes i { position: absolute; bottom: -10px; width: 3px; height: 3px; border-radius: 50%; background: #ffe7a8; box-shadow: 0 0 6px #ffd27d; opacity: 0; animation: moteUp 9s linear infinite; }
+.menu-motes i:nth-child(1) { left: 8%; animation-delay: 0s; } .menu-motes i:nth-child(2) { left: 17%; animation-delay: 1.4s; background: #9fe8ff; box-shadow: 0 0 6px #3fd0ff; }
+.menu-motes i:nth-child(3) { left: 26%; animation-delay: 3.1s; } .menu-motes i:nth-child(4) { left: 38%; animation-delay: 4.6s; background: #ffb0e8; box-shadow: 0 0 6px #ff4fd8; }
+.menu-motes i:nth-child(5) { left: 47%; animation-delay: 2.2s; } .menu-motes i:nth-child(6) { left: 56%; animation-delay: 6.3s; background: #9fe8ff; box-shadow: 0 0 6px #3fd0ff; }
+.menu-motes i:nth-child(7) { left: 64%; animation-delay: 0.8s; } .menu-motes i:nth-child(8) { left: 72%; animation-delay: 5.2s; }
+.menu-motes i:nth-child(9) { left: 80%; animation-delay: 7.4s; background: #ffb0e8; box-shadow: 0 0 6px #ff4fd8; } .menu-motes i:nth-child(10) { left: 88%; animation-delay: 3.8s; }
+.menu-motes i:nth-child(11) { left: 93%; animation-delay: 8.1s; } .menu-motes i:nth-child(12) { left: 33%; animation-delay: 6.9s; }
+@keyframes moteUp { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .9; } 90% { opacity: .6; } 100% { transform: translate(30px, -560px); opacity: 0; } }
+body.reduced .menu-parade, body.reduced .menu-motes, body.perf-xlow .menu-parade, body.perf-xlow .menu-motes { display: none; }
+/* parallax do titulo (main.js define --px/--py pelo mouse) */
+#scr-title .title-bg { transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -10px)) scale(1.04); transition: transform .2s ease-out; }
+#scr-title .title-fx { transform: translate(calc(var(--px, 0) * 10px), calc(var(--py, 0) * 6px)); transition: transform .2s ease-out; }
+#scr-title .logo { translate: calc(var(--px, 0) * 22px) calc(var(--py, 0) * 12px); transition: translate .2s ease-out; }
