@@ -42,13 +42,13 @@ let g = mk('henrico');
 let f = g.activeOf(0), o = g.activeOf(1);
 const kit = f.currentKit();
 check('kit de 5 com status em TODAS', kit.every((p) => p.fx && Object.keys(p.fx).length > 0), kit.map((p) => p.id + ':' + Object.keys(p.fx || {}).join('+')).join(' '));
-check('perfil chain (boxeador pressiona)', f.spamProfile().floor === 95, 'floor=' + f.spamProfile().floor);
+check('perfil chain (boxeador pressiona, piso 120 desde o #124)', f.spamProfile().floor === 120, 'floor=' + f.spamProfile().floor);
 // as 5 machucam + aplicam status
 let dmgOk = 0, statusOk = 0;
 for (let i = 0; i < 5; i++) {
   f.x = 300; o.x = kit[i].at === 'self' ? 360 : 500; f.dir = 1; o.dir = -1; /* zona: ja comeca dentro */
   f.hp = f.maxHp; o.hp = o.maxHp; o.status = {}; f.status = {};
-  f.state = 'idle'; f.cast = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100;
+  f.state = 'idle'; f.cast = null; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.charge = [100, 100]; f.ultimate = 100;
   g.zones = []; g.projectiles = []; g.strikes = [];
   /* ZONAS dao chip gradual — o treino tem vida infinita, entao zonas sao
      medidas em modo VERSUS contra um rival parado. */
@@ -56,7 +56,7 @@ for (let i = 0; i < 5; i++) {
     const gv = mk('henrico', 'du', 'versus');
     const fv = gv.activeOf(0), ov = gv.activeOf(1);
     fv.x = 300; ov.x = 360; fv.dir = 1; ov.dir = -1;
-    fv.cd = [0,0,0,0,0,0,0,0,0,0]; fv.castLock = 0; fv.state = 'idle'; fv.cast = null; fv.charge = [100, 100]; fv.ultimate = 100;
+    fv.cd = [0,0,0,0,0,0,0,0,0,0]; fv.castLock = 0; fv.spamShared = 0; fv.state = 'idle'; fv.cast = null; fv.charge = [100, 100]; fv.ultimate = 100;
     const okZ = fv.tryCast(i);
     let minHpZ = ov.maxHp, statusZ = false;
     for (let t = 0; t < 220; t++) {
@@ -105,7 +105,7 @@ const hpCheio = f.maxHp;
 f.hp = hpCheio * 0.4; // levou porrada
 f.x = 800; // foi empurrado pro canto
 const xAntes = f.x;
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.ultimate = 100;
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle'; f.cast = null; f.ultimate = 100;
 const okRewind = f.tryCast(4);
 for (let t = 0; t < 80; t++) g.tick();
 check('REBOBINAR casta', okRewind);
@@ -113,7 +113,7 @@ check('vida REBOBINADA (voltou no tempo)', f.hp > hpCheio * 0.4, Math.round(f.hp
 check('posicao restaurada', Math.abs(f.x - xAntes) > 5, 'x ' + xAntes + ' -> ' + Math.round(f.x));
 // status nos hits dele
 f.x = 300; o.x = 500; f.dir = 1; o.dir = -1; o.status = {}; f.state = 'idle'; f.cast = null;
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100;
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.charge = [100, 100]; f.ultimate = 100;
 f.tryCast(1); // engrenagem (bleed)
 let pegou = false;
 for (let t = 0; t < 200; t++) { g.tick(); if (o.has('bleed')) pegou = true; }

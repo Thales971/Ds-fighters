@@ -38,7 +38,7 @@ const SAMPLE = ['du', 'jess', 'stack', 'henrico', 'lobao', 'kira', 'hacker', 'me
   const ids = cat.map((a) => a.id);
   check('6 acessorios (gorro, bone, oculos, coroa, fone, faixa)', ['gorro-natal', 'bone', 'oculos', 'coroa', 'fone', 'faixa'].every((i) => ids.includes(i)), ids.join(','));
   check('todo acessorio tem PNG, slot e tipo de encaixe', cat.every((a) => fs.existsSync(a.src) && a.slot && a.fit), JSON.stringify(cat.map((a) => [a.id, a.slot, a.fit])));
-  check('padrao: so o gorro ligado', cat.filter((a) => a.on).map((a) => a.id).join() === 'gorro-natal', cat.filter((a) => a.on).map((a) => a.id).join());
+  check('padrao: nenhum acessorio ligado (o jogador liga)', cat.filter((a) => a.on).length === 0, cat.filter((a) => a.on).map((a) => a.id).join());
   const ex = JSON.parse(vm.runInContext(`(() => {
     let s = accToggle({ 'gorro-natal': true }, 'bone', true);
     const r1 = { gorro: !!s['gorro-natal'], bone: !!s.bone };

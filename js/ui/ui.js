@@ -1522,7 +1522,7 @@ const UI = {
     pick.innerHTML = FIGHTERS.map((d) => {
       const lk = !Profile.isUnlocked(d.id);
       const portrait = lk ? '' : rosterPortraitStyle(d.id, 48);
-      return `<button class="nav mp${lk ? ' locked' : ''}" data-id="${d.id}" ${portrait ? `style="${portrait}"` : ''} aria-label="${lk ? 'Bloqueado' : d.name}">${lk ? '?' : ''}</button>`;
+      return `<button class="nav mp${lk ? ' locked' : ' roster-portrait'}" data-id="${d.id}" ${portrait ? `style="${portrait}"` : ''} aria-label="${lk ? 'Bloqueado' : d.name}">${lk ? '?' : ''}</button>`;
     }).join('');
     const show = (id) => {
       const d = FIGHTERS.find((x) => x.id === id);

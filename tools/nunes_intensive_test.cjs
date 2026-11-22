@@ -27,7 +27,7 @@ const mk = (mode, teams) => {
 };
 let fails = 0, n = 0;
 const check = (name, cond, extra) => { n++; console.log((cond ? 'OK   ' : 'FALHA') + ' ' + name + (extra ? ' — ' + extra : '')); if (!cond) fails++; };
-const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.alive; o.alive; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null; };
+const reset = (g, f, o) => { g.zones = []; g.walls = []; f.x = 320; o.x = 620; f.y = 0; o.y = 0; f.hp = f.maxHp; o.hp = o.maxHp; f.alive; o.alive; f.state = 'idle'; o.state = 'idle'; f.cast = null; f.stolen = null; f.status = {}; o.status = {}; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.charge = [100, 100]; f.ultimate = 100; f.autoCombo = null; };
 
 // ==== 1. zona da granada fica ONDE CAI (perto do alvo), nao no caster ====
 let g = mk();
@@ -72,7 +72,7 @@ reset(g, f, o);
 f.tryCast(2);
 for (let t = 0; t < 20; t++) g.tick();
 // casta DE NOVO: a muralha antiga e substituida (nunca empilha)
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100, 100];
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle'; f.cast = null; f.charge = [100, 100];
 f.tryCast(2);
 for (let t = 0; t < 20; t++) g.tick();
 check('uma muralha por cast (nunca empilha)', g.walls.filter((w) => w.owner === f).length <= 1, g.walls.filter((w) => w.owner === f).length + ' muralha(s)');
@@ -136,19 +136,19 @@ check('morrer DEPOIS do renascimento = KO de verdade', died2);
 // ==== 9. recarga -10% com fenix ativa ====
 reset(g, f, o);
 const cdBase = Math.max(130, 46 * 2.0); // Bang Incendiaria: piso anti-spam de 130
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle'; f.cast = null;
 f.tryCast(0);
 const cdNormal = f.cd[0];
-check('CD normal com perfil chain (piso 95)', f.cd[0] === 95, 'cd=' + f.cd[0]);
+check('CD normal com perfil chain (piso 120)', f.cd[0] === 120, 'cd=' + f.cd[0]);
 // ativa fenix e testa de novo
 for (let t = 0; t < 120; t++) g.tick();
-f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null;
+f.ultimate = 100; f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle'; f.cast = null;
 f.tryCast(4);
 for (let t = 0; t < 90; t++) g.tick();
-f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100];
+f.cd = [0,0,0,0,0,0,0,0,0,0]; f.castLock = 0; f.spamShared = 0; f.state = 'idle'; f.cast = null; f.charge = [100,100];
 f.tryCast(0);
 const cdFenix = f.cd[0];
-check('CD com fenix (piso chain 95)', f.cd[0] === 95, 'cd=' + f.cd[0]);
+check('CD com fenix (piso chain 120)', f.cd[0] === 120, 'cd=' + f.cd[0]);
 
 // ==== 10. IA joga com o Nunes (nenhum crash, usa as habilidades) ====
 g = mk('versus', [['nunes'], ['du']]);
