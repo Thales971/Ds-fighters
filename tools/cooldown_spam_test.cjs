@@ -135,4 +135,33 @@ const vert = vm.runInContext(`(() => {
   return out;
 })()`, ctx);
 check('Mis: vertigem inverte os controles da CPU', vert.sem > 30 && vert.com < vert.sem / 3, JSON.stringify(vert));
+/* PARRY e TETO DA ULTIMATE */
+const pu = vm.runInContext(`(() => {
+  const none = PETS.find((p) => p.id === 'none') || PETS[0];
+  const cv = { width: 960, height: 540, getContext: () => (${fake2d.toString()})(), classList: { toggle() {}, add() {}, remove() {} } };
+  const g = new Game(cv);
+  g.start({ mode: 'versus', teams: [['jess'], ['larper']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 1, timer: 99, pets: [none, none] });
+  for (let i = 0; i < 300 && g.roundState !== 'fight'; i++) g.tick();
+  const A = g.activeOf(0), B = g.activeOf(1);
+  A.x = 400; B.x = 470; A.dir = 1; B.dir = -1;
+  const guard = (fresh) => { A.state = 'block'; A.blocking = true; A.crouching = false; A.onGround = true; A._blockStart = fresh ? A.now : A.now - 30; B.state = 'idle'; B.onGround = true; };
+  const out = {};
+  guard(true); let h0 = A.hp; A.takeHit(12, { attacker: B, height: 'mid' });
+  out.parry = { perdeu: +(h0 - A.hp).toFixed(2), atacante: B.state, parries: A._parries || 0 };
+  guard(false); h0 = A.hp; A.takeHit(12, { attacker: B, height: 'mid' });
+  out.normal = { perdeu: +(h0 - A.hp).toFixed(2), atacante: B.state };
+  A.hp = A.maxHp; A.state = 'idle'; A.blocking = false;
+  const ult = { slot: 'ultimate', name: 'teste' };
+  B._ultSeq = 1; h0 = A.hp;
+  A.takeHit(9999, { attacker: B, power: ult, height: 'mid' }); A.state = 'idle';
+  A.takeHit(9999, { attacker: B, power: ult, height: 'mid' }); A.state = 'idle';
+  out.ult1 = +((h0 - A.hp) / A.maxHp).toFixed(3);
+  B._ultSeq = 2; const h1 = A.hp;
+  A.takeHit(9999, { attacker: B, power: ult, height: 'mid' });
+  out.ult2 = +((h1 - A.hp) / A.maxHp).toFixed(3);
+  return out;
+})()`, ctx);
+check('parry: defender na hora certa nao perde vida e abre o atacante', pu.parry.perdeu === 0 && pu.parry.atacante === 'hit' && pu.parry.parries === 1, JSON.stringify(pu));
+check('bloqueio atrasado continua normal (chip, sem abrir o atacante)', pu.normal.perdeu > 0 && pu.normal.atacante !== 'hit', JSON.stringify(pu.normal));
+check('ultimate tira no maximo 30% da vida (somando os acertos) e a proxima conta do zero', pu.ult1 <= 0.301 && pu.ult1 >= 0.29 && pu.ult2 >= 0.29 && pu.ult2 <= 0.301, JSON.stringify(pu));
 process.exit(fails ? 1 : 0);
