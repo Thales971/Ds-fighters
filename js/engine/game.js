@@ -1301,7 +1301,8 @@ class Game {
       body.classList.toggle('perf-low', level >= 1);
       body.classList.toggle('perf-xlow', level >= 2);
     }
-    if (level >= 1 && this._perfToast !== level && typeof UI !== 'undefined' && UI.toast) {
+    const quietStart = typeof window !== 'undefined' && window.__perf && window.__perf.quiet && level === 1;
+    if (level >= 1 && !quietStart && this._perfToast !== level && typeof UI !== 'undefined' && UI.toast) {
       this._perfToast = level;
       try { UI.toast('\u26a1 Modo performance ligado (fps baixo detectado)', 2600); } catch (e) {}
     }

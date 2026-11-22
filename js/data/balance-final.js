@@ -43,7 +43,7 @@ const BALANCE_FINAL = {
   'hana': { power: 1.492, hp: 165, speed: 1.18, weight: 0.92, meterRate: 1.15 }, /* HANA */
   'cyber-psicopata': { power: 1.32, hp: 141, speed: 1.26, weight: 1.12, meterRate: 1.4 }, /* CYBER-PSICOPATA */
   'grika': { power: 1.914, hp: 179, speed: 1.16, weight: 1.02, meterRate: 1.36 }, /* GRIKA, A SONHADORA SOMBRIA */
-  'guarda-digital': { power: 1.766, hp: 184, speed: 1.22, weight: 1.08, meterRate: 1.4 }, /* GUARDA DIGITAL */
+  'guarda-digital': { power: 2.2, hp: 184, speed: 1.22, weight: 1.08, meterRate: 1.4 }, /* GUARDA DIGITAL */
   'engenheira-prompt': { power: 0.805, hp: 82, speed: 1.24, weight: 1.04, meterRate: 1.42 }, /* ENGENHEIRA DE PROMPT */
   'odette': { power: 1.02, hp: 103, speed: 1.22, weight: 1.06, meterRate: 1.42 }, /* ODETTE */
   'john-vibe': { power: 1.768, hp: 182, speed: 1.1, weight: 1.05, meterRate: 1.2 }, /* JOHN THE VIBE CODER */

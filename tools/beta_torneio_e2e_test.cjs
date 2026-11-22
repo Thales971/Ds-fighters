@@ -212,6 +212,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     check('modo foto: tremor para quando abre no meio do golpe', ph.shake1 === 0 || ph.shake1 <= ph.shake0, JSON.stringify(ph));
     check('modo foto: filtros SEPIA, FRIO e P&B', ['SÉPIA', 'FRIO', 'P&B'].every((x) => ph.names.includes(x)), ph.names.join(','));
 
+    /* 6b) treino guiado termina oferecendo a PRIMEIRA LUTA */
+    const ff = await p.evaluate(async () => {
+      UI.offerFirstFight();
+      const box = !!document.getElementById('first-fight');
+      document.getElementById('ff-go').click();
+      for (let i = 0; i < 80 && !(UI.screen === 'fight' && UI.game.mode === 'versus' && UI.game.running); i++) await new Promise((r) => setTimeout(r, 100));
+      return { box, mode: UI.game.mode, screen: UI.screen, cpu: UI.game.cfg.cpu, diff: UI.game.cfg.difficulty };
+    });
+    check('treino guiado -> PRIMEIRA LUTA (CPU no facil)', ff.box && ff.mode === 'versus' && ff.screen === 'fight' && ff.cpu[1] === true && ff.diff === 0, JSON.stringify(ff));
+
     /* 7) chapeus: nenhum ligado por padrao; Stella esconde chapeu no chute pulando */
     const acc = await p.evaluate(() => ({ on: ACC_LIST.filter((a) => accOn(a.id)).map((a) => a.id), st: (SPRITE_LAYOUT.perFighter.stella || {}).accHide || [] }));
     check('chapeu/acessorio desligado por padrao', acc.on.length === 0, acc.on.join(','));
@@ -225,17 +235,35 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await m.goto(url);
       await m.waitForFunction(() => typeof UI !== 'undefined' && UI.game && typeof FIGHTERS !== 'undefined', null, { timeout: 30000 });
       await sleep(400);
+      const demo = await m.evaluate(async () => {
+        UI.show('menu');
+        await new Promise((res) => setTimeout(res, 300));
+        const t0 = UI.game.time; await new Promise((res) => setTimeout(res, 600));
+        return { hidden: document.body.classList.contains('demo-hidden'), parado: UI.game.time === t0, mode: UI.game.mode };
+      });
+      if (name === 'horizontal') check('celular: luta de demonstracao escondida e PARADA no menu (economia)', demo.hidden && demo.parado, JSON.stringify(demo));
+      if (name === 'horizontal') {
+        const tuto = await m.evaluate(() => { UI.tutorialBegin(); const s0 = UI.tutorial.steps[0].sub; UI.tutorial = null; return s0; });
+        check('celular: treino guiado fala de joystick, nao de teclado', /joystick/i.test(tuto) && !/A \/ D/.test(tuto), tuto);
+      }
       const r = await m.evaluate(async () => {
         UI.launch({ mode: 'versus', teams: [['jess'], ['larper']], stage: 'torneio-praca-hello-world', cpu: [false, true], roundsToWin: 2, timer: 99 });
         for (let i = 0; i < 120 && !(UI.screen === 'fight' && UI.game.running && UI.game.roundState === 'fight' && UI.game.activeOf(0).def.id === 'jess'); i++) await new Promise((res) => setTimeout(res, 100));
         if (typeof AppViewport !== 'undefined' && AppViewport.fit) AppViewport.fit();
         const vis = (sel) => { const e = document.querySelector(sel); if (!e) return false; const cs = getComputedStyle(e); const rc = e.getBoundingClientRect(); return cs.display !== 'none' && cs.visibility !== 'hidden' && rc.width > 0 && rc.height > 0; };
         const over = [...document.querySelectorAll('.tbtns button')].filter((bt) => bt.scrollWidth > bt.clientWidth + 2).length;
-        return { mobile: document.body.classList.contains('mobile'), stick: vis('#stick, .stick'), dpad: vis('.dpad'), turn: vis('.turn-phone'), over };
+        const res0 = { mobile: document.body.classList.contains('mobile'), stick: vis('#stick, .stick'), dpad: vis('.dpad'), turn: vis('.turn-phone'), over };
+        UI.togglePause ? UI.togglePause() : UI.show('pause');
+        await new Promise((res) => setTimeout(res, 200));
+        res0.pauseArena = getComputedStyle(document.getElementById('game-view')).visibility !== 'hidden' && !document.body.classList.contains('demo-hidden');
+        res0.perfToast = [...document.querySelectorAll('.toast, #toast')].some((t) => /performance/i.test(t.textContent));
+        return res0;
       });
       if (name === 'horizontal') {
         check('celular horizontal: joystick visivel, direcional escondido', r.mobile && r.stick && !r.dpad, JSON.stringify(r));
         check('celular horizontal: texto dos botoes cabe', r.over === 0, 'vazando ' + r.over);
+        check('celular: arena continua visivel na PAUSA', r.pauseArena, JSON.stringify(r));
+        check('celular: comeca no modo leve sem aviso de "fps baixo"', !r.perfToast, JSON.stringify(r));
       } else {
         check('celular em retrato: pede pra girar', r.mobile && r.turn, JSON.stringify(r));
       }

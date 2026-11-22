@@ -93,7 +93,7 @@ check('favFighters persiste no Profile (default vazio, salva array)', JSON.parse
 //    e o loop principal pula o render do demo escondido atras da tela de selecao
 {
   const mainSrc = fs.readFileSync('js/main.js', 'utf8');
-  check('main.js: pula game.render quando a selecao esta com palco ao vivo (selBgOn)', mainSrc.indexOf("UI.screen === 'select' && !!UI._selBg") >= 0 && /if \(game\.stage && !selBgOn\)/.test(mainSrc));
+  check('main.js: pula game.render quando a selecao esta com palco ao vivo (selBgOn)', mainSrc.indexOf("UI.screen === 'select' && !!UI._selBg") >= 0 && /const skipGame = selBgOn \|\| demoHidden/.test(mainSrc) && /if \(game\.stage && !skipGame\)/.test(mainSrc));
   check('ui.js startSelectBg: canvas 480x270 (metade) + paint a cada 2 frames (30fps)', uiSrc.indexOf('const W = 480, H = 270;') >= 0 && uiSrc.indexOf('(skip++ % 2) === 0') >= 0);
   check('ui.js startSelectBg: qualidade baixa/reduzido continua 1 frame estatico', uiSrc.indexOf("if (q === 'low' || reduced) paint();") >= 0);
 }

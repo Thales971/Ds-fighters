@@ -627,7 +627,8 @@ class Fighter {
     if (fx.resonance) this.addStatus('resonance', fx.resonance, atk);
     if (fx.slow) this.addStatus('slow', fx.slow);
     if (fx.lock) this.addStatus('locked', fx.lock);
-    if (fx.dizzy) this.addStatus('dizzy', fx.dizzy, atk); /* Jester/Domador: estavam no kit e ninguem aplicava */
+    if (fx.dizzy) this.addStatus('dizzy', fx.dizzy, atk);
+    if (fx.shuffle) this.addStatus('shuffled', fx.shuffle, atk); /* botoes embaralhados (Winx.exe; antes so o Jester tinha) */ /* Jester/Domador: estavam no kit e ninguem aplicava */
     if (fx.stun) this.stunGauge += fx.stun * controlScale;
     if (fx.drain) atk.heal(d * fx.drain);
     if (fx.meterBurn) { this.charge[0] = Math.max(0, this.charge[0] - fx.meterBurn); this.charge[1] = Math.max(0, this.charge[1] - fx.meterBurn); }

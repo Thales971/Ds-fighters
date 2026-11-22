@@ -81,6 +81,9 @@ const ART_SHEETS = {
   fauna: { src: 'assets/fauna/fauna.png', size: 48, cols: 4 },
   'fx2:firefly': { src: 'assets/fx/firefly.png', size: 16, cols: 6, rows: 2 },
 };
+/* Dev Veterano: atlas refeito (tools/build_devvet_fx.py) — objetos inteiros, sem corte */
+ART_SHEETS["abil:dev-veterano"].v = "v80-devvet-fx";
+ART_SHEETS["fx2:dev-veterano"].v = "v80-devvet-fx";
 
 const Art = {
   images: {},

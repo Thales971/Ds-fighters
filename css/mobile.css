@@ -177,7 +177,7 @@ body.mobile:not(.landscape)[data-screen="fight"] #touch-controls { visibility: h
 /* ---- celular (v78): telas sem a luta de demonstração por baixo ---- */
 /* fora da luta, a arena de demonstração aparecia por baixo dos painéis
    (bonecos lutando embaixo da chave/seleção = "sprite duplo") */
-body.mobile:not([data-screen="fight"]):not([data-screen="title"]) #game-view { visibility: hidden; }
+body.mobile.demo-hidden #game-view { visibility: hidden; } /* so a luta de DEMONSTRACAO; pausa e resultado continuam mostrando a arena */
 /* bônus em retrato: um cartão por linha, sem estourar a tela */
 body.mobile:not(.landscape) .buff-list { grid-template-columns: 1fr; }
 body.mobile:not(.landscape) .buff-card { min-height: 0; flex-direction: row; text-align: left; padding: 10px; }
