@@ -976,7 +976,7 @@ class StageRenderer {
      balancando devagar e poeira brilhando no ar, na cor da luz do proprio
      mapa. Barato (3 gradientes cacheados + ~24 pontos) e some no perf 2. */
   drawRays(ctx) {
-    if (this.reducedFlag || this.perfVignetteOff || !ctx.createLinearGradient || !ctx.moveTo) return;
+    if (this.reducedFlag || this.perfVignetteOff || !ctx.createLinearGradient || !ctx.moveTo || !ctx.closePath) return;
     const d = this.def || {};
     if (d.rays === false) return;
     const W = this.W, H = this.H;
