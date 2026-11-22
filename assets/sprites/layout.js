@@ -139,7 +139,7 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
 
 /* V14a: Grika e Guarda Digital — mesma normalizacao completa das outras
    folhas refinadas (auditoria pesada apontou special/block/win altas). */
-['grika', 'guarda-digital'].forEach((id) => {
+['grika'].forEach((id) => { /* Guarda saiu (nov/2026): a folha dela foi refeita no tamanho certo e o encolhimento a deixava pequena */
   SPRITE_LAYOUT.perFighter[id] = Object.assign(SPRITE_LAYOUT.perFighter[id] || {}, {
     poseScale: {
       block: 0.7, crouch: 0.7, cpunch: 0.75, ckick: 0.75, hit: 0.8,
@@ -148,5 +148,10 @@ SPRITE_LAYOUT.perFighter['nina-vector'] = Object.assign(SPRITE_LAYOUT.perFighter
     },
   });
 });
+
+/* nov/2026: Kotlin era bem menor que o elenco; desenhada 22% maior (pivo no pe). */
+SPRITE_LAYOUT.perFighter.kotlin = Object.assign(SPRITE_LAYOUT.perFighter.kotlin || {}, { scale: 1.22 });
+SPRITE_LAYOUT.ver = SPRITE_LAYOUT.ver || {};
+SPRITE_LAYOUT.ver['winx-exe'] = 'v79-winx-recorte';
 
 /* Fim do layout. */

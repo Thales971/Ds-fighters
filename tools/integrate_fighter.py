@@ -1104,6 +1104,7 @@ FIGHTERS = {
         'dark_bg': True,
     },
     'winx-exe': {
+        'holes': True,  # o fundo entre as pernas ficava preso (triangulo escuro)
         'sheet': 'winx.exe reformulada.jpg',
         'abilities': 'habilidades-dev-veterano.png',
         'abilities_keep': True,

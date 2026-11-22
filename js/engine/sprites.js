@@ -288,7 +288,8 @@ const SpriteGen = {
     // poseScale por lutador (ex.: hit compacto da Mis/Kimi, pivô no pé).
     const own = L.perFighter && L.perFighter[id];
     const poseScale = own && own.poseScale && own.poseScale[pose];
-    const sc = scale || poseScale || L.drawScale;
+    /* own.scale: lutador desenhado maior/menor por inteiro (pivo no pe), ex.: Kotlin */
+    const sc = scale || poseScale || (own && own.scale) || L.drawScale;
     const fw = L.frameW;
     const fh = L.frameH;
     const n = this.count(pose, id);
