@@ -23,6 +23,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # musica pesada (>160 kbps) e publicada em 128 kbps; o cache evita reconverter a cada deploy
+      - uses: actions/cache@v4
+        with:
+          path: .cache/site-audio
+          key: site-audio-${{ hashFiles('assets/music/playlist.json') }}
+          restore-keys: site-audio-
       - name: Montar o site (so os arquivos do jogo)
         run: node tools/build_site.cjs _site
       - uses: actions/configure-pages@v5

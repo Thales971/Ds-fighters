@@ -203,13 +203,17 @@ class Fighter {
   left(s) { return Math.max(0, (this.status[s] || 0) - this.now); }
   weight() { return this.def.stats.weight || 1; }
   get pfx() {
-    const pet = (this.pet && this.pet.fx) || {};
+    let pet = (this.pet && this.pet.fx) || {};
+    /* pacote do Unicornio npm ativo: bonus temporario soma por cima */
+    const tmp = this.petTempFx ? this.petTempFx() : null;
+    if (tmp) { pet = Object.assign({}, pet); for (const k of Object.keys(tmp)) pet[k] = (pet[k] || 0) + tmp[k]; }
     if (this.def.id === 'iales') return Object.assign({ immune: true }, pet);
     return pet;
   }
   applyPet() {
     this.shield = this.pfx.shield || 0;
     this.revived = false;
+    if (this.petResetRound) this.petResetRound();
   }
   enemy() { return this.game.enemyOf(this); }
   flashText(txt, color) {
@@ -546,8 +550,11 @@ class Fighter {
       d = Math.max(0, Math.min(d, this.maxHp * 0.3 - this._ultTaken));
       this._ultTaken += d;
     }
+    /* PETS DEV: coruja (resposta aceita) e elefante (rollback) mexem no dano */
+    if (this.petBeforeDamage && this.pet && this.pet.fx) d = this.petBeforeDamage(d, o, atk);
     this.hp = game.cfg && game.cfg.infiniteLife ? this.maxHp : Math.max(0, this.hp - d);
     if (atk) { atk.stats.dmg += d; atk.stats.hits++; }
+    if (atk && atk.petOnHit && atk.pet && atk.pet.fx && atk.pet.fx.goroutines) atk.petOnHit(this, d, o);
     /* NUNES — vampirismo da Fênix: cura 25% do dano causado. */
     if (atk && atk.has && atk.has('phoenix') && atk.alive) atk.heal(d * 0.25);
     const armored = this.has('armor') && !o.heavy && d < 16 && this.hp > 0;
@@ -1783,6 +1790,7 @@ class Fighter {
       if (this.stateTime > total) { this.state = 'idle'; this.stateTime = 0; this.perfectDone = false; }
     } else this.tryActions(input);
     this._petRegen();
+    if (this.petTick) this.petTick(); /* pets dev: npm, sonar, debug, goroutines */
     this.physics();
     return this.endUpdate(input);
   }
@@ -2395,7 +2403,9 @@ class Fighter {
            acompanhar o dono e olhar pro lado da luta. */
         Art.cell(ctx, 'pitoco', 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: -this.dir });
       } else if (this.pet.sheet) {
-        Art.cell(ctx, this.pet.sheet, 0, Math.floor(this.frame / 10), px, py, { scale: 0.62, dir: this.dir });
+        /* pets dev tem 3 linhas: parado, susto (dono apanhou) e comemora */
+        const prow = this.pet.sheet.startsWith('pet-') && this.petRow ? this.petRow() : 0;
+        Art.cell(ctx, this.pet.sheet, prow, Math.floor(this.frame / (prow === 1 ? 7 : 10)), px, py - (prow === 2 ? Math.abs(Math.sin(this.frame * 0.25)) * 8 : 0), { scale: 0.62, dir: this.dir });
       }
     }
     const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
