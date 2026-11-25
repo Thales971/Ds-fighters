@@ -2408,6 +2408,9 @@ class Fighter {
         Art.cell(ctx, this.pet.sheet, prow, Math.floor(this.frame / (prow === 1 ? 7 : 10)), px, py - (prow === 2 ? Math.abs(Math.sin(this.frame * 0.25)) * 8 : 0), { scale: 0.62, dir: this.dir });
       }
     }
+    if (this.drawPetFx && this._pfxl && this._pfxl.length && !game._reflecting) {
+      try { this.drawPetFx(ctx); } catch (e) { /* efeito do pet nunca quebra o quadro */ }
+    }
     const ghost = this.state === 'dash' || (this.state === 'cast' && this.dashHit) || this.state === 'rush' || this.afterimage > 0 || this.has('overclock');
     if (ghost && !game.reduced) {
       ctx.save();
