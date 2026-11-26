@@ -114,6 +114,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     });
     check('luta sombria fora da estatistica de balanceamento', st === 0, st + ' envios');
 
+    /* VOLTAR das conquistas (era data-go="menu", que so funciona dentro do menu) */
+    await p.evaluate(() => { UI.toMenu(); UI.menuGo('conquistas'); });
+    await sleep(300);
+    await p.click('#scr-conquistas [data-back]');
+    await sleep(300);
+    check('botao VOLTAR das conquistas volta pro menu', await p.evaluate(() => UI.screen === 'menu'));
+    const dead = await p.evaluate(() => [...document.querySelectorAll('.screen:not(#scr-menu) [data-go]')].map((e) => e.closest('.screen').id));
+    check('nenhum botao data-go fora do menu (eles nao respondem la)', dead.length === 0, dead.join(','));
+
     await p.evaluate(() => UI.toMenu());
     check('nenhum erro de pagina', errs.length === 0, errs.slice(0, 3).join(' | '));
   } catch (e) {
