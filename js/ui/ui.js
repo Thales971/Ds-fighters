@@ -925,6 +925,10 @@ const UI = {
       return;
     }
     const d = FIGHTERS[idx] || null;
+    if (!d && !(idx >= FIGHTERS.length)) { /* cursor invalido: card vazio, nunca quebra a tela */
+      el.innerHTML = `<div class="card-empty"><b>${ti === 0 ? 'JOGADOR 1' : 'CPU / JOGADOR 2'}</b><p>Escolha um lutador.</p></div>`;
+      return;
+    }
     const tourneyCode = !!(d && f.mode === 'arcade' && Profile.SECRET_IDS.includes(d.id));
     const lock = d && (tourneyCode || !Profile.isUnlocked(d.id));
     const isRandom = idx >= FIGHTERS.length;
@@ -1037,7 +1041,11 @@ const UI = {
       else { this.autoDummy(); if (f.done[0]) return this.afterSelect(); }
     } else if (f.done[0] && f.done[1]) return this.afterSelect();
     if (!f.p2Human && f.done[0] && who === 0) {
-      const slots = this.selectSlots().filter((slot) => slot < FIGHTERS.length);
+      /* filtro que esvazia a grade (ex.: favoritos sem nenhum favorito): o
+         cursor da CPU cai na lista inteira em vez de virar undefined (quebrava
+         o card com "Cannot read properties of null (reading 'id')") */
+      let slots = this.selectSlots().filter((slot) => slot < FIGHTERS.length);
+      if (!slots.length) slots = FIGHTERS.map((_, k) => k);
       const at = Math.max(0, slots.indexOf(i));
       f.cursor[1] = slots[(at + 3) % slots.length];
     }
@@ -1191,6 +1199,9 @@ const UI = {
   },
   confirmStage() {
     const f = this.flow;
+    /* so lanca da tela de arena e com os dois lados escolhidos (time vazio
+       quebrava o HUD/loop com "reading 'def'") */
+    if (this.screen !== 'stage' || !f || !f.picks || !f.picks[0].length || !f.picks[1].length) return;
     AudioSys.select();
     f.weather = this.$('opt-weather').value;
     f.difficulty = parseInt(this.$('opt-diff').value, 10);
