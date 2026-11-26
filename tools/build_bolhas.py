@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Clima BOLHAS DE SABAO: atlas assets/weather/bubbles.png (4x2 de 96px).
 
-Fonte: bugs/Novos-climas/'Bolhas de sabao.jpg' (arte do dono, fundo magenta):
+Fonte: arte-fonte/climas/'Bolhas de sabao.jpg' (arte do dono, fundo magenta):
   linha 0: bolha pequena | media | arco-iris | cacho de 3
   linha 1: estouro 1 (rasgando) | 2 (meia lua) | 3 (anel) | 4 (gotinhas)
 As bolhas sao TRANSLUCIDAS: a chave tira o magenta por 'unmix' (cor =
@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import fit, place, trim  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-climas/Bolhas de sabao.jpg'
+SRC = ROOT / 'arte-fonte/climas/Bolhas de sabao.jpg'
 OUT = ROOT / 'assets/weather/bubbles.png'
 C = 96
 

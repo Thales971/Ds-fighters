@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do CAPTCHA GUARD (arte do dono, nov/2026).
 
-Fontes (Pitoco-pet/Rafael-personagem/Captcha-guard-personagem/, fundo magenta):
+Fontes (arte-fonte/pitoco-pet/Rafael-personagem/Captcha-guard-personagem/, fundo magenta):
   F1 1bb58d5d: estouro | orbe | projetil | capsula / estrela | fumaca | clarao | anel
   F2 3dbafe46: espiral | orbe eletrico | rastro | rastro de fogo / estouro | anel | nuvem | brilhos
   F3 4ca77a00: estrela | bolha | projetil | capsula / explosao | fumaca | dupla | anel
@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'Pitoco-pet/Rafael-personagem/Captcha-guard-personagem'
+SRC = ROOT / 'arte-fonte/pitoco-pet/Rafael-personagem/Captcha-guard-personagem'
 BOXES = {
     '1bb58d5d-260a-450a-b121-aac4a3e04b76.jpg': {
         'burst': (75, 15, 348, 275), 'orb': (500, 66, 690, 235), 'bullet': (842, 40, 1113, 268),

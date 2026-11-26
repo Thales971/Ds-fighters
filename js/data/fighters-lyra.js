@@ -1,5 +1,5 @@
 /* DS Fighters — LYRA, a Maga do JavaScript (nov/2026).
-   Arte do dono (bugs/Novos-personagens/Maga JS *.jpg): elfa de cabelo
+   Arte do dono (arte-fonte/personagens/Maga JS *.jpg): elfa de cabelo
    prateado, manto azul com bordado dourado e cajado com o orbe {}.
      poses   -> tools/integrate_fighter.py lyra
      poderes -> tools/build_lyra_fx.py (atlas animado + circulo/impacto extra)

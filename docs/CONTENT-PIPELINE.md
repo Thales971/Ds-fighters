@@ -140,11 +140,11 @@ Dívida que isso deixa:
 - **Allowlist duplicada.** `online-server/room-core.js` é cópia de `js/net/room-core.js` (`npm run sync` na pasta do servidor). A cópia do servidor **não** lista `emilio`, `nunes` nem `ponteiro`. O P2P usa o arquivo do cliente e aceita os três. O servidor dedicado, se alguém subir essa cópia velha, recusa.
 - **`secret` e `SECRET_IDS` já divergiram** (foi o caso da Winx: selo SECRETO com o personagem jogável). Os dois têm que ser mexidos juntos.
 - **Ferramentas históricas** (`tools/v7_browser_check.py`, `selection_ui_check.py`, `gen_fighters.py`) ainda citam Kimi, DeepSeek, Zoya, Rin e Noir, que saíram do elenco. Não são o caminho para um lutador novo.
-- Fotos de referência e o `assets/art-pack/` (pacote documentado, não carregado pelo `index.html`) convivem com o jogo. Não são lixo só porque a luta não pede o arquivo.
+- Fotos de referência e o `arte-fonte/art-pack/` (pacote documentado, não carregado pelo `index.html`) convivem com o jogo. Não são lixo só porque a luta não pede o arquivo.
 
 ## Checklist — lutador novo, no nível do elenco original
 
-1. Arte do dono recortada para a folha **1280×3900**, RGBA, pé em y=246, 15 poses × 4 quadros. `python3 tools/integrate_fighter.py <id>` faz isso quando a fonte está no formato que o script espera (`bugs/Novos-personagens/` no texto do próprio script). Não invente pixel no canvas do jogo.
+1. Arte do dono recortada para a folha **1280×3900**, RGBA, pé em y=246, 15 poses × 4 quadros. `python3 tools/integrate_fighter.py <id>` faz isso quando a fonte está no formato que o script espera (`arte-fonte/personagens/` no texto do próprio script). Não invente pixel no canvas do jogo.
 2. Confira com `python3 tools/sprite_audit.py <id>`: tamanho, pé, centro, quadros diferentes entre si, `face-<id>.png` 168×168, `portrait-<id>.png`, `abilities/<id>.png`.
 3. Crie `js/data/fighters-v21.js` (o próximo número) no estilo do `fighters-v20.js`: registra a folha em `SPRITE_LAYOUT`, dá `FIGHTERS.push` com nome em português, 5 poderes (2 `simple`, 2 `charge`, 1 `ultimate`) e `secret: false`. Poder normal não passa de um soco “que ganha sozinho”; deixe o topo para Du, Iales e Felipinho.
 4. Inclua o `<script>` **depois** de `fighters-v20.js` e **antes** dos `powers-balance-*`, com `?v=` novo.
@@ -183,10 +183,10 @@ Dívida que isso deixa:
 Fotos que o dono guardou para personagem que ainda não é ficha, mesmo sem nenhum `src` apontando para elas:
 
 - `assets/music/maximilian personagem/` — Maximilian (futuro).
-- `assets/maps/anim/emilio-personagem/` e os JPG soltos `assets/maps/emilio normal.jpg`, `assets/maps/emilio transformaçao.jpg` — referência do Emilio, que já entrou.
-- `assets/maps/Nunes-personagem/` e `assets/maps/Nunes.jpg` — referência do Nunes, que já entrou.
+- `arte-fonte/emilio-personagem/` e os JPG soltos `assets/maps/emilio normal.jpg`, `assets/maps/emilio transformaçao.jpg` — referência do Emilio, que já entrou.
+- `arte-fonte/nunes-personagem/` e `assets/maps/Nunes.jpg` — referência do Nunes, que já entrou.
 - `assets/pets/mistral-cat.png` e `assets/pets/MISTRAL-FONTE.md` — fonte do mascote.
-- `assets/art-pack/` — pacote de arte à parte, com `LEIA-ME.md` e `manifest.json`. O jogo não carrega `art-pack.js`; o pacote se referencia sozinho.
+- `arte-fonte/art-pack/` — pacote de arte à parte, com `LEIA-ME.md` e `manifest.json`. O jogo não carrega `art-pack.js`; o pacote se referencia sozinho.
 - `assets/stages/source/*.gif` — fontes dos clássicos animados. A luta usa o PNG de `sheets.js`.
 - `assets/fonts/OFL.txt`, `assets/music/FAIXAS.md`, `assets/music/import-report.json` — licença, lista e relatório das faixas.
 

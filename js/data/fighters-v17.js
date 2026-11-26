@@ -1,6 +1,6 @@
 /* DS Fighters V17 — John the Vibe Coder: herdeiro do fuzil, discipulo do Du.
    Inimigo do Lobao. One-For-All style: socos com efeitos variados.
-   Arte do dono em bugs/Novos-personagens/, recortada por
+   Arte do dono em arte-fonte/personagens/, recortada por
    tools/integrate_fighter.py. Carregado apos o V16. */
 (() => {
   const id = 'john-vibe';

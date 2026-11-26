@@ -1,6 +1,6 @@
 /* DS Fighters V18 — EMILIO: o garoto da energia solar que se transforma
    numa raposa espiritual verde/azul. Arte do dono em
-   bugs/Novos-personagens/ (emilio-*.jpg), recortada por
+   arte-fonte/personagens/ (emilio-*.jpg), recortada por
    tools/integrate_fighter.py. Forma normal + forma TRANSFORMADA
    (emilio-trans.png, ativada pela ultimate). Carregado apos o V17. */
 (() => {

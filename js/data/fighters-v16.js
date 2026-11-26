@@ -1,5 +1,5 @@
 /* DS Fighters V16 — Odette: elegante, bolsa de mao e golpes precisos.
-   Arte do dono em bugs/Novos-personagens/, recortada por
+   Arte do dono em arte-fonte/personagens/, recortada por
    tools/integrate_fighter.py. Carregado apos o V15. */
 (() => {
   const id = 'odette';

@@ -1,5 +1,5 @@
 /* DS Fighters V15 — Engenheira de Prompt e Boneco de Treino.
-   Arte do dono em bugs/Novos-personagens/, recortada por
+   Arte do dono em arte-fonte/personagens/, recortada por
    tools/integrate_fighter.py. Carregado após o V14. */
 (() => {
   const register = (id) => {

@@ -1,5 +1,5 @@
 /* DS Fighters — RAFAEL, "A Lâmina Pesada".
-   Arte do dono (Pitoco-pet/Rafael-personagem/): cabelo loiro curto, outfit
+   Arte do dono (arte-fonte/pitoco-pet/Rafael-personagem/): cabelo loiro curto, outfit
    verde-escuro sem manga com armadura preta e uma arma preta pesada
    (espadona) segurada com as duas maos. Bruiser lento e pesado: cada golpe
    causa muito dano e debuffs; abaixo de 35% de vida entra em FÚRIA e causa

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Atlas de habilidades da KUNO (kunoichi) — arte do dono, nov/2026.
-Fontes (bugs/Novos-personagens/, grade 4x2, fundo magenta):
+Fontes (arte-fonte/personagens/, grade 4x2, fundo magenta):
   'Kuno habilidades 1.jpg': silhueta se desfazendo | portal quadrado | punho no chao |
       vazio quadrado / grade de luz | parede de grade | rastro de cubos | dragao
   'Kuno habilidades 2.jpg': meia-lua | bomba de fumaca | moldura | palma /
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 G = [(c * 296 + 6, r * 448 + 6, c * 296 + 290, r * 448 + 442) for r in range(2) for c in range(4)]
 N1 = ['fade', 'portal', 'fist', 'void', 'grid', 'wall', 'cubes', 'dragon']
 N2 = ['crescent', 'smoke', 'frame', 'palm', 'heal', 'vortex', 'kunai', 'star']

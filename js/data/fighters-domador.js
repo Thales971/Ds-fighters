@@ -1,5 +1,5 @@
 /* DS Fighters — DOMADOR DE PGADMIN (nov/2026).
-   Arte do dono (bugs/Novos-personagens/Domador *.jpg): mestre de picadeiro
+   Arte do dono (arte-fonte/personagens/Domador *.jpg): mestre de picadeiro
    de cartola e bigode, casaca azul com dragonas douradas, chicote vermelho
    e o ELEFANTE AZUL do PostgreSQL flutuando no ombro.
      poses   -> tools/integrate_fighter.py domador

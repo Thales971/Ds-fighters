@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas da MARÉ ALTA a partir dos sprites do dono — QUADRO A QUADRO.
 
-As duas imagens em Pitoco-pet/mare-alta-nova-sprites-recortar/ (fundo magenta)
+As duas imagens em arte-fonte/pitoco-pet/mare-alta-nova-sprites-recortar/ (fundo magenta)
 são grades de quadros de animação de UMA onda (cresce -> quebra -> some), com
 linhas divisórias entre os painéis. A versão antiga cortava a linha inteira
 (1184px) como se fosse uma faixa contínua, e as divisórias viravam riscos
@@ -25,7 +25,7 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'Pitoco-pet/mare-alta-nova-sprites-recortar'
+SRC = ROOT / 'arte-fonte/pitoco-pet/mare-alta-nova-sprites-recortar'
 OUT = ROOT / 'assets/fx/mare.png'
 
 WATER_H = 40      # espessura da água na tela (px)

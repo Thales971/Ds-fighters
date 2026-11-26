@@ -29,7 +29,7 @@ check('API sem cache', /no-store/.test(ccFor('/api/tournaments')), ccFor('/api/t
 /* .vercelignore com a mesma semantica do .gitignore */
 const ignored = (p) => { try { execFileSync('git', ['-c', 'core.excludesFile=' + path.join(ROOT, '.vercelignore'), 'check-ignore', '--no-index', '-q', p], { cwd: ROOT, stdio: 'ignore' }); return true; } catch (e) { return false; } };
 for (const p of ['index.html', 'js/main.js', 'css/style.css', 'assets/music/rock/x.mp3', 'assets/sprites/du.png', 'api/keepalive.js', 'api/tournaments.js', 'tools/supabase_keepalive.js', 'vercel.json']) check('vai pro deploy: ' + p, !ignored(p));
-for (const p of ['bugs/a.png', 'Pitoco-pet/a.jpg', 'milena-personagem/a.png', 'fauna-atualizada-alguns/a.png', 'trocida-nova-pessoas/a.jpg', 'dev-virado-personagem/a.png', 'flora/a.png', 'esquilo-libelula/a.png', 'inspirações/a.jpg', 'assets/art-pack/source/a.png', 'tools/run-tests.cjs', 'docs/a.md', 'online-server/server.js', 'node_modules/x/index.js', 'README.md']) check('fora do deploy: ' + p, ignored(p));
+for (const p of ['arte-fonte/personagens/a.jpg', 'arte-fonte/pitoco-pet/a.jpg', 'arte-fonte/milena-personagem/a.png', 'arte-fonte/fauna/a.png', 'arte-fonte/torcida/a.jpg', 'arte-fonte/dev-virado-personagem/a.png', 'arte-fonte/flora/a.png', 'arte-fonte/esquilo-libelula/a.png', 'arte-fonte/inspiracoes/a.jpg', 'arte-fonte/art-pack/source/a.png', 'tools/run-tests.cjs', 'docs/a.md', 'online-server/server.js', 'node_modules/x/index.js', 'README.md']) check('fora do deploy: ' + p, ignored(p));
 console.log('---');
 console.log(fails === 0 ? 'VERCEL CONFIG: TUDO OK (' + n + ' checks)' : 'VERCEL CONFIG: ' + fails + ' FALHAS de ' + n);
 process.exit(fails ? 1 : 0);

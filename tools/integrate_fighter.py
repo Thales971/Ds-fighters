@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Integra lutadores novos a partir da arte enviada pelo dono
-(bugs/Novos-personagens/). Generico: cada lutador tem uma config com a folha
+(arte-fonte/personagens/). Generico: cada lutador tem uma config com a folha
 de poses, o grid (detectado por projecao de alpha — NUNCA assumido), o
 mapeamento de poses e a fonte do atlas de habilidades.
 
@@ -20,7 +20,7 @@ from PIL import Image, ImageFilter
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 CW, CH, BASE, AIR = 320, 260, 246, 220
 POSES_ORDER = ['idle', 'walk', 'jump', 'crouch', 'punch', 'kick', 'cpunch',
                'ckick', 'jpunch', 'jkick', 'special', 'hit', 'block', 'ko', 'win']
@@ -867,7 +867,7 @@ STELLA_POSES = {
     'win':     ([(1, 3, 1, False)] * 4, 206, BASE),
 }
 
-# KERNOR, chefe final do torneio (Kernor-chefe-torneio/). f1 (si=0): parado |
+# KERNOR, chefe final do torneio (arte-fonte/kernor-chefe-torneio/). f1 (si=0): parado |
 #   passo | bracos pra cima | soco laser / investida-L | investida c/ poeira-L |
 #   pisao | soco. f2 (si=1): 4 parados / arranque-L | salto | bola | pouso.
 # f3 (si=2): bracos cruzados x2 | apanhando | tonto / brilho | ajoelhado |
@@ -913,7 +913,7 @@ CAPTCHA_POSES = {
 
 FIGHTERS = {
     'captcha-guard': {
-        'src_dir': 'Pitoco-pet/Rafael-personagem/Captcha-guard-personagem',
+        'src_dir': 'arte-fonte/pitoco-pet/Rafael-personagem/Captcha-guard-personagem',
         'sheets': ['4aa3b504-fc16-4e1c-9663-1643c47d11e1.jpg', '15329d07-6b0b-43bd-b00a-894d5c777f1f.jpg',
                    '896141b5-5a76-4c0f-93a1-df2e77e30e56.jpg', 'f9b64307-3581-4d97-b861-0501393135e9.jpg',
                    'f0fdff9e-cd2b-4b3f-a6e8-b41276bb45d9.jpg'],
@@ -928,7 +928,7 @@ FIGHTERS = {
         'abilities_keep': True,  # atlas animado: tools/build_captcha_fx.py
     },
     'kernor': {
-        'src_dir': 'Kernor-chefe-torneio',
+        'src_dir': 'arte-fonte/kernor-chefe-torneio',
         'sheets': ['kernelor sprite 1.jpg', 'Kernelor sprite 2.jpg', 'Kernelor sprite 3.jpg'],
         'poses': KERNOR_POSES,
         'ui_cell': (1, 0, 0, False),

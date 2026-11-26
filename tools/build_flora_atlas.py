@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Atlas de flora real a partir das artes-fonte da pasta flora/.
+"""Atlas de flora real a partir das artes-fonte da pasta arte-fonte/flora/.
 
-Le flora/flores.png (fundo rosa 255,198,215, grade 5x4) e flora/grama.png
+Le arte-fonte/flora/flores.png (fundo rosa 255,198,215, grade 5x4) e arte-fonte/flora/grama.png
 (fundo verde escuro 11,45,30, grade 6x4), recorta cada figura por chroma-key,
 classifica por cor dominante e empacota variantes em:
 
@@ -24,8 +24,8 @@ COLS = 4
 ROWS = 5  # grass, grass_tall, flower_red, flower_yellow, clover
 
 SOURCES = [
-    ('flora/flores.png', (255, 198, 215), 5, 4),
-    ('flora/grama.png', (11, 45, 30), 6, 4),
+    ('arte-fonte/flora/flores.png', (255, 198, 215), 5, 4),
+    ('arte-fonte/flora/grama.png', (11, 45, 30), 6, 4),
 ]
 
 # (linha do atlas, chave) -> lista de (arquivo, linha, coluna) na fonte, em ordem de preferencia

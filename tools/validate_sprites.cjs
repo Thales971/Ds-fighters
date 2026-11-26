@@ -204,7 +204,7 @@ function detachedFragments(img) {
   const frag = detachedFragments(img);
   check('Jess: 0 fragmentos soltos (>6px do sprite principal, ex.: metade de outro sprite cortado na borda)', frag.bad === 0, frag.detail.join(' '));
 
-  // 1.5 Flora (atlas real de flora/flores.png + flora/grama.png)
+  // 1.5 Flora (atlas real de arte-fonte/flora/flores.png + arte-fonte/flora/grama.png)
   console.log('--- Flora (flora.png) ---');
   img = PNG.sync.read(fs.readFileSync('assets/fauna/flora.png'));
   check('Flora: atlas 512x640 (4 cols x 5 linhas de 128px)', img.width === 512 && img.height === 640, `${img.width}x${img.height}`);

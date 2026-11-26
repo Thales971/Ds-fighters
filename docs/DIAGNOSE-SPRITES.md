@@ -160,7 +160,7 @@ commit V12c (remoção da Kimi/Deep) ficou fora do main. Este PR re-aplica a
 remoção (30 lutadores) e adiciona o **Dev Veterano** → **31 lutadores**.
 
 ## Dev Veterano (Kaíke)
-Arte enviada em `bugs/Novos-personagens/` (folha de poses 5×8 em fundo
+Arte enviada em `arte-fonte/personagens/` (folha de poses 5×8 em fundo
 magenta + ícones de habilidade 6×8 em fundo cinza), recortada e integrada por
 `tools/integrate_dev_veterano.py`:
 - `assets/sprites/dev-veterano.png` — 1280×3900 (4×15, célula 320×260, pé

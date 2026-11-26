@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades da LARPER (veneno) — arte do dono, nov/2026.
 
-Fontes (bugs/Novos-personagens/, fundo magenta):
+Fontes (arte-fonte/personagens/, fundo magenta):
   'Larper habilidades 1.jpg': coluna de acido | granada de gas | frasco quebrando |
       cratera toxica / anel de gas | nuvem caveira | jato de gas | nuvem no chao
   'Larper habilidades 2.jpg': bola toxica | respingo | seta dupla | poca borbulhando /
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 B1 = {
     'pillar': (40, 55, 265, 405), 'grenade': (325, 65, 525, 385), 'flask': (575, 80, 845, 385), 'crater': (848, 115, 1184, 405),
     'ring': (0, 535, 305, 785), 'skull': (310, 510, 565, 795), 'spray': (582, 475, 852, 795), 'mound': (828, 585, 1184, 775),

@@ -1,5 +1,5 @@
 /* DS Fighters — MILENA, "A Janela de Erro".
-   Arte do dono (milena-personagem/): cabelo roxo, jaqueta branca com detalhes
+   Arte do dono (arte-fonte/milena-personagem/): cabelo roxo, jaqueta branca com detalhes
    pretos, calça preta, tênis branco e bastão verde; tema de janelas de
    alerta/erro do sistema. Zoner de suporte: projétil de alerta, varredura com
    o bastão, dash intangível e ult que derruba a "tela azul" no rival. */

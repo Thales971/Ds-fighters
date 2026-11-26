@@ -1,5 +1,5 @@
 /* DS Fighters — KIRA, "A Marteleira".
-   Arte do dono (milena-personagem/Kira personagem/): cabelo azul longo,
+   Arte do dono (arte-fonte/milena-personagem/Kira personagem/): cabelo azul longo,
    casaco preto com detalhes brancos, saia, botas e um martelo azul com
    simbolo de seta. Bruiser pesado: pancada de martelo que atordoa, muralha
    azul que reduz dano, investida com o martelo e ult de marteladas em

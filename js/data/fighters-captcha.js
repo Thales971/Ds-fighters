@@ -1,5 +1,5 @@
 /* DS Fighters — CAPTCHA GUARD (nov/2026). So libera com LOGIN (conta por email).
-   Arte do dono (Pitoco-pet/Rafael-personagem/Captcha-guard-personagem/):
+   Arte do dono (arte-fonte/pitoco-pet/Rafael-personagem/Captcha-guard-personagem/):
    segurança de armadura cromada, visor azul e pistola de plasma.
      poses   -> tools/integrate_fighter.py captcha-guard
      poderes -> tools/build_captcha_fx.py (atlas 4x5 + estouro de impacto)

@@ -1,5 +1,5 @@
 /* DS Fighters — KUNO, a kunoichi (nov/2026). Arte do dono
-   (bugs/Novos-personagens/Kuno *.jpg): ninja de preto com detalhes roxos,
+   (arte-fonte/personagens/Kuno *.jpg): ninja de preto com detalhes roxos,
    mascara, rabo de cavalo e kunais. poses -> tools/integrate_fighter.py kuno;
    poderes -> tools/build_kuno_fx.py. Assassina rapida e escorregadia: kunais
    em leque que sangram, lamina lunar que atravessa o rival intangivel, passo

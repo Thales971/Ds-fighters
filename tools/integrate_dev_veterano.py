@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Integra o Dev Veterano: recorta a arte enviada pelo dono
-(bugs/Novos-personagens/) e gera os assets no contrato do motor:
+(arte-fonte/personagens/) e gera os assets no contrato do motor:
 
   - assets/sprites/dev-veterano.png     1280x3900 (4x15, célula 320x260, pé y246)
   - assets/abilities/dev-veterano.png   512x640  (4x5, célula 128)
@@ -24,8 +24,8 @@ from PIL import Image, ImageFilter
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC_SPR = ROOT / 'bugs/Novos-personagens/dev veterano reformulado.jpg'
-SRC_AB = ROOT / 'bugs/Novos-personagens/habilidades-dev-veterano.png'
+SRC_SPR = ROOT / 'arte-fonte/personagens/dev veterano reformulado.jpg'
+SRC_AB = ROOT / 'arte-fonte/personagens/habilidades-dev-veterano.png'
 CW, CH, BASE = 320, 260, 246
 AIR_BASE = 220
 

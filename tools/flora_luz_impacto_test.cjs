@@ -132,7 +132,7 @@ const recSpark = mkRec();
 g3.render();
 check('render usa composite lighter para faíscas glow', recSpark[1].lighter > 0 || true); // render() usa ctx proprio; so garante que nao crashou
 
-// ===== E. IMPACTO (shake -> stage.react -> flora/crowd/props/fauna) =====
+// ===== E. IMPACTO (shake -> stage.react -> arte-fonte/flora/crowd/props/fauna) =====
 const g4 = mk('arquibancada'); // palco com torcida
 g4.shake(14);
 check('impacto forte chama stage.react: hitFlash+floraShake+crowdHype (enfeites removidos)', g4.stage.hitFlash > 0 && g4.stage.floraShake > 0 && g4.stage.crowdHype > 0,
@@ -156,7 +156,7 @@ let hit = false, fxAtHit = 0;
 for (let t = 0; t < 40 && !hit; t++) { g6.tick(); if (p2.hp < p2.maxHp) { hit = true; fxAtHit = g6.sparks.length + g6.bursts.length; } }
 check('golpe real causa dano e efeito de impacto (sparks/bursts)', hit && fxAtHit > 0, 'hit=' + hit + ' fx=' + fxAtHit + ' hp=' + Math.round(p2.hp));
 
-// ===== F. ATLAS DE FLORA REAL (flora/flores.png + flora/grama.png -> assets/fauna/flora.png) =====
+// ===== F. ATLAS DE FLORA REAL (arte-fonte/flora/flores.png + arte-fonte/flora/grama.png -> assets/fauna/flora.png) =====
 const fpng = PNG.sync.read(fs.readFileSync('assets/fauna/flora.png'));
 check('flora.png existe e e 512x640 (4x5 celulas de 128)', fpng.width === 512 && fpng.height === 640, fpng.width + 'x' + fpng.height);
 let fcells = 0;

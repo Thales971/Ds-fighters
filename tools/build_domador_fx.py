@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do DOMADOR DE PGADMIN — arte do dono, nov/2026.
 
-Fontes (bugs/Novos-personagens/, fundo magenta, grade 4x2):
+Fontes (arte-fonte/personagens/, fundo magenta, grade 4x2):
   'Domador habilidades 1.jpg': pisao do elefante | vortice | arvore (B-tree) | feixe /
       elefante correndo | cacos | chuva de dados | elefante invocado
   'Domador habilidades 2.jpg': chicotada | anel no chao | asas | cilindro (banco) /
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 G = [(c * 296 + 6, r * 448 + 6, c * 296 + 290, r * 448 + 442) for r in range(2) for c in range(4)]
 N1 = ['stomp', 'vortex', 'tree', 'beam', 'charge', 'shards', 'rain', 'summon']
 TIGHT = {'shards': (335, 454, 586, 890), 'tree': (598, 6, 860, 442)}

@@ -1,5 +1,5 @@
 /* DS Fighters — CRACKER, "O Hacker".
-   Arte do dono (Pitoco-pet/.../Craker-personagem/): cabelo verde, oculos,
+   Arte do dono (arte-fonte/pitoco-pet/.../Craker-personagem/): cabelo verde, oculos,
    roupa preta com detalhes verdes, tenis e um laptop de tela verde na mao.
    Zoner/rush hibrido tematico de invasao: pacote que envenena, exploit que
    expoe (vuln), blink de invasao, jaula de quarentena, chuva de requisicoes (DDoS) e

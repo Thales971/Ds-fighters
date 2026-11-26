@@ -1,5 +1,5 @@
 /* DS Fighters — MIKO, a sacerdotisa (nov/2026). Arte do dono
-   (bugs/Novos-personagens/Miko *.jpg): kimono branco, hakama vermelho, gohei
+   (arte-fonte/personagens/Miko *.jpg): kimono branco, hakama vermelho, gohei
    e ofudas. poses -> tools/integrate_fighter.py miko; poderes ->
    tools/build_miko_fx.py. Controle sagrado: selo que paralisa, flecha que
    atravessa, barreira kekkai, portal torii e a ult exclusiva KITSUNE que

@@ -5,16 +5,9 @@ node_modules
 online-server
 supabase
 docs
-bugs
-Pitoco-pet
-milena-personagem
-fauna-atualizada-alguns
-trocida-nova-pessoas
-dev-virado-personagem
-flora
-esquilo-libelula
-inspirações
-assets/art-pack
+# arte-fonte/: artes originais do dono (personagens, mapas, pets, flora...) que os
+# scripts de tools/ recortam em assets/. O jogo nunca carrega daqui.
+arte-fonte
 *.md
 *.py
 # tools/ fica fora, MENOS o modulo que o api/keepalive.js importa

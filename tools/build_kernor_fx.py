@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do KERNOR (chefe final do torneio) — arte do dono.
-Fontes: Kernor-chefe-torneio/'Kernelor habilidades {1,2,4,6}.jpg' (grade 4x2;
+Fontes: arte-fonte/kernor-chefe-torneio/'Kernelor habilidades {1,2,4,6}.jpg' (grade 4x2;
 a 3 e copia da 2 e a 5 tem fundos escuros — a 6 tem as mesmas pecas limpas).
 Saidas: assets/abilities/kernor.png (4x10: 1 linha por poder) e
 kernor-extra.png (4x2: linha 0 = campo de espinhos/buraco no chao, linha 1 = impacto).
@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'Kernor-chefe-torneio'
+SRC = ROOT / 'arte-fonte/kernor-chefe-torneio'
 G = [(c * 296 + 6, r * 448 + 6, c * 296 + 290, r * 448 + 442) for r in range(2) for c in range(4)]
 SHEETS = {
     'Kernelor habilidades 1.jpg': ['saw', 'rockburst', 'fists', 'pillar', 'starburst', 'wheel', 'eye', 'hole'],

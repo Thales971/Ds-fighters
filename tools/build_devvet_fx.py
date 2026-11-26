@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Refaz o atlas de habilidades do DEV VETERANO (assets/abilities/dev-veterano.png,
-4x5 celulas de 128) a partir da folha do dono (bugs/Novos-personagens/
+4x5 celulas de 128) a partir da folha do dono (arte-fonte/personagens/
 habilidades-dev-veterano.png, fundo cinza). O atlas antigo cortava os objetos
 no meio (punho pela metade, correntes cortadas, besouro com borda quadrada).
 Aqui cada objeto e detectado inteiro (componente conexo, faiscas juntas) e
@@ -12,7 +12,7 @@ from PIL import Image
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens/habilidades-dev-veterano.png'
+SRC = ROOT / 'arte-fonte/personagens/habilidades-dev-veterano.png'
 OUT = ROOT / 'assets/abilities/dev-veterano.png'
 S = 128
 

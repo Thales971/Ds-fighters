@@ -18,7 +18,7 @@ const PETS = [
   { id: 'dragao', name: 'Dragãozinho', row: 10, buff: 'A cada 4º acerto de habilidade aplica QUEIMADURA (60f) no rival.', fx: { burnOnHit: 60 } },
   { id: 'fenix', name: 'Fênix de Fogo', row: 11, buff: 'A cada 5º acerto de habilidade causa EXPLOSÃO extra; +6% de dano.', fx: { explodeOnHit: 2, dmg: 0.06 } },
   { id: 'robot', name: 'Robôzinho CI', row: 12, buff: 'Medidores de carga enchem 25% mais rápido e +6% de velocidade.', fx: { meter: 0.25, speed: 0.06 } },
-  /* PETS DEV (nov/2026, arte do dono em novos-pets/): cada um tem uma HABILIDADE
+  /* PETS DEV (nov/2026, arte do dono em arte-fonte/pets/): cada um tem uma HABILIDADE
      ativa que age na luta (js/engine/pet-skills.js) e reage ao dono (susto ao
      apanhar, comemora na vitoria). Atlas 4x3: tools/build_pets_v2.py */
   { id: 'postgres', name: 'Elefante Postgres', row: -3, sheet: 'pet-postgres', img: 'assets/pets/pet-postgres.png?v=v90-pets', buff: 'ROLLBACK: 1x por round, um golpe pesado (18+) tem metade do dano desfeito. +10% de defesa.', fx: { def: 0.10, rollback: 0.5 } },
