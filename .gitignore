@@ -10,3 +10,6 @@ test-results/
 debug_*.png
 /*.png
 _site/
+
+# cache da montagem do site (musica publicada em 128 kbps)
+.cache/

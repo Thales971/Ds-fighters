@@ -47,4 +47,40 @@ for (const f of FILES) copy(f);
 for (const d of DIRS) copy(d);
 fs.writeFileSync(path.join(OUT, '.nojekyll'), ''); /* GitHub Pages: nao processar com Jekyll */
 fs.writeFileSync(path.join(OUT, '404.html'), fs.readFileSync(path.join(ROOT, 'index.html')));
-console.log(`site em ${path.relative(ROOT, OUT) || '.'}: ${n} arquivos, ${(bytes / 1e6).toFixed(0)} MB (${skippedAudio} audios repetidos/sem uso ficaram fora)`);
+
+/* MUSICA PESADA: a COPIA PUBLICADA de mp3 acima de 160 kbps vira 128 kbps
+   (ffmpeg). O original no repositorio nao muda. Com cache em .cache/site-audio
+   (por conteudo), entao so a primeira montagem demora. Sem ffmpeg: copia como
+   esta. Desligue com SITE_TRANSCODE=0. */
+const { execFileSync, execFile } = require('child_process');
+const crypto = require('crypto');
+const hasFfmpeg = (() => { if (process.env.SITE_TRANSCODE === '0') return false; try { execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' }); return true; } catch (e) { return false; } })();
+async function transcodeHeavy() {
+  if (!hasFfmpeg) return { n: 0, saved: 0 };
+  const CACHE = path.join(ROOT, '.cache', 'site-audio');
+  fs.mkdirSync(CACHE, { recursive: true });
+  const jobs = [];
+  const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); const st = fs.statSync(p); if (st.isDirectory()) walk(p); else if (/\.mp3$/i.test(f)) jobs.push({ p, size: st.size }); } };
+  walk(path.join(OUT, MUSIC_DIR));
+  let n = 0, saved = 0;
+  const heavy = jobs.filter((j) => {
+    try {
+      const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=bit_rate', '-of', 'csv=p=0', j.p]).toString().trim();
+      return Number(out) > 160000;
+    } catch (e) { return false; }
+  });
+  const run = async (j) => {
+    const hash = crypto.createHash('md5').update(fs.readFileSync(j.p)).digest('hex');
+    const cached = path.join(CACHE, hash + '.mp3');
+    if (!fs.existsSync(cached)) {
+      await new Promise((res) => execFile('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', j.p, '-codec:a', 'libmp3lame', '-b:a', '128k', '-ac', '2', cached + '.tmp.mp3'], (err) => { if (!err) fs.renameSync(cached + '.tmp.mp3', cached); res(); }));
+    }
+    if (fs.existsSync(cached)) { const ns = fs.statSync(cached).size; if (ns < j.size) { fs.copyFileSync(cached, j.p); saved += j.size - ns; n++; } }
+  };
+  for (let i = 0; i < heavy.length; i += 4) await Promise.all(heavy.slice(i, i + 4).map(run));
+  return { n, saved };
+}
+transcodeHeavy().then((t) => {
+  const total = bytes - t.saved;
+  console.log(`site em ${path.relative(ROOT, OUT) || '.'}: ${n} arquivos, ${(total / 1e6).toFixed(0)} MB (${skippedAudio} audios repetidos/sem uso ficaram fora; ${t.n} musicas pesadas publicadas em 128 kbps, -${(t.saved / 1e6).toFixed(0)} MB)`);
+});

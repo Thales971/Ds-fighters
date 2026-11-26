@@ -12,6 +12,7 @@
      node tools/balance_sim.cjs --out sim.json     -> salva matriz e ranking
      node tools/balance_sim.cjs --seed 7           -> outra semente (Math.random fixo)
      node tools/balance_sim.cjs --mult m.json      -> testa multiplicadores {id: m} em power/hp
+     node tools/balance_sim.cjs --pet postgres     -> so o lado testado (--ids) leva esse pet
 */
 const fs = require('fs');
 const path = require('path');
@@ -70,10 +71,13 @@ const vs = arg('vs', null) === 'normal' ? normals : pool;
 
 const canvas = { width: 960, height: 540, getContext: () => fake2d(), classList: { toggle() {}, add() {}, remove() {} } };
 const none = api.PETS.find((p) => p.id === 'none') || api.PETS[0];
+const petArg = arg('pet', null);
+const testPet = petArg && petArg !== true ? api.PETS.find((p) => p.id === petArg) : null;
+if (petArg && petArg !== true && !testPet) { console.error('pet nao existe: ' + petArg); process.exit(1); }
 const CRASH = {};
-function fight(a, b) {
+function fight(a, b, pa, pb) {
   const g = new api.Game(canvas);
-  g.start({ mode: 'versus', teams: [[a], [b]], stage: 'treino-dojo', cpu: [true, true], difficulty: 2, roundsToWin: 1, timer: 60, pets: [none, none] });
+  g.start({ mode: 'versus', teams: [[a], [b]], stage: 'treino-dojo', cpu: [true, true], difficulty: 2, roundsToWin: 1, timer: 60, pets: [pa || none, pb || none] });
   if (g.weather) { g.weather.set('clear'); g.weather.pool = ['clear']; }
   if (g.mech) g.mech.m = {};
   let guard = 0;
@@ -105,7 +109,7 @@ for (const a of pool) {
     for (let k = 0; k < GAMES; k++) {
       /* alterna os lados para nao favorecer o P1 */
       const swap = k % 2 === 1;
-      const r = swap ? fight(b, a) : fight(a, b);
+      const r = swap ? fight(b, a, none, testPet) : fight(a, b, testPet, none);
       const aWon = r === -1 ? null : (swap ? r === 1 : r === 0);
       played++;
       if (aWon === null) { stat[a].d++; stat[b].d++; wa += 0.5; }
