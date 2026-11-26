@@ -71,7 +71,7 @@ def lufs(path):
 
 def main():
     pl = json.loads(PL.read_text(encoding='utf-8'))
-    lists = ('tracks', 'fallback', 'boss')
+    lists = ('tracks', 'fallback', 'boss', 'shadow', 'menuTracks')
     if '--so-ganho' not in sys.argv:
         files = [str(Path(r, f).relative_to(ROOT)).replace(os.sep, '/') for r, _, fs in os.walk(ROOT / ROCK) for f in fs if f.lower().endswith('.mp3')]
         groups = {}
@@ -107,6 +107,8 @@ def main():
         m['gain'] = round(min(1.0, 10 ** ((TARGET - v) / 20)), 3)
     pl['_como_usar'] = ('Faixas do proprietario. Sorteio por luta, sem repeticao consecutiva; ducking durante o narrador. '
                         'A lista "boss" (pasta rock/AMV) toca na luta final contra o chefe no torneio. '
+                        'A lista "shadow" toca SO na luta contra si mesmo (fica fora do sorteio normal). '
+                        '"menuTracks" alterna no menu e na tela de START junto com o tema. '
                         'Cada faixa tem "gain" (volume medido em LUFS, alvo -12): rode python3 tools/music_playlist.py '
                         'depois de colocar musica nova em assets/music/rock.')
     PL.write_text(json.dumps(pl, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

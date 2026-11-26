@@ -1,5 +1,5 @@
 {
-  "_como_usar": "Faixas do proprietario. Sorteio por luta, sem repeticao consecutiva; ducking durante o narrador. A lista \"boss\" (pasta rock/AMV) toca na luta final contra o chefe no torneio. Cada faixa tem \"gain\" (volume medido em LUFS, alvo -12): rode python3 tools/music_playlist.py depois de colocar musica nova em assets/music/rock.",
+  "_como_usar": "Faixas do proprietario. Sorteio por luta, sem repeticao consecutiva; ducking durante o narrador. A lista \"boss\" (pasta rock/AMV) toca na luta final contra o chefe no torneio. A lista \"shadow\" toca SO na luta contra si mesmo (fica fora do sorteio normal). \"menuTracks\" alterna no menu e na tela de START junto com o tema. Cada faixa tem \"gain\" (volume medido em LUFS, alvo -12): rode python3 tools/music_playlist.py depois de colocar musica nova em assets/music/rock.",
   "tracks": [
     {
       "title": "Audioslave — Like a Stone",
@@ -564,42 +564,6 @@
       "file": "assets/music/rock/AMV/Three Days Grace - Riot (Official Audio).mp3",
       "lufs": -8.1,
       "gain": 0.638
-    },
-    {
-      "title": "Misfits — Helena",
-      "file": "assets/music/rock/Misfits - Helena.mp3",
-      "lufs": -7.9,
-      "gain": 0.624
-    },
-    {
-      "title": "Shot",
-      "file": "assets/music/rock/Shot.mp3",
-      "lufs": -8.4,
-      "gain": 0.661
-    },
-    {
-      "title": "Blade and Bath — Paralyzed (Subtitled)",
-      "file": "assets/music/rock/Blade and Bath - Paralyzed (Subtitled).mp3",
-      "lufs": -8.8,
-      "gain": 0.692
-    },
-    {
-      "title": "Psychonaut 4 — Sweet Decadance ｜ Talheim Records",
-      "file": "assets/music/rock/Psychonaut 4 - Sweet Decadance ｜ Talheim Records.mp3",
-      "lufs": -6.6,
-      "gain": 0.537
-    },
-    {
-      "title": "Blade and Bath — Eternal Nothingness (Legendado PT-BR)",
-      "file": "assets/music/rock/Blade and Bath - Eternal Nothingness (Legendado PT-BR).mp3",
-      "lufs": -9.0,
-      "gain": 0.708
-    },
-    {
-      "title": "Blade and Bath — Frustrated (Decalius Cover)",
-      "file": "assets/music/rock/Blade and Bath - Frustrated (Decalius Cover) (Sub. Lyrics).mp3",
-      "lufs": -9.7,
-      "gain": 0.767
     }
   ],
   "fallback": [
@@ -982,6 +946,52 @@
       "file": "assets/music/rock/AMV/Three Days Grace - Riot (Official Audio).mp3",
       "lufs": -8.1,
       "gain": 0.638
+    }
+  ],
+  "shadow": [
+    {
+      "title": "Psychonaut 4 — Sweet Decadance ｜ Talheim Records",
+      "file": "assets/music/rock/Psychonaut 4 - Sweet Decadance ｜ Talheim Records.mp3",
+      "lufs": -6.6,
+      "gain": 0.537
+    },
+    {
+      "title": "Blade and Bath — Paralyzed (Subtitled)",
+      "file": "assets/music/rock/Blade and Bath - Paralyzed (Subtitled).mp3",
+      "lufs": -8.8,
+      "gain": 0.692
+    },
+    {
+      "title": "Blade and Bath — Eternal Nothingness (Legendado PT-BR)",
+      "file": "assets/music/rock/Blade and Bath - Eternal Nothingness (Legendado PT-BR).mp3",
+      "lufs": -9.0,
+      "gain": 0.708
+    },
+    {
+      "title": "Blade and Bath — Frustrated (Decalius Cover)",
+      "file": "assets/music/rock/Blade and Bath - Frustrated (Decalius Cover) (Sub. Lyrics).mp3",
+      "lufs": -9.7,
+      "gain": 0.767
+    },
+    {
+      "title": "Shot",
+      "file": "assets/music/rock/Shot.mp3",
+      "lufs": -8.4,
+      "gain": 0.661
+    }
+  ],
+  "menuTracks": [
+    {
+      "title": "Misfits — Helena",
+      "file": "assets/music/rock/Misfits - Helena.mp3",
+      "lufs": -7.9,
+      "gain": 0.624
+    },
+    {
+      "title": "DS Fighters — Tema do Menu",
+      "file": "assets/music/menu_theme.mp3",
+      "lufs": -11.7,
+      "gain": 0.966
     }
   ]
 }

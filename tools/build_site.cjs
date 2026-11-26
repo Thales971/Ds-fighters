@@ -18,7 +18,7 @@ const MUSIC_DIR = path.join('assets', 'music');
 const usedAudio = new Set();
 try {
   const pl = JSON.parse(fs.readFileSync(path.join(ROOT, MUSIC_DIR, 'playlist.json'), 'utf8'));
-  for (const k of ['tracks', 'fallback', 'boss']) for (const t of pl[k] || []) if (t && t.file) usedAudio.add(path.normalize(t.file));
+  for (const k of ['tracks', 'fallback', 'boss', 'shadow', 'menuTracks']) for (const t of pl[k] || []) if (t && t.file) usedAudio.add(path.normalize(t.file));
   if (pl.menu && pl.menu.file) usedAudio.add(path.normalize(pl.menu.file));
 } catch (e) { /* sem playlist: publica tudo */ }
 const codeRefs = (() => {

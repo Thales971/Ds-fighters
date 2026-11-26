@@ -131,7 +131,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       // resultado -> chave -> bonus
       for (let i = 0; i < 60; i++) {
         const s = await p.evaluate(() => UI.screen);
-        if (s === 'results') { await p.evaluate(() => { const nb = document.getElementById('btn-next'); if (nb && nb.offsetParent) nb.click(); }); }
+        /* no chefe o botao de seguir so aparece se a nota abriu a luta contra si mesmo: fica na tela final */
+        if (s === 'results' && step < 6) { await p.evaluate(() => { const nb = document.getElementById('btn-next'); if (nb && nb.offsetParent) nb.click(); }); }
         if (s === 'ladder' || (s === 'results' && step === 6)) break;
         await sleep(150);
       }
@@ -164,6 +165,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     check('bonus: 3 cartoes e clique duplo aplica so 1', buffDouble && buffDouble.cards === 3 && buffDouble.after - buffDouble.before === 1, JSON.stringify(buffDouble));
     const end = await p.evaluate(() => ({ s: UI.screen, k: Profile.isUnlocked('kernor'), t: (document.querySelector('[data-screen="results"]') || {}).innerText || '' }));
     check('fim do torneio: tela final e Kernor liberado', end.s === 'results' && end.k, end.s + ' ' + end.t.slice(0, 60).replace(/\n/g, ' '));
+    const sh = await p.evaluate(() => { const r = UI.flow.ranks[6] || {}; const nb = document.getElementById('btn-next'); return { letter: r.letter, shadow: UI.flow.ladder.some((x) => x.shadow), next: !nb.hidden && nb.textContent }; });
+    check('nota A/S no chefe abre "o seu maior inimigo"; abaixo disso nao', (sh.letter === 'A' || sh.letter === 'S') ? (sh.shadow && sh.next === 'VER CHAVE') : (!sh.shadow && !sh.next), JSON.stringify(sh));
 
     /* 4) MENU no VS nao trava e nao abre luta por cima */
     await p.evaluate(() => { UI.startFlow('arcade'); UI.flow.cursor[0] = FIGHTERS.findIndex((d) => d.id === 'jess'); UI.selConfirm(0); });

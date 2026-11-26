@@ -302,6 +302,7 @@ const SpriteGen = {
 
     ctx.save();
     if (skinHue === -1) { try { ctx.filter = 'grayscale(1)'; } catch (e) {} }
+    else if (typeof skinHue === 'string') { try { ctx.filter = skinHue; } catch (e) {} } /* filtro pronto (sombra) */
     else if (skinHue) { try { ctx.filter = `hue-rotate(${skinHue}deg)`; } catch (e) {} }
     ctx.imageSmoothingEnabled = false;
     ctx.translate(Math.round(centerX + (xf ? xf.dx * dir : 0)), top + (xf ? xf.dy : 0));

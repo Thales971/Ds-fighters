@@ -386,6 +386,7 @@ const UI = {
     const demoOn = this.game.running && this.game.mode === 'demo';
     if (this.game.running && !demoOn) this.game.stop();
     HUD.hide();
+    if (this.game.shadowHudOff) this.game.shadowHudOff();
     try { Net.leave(true); } catch (e) { /* sala nenhuma não pode prender o menu */ }
     if (typeof AudioSys.stopLoops === 'function') AudioSys.stopLoops();
     if (!demoOn) this.$('stage-wrap').classList.remove('on');
@@ -1225,6 +1226,12 @@ const UI = {
     }).join('');
     this.$('vs-0').innerHTML = side(0);
     this.$('vs-1').innerHTML = side(1);
+    const vs1 = this.$('vs-1');
+    if (vs1 && vs1.classList) vs1.classList.toggle('vs-shadow', !!cfg.shadowFight);
+    if (cfg.shadowFight && vs1) {
+      const id = cfg.teams[1][0];
+      vs1.innerHTML = `<div class="vs-f"><div class="vs-sprite${ROSTER_4X8_SPRITES.has(id) ? ' sprite-4x8' : ''}" style="background-image:url(${SpriteGen.url(id)})"></div><b style="--c:#b98cff">VOCÊ MESMO</b><small>O seu maior inimigo</small></div>`;
+    }
     const s = STAGE_LIST.find((x) => x.id === cfg.stage);
     this.$('vs-stage').textContent = s ? s.name : 'ARENA ALEATÓRIA';
     const lineEl = this.$('vs-line');
@@ -1260,14 +1267,14 @@ const UI = {
     const done = f.afterWin ? f.arcadeStep + 1 : f.arcadeStep;
     const me = FIGHTERS[f.picks[0][0]];
     el.innerHTML = f.ladder.map((row, i) => {
-      const d = FIGHTERS.find((x) => x.id === row.id) || { name: row.id, colors: { accent: '#fff' } };
+      const d = row.shadow ? { name: 'VOCÊ MESMO', colors: { accent: '#b98cff' } } : (FIGHTERS.find((x) => x.id === row.id) || { name: row.id, colors: { accent: '#fff' } });
       const st = i < done ? 'done' : i === done ? 'now' : 'wait';
       const face = rosterPortraitStyle(row.id, 36);
-      return `<div class="lad-row ${st}${row.boss ? ' boss' : ''}">
-        <span class="lad-n">${i + 1}</span>
+      return `<div class="lad-row ${st}${row.boss ? ' boss' : ''}${row.shadow ? ' shadow' : ''}">
+        <span class="lad-n">${row.shadow ? '?' : i + 1}</span>
         <i class="lad-face" style="${face}"></i>
         <b style="--c:${d.colors.accent}">${d.name}</b>
-        <small>${row.diffName}${row.boss ? ' · CHEFE' : ''}</small>
+        <small>${row.diffName}${row.boss ? ' · CHEFE' : ''}${row.shadow ? ' · O SEU MAIOR INIMIGO' : ''}</small>
         <em>${st === 'done' ? (f.ranks[i] ? f.ranks[i].letter : 'OK') : st === 'now' ? 'AGORA' : ''}</em>
       </div>`;
     }).join('');
@@ -1279,10 +1286,15 @@ const UI = {
     if (vsMenu) vsMenu.onclick = () => this.toMenu();
     const go = this.$('btn-ladder-go');
     const last = f.afterWin && f.arcadeStep >= f.ladder.length - 1;
+    /* a luta contra si mesmo vem direto, sem bonus: e so voce */
+    const nextShadow = f.afterWin && f.ladder[f.arcadeStep + 1] && f.ladder[f.arcadeStep + 1].shadow;
     if (go) {
       go.hidden = !!last;
-      go.textContent = f.afterWin ? 'ESCOLHER BÔNUS' : 'LUTAR';
-      go.onclick = () => { if (f.afterWin) this.showBuffs(); else this.launchArcade(); };
+      go.textContent = nextShadow ? 'ENFRENTAR A SI MESMO' : f.afterWin ? 'ESCOLHER BÔNUS' : 'LUTAR';
+      go.onclick = () => {
+        if (nextShadow) { f.arcadeStep++; f.afterWin = false; return this.launchArcade(); }
+        if (f.afterWin) this.showBuffs(); else this.launchArcade();
+      };
     }
     this.show('ladder');
   },
@@ -1344,6 +1356,19 @@ const UI = {
     const stageId = tor ? tor[Math.min(tor.length - 1, row.map == null ? f.arcadeStep : row.map)] : STAGE_LIST[0].id;
     let tourneyPet = Profile.petFor(0);
     if (tourneyPet && tourneyPet.id === 'pitoco') { tourneyPet = PETS[0]; this.toast('O PITOCO é proibido no torneio. Você entra sem mascote.', 3000); }
+    if (row.shadow) {
+      /* O SEU MAIOR INIMIGO: espelho sombrio, 10 min, 3 vidas, mapa aleatorio */
+      return this.launch({
+        mode: 'arcade', teams: [[me], [me]], stage: 'random', weather: 'darkfog',
+        shadowFight: true, bossFight: false,
+        tourneyBuffs: (f.tourneyBuffs || []).slice(),
+        rivalLine: row.line || '',
+        cpuDifficulty: 3, difficulty: 3,
+        cpu: [false, true], pets: [tourneyPet, PETS[0]],
+        roundsToWin: 1, timer: 600,
+        music: 'shadow',
+      });
+    }
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: stageId, weather: 'random',
       bossFight: isBoss,
@@ -1510,6 +1535,7 @@ const UI = {
   },
   onMatchEnd(res, game) {
     HUD.hide();
+    if (game && game.shadowHudOff) game.shadowHudOff();
     if (typeof MatchStats !== 'undefined') MatchStats.record(game, res); /* resultado anonimo pro balanceamento */
     const f = this.flow || {};
     const human = game.mode === 'online' ? game.cfg.localTeam : 0;
@@ -1523,15 +1549,29 @@ const UI = {
       if (res.winner === 0) {
         const p0 = game.teams[0].members[0];
         const row = (f.ladder || [])[f.arcadeStep] || {};
-        const ranked = typeof torneioRank === 'function'
+        if (row.shadow) {
+          /* venceu a si mesmo: fim de verdade do torneio */
+          title = 'VOCÊ VENCEU A SI MESMO!';
+          Profile.grantAchievement('eu-mesmo');
+          const S = game.shadow || {};
+          const lives = p0.shadowLives || 0;
+          rankHtml = `<p class="tourney-rank shadow-end">A sombra se desfez em fragmentos. <small>vidas restantes ${lives}/3 · memórias coletadas ${S.collected || 0} · paralisias ${S.fallen || 0}</small></p>`;
+          f.ranks = f.ranks || [];
+          f.ranks[f.arcadeStep] = { letter: lives >= 3 ? 'S' : lives === 2 ? 'A' : 'B', pts: 0 };
+          f.afterWin = false;
+          this.$('btn-again').textContent = 'REVANCHE';
+          this.$('res-title').textContent = title;
+        }
+        const ranked = row.shadow ? f.ranks[f.arcadeStep] : typeof torneioRank === 'function'
           ? torneioRank(p0.hp / p0.maxHp, res.seconds, (res.teams[0][0] && res.teams[0][0].combo) || 0, !!row.boss)
           : { letter: 'B', pts: 0 };
         f.ranks = f.ranks || [];
         f.ranks[f.arcadeStep] = ranked;
         f.tourneyScore = (f.ranks || []).reduce((s, r) => s + (typeof torneioRankPoints === 'function' ? torneioRankPoints(r.letter) : 0), 0);
+        if (row.shadow) { /* ja montado acima */ } else {
         rankHtml = `<p class="tourney-rank">NOTA <b class="rk-${ranked.letter}">${ranked.letter}</b> <small>vida ${Math.round(p0.hp / p0.maxHp * 100)}% · ${res.seconds}s · combo ${res.teams[0][0].combo} · pts ${f.tourneyScore}</small></p>`;
         if (f.arcadeStep >= 3) Profile.grantAchievement('arcade-3');
-        const cleared = f.arcadeStep >= (f.ladder || []).length - 1;
+        const cleared = !!row.boss || f.arcadeStep >= (f.ladder || []).length - 1;
         if (cleared) {
           title = 'CAMPEÃO DO TORNEIO!';
           if (typeof Profile.recordTourneyTime === 'function' && Profile.recordTourneyTime(f.tourneySecs)) {
@@ -1543,11 +1583,20 @@ const UI = {
             ? '<p class="tourney-rank">Troféu do Núcleo. KERNOR liberado na seleção.</p>'
             : '<p class="tourney-rank">Troféu do Núcleo. Não consegui gravar o desbloqueio neste navegador.</p>';
           f.afterWin = false;
+          /* NOTA A ou S no chefe final: abre a ultima luta — contra voce mesmo */
+          if (row.boss && (ranked.letter === 'A' || ranked.letter === 'S') && !(f.ladder || []).some((r) => r.shadow)) {
+            f.ladder.push({ id: p0.def.id, shadow: true, diff: 3, diffName: '???', line: 'Você não pode fugir de si mesmo.' });
+            rankHtml += '<p class="tourney-rank shadow-open">Algo se mexe no escuro… <b>O SEU MAIOR INIMIGO</b> espera na última luta.</p>';
+            f.afterWin = true;
+            next.hidden = false;
+            next.textContent = 'VER CHAVE';
+          }
         } else {
           Profile.record('bestArcade', f.arcadeStep + 1);
           f.afterWin = true;
           next.hidden = false;
           next.textContent = 'VER CHAVE';
+        }
         }
       } else f.afterWin = false;
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
@@ -1578,7 +1627,7 @@ const UI = {
       ${res.teams.map((t, ti) => t.map((m) => `<tr class="${ti === res.winner ? 'w' : ''}"><td>${ti === 0 ? 'P1' : 'P2'}</td><td>${m.name}</td><td>${m.dmg}</td><td>${m.hits}</td><td>${m.combo}</td><td>${m.ults || 0}</td></tr>`).join('')).join('')}
       </tbody></table>
       ${rankHtml}
-      <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/7` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
+      <p class="score">Placar: ${res.wins[0]} × ${res.wins[1]}${game.mode === 'arcade' ? ` · Luta ${f.arcadeStep + 1}/${(f.ladder && f.ladder.length) || 7}` : ''}${game.mode === 'online' && Net.score ? ` · Placar da sala ${Net.score[0]} × ${Net.score[1]}` : ''}</p>`;
     this.$('stage-wrap').classList.remove('on');
     this.buildMenuSide();
     const gen = this._launchGen || 0;

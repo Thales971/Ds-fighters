@@ -113,6 +113,8 @@ class Game {
     this.paused = false;
     this.applyTourneyBuffs();
     this.applyBossFight();
+    this.shadow = null;
+    if (this.applyShadowFight) this.applyShadowFight(); /* luta contra si mesmo (shadow-mode.js) */
     /* Autoteste de folha: se o navegador carregar uma folha antiga (ex.: 4x8 de
        2080px em cache), avisa na tela em vez de parecer bug do jogo.
        A geometria vem de SpriteGen.expectedHeight() — já corrigida a partir da
@@ -1370,6 +1372,7 @@ class Game {
     if (this.stage.drawLife) this.stage.drawLife(ctx);             /* sombras de nuvem + brilho no piso */
     if (this.stage.drawLiving) this.stage.drawLiving(ctx);         /* fundo vivo: fumaca, neon, agua, lanternas */
     if (this.stage.drawEventBack) this.stage.drawEventBack(ctx);   /* especiais do evento (fundo) */
+    if (this.shadow && this.drawShadowBackdrop) this.drawShadowBackdrop(ctx, W, H); /* luta sombria: mapa sem cor */
     if (this.freeze > 0) {
       ctx.fillStyle = 'rgba(0,0,10,0.62)';
       ctx.fillRect(-20, -20, W + 40, H + 40);
@@ -1384,6 +1387,7 @@ class Game {
     if (guest) this.drawNetPickups(ctx); else this.pickups.forEach((p) => p.draw(ctx));
     const busy = (f) => (f.state === 'attack' || f.state === 'cast' || f.state === 'rush' ? 1 : 0);
     const fs = this.fighters().concat(this.allFighters().filter((m) => m.assistT > 0)).sort((p, q) => busy(p) - busy(q));
+    if (this.shadow && this.drawShadowWorld) this.drawShadowWorld(ctx, 'back'); /* aura escura da sombra */
     if (!(this.photo && this.photo.hideF)) {
       if (this.drawWeatherGround) this.drawWeatherGround(ctx); /* pegadas na neve */
       fs.forEach((f) => f.drawBack(ctx));
@@ -1452,13 +1456,16 @@ class Game {
       }
     }
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
+    else if (this.shadow && this.darkDraw) { this.strikes.forEach((s) => this.darkDraw(ctx, s.owner, () => s.draw(ctx, this))); this.projectiles.forEach((p) => this.darkDraw(ctx, p.owner, () => p.draw(ctx, this))); }
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
     this.drawBeams(ctx);
     this.drawInferno(ctx);
     for (const fx of this.imgFx || []) {
+      if (fx.dark && this.darkDraw) { this.darkDraw(ctx, fx, () => Fx.blit(ctx, fx.sheet, fx.clip, fx.frame, fx.x, fx.y, { scale: fx.scale, dir: fx.dir, alpha: fx.alpha * Math.max(0.15, fx.life / fx.max) })); continue; }
       Fx.blit(ctx, fx.sheet, fx.clip, fx.frame, fx.x, fx.y, { scale: fx.scale, dir: fx.dir, alpha: fx.alpha * Math.max(0.15, fx.life / fx.max) });
     }
     for (const bu of this.bursts) {
+      if (bu.dark && this.darkDraw) { this.darkDraw(ctx, bu, () => Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: false })); continue; }
       Art.cell(ctx, bu.key, bu.row, Math.min(3, Math.floor((bu.age / bu.dur) * 4)), bu.x, bu.y, { scale: bu.scale, dir: bu.dir, add: bu.key.startsWith('fx2') });
     }
     /* FAISCAS COM GLOW: pontos aditivos com halo (antes eram quadradinhos) */
@@ -1487,6 +1494,7 @@ class Game {
       ctx.globalAlpha = 1;
     }
     if (this.drawImpact) this.drawImpact(ctx); /* ondas de choque + cacos do K.O. */
+    if (this.shadow && this.drawShadowWorld) this.drawShadowWorld(ctx, 'front'); /* fragmentos de memoria (vidro) */
     if (this.drawWeatherFront) this.drawWeatherFront(ctx); /* folhas levantadas no dash */
     this.mech.drawFront(ctx);
     this.drawCracks(ctx);
@@ -1542,6 +1550,7 @@ class Game {
     if (typeof VFX !== 'undefined') VFX.draw(ctx, W, H, this.slowmo, this.reduced);
     if (this.hitboxDebug) this._drawHitboxDebug(ctx);
     this.stage.drawVignette(ctx);
+    if (this.shadow && this.drawShadowOverlay) this.drawShadowOverlay(ctx, W, H); /* clima creepypasta */
     /* GRAFICO ALTO: bloom nas luzes/efeitos (so no Alto, sem modo performance) */
     if (this.quality === 'high' && !this.reduced && !(this.perfLevel > 0) && this.stage.drawBloom) this.stage.drawBloom(ctx);
     this.applyChroma(ctx, W, H); /* aberracao cromatica no topo da cena (HUD fica nitido) */
@@ -1698,6 +1707,7 @@ class Game {
     for (const b of this.beams) {
       const f = Math.min(3, Math.floor((b.age / b.life) * 4));
       ctx.save();
+      if (this.shadow && b.owner && b.owner.shadowSelf && Game.SHADOW) { try { ctx.filter = Game.SHADOW.ATTACK_FILTER; } catch (e) { /* sem filtro */ } }
       ctx.globalAlpha = Math.max(0, Math.min(1, (b.life - b.age) / 6));
       if (b.single || !b.len) Art.ability(ctx, b.fid, b.row, f, b.x, b.y, { scale: b.scale || 1.4, dir: b.dir });
       else {
