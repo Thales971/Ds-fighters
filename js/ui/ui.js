@@ -387,6 +387,8 @@ const UI = {
     if (this.game.running && !demoOn) this.game.stop();
     HUD.hide();
     if (this.game.shadowHudOff) this.game.shadowHudOff();
+    const shBtn = this.$('btn-shadow-mode');
+    if (shBtn) shBtn.hidden = !Profile.hasAchievement('eu-mesmo'); /* VOCÊ MESMO aparece assim que for vencido */
     try { Net.leave(true); } catch (e) { /* sala nenhuma não pode prender o menu */ }
     if (typeof AudioSys.stopLoops === 'function') AudioSys.stopLoops();
     if (!demoOn) this.$('stage-wrap').classList.remove('on');
@@ -464,6 +466,8 @@ const UI = {
   },
   buildMenuSide() {
     try { this.decorateEventsButton(); } catch (e) { /* enfeite nao trava o menu */ }
+    const shBtn = this.$('btn-shadow-mode');
+    if (shBtn) shBtn.hidden = !Profile.hasAchievement('eu-mesmo');
     const s = Profile.data.stats;
     this.$('stats-card').innerHTML = `
       <h3>PERFIL</h3>
@@ -532,6 +536,11 @@ const UI = {
     AudioSys.select();
     if (go === 'tutorial') return this.startTutorial();
     if (go === 'events') { this.applyEventSkin(); return this.show('events'); }
+    if (go === 'shadow') {
+      /* VOCÊ MESMO: so depois de vencer a si mesmo uma vez no torneio */
+      if (!Profile.hasAchievement('eu-mesmo')) { AudioSys.back(); this.toast('Vença a si mesmo no torneio para liberar.'); return; }
+      return this.startFlow('shadow');
+    }
     if (['arcade', 'versus', 'tag', 'training', 'survival'].includes(go)) return this.startFlow(go);
     this.show(go, false);
   },
@@ -871,6 +880,7 @@ const UI = {
     const who = this.selWho();
     if (f.mode === 'online') return 'ESCOLHA SEU LUTADOR';
     if (f.mode === 'arcade') return 'ESCOLHA SEU LUTADOR';
+    if (f.mode === 'shadow') return 'QUEM VOCÊ VAI ENFRENTAR?';
     if (who === 1 && !f.p2Human) return f.mode === 'training' ? 'ESCOLHA O BONECO DE TREINO' : 'ESCOLHA O ADVERSÁRIO (CPU)';
     return who === 0 ? 'JOGADOR 1, ESCOLHA' : 'JOGADOR 2, ESCOLHA';
   },
@@ -881,7 +891,7 @@ const UI = {
     cells.forEach((c) => {
       const slot = this.cellSlot(c);
       c.classList.toggle('p1', f.cursor[0] === slot && !f.done[0]);
-      c.classList.toggle('p2', f.cursor[1] === slot && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online');
+      c.classList.toggle('p2', f.cursor[1] === slot && (f.p2Human || f.done[0]) && !f.done[1] && f.mode !== 'arcade' && f.mode !== 'online' && f.mode !== 'shadow');
       const picked = f.picks[0].includes(slot) || f.picks[1].includes(slot);
       c.classList.toggle('picked', picked);
     });
@@ -894,9 +904,11 @@ const UI = {
   renderCard(ti) {
     const f = this.flow;
     const el = this.$('card-' + ti);
-    const solo = f.mode === 'arcade' || f.mode === 'online';
+    const solo = f.mode === 'arcade' || f.mode === 'online' || f.mode === 'shadow';
     if (ti === 1 && solo) {
-      if (f.mode === 'arcade') {
+      if (f.mode === 'shadow') {
+        el.innerHTML = `<div class="card-empty shadow-card"><b>VOCÊ MESMO</b><p>A sombra do lutador que você escolher. Ela lê tudo e pune cada erro.</p><p>Pegue os fragmentos de memória ou deixe-os cair para paralisá-la por 10 s. 3 vidas, 10 minutos.</p></div>`;
+      } else if (f.mode === 'arcade') {
         const nBuff = FIGHTERS.filter((d) => d.id !== 'boneco-treino' && Balance.buffFor(d)).length;
         el.innerHTML = `<div class="card-empty"><b>TORNEIO ATÉ O CHEFE</b><p>Larper e Cyber Psicopata (médio), Rafael e Dev Senior (difícil), Lyra e Nimbo (extremo), depois o chefe.</p><p>6 mapas exclusivos · Chefe: ${Profile.isUnlocked('kernor') ? 'KERNOR' : '???'} na Fortaleza, IA extrema. Vencer libera o Kernor.</p><p><b>${nBuff} lutadores fracos têm BUFF permanente</b> (+HP/+força, badge BUFF) — no torneio e em qualquer modo!</p></div>`;
       } else el.innerHTML = `<div class="card-empty"><b>ONLINE</b><p>O adversário escolhe no computador dele.</p></div>`;
@@ -1015,7 +1027,7 @@ const UI = {
     AudioSys.play('whoosh', { vol: 0.5 });
     AudioSys.sayCharacter(d.name);
     if (f.picks[who].length >= f.need) f.done[who] = true;
-    if (f.mode === 'arcade' || f.mode === 'online') {
+    if (f.mode === 'arcade' || f.mode === 'online' || f.mode === 'shadow') {
       if (f.done[0]) return this.afterSelect();
     } else if (f.mode === 'training') {
       if (f.p2Human) { if (f.done[0] && f.done[1]) return this.afterSelect(); }
@@ -1096,6 +1108,7 @@ const UI = {
     if (f.mode === 'online') { Net.pickFighters(f.picks[0].map((k) => FIGHTERS[k].id)); this.show('online'); return; }
     if (f.mode === 'arcade') { this.buildArcade(); return this.showLadder(); }
     if (f.mode === 'survival') { return this.launchSurvival(); }
+    if (f.mode === 'shadow') { return this.launchShadow(); }
     setTimeout(() => this.show('stage'), 250);
   },
 
@@ -1356,19 +1369,7 @@ const UI = {
     const stageId = tor ? tor[Math.min(tor.length - 1, row.map == null ? f.arcadeStep : row.map)] : STAGE_LIST[0].id;
     let tourneyPet = Profile.petFor(0);
     if (tourneyPet && tourneyPet.id === 'pitoco') { tourneyPet = PETS[0]; this.toast('O PITOCO é proibido no torneio. Você entra sem mascote.', 3000); }
-    if (row.shadow) {
-      /* O SEU MAIOR INIMIGO: espelho sombrio, 10 min, 3 vidas, mapa aleatorio */
-      return this.launch({
-        mode: 'arcade', teams: [[me], [me]], stage: 'random', weather: 'darkfog',
-        shadowFight: true, bossFight: false,
-        tourneyBuffs: (f.tourneyBuffs || []).slice(),
-        rivalLine: row.line || '',
-        cpuDifficulty: 3, difficulty: 3,
-        cpu: [false, true], pets: [tourneyPet, PETS[0]],
-        roundsToWin: 1, timer: 600,
-        music: 'shadow',
-      });
-    }
+    if (row.shadow) return this.launch(this.shadowConfig('arcade', me, tourneyPet, f.tourneyBuffs, row.line));
     this.launch({
       mode: 'arcade', teams: [[me], [opp]], stage: stageId, weather: 'random',
       bossFight: isBoss,
@@ -1382,6 +1383,27 @@ const UI = {
       roundsToWin: isBoss ? 2 : 1, timer: isBoss ? 180 : 99,
       music: isBoss ? 'boss' : 'battle',
     });
+  },
+  /* O SEU MAIOR INIMIGO: espelho sombrio, 10 min, 3 vidas, mapa aleatorio.
+     'arcade' = ultima luta do torneio; 'shadow' = revanche pelo menu. */
+  shadowConfig(mode, me, pet, buffs, line) {
+    return {
+      mode, teams: [[me], [me]], stage: 'random', weather: 'darkfog',
+      shadowFight: true, bossFight: false,
+      tourneyBuffs: (buffs || []).slice(),
+      rivalLine: line || 'Você não pode fugir de si mesmo.',
+      cpuDifficulty: 3, difficulty: 3,
+      cpu: [false, true], pets: [pet || PETS[0], PETS[0]],
+      roundsToWin: 1, timer: 600,
+      music: 'shadow',
+    };
+  },
+  launchShadow() {
+    const f = this.flow;
+    const me = FIGHTERS[f.picks[0][0]].id;
+    let pet = Profile.petFor(0);
+    if (pet && pet.id === 'pitoco') { pet = PETS[0]; this.toast('O PITOCO não entra nessa luta. Você vai sozinho.', 3000); }
+    this.launch(this.shadowConfig('shadow', me, pet, [], 'De novo? Eu lembro de tudo da última vez.'));
   },
   arcadeNext() {
     const f = this.flow;
@@ -1600,6 +1622,21 @@ const UI = {
         }
       } else f.afterWin = false;
       this.$('btn-again').textContent = res.winner === 0 ? 'REVANCHE' : 'CONTINUAR';
+    } else if (game.mode === 'shadow') {
+      /* revanche contra si mesmo (menu VOCÊ MESMO) */
+      const p0 = game.teams[0].members[0];
+      const S = game.shadow || {};
+      const lives = p0 ? (p0.shadowLives || 0) : 0;
+      if (res.winner === 0) {
+        title = 'VOCÊ VENCEU A SI MESMO!';
+        const prevBest = Number(Profile.setting('shadowBest')) || 0;
+        if (!prevBest || (Number(res.seconds) || 0) < prevBest) { Profile.setting('shadowBest', Number(res.seconds) || 0); }
+        rankHtml = `<p class="tourney-rank shadow-end">A sombra se desfez de novo. <small>vidas restantes ${lives}/3 · memórias coletadas ${S.collected || 0} · paralisias ${S.fallen || 0}${prevBest ? ' · melhor tempo ' + prevBest + 's' : ''}</small></p>`;
+      } else {
+        title = 'A SOMBRA VENCEU';
+        rankHtml = `<p class="tourney-rank shadow-end">Ela ainda lembra de tudo. <small>memória restante ${Math.max(0, Math.ceil(S.mem || 0))}/1000 · memórias coletadas ${S.collected || 0} · paralisias ${S.fallen || 0}</small></p>`;
+      }
+      this.$('btn-again').textContent = 'REVANCHE';
     } else if (game.mode === 'survival') {
       if (res.winner === 0) {
         f.survivalWins = (f.survivalWins || 0) + 1;

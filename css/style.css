@@ -980,3 +980,9 @@ body.reduced .menu-parade, body.reduced .menu-motes, body.perf-xlow .menu-parade
 .vs-shadow .vs-sprite { filter: grayscale(.55) brightness(.42) contrast(1.35) sepia(.35) hue-rotate(225deg) saturate(2.2) drop-shadow(0 0 14px rgba(140,60,255,.85)); }
 .tourney-rank.shadow-open, .tourney-rank.shadow-end { color: #d8c4ff; text-shadow: 0 0 8px rgba(150,80,255,.8); }
 @media (max-width: 700px) { .shadow-hud { top: 96px; gap: 8px; font-size: 8px; padding: 4px 8px; } .shadow-hud .sh-time { font-size: 11px; } }
+/* menu: VOCÊ MESMO (revanche contra a sombra) */
+#scr-menu .mm.mm-shadow { border-color: #7a3cff; background: linear-gradient(90deg, rgba(40,0,70,.85), rgba(8,0,16,.85)); box-shadow: 0 0 14px rgba(122,60,255,.35); }
+#scr-menu .mm.mm-shadow > span { color: #d8c4ff; text-shadow: 0 0 8px rgba(150,80,255,.9); animation: shFlick 4s steps(1) infinite; }
+#scr-menu .mm.mm-shadow small { color: #b9a3e0; }
+.card-empty.shadow-card { border-color: #7a3cff; background: linear-gradient(180deg, rgba(40,0,70,.6), rgba(0,0,0,.4)); }
+.card-empty.shadow-card b { color: #d8c4ff; text-shadow: 0 0 8px rgba(150,80,255,.8); }

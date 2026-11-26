@@ -8,7 +8,8 @@ const MatchStats = {
   record(game, res) {
     try {
       if (!game || !game.cfg || !res) return;
-      if (['demo', 'training', 'online'].includes(game.mode)) return;
+      if (['demo', 'training', 'online', 'shadow'].includes(game.mode)) return;
+      if (game.cfg.shadowFight) return; /* espelho com regras proprias: nao entra no balanceamento */
       if (typeof Profile !== 'undefined' && Profile.setting && Profile.setting('shareStats') === false) return;
       const conf = window.DS_SUPABASE_CONFIG;
       if (!conf || !conf.url || !conf.publishableKey || typeof fetch !== 'function') return;
