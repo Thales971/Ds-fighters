@@ -91,7 +91,7 @@ Profile.setPet(0, 'tux');
 check('setPet(0, tux) continua funcionando', Profile.petFor(0).id === 'tux');
 
 // ===== 4. sequencia de teclado P-I-T-O-C-O na tela de pets =====
-const mkEl = () => ({ textContent: '', className: '', innerHTML: '', value: '', offsetWidth: 0, style: { setProperty() {} }, classList: { toggle() {}, add() {}, remove() {}, contains: () => false }, addEventListener() {}, focus() {}, querySelectorAll: () => [], querySelector: () => mkEl() });
+const mkEl = () => ({ textContent: '', className: '', innerHTML: '', value: '', offsetWidth: 0, dataset: {}, style: { setProperty() {} }, classList: { toggle() {}, add() {}, remove() {}, contains: () => false }, addEventListener() {}, focus() {}, querySelectorAll: () => [], querySelector: () => mkEl() });
 const grid = { innerHTML: '', querySelectorAll: () => [], querySelector: () => null };
 const orig$ = UI.$;
 UI.$ = (id) => (id === 'pet-grid' ? grid : mkEl());
