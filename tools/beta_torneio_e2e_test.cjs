@@ -10,7 +10,7 @@
 //  - botao MENU no VS cancela a luta (nao trava, nao abre luta por cima)
 //  - Kernor jogavel: leque de 8 laminas, buraco negro com vortice
 //  - modo foto: abre no meio do golpe sem tremer, filtros sepia/frio/P&B
-//  - celular: joystick na horizontal, aviso de girar em retrato
+//  - celular: direcional na horizontal (padrao), aviso de girar em retrato
 //  - nenhum erro de pagina no caminho todo
 const http = require('http');
 const fs = require('fs');
@@ -254,7 +254,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       if (name === 'horizontal') check('celular: demonstracao escondida e PARADA nas telas de painel (sem sprite duplo, economia)', demo.outra.hidden && demo.outra.parado, JSON.stringify(demo.outra));
       if (name === 'horizontal') {
         const tuto = await m.evaluate(() => { UI.tutorialBegin(); const s0 = UI.tutorial.steps[0].sub; UI.tutorial = null; return s0; });
-        check('celular: treino guiado fala de joystick, nao de teclado', /joystick/i.test(tuto) && !/A \/ D/.test(tuto), tuto);
+        check('celular: treino guiado fala do direcional, nao de teclado', /direcional|seta|◀/i.test(tuto) && !/A \/ D/.test(tuto), tuto);
       }
       const r = await m.evaluate(async () => {
         UI.launch({ mode: 'versus', teams: [['jess'], ['larper']], stage: 'torneio-praca-hello-world', cpu: [false, true], roundsToWin: 2, timer: 99 });
@@ -270,7 +270,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         return res0;
       });
       if (name === 'horizontal') {
-        check('celular horizontal: joystick visivel, direcional escondido', r.mobile && r.stick && !r.dpad, JSON.stringify(r));
+        check('celular horizontal: direcional visivel (padrao), joystick escondido', r.mobile && r.dpad && !r.stick, JSON.stringify(r));
         check('celular horizontal: texto dos botoes cabe', r.over === 0, 'vazando ' + r.over);
         check('celular: arena continua visivel na PAUSA', r.pauseArena, JSON.stringify(r));
         check('celular: comeca no modo leve sem aviso de "fps baixo"', !r.perfToast, JSON.stringify(r));

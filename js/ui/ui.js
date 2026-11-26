@@ -574,23 +574,26 @@ const UI = {
     /* texto do passo conforme o aparelho: teclado/mouse no PC, joystick/botoes no celular */
     const mob = typeof document !== 'undefined' && document.body && document.body.classList.contains('mobile');
     const K = (pc, touch) => (mob ? touch : pc);
+    /* celular: fala do controle que esta na tela (direcional e o padrao) */
+    const stk = typeof Profile !== 'undefined' && Profile.setting('touchMove') === 'stick';
+    const D = (dpadTxt, stickTxt) => (stk ? stickTxt : dpadTxt);
     this.tutorial = {
       step: 0,
       moved: 0, lastX: null, jumps: 0, crouches: 0, punches: 0, kicks: 0,
       chains: 0, casts: 0, ults: 0, blocks: 0, jumpCancels: 0, doubleJumps: 0, dashes: 0,
       steps: [
-        { title: 'ANDE', sub: K('A / D (ou setas) para mover', 'Arraste o joystick para os lados'), done: () => T.tutorial.moved > 260 },
-        { title: 'PULE', sub: K('W para pular', 'Joystick para CIMA para pular'), done: () => T.tutorial.jumps > 0 },
-        { title: 'AGACHE', sub: K('S para agachar', 'Joystick para BAIXO para agachar'), done: () => T.tutorial.crouches > 20 },
+        { title: 'ANDE', sub: K('A / D (ou setas) para mover', D('Use as setas ◀ ▶ do direcional', 'Arraste o joystick para os lados')), done: () => T.tutorial.moved > 260 },
+        { title: 'PULE', sub: K('W para pular', D('Seta ▲ para pular', 'Joystick para CIMA para pular')), done: () => T.tutorial.jumps > 0 },
+        { title: 'AGACHE', sub: K('S para agachar', D('Seta ▼ para agachar', 'Joystick para BAIXO para agachar')), done: () => T.tutorial.crouches > 20 },
         { title: 'SOCOS', sub: K('Botao esquerdo do mouse (ou J) — de 3 socos', 'Toque em SOCO 3 vezes'), done: () => T.tutorial.punches >= 3 },
         { title: 'CHUTES', sub: K('Botao direito do mouse (ou K) — de 3 chutes', 'Toque em CHUTE 3 vezes'), done: () => T.tutorial.kicks >= 3 },
         { title: 'COMBO', sub: K('No acerto, encadeie soco-soco-chute (combo-alvo)', 'Acertou? Emende SOCO, SOCO, CHUTE'), done: () => T.tutorial.chains >= 2 },
         { title: 'HABILIDADE', sub: K('Teclas 1 e 2 — solte duas habilidades', 'Toque nos botões 1 e 2 (habilidades)'), done: () => T.tutorial.casts >= 2 },
         { title: 'ULTIMATE', sub: K('Tecla 5 — solte a ultimate', 'Toque no botão 5 (ultimate)'), done: () => T.tutorial.ults >= 1 },
-        { title: 'BLOQUEIO', sub: K('Segure para tras perto do boneco para bloquear', 'Segure o joystick para TRÁS perto do boneco'), done: () => T.tutorial.blocks > 30 },
-        { title: 'JUMP-CANCEL', sub: K('Acerte um soco e aperte W na hora do hit', 'Acerte um SOCO e jogue o joystick pra cima na hora'), done: () => T.tutorial.jumpCancels >= 1 },
-        { title: 'DOUBLE JUMP', sub: K('No ar, aperte W de novo — pulo extra pra todos', 'No ar, joystick pra cima de novo'), done: () => T.tutorial.doubleJumps >= 1 },
-        { title: 'DASH', sub: K('Toque duas vezes A ou D para o dash', 'Toque o joystick 2 vezes rápido pro lado'), done: () => T.tutorial.dashes >= 1 },
+        { title: 'BLOQUEIO', sub: K('Segure para tras perto do boneco para bloquear', D('Segure a seta para TRÁS perto do boneco', 'Segure o joystick para TRÁS perto do boneco')), done: () => T.tutorial.blocks > 30 },
+        { title: 'JUMP-CANCEL', sub: K('Acerte um soco e aperte W na hora do hit', D('Acerte um SOCO e toque ▲ na hora', 'Acerte um SOCO e jogue o joystick pra cima na hora')), done: () => T.tutorial.jumpCancels >= 1 },
+        { title: 'DOUBLE JUMP', sub: K('No ar, aperte W de novo — pulo extra pra todos', D('No ar, toque ▲ de novo', 'No ar, joystick pra cima de novo')), done: () => T.tutorial.doubleJumps >= 1 },
+        { title: 'DASH', sub: K('Toque duas vezes A ou D para o dash', D('Toque a seta 2 vezes rápido pro lado', 'Toque o joystick 2 vezes rápido pro lado')), done: () => T.tutorial.dashes >= 1 },
       ],
     };
     this.tutorialBanner();
@@ -1774,7 +1777,8 @@ const UI = {
     document.querySelectorAll('[data-set]').forEach((el) => {
       const k = el.dataset.set;
       const v = Profile.setting(k);
-      if (el.type === 'checkbox') el.checked = (k === 'shake' || k === 'smooth' || k === 'haptic' || k === 'touchFloat' || k === 'touchAuto') ? v !== false : !!v;
+      if (el.type === 'checkbox') el.checked = (k === 'shake' || k === 'smooth' || k === 'haptic' || k === 'touchFloat' || k === 'touchAuto' || k === 'touchAssist') ? v !== false : !!v;
+      else if (k === 'touchMove' && !v) el.value = 'dpad';
       else if (el.type === 'range' && (v == null || v === '')) el.value = el.getAttribute('value') || el.min;
       else if (k === 'reducedMotion') el.value = v === true ? 'on' : v === false ? 'off' : 'auto';
       else el.value = v == null ? '' : v;
@@ -1783,7 +1787,7 @@ const UI = {
         if (k === 'reducedMotion') val = el.value === 'on' ? true : el.value === 'off' ? false : null;
         Profile.setting(k, val);
         AudioSys.applyVolumes();
-        if (k === 'touch' || k === 'touchScale' || k === 'touchOpacity' || k === 'touchDpad') this.updateTouch();
+        if (k === 'touch' || k === 'touchScale' || k === 'touchOpacity' || k === 'touchDpad' || k === 'touchMove') this.updateTouch();
         if (k === 'quality' && this.game && this.game.applyQuality) this.game.applyQuality(); /* aplica na hora */
         if (k === 'serverUrl') this.$('net-url').value = val;
         document.body.classList.toggle('reduced', Profile.reducedMotion());
@@ -1801,8 +1805,15 @@ const UI = {
     const opacity = Number(Profile.setting('touchOpacity'));
     controls.style.setProperty('--touch-scale', String(Number.isFinite(scale) && scale > 0 ? scale : 1));
     controls.style.setProperty('--touch-opacity', String(Number.isFinite(opacity) ? opacity : 0.72));
+    /* MOVIMENTO: direcional digital (padrao) ou joystick (opcao). So um dos dois. */
+    const useStick = Profile.setting('touchMove') === 'stick';
     const dpad = controls.querySelector('.dpad');
-    if (dpad) dpad.hidden = Profile.setting('touchDpad') !== true;
+    if (dpad) dpad.hidden = useStick;
+    const stick = controls.querySelector('.stick');
+    if (stick) stick.hidden = !useStick;
+    const zone = controls.querySelector('.stick-zone');
+    if (zone) zone.hidden = !useStick;
+    controls.classList.toggle('move-dpad', !useStick);
     controls.classList.toggle('hidden', !on);
     controls.setAttribute('aria-hidden', String(!on));
     if (on) this.updateTouchPowers();

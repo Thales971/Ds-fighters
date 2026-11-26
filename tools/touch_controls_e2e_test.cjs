@@ -57,13 +57,50 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       }
       const vw = innerWidth, vh = innerHeight;
       const off = btns.filter((q) => q.x < 0 || q.y < 0 || q.x + q.w > vw + 1 || q.y + q.h > vh + 1).length;
-      return { punch: r('[data-k="MouseLeft"]'), kick: r('[data-k="MouseRight"]'), p1: r('[data-power="0"]'), ult: r('[data-power="4"]'), tag: r('.t-tag'), stick: r('#stick'), zone: r('#stick-zone'), overlap, off, n: btns.length, vw, vh };
+      return { punch: r('[data-k="MouseLeft"]'), kick: r('[data-k="MouseRight"]'), p1: r('[data-power="0"]'), ult: r('[data-power="4"]'), tag: r('.t-tag'), stick: r('#stick'), zone: r('#stick-zone'), dpad: r('#dpad'), overlap, off, n: btns.length, vw, vh };
     });
     check('SOCO e CHUTE grandes (>= 60px)', lay.punch && lay.punch.w >= 60 && lay.kick.w >= 60, lay.punch && lay.punch.w + 'px');
     check('poderes >= 48px e ULT maior que os outros', lay.p1 && lay.p1.w >= 48 && lay.ult && lay.ult.w > lay.p1.w, lay.p1 && (lay.p1.w + ' / ' + lay.ult.w));
     check('TROCA escondida no 1x1', !lay.tag);
     check('nenhum botao em cima do outro e todos dentro da tela', lay.overlap === 0 && lay.off === 0, 'sobrepostos ' + lay.overlap + ' · fora ' + lay.off + ' · ' + lay.n + ' botoes');
-    check('joystick maior (>= 128px) e zona flutuante no lado esquerdo', lay.stick && lay.stick.w >= 128 && lay.zone && lay.zone.x < 5 && lay.zone.w > lay.vw * 0.3, lay.stick && lay.stick.w + 'px');
+    check('padrao no celular: DIRECIONAL grande (>= 160px) e sem joystick', lay.dpad && lay.dpad.w >= 160 && !lay.stick && !lay.zone, JSON.stringify({ dpad: lay.dpad && lay.dpad.w, stick: !!lay.stick, zone: !!lay.zone }));
+    check('direcional nao encosta nos botoes de ataque', lay.dpad && lay.p1 && lay.dpad.x + lay.dpad.w < lay.p1.x - 40);
+
+    /* DIRECIONAL: toque, deslize entre setas, cantos, folga contra pulo */
+    {
+      const D = lay.dpad, R = D.w / 2;
+      const at = (fx, fy) => [D.cx + fx * R, D.cy + fy * R];
+      const keys = () => p.evaluate(() => ({ k: [...Input.keys].filter((x) => /^Key[WASD]$/.test(x)).sort().join(','), on: [...document.querySelectorAll('#dpad i.on')].map((e) => e.className.replace(' on', '')).join(',') }));
+      await touch('touchStart', [at(0.72, 0)]); await sleep(40);
+      const r1 = await keys();
+      check('direcional: seta direita anda pra frente e acende', r1.k === 'KeyD' && /d-right/.test(r1.on), JSON.stringify(r1));
+      await touch('touchMove', [at(0.72, -0.3)]); await sleep(40);
+      const r2 = await keys();
+      check('direcional: dedo escorregando um pouco pra cima NAO pula', r2.k === 'KeyD', r2.k);
+      await touch('touchMove', [at(0.55, -0.6)]); await sleep(40);
+      const r3 = await keys();
+      check('direcional: canto de cima = pulo pra frente (diagonal)', r3.k === 'KeyD,KeyW', r3.k);
+      await touch('touchMove', [at(-0.72, 0.05)]); await sleep(40);
+      const r4 = await keys();
+      check('direcional: deslizar ate a seta esquerda sem soltar troca a direcao', r4.k === 'KeyA', r4.k);
+      await touch('touchMove', [at(0, 0.72)]); await sleep(40);
+      const r5 = await keys();
+      check('direcional: seta de baixo agacha', r5.k === 'KeyS', r5.k);
+      await touch('touchMove', [at(0.04, 0.03)]); await sleep(40);
+      const r6 = await keys();
+      check('direcional: centro = parado', r6.k === '', r6.k);
+      await touch('touchEnd', []); await sleep(40);
+      const r7 = await keys();
+      check('direcional: soltar o dedo solta tudo e apaga as setas', r7.k === '' && r7.on === '', JSON.stringify(r7));
+      /* andar com o direcional e socar ao mesmo tempo */
+      await touch('touchStart', [at(0.72, 0)]);
+      await touch('touchStart', [at(0.72, 0), [lay.punch.cx, lay.punch.cy]]); await sleep(60);
+      const both = await p.evaluate(() => [...Input.keys]);
+      await touch('touchEnd', []); await sleep(40);
+      check('direcional: andar e socar juntos (dois dedos)', both.includes('KeyD') && both.includes('MouseLeft'), both.join(','));
+      const opt = await p.evaluate(() => { const e = document.querySelector('[data-set="touchMove"]'); return e && [...e.options].map((o) => o.value).join(','); });
+      check('opcao pra trocar direcional/joystick existe', opt === 'dpad,stick', opt);
+    }
 
     /* recarga visivel: gasta o poder 1 e ve o --cd subir */
     const cd = await p.evaluate(async () => {
@@ -98,6 +135,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const single = await countHits('MouseLeft', 900, lay.punch.cx, lay.punch.cy);
     check('combo facil desligado nas opcoes: segurar = 1 soco', single === 1, single + ' socos');
     await p.evaluate(() => Profile.setting('touchAuto', true));
+
+    /* MODO JOYSTICK (opcao): o resto do teste roda nele */
+    const ls = await p.evaluate(() => {
+      Profile.setting('touchMove', 'stick'); UI.updateTouch(); if (AppViewport.fit) AppViewport.fit();
+      const r = (sel) => { const e = document.querySelector(sel); if (!e || e.hidden || !e.offsetParent) return null; const b = e.getBoundingClientRect(); return { x: b.left, w: b.width }; };
+      return { stick: r('#stick'), zone: r('#stick-zone'), dpad: r('#dpad'), vw: innerWidth };
+    });
+    check('opcao joystick: joystick (>= 128px) e zona flutuante aparecem, direcional some', ls.stick && ls.stick.w >= 128 && ls.zone && ls.zone.x < 5 && ls.zone.w > ls.vw * 0.3 && !ls.dpad, JSON.stringify(ls));
 
     /* joystick flutuante: pousa o dedo no meio do lado esquerdo */
     const sx = lay.vw * 0.22, sy = lay.vh * 0.62;

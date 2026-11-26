@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
   <link rel="stylesheet" href="css/style.css?v=v92-sombra" />
   <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
-  <link rel="stylesheet" href="css/mobile.css?v=v95-toque" />
+  <link rel="stylesheet" href="css/mobile.css?v=v97-dpad" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -333,8 +333,9 @@
           <label>Controles de toque <select data-set="touch"><option value="auto">Automático</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
           <label>Tamanho dos botões <input type="range" min="0.8" max="1.35" step="0.05" value="1" data-set="touchScale" /></label>
           <label>Opacidade dos botões <input type="range" min="0.35" max="1" step="0.05" value="0.72" data-set="touchOpacity" /></label>
-          <label class="chk"><input type="checkbox" data-set="touchDpad" /> Mostrar também o direcional</label>
-          <label class="chk"><input type="checkbox" data-set="touchFloat" checked /> Joystick flutuante (aparece onde o dedo toca, no lado esquerdo)</label>
+          <label>Movimento no toque <select data-set="touchMove"><option value="dpad">Direcional (botões) — recomendado</option><option value="stick">Joystick</option></select></label>
+          <label class="chk"><input type="checkbox" data-set="touchAssist" checked /> Modo Ajuda no toque: avança sozinho ao atacar de longe e defende sozinho quando você está parado (fora do online)</label>
+          <label class="chk"><input type="checkbox" data-set="touchFloat" checked /> Joystick flutuante (só no modo joystick)</label>
           <label class="chk"><input type="checkbox" data-set="touchAuto" checked /> Segurar SOCO/CHUTE repete o golpe (combo fácil)</label>
           <label class="chk"><input type="checkbox" data-set="haptic" checked /> Vibração ao tocar</label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
@@ -469,11 +470,8 @@
     <div id="touch-controls" class="hidden" aria-hidden="true">
       <div class="stick-zone" id="stick-zone" aria-hidden="true"></div>
       <div class="stick" id="stick" aria-label="Joystick"><i></i></div>
-      <div class="dpad" hidden>
-        <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
-        <button data-k="KeyA" class="t-left" aria-label="Mover para esquerda">◀</button>
-        <button data-k="KeyD" class="t-right" aria-label="Mover para direita">▶</button>
-        <button data-k="KeyS" class="t-down" aria-label="Agachar">▼</button>
+      <div class="dpad" id="dpad" hidden aria-label="Direcional: deslize o dedo entre as setas">
+        <i class="d-up">▲</i><i class="d-left">◀</i><i class="d-right">▶</i><i class="d-down">▼</i><i class="d-mid"></i>
       </div>
       <div class="tbtns">
         <button data-k="MouseLeft" class="t-big t-punch" aria-label="Soco">SOCO</button>
@@ -595,8 +593,8 @@
   <script src="js/engine/fx.js?v=v90-pets"></script>
   <script src="js/data/voice-book.js?v=v47-maresprites"></script>
   <script src="js/engine/audio.js?v=v92-fundo"></script>
-  <script src="js/engine/input.js?v=v96-stick"></script>
-  <script src="js/ui/viewport.js?v=v92-fundo"></script>
+  <script src="js/engine/input.js?v=v97-dpad"></script>
+  <script src="js/ui/viewport.js?v=v97-dpad"></script>
   <script src="js/engine/projectile.js?v=v72-kuno"></script>
   <script src="js/engine/fighter.js?v=v90-petsfx"></script>
   <script src="js/engine/pet-skills.js?v=v90-petsbal"></script>
@@ -611,12 +609,13 @@
   <script src="js/engine/impact-fx.js?v=v89-vivo2"></script>
   <script src="js/engine/weather-react.js?v=v89-vivo2"></script>
   <script src="js/engine/shadow-mode.js?v=v91-sombra"></script>
+  <script src="js/engine/touch-assist.js?v=v97-dpad"></script>
   <script src="js/vendor/peerjs.min.js"></script>
   <script src="js/net/room-core.js?v=v90-pets"></script>
   <script src="js/net/online.js?v=v86-ping"></script>
   <script src="js/ui/hud.js?v=v88-clima"></script>
   <script src="js/data/roster-portraits.js?v=v82-captcha"></script>
-  <script src="js/ui/ui.js?v=v94-toque"></script>
+  <script src="js/ui/ui.js?v=v97-dpad"></script>
   <script src="js/ui/account.js?v=v82-login"></script>
   <script src="js/main.js?v=v92-fundo"></script>
   <script src="js/net/tournament.js?v=v47-maresprites"></script>

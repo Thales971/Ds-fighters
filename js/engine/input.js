@@ -212,6 +212,46 @@ const Input = {
         zone.addEventListener('pointerup', (e) => { if (mine(e, zone)) reset(); });
         zone.addEventListener('pointercancel', (e) => { if (mine(e, zone)) reset(); });
       }
+      /* DIRECIONAL DIGITAL (padrao no celular): posicao fixa, 4 setas grandes,
+         sem "bolinha". O dedo pode deslizar de uma seta pra outra sem soltar;
+         os cantos fazem as diagonais (pulo pra frente). Pulo so com o dedo bem
+         pra cima (setor de ~33 graus + folga): andar nao pula sem querer. */
+      const dpad = document.getElementById('dpad');
+      if (dpad) {
+        let dId = null;
+        const arrows = { KeyW: dpad.querySelector('.d-up'), KeyA: dpad.querySelector('.d-left'), KeyD: dpad.querySelector('.d-right'), KeyS: dpad.querySelector('.d-down') };
+        const show = () => { for (const k in arrows) if (arrows[k]) arrows[k].classList.toggle('on', !!dirs[k]); };
+        const dmove = (e) => {
+          const box = dpad.getBoundingClientRect();
+          const dx = e.clientX - (box.left + box.width / 2);
+          const dy = e.clientY - (box.top + box.height / 2);
+          const len = Math.hypot(dx, dy);
+          if (len < box.width * 0.11) { apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false); show(); return; }
+          const ux = dx / len, uy = dy / len;
+          const keep = (code, val, onAt, offAt) => apply(code, dirs[code] ? val > offAt : val > onAt);
+          keep('KeyA', -ux, 0.38, 0.3);
+          keep('KeyD', ux, 0.38, 0.3);
+          keep('KeyW', -uy, 0.55, 0.45);
+          keep('KeyS', uy, 0.6, 0.5);
+          show();
+        };
+        const dreset = () => { dId = null; apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false); show(); };
+        dpad.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (dId !== null) return;
+          dId = e.pointerId;
+          this.touchUsed = true;
+          try { dpad.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+          if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(10);
+          dmove(e);
+        });
+        dpad.addEventListener(moveEv, (e) => { if (e.pointerId === dId) dmove(e); });
+        if (moveEv !== 'pointermove') dpad.addEventListener('pointermove', (e) => { if (e.pointerId === dId) dmove(e); });
+        dpad.addEventListener('pointerup', (e) => { if (e.pointerId === dId) dreset(); });
+        dpad.addEventListener('pointercancel', (e) => { if (e.pointerId === dId) dreset(); });
+        const oldReset = this._resetStick;
+        this._resetStick = () => { oldReset(); dreset(); };
+      }
     }
   },
   releaseAll() {
