@@ -248,3 +248,15 @@ body.mobile .stick i { left: 41px; top: 41px; width: 50px; height: 50px; transit
 body.mobile .stick.floating { transform-origin: center; border-color: rgba(255,210,125,.95); background: rgba(18,10,36,.6); }
 .stick-zone { display: none; }
 body.mobile .stick-zone { display: block; position: absolute; left: 0; top: 22%; bottom: 0; width: 42%; pointer-events: auto; touch-action: none; }
+
+/* ===== DIRECIONAL DIGITAL (padrao no celular) =====
+   Cruz grande e fixa; o dedo desliza entre as setas sem soltar. */
+body.mobile #touch-controls .stick[hidden], body.mobile #touch-controls .stick-zone[hidden], body.mobile #touch-controls .dpad[hidden] { display: none !important; }
+body.mobile #touch-controls .dpad { width: 172px; height: 172px; pointer-events: auto; touch-action: none; border-radius: 50%; background: radial-gradient(circle, rgba(18,10,36,.55) 0 62%, rgba(18,10,36,0) 63%); }
+body.mobile #touch-controls .dpad i { position: absolute; display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; font: 18px/1 system-ui, sans-serif; font-style: normal; color: #ffe7a8; background: rgba(48,30,84,.92); border: 2px solid rgba(255,210,125,.7); box-shadow: 0 3px 0 rgba(0,0,0,.5); pointer-events: none; user-select: none; }
+body.mobile #touch-controls .dpad .d-up { left: 57px; top: 0; border-radius: 14px 14px 6px 6px; }
+body.mobile #touch-controls .dpad .d-down { left: 57px; bottom: 0; border-radius: 6px 6px 14px 14px; }
+body.mobile #touch-controls .dpad .d-left { left: 0; top: 57px; border-radius: 14px 6px 6px 14px; }
+body.mobile #touch-controls .dpad .d-right { right: 0; top: 57px; border-radius: 6px 14px 14px 6px; }
+body.mobile #touch-controls .dpad .d-mid { left: 57px; top: 57px; width: 58px; height: 58px; border-radius: 8px; background: rgba(30,18,54,.85); border-color: rgba(255,210,125,.35); box-shadow: none; }
+body.mobile #touch-controls .dpad i.on { background: #8a6420; border-color: var(--gold); color: #fff; transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.5); }

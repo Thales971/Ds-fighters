@@ -21,7 +21,7 @@ check('recarga global ligada', /ABILITY_CD_MULT = 2/.test(fighter));
 check('anti-spam compartilhado no chain', /shared: 80/.test(fighter));
 check('chapéu não entra sozinho', /const ACC_DEFAULTS = \{\}/.test(acc));
 check('joystick e aviso de girar o celular', html.includes('id="stick"') && html.includes('GIRE O CELULAR'));
-check('direcional começa escondido', /class="dpad" hidden/.test(html));
+check('direcional começa escondido (a luta mostra)', /class="dpad"[^>]*\shidden/.test(html));
 check('menu do torneio cancela o timer da luta', ui.includes('cancelFlowTimers'));
 console.log(fails ? fails + ' falhas' : n + '/' + n + ' ok');
 process.exit(fails ? 1 : 0);

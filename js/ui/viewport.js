@@ -69,7 +69,7 @@ const AppViewport = {
     if (controls) {
       const dpad = touch.querySelector('.dpad');
       const stick = touch.querySelector('.stick');
-      const mover = dpad && dpad.offsetWidth ? dpad : stick;
+      const mover = dpad && !dpad.hidden && dpad.offsetWidth ? dpad : stick;
       const actions = touch.querySelector('.tbtns');
       if (landscape) {
         left += (mover ? mover.offsetWidth : 120) + 16;
