@@ -144,7 +144,7 @@ const FIGHTERS = [
   },
   {
     id: 'bughunter',
-    name: 'LYRA TRACE',
+    name: 'TRACY',
     title: 'A Caçadora de Defeitos',
     bio: 'Encontra o bug antes dele existir. Sua lupa queima.',
     colors: { skin: '#f0c8a0', hair: '#ff7b1c', shirt: '#2d6cdf', pants: '#1f3a5f', shoes: '#111', accent: '#ffd700' },

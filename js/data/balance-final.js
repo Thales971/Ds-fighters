@@ -12,19 +12,22 @@
    sobrescreve a tabela com o resultado das camadas antigas. O relatorio de
    dano das habilidades (--kits) so le, nao grava, com --so-relatorio.
    ============================================================ */
+/* nov/2026: buff medido por simulacao (tools/balance_sim.cjs --vs normal, 3 sementes)
+   Rafael x1.10, Hana x1.10, Titan x1.05, Dandara x1.04, Lobao x1.05, Kira x1.05, Yumi/Ada/Kael/Tracy x1.03 (forca e vida):
+   antes 37-43% de vitoria, depois ~48-53%. */
 const BALANCE_FINAL = {
   'stack': { power: 1.94, hp: 179, speed: 1.24, weight: 1, meterRate: 1.4 }, /* ET 1155 */
   'gitmaster': { power: 1.451, hp: 140, speed: 1.24, weight: 0.92, meterRate: 1.3 }, /* KAGE COMMIT */
-  'bughunter': { power: 1.983, hp: 194, speed: 1.18, weight: 0.98, meterRate: 1.28 }, /* LYRA TRACE */
+  'bughunter': { power: 2.042, hp: 200, speed: 1.18, weight: 0.98, meterRate: 1.28 }, /* TRACY (era LYRA TRACE, nome repetido com a LYRA) */
   'frontend': { power: 2.721, hp: 265, speed: 1.2, weight: 0.96, meterRate: 1.3 }, /* MIRA PIXEL */
-  'backend': { power: 3.318, hp: 392, speed: 0.94, weight: 1.24, meterRate: 1.08 }, /* TITAN 500 */
+  'backend': { power: 3.484, hp: 412, speed: 0.94, weight: 1.24, meterRate: 1.08 }, /* TITAN 500 */
   'devops': { power: 2.176, hp: 213, speed: 1.1, weight: 1.12, meterRate: 1.26 }, /* CID PIPE */
-  'qa': { power: 2.772, hp: 299, speed: 1.1, weight: 1.04, meterRate: 1.18 }, /* ADA ASSERT */
+  'qa': { power: 2.855, hp: 308, speed: 1.1, weight: 1.04, meterRate: 1.18 }, /* ADA ASSERT */
   'scrum': { power: 1.273, hp: 126, speed: 1.24, weight: 0.96, meterRate: 1.38 }, /* KAIRO SPRINT */
   'fullstack': { power: 2.805, hp: 327, speed: 1.05, weight: 1, meterRate: 1.1 }, /* OMNI STACK */
-  'kotlin': { power: 1.204, hp: 116, speed: 1.32, weight: 0.96, meterRate: 1.34 }, /* YUMI LAMBDA */
+  'kotlin': { power: 1.240, hp: 119, speed: 1.32, weight: 0.96, meterRate: 1.34 }, /* YUMI LAMBDA */
   'hacker': { power: 1.838, hp: 179, speed: 1.26, weight: 0.94, meterRate: 1.3 }, /* ROOT PHANTOM */
-  'java': { power: 1.553, hp: 206, speed: 0.95, weight: 1.16, meterRate: 1.18 }, /* KAEL JVM */
+  'java': { power: 1.600, hp: 212, speed: 0.95, weight: 1.16, meterRate: 1.18 }, /* KAEL JVM */
   'merc': { power: 1.563, hp: 152, speed: 1.32, weight: 0.94, meterRate: 1.42 }, /* CROMO VX */
   'bhm': { power: 1.669, hp: 167, speed: 1.26, weight: 1.02, meterRate: 1.42 }, /* BHM NOIR */
   'gemini': { power: 0.904, hp: 89, speed: 1.26, weight: 1.04, meterRate: 1.42 }, /* GEMINI TWINBYTE */
@@ -35,12 +38,12 @@ const BALANCE_FINAL = {
   'xeon': { power: 1.157, hp: 110, speed: 1.12, weight: 1.04, meterRate: 1.28 }, /* XEON */
   'qwen': { power: 0.841, hp: 80, speed: 1.14, weight: 0.98, meterRate: 1.28 }, /* QWEN ASTRA */
   'thl': { power: 1.496, hp: 140, speed: 1.1, weight: 1.1, meterRate: 1.44 }, /* VIGILANTE */
-  'lobao': { power: 1.111, hp: 119, speed: 1, weight: 1.3, meterRate: 1.2 }, /* LOBÃO */
+  'lobao': { power: 1.167, hp: 125, speed: 1, weight: 1.3, meterRate: 1.2 }, /* LOBÃO */
   'winx-exe': { power: 2.577, hp: 239, speed: 1.14, weight: 0.98, meterRate: 1.32 }, /* WINX.EXE */
-  'dandara-query': { power: 2.049, hp: 205, speed: 1.2, weight: 1, meterRate: 1.38 }, /* DANDARA QUERY */
+  'dandara-query': { power: 2.131, hp: 213, speed: 1.2, weight: 1, meterRate: 1.38 }, /* DANDARA QUERY */
   'nina-vector': { power: 1.464, hp: 144, speed: 1.3, weight: 0.98, meterRate: 1.38 }, /* NINA VECTOR */
   'dev-veterano': { power: 1.586, hp: 161, speed: 1.14, weight: 1.14, meterRate: 1.4 }, /* DEV VETERANO */
-  'hana': { power: 1.492, hp: 165, speed: 1.18, weight: 0.92, meterRate: 1.15 }, /* HANA */
+  'hana': { power: 1.641, hp: 182, speed: 1.18, weight: 0.92, meterRate: 1.15 }, /* HANA */
   'cyber-psicopata': { power: 1.32, hp: 141, speed: 1.26, weight: 1.12, meterRate: 1.4 }, /* CYBER-PSICOPATA */
   'grika': { power: 1.914, hp: 179, speed: 1.16, weight: 1.02, meterRate: 1.36 }, /* GRIKA, A SONHADORA SOMBRIA */
   'guarda-digital': { power: 2.2, hp: 184, speed: 1.22, weight: 1.08, meterRate: 1.4 }, /* GUARDA DIGITAL */
@@ -57,9 +60,9 @@ const BALANCE_FINAL = {
   'jess': { power: 2.486, hp: 335, speed: 1.3, weight: 0.85, meterRate: 1.36 }, /* JESS */
   'dev-virado': { power: 1.799, hp: 293, speed: 1.55, weight: 0.82, meterRate: 1.15 }, /* DEV VIRADO */
   'milena': { power: 2.569, hp: 390, speed: 1.08, weight: 1, meterRate: 1.15 }, /* MILENA */
-  'kira': { power: 1.578, hp: 252, speed: 0.95, weight: 1.25, meterRate: 1 }, /* KIRA */
+  'kira': { power: 1.657, hp: 265, speed: 0.95, weight: 1.25, meterRate: 1 }, /* KIRA */
   'cracker': { power: 1.661, hp: 264, speed: 1.12, weight: 0.95, meterRate: 1.1 }, /* CRACKER */
-  'rafael': { power: 1.609, hp: 260, speed: 0.85, weight: 1.3, meterRate: 0.95 }, /* RAFAEL */
+  'rafael': { power: 1.77, hp: 286, speed: 0.85, weight: 1.3, meterRate: 0.95 }, /* RAFAEL */
   'lyra': { power: 2.421, hp: 324, speed: 1.08, weight: 0.9, meterRate: 1.25 }, /* LYRA */
   'larper': { power: 2.326, hp: 338, speed: 1.16, weight: 0.98, meterRate: 1.2 }, /* LARPER */
   'jester': { power: 2.835, hp: 394, speed: 1.15, weight: 0.95, meterRate: 1.3 }, /* JESTER */
