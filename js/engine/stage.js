@@ -351,59 +351,67 @@ class StageRenderer {
   makeFlora() {
     const d = this.def;
     const gy = this.groundY || 458;
-    /* BIOMA por stage: cada tipo de palco tem flora própria */
-    const biomeFlora = {
-      'spring': ['grass', 'flower_red', 'flower_yellow', 'clover'],
-      'python': ['grass', 'flower_red', 'clover'],
-      'japan': ['grass', 'flower_red', 'clover'],
-      'sakura': ['grass', 'flower_red', 'clover'],
-      '06-sakura-dojo': ['grass', 'flower_red', 'clover'],
-      '10-digital-forest': ['grass', 'flower_yellow', 'clover'],
-      'forest': ['grass', 'grass_tall', 'mushroom', 'clover'],
-      'cavern': ['mushroom', 'grass_tall'],
-      'crystal': ['mushroom', 'grass'],
-      '08-crystal-cavern': ['mushroom', 'grass'],
-      '03-underwater-lab': [],
-      'abismo-das-baleias': [],
-    };
-    const id = d.id || '';
-    const group = d.group || '';
-    /* FLORA SO EM MAPA NATURAL: d.flora explicito manda (vazio = sem flora);
-       senao bioma especifico; senao so ganha grama/flores se o nome/grupo do
-       palco for de lugar natural (parque, floresta, lago, rio, praia...). Palco
-       urbano/tecnico (datacenter, metro, dojo, circo...) NAO tem flora. */
+    /* FLORA v2 (nov/2026): especies de verdade do atlas por BIOMA, em moitas
+       (aglomerados), com profundidade (as de tras menores e mais apagadas) e
+       quantidade pela qualidade dos graficos. Cada tipo aponta pras celulas
+       certas do atlas (antes "grama" desenhava cardo e flor escura).
+       So em mapa natural: urbano/tecnico/agua continuam sem flora. */
+    const BIOMES = [ /* ordem importa: o primeiro que casar vale */
+      [/underwater|abismo|baleia|submarino/, []],
+      [/sakura|japan/, ['grass', 'grass', 'flower_red', 'snowdrop', 'clover', 'grass_tall']],
+      [/^spring|^python|jardim|pascoa|criancas|sitio|cafezal|fazenda|campo|feira|quintal|parque|ibirapuera|morro|mirante|chapada/, ['grass', 'grass', 'grass_tall', 'flower_red', 'flower_yellow', 'snowdrop', 'clover', 'fern']],
+      [/deserto|dunas|lencois|caatinga|canyon|sertao/, ['dry', 'dry', 'dry', 'cactus', 'thistle', 'grass']],
+      [/neve|snow|gelo|artico|inverno/, ['snowdrop', 'snowdrop', 'dry', 'grass']],
+      [/halloween|cemiterio|pantano|noite/, ['nightshade', 'thistle', 'dry', 'mushroom', 'fern', 'grass']],
+      [/cavern|crystal|caverna/, ['mushroom', 'mushroom', 'fern', 'nightshade', 'grass_tall']],
+      [/forest|floresta|tijuca|mata|bosque|serra|trilha|vale/, ['fern', 'fern', 'grass', 'grass', 'grass_tall', 'mushroom', 'thistle', 'snowdrop']],
+      [/praia|beach/, ['dry', 'dry', 'grass', 'grass_tall']],
+      [/lago|represa|rio|ponte|manguezal|doca|iguacu|bonito/, ['grass', 'grass', 'grass_tall', 'fern', 'snowdrop', 'flower_red', 'clover']],
+    ];
     const NATURAL_KW = ['parque', 'park', 'floresta', 'forest', 'jardim', 'garden', 'lago', 'represa', 'praia', 'beach', 'rio', 'ponte', 'manguezal', 'doca', 'serra', 'mirante', 'trilha', 'tijuca', 'iguacu', 'chapada', 'sitio', 'cafezal', 'lencois', 'campos', 'sakura', 'spring', 'python', 'japan', 'vale', 'savana', 'bosque', 'campo', 'quintal', 'fazenda', 'natureza', 'mata', 'terreiro', 'dunas', 'cachoeira', 'canyon', 'caatinga', 'pantano', 'morro', 'feira'];
-    let kinds;
+    const id = d.id || '';
+    const lower = (id + ' ' + (d.name || '') + ' ' + (d.group || '')).toLowerCase();
+    let kinds = [];
     if (Array.isArray(d.flora)) {
       kinds = d.flora;
-    } else {
+    } else if (/underwater|abismo|baleia|submarino/.test(lower)) {
       kinds = [];
-      const lower = (id + ' ' + (d.name || '') + ' ' + group).toLowerCase();
-      let biomeMatch = false;
-      for (const key of Object.keys(biomeFlora)) {
-        if (lower.indexOf(key) >= 0) { kinds = biomeFlora[key]; biomeMatch = true; break; }
-      }
-      if (!biomeMatch && NATURAL_KW.some((k) => lower.indexOf(k) >= 0)) kinds = ['grass', 'flower_red', 'clover'];
+    } else if (NATURAL_KW.some((k) => lower.indexOf(k) >= 0) || /cavern|crystal|digital-forest|sakura-dojo/.test(lower)) {
+      kinds = ['grass', 'grass', 'grass_tall', 'flower_red', 'clover'];
+      for (const [re, list] of BIOMES) if (re.test(lower)) { kinds = list; break; }
     }
-    const count = d.floraCount || (kinds.length ? 14 : 0);
+    const q = (typeof Profile !== 'undefined' && Profile.setting && Profile.setting('quality')) || 'medium';
+    const qMul = q === 'low' ? 0.55 : q === 'high' ? 1.7 : 1;
+    const count = kinds.length ? Math.round((d.floraCount || 22) * qMul) : 0;
     const span = this.W || 960;
-    for (let i = 0; i < count; i++) {
-      const k = kinds[i % kinds.length] || 'grass';
-      const x = Math.random() * span;
-      this.flora.push({
-        k,
-        x,
-        y: gy - 2 - Math.random() * 6,
-        baseY: gy - 2,
-        ph: Math.random() * 6,
-        sway: k === 'grass_tall' ? 0.05 : (0.03 + Math.random() * 0.05),
-        amp: k === 'grass_tall' ? 5 : (k === 'mushroom' ? 1 : (2 + Math.random() * 4)),
-        dir: Math.random() < 0.5 ? -1 : 1,
-        life: 0,
-        swaying: 0,
-        scale: k === 'grass_tall' ? 1.4 : (k === 'mushroom' ? 1.1 : 1),
-      });
+    /* moitas: centros espalhados, 2-5 plantas por moita */
+    let i = 0;
+    while (i < count) {
+      const cx = 20 + Math.random() * (span - 40);
+      const n = 2 + ((Math.random() * 4) | 0);
+      for (let j = 0; j < n && i < count; j++, i++) {
+        const k = kinds[(Math.random() * kinds.length) | 0] || 'grass';
+        const z = Math.random(); /* 0 = la atras, 1 = na frente */
+        const x = Math.max(4, Math.min(span - 4, cx + (Math.random() - 0.5) * 70));
+        this.flora.push({
+          k,
+          x,
+          y: gy - 1 - (1 - z) * 9,
+          baseY: gy - 2,
+          z,
+          v: (Math.random() * 4) | 0,
+          ph: Math.random() * 6,
+          sway: k === 'grass_tall' || k === 'dry' ? 0.05 : (0.03 + Math.random() * 0.05),
+          amp: k === 'grass_tall' || k === 'dry' ? 5 : (k === 'mushroom' || k === 'cactus' ? 1 : (2 + Math.random() * 4)),
+          dir: Math.random() < 0.5 ? -1 : 1,
+          life: 0,
+          swaying: 0,
+          bend: 0,
+          scale: (k === 'grass_tall' ? 1.4 : (k === 'mushroom' ? 1.1 : 1)) * (0.7 + z * 0.45),
+        });
+      }
     }
+    this.flora.sort((p1, p2) => p1.y - p2.y); /* de tras pra frente */
   }
   frameRect() {
     const d = this.def;
@@ -470,6 +478,7 @@ class StageRenderer {
     /* FLORA: flores e grama balançam com vento e reagem a golpes */
     if (this.floraShake > 0) this.floraShake *= 0.9;
     const floraWind = wind * 0.5 + (this.floraShake > 0 ? Math.sin(this.t * 0.3) * 1.5 : 0);
+    const fs = (this.flora.length && this.game && this.game.fighters) ? this.game.fighters().filter(Boolean) : [];
     for (const pl of this.flora) {
       pl.ph += pl.sway;
       pl.x += Math.sin(pl.ph) * pl.sway * 0.5 + floraWind * 0.3;
@@ -479,6 +488,13 @@ class StageRenderer {
       }
       if (pl.x < 10) pl.x = 10;
       if (pl.x > (this.W || 960) - 10) pl.x = (this.W || 960) - 10;
+      /* lutador passando por cima: a planta deita pro lado oposto e volta devagar */
+      let want = 0;
+      for (const f of fs) {
+        const dx = pl.x - f.x;
+        if (Math.abs(dx) < 46 && f.y > -30) want += (dx >= 0 ? 1 : -1) * (1 - Math.abs(dx) / 46) * (pl.k === 'mushroom' || pl.k === 'cactus' ? 0.12 : 0.55);
+      }
+      pl.bend = (pl.bend || 0) + (Math.max(-0.7, Math.min(0.7, want)) - (pl.bend || 0)) * (want ? 0.25 : 0.06);
     }
     if (this.hitFlash > 0) this.hitFlash--;
   }
@@ -553,19 +569,22 @@ class StageRenderer {
       ctx.globalAlpha = a;
       ctx.save();
       ctx.translate(xx + sway, yy);
-      const sprRow = StageRenderer.FLORA_SPR_ROW[pl.k];
-      if (sprReady && sprRow != null) {
-        const sc = pl.scale * (pl.k === 'grass_tall' ? 0.55 : 0.32);
-        Art.cell(ctx, 'flora', sprRow, fi % 4, 0, 0, {
-          scale: sc,
+      const spec = StageRenderer.FLORA_SPECIES[pl.k];
+      if (sprReady && spec) {
+        const cell = spec.cells[(pl.v != null ? pl.v : fi) % spec.cells.length];
+        /* plantas de tras um pouco mais escuras/apagadas: profundidade */
+        if (pl.z != null && pl.z < 0.45) ctx.globalAlpha = a * (0.72 + pl.z * 0.5);
+        Art.cell(ctx, 'flora', cell[0], cell[1], 0, 0, {
+          scale: pl.scale * spec.sc,
           dir: pl.dir,
           anchor: 'bottom',
-          rot: Math.sin(this.t * pl.sway + pl.ph) * 0.06,
+          rot: Math.sin(this.t * pl.sway + pl.ph) * 0.06 + (pl.bend || 0),
         });
         ctx.restore();
         continue;
       }
-      if (pl.k === 'grass') {
+      if (pl.bend) ctx.rotate(pl.bend);
+      if (pl.k === 'grass' || pl.k === 'dry' || pl.k === 'fern') {
         ctx.fillStyle = '#7cb342';
         ctx.fillRect(-1, 0, 3, 10 + Math.sin(this.t * 0.1 + pl.ph) * 2);
         ctx.fillStyle = '#689f38';
@@ -578,7 +597,7 @@ class StageRenderer {
         ctx.fillRect(0, 0, 3, h - 4);
         ctx.fillStyle = '#2e7d32';
         ctx.fillRect(-1, h - 6, 7, 4);
-      } else if (pl.k === 'flower_red') {
+      } else if (pl.k === 'flower_red' || pl.k === 'thistle' || pl.k === 'nightshade') {
         ctx.fillStyle = '#e91e63';
         ctx.beginPath();
         ctx.arc(0, -4, 3 + Math.sin(this.t * 0.1 + pl.ph) * 0.5, 0, 6.28);
@@ -589,7 +608,7 @@ class StageRenderer {
         ctx.fill();
         ctx.fillStyle = '#558b2f';
         ctx.fillRect(-0.5, 0, 1, 6);
-      } else if (pl.k === 'flower_yellow') {
+      } else if (pl.k === 'flower_yellow' || pl.k === 'snowdrop' || pl.k === 'cactus') {
         ctx.fillStyle = '#ffeb3b';
         ctx.beginPath();
         ctx.arc(0, -4, 3 + Math.sin(this.t * 0.1 + pl.ph) * 0.5, 0, 6.28);
@@ -855,18 +874,21 @@ class StageRenderer {
     if (!this.flora || !this.flora.length) return;
     const gy = this.groundY || 458;
     const W = this.W || 960;
-    const rows = [StageRenderer.FLORA_SPR_ROW.grass_tall, StageRenderer.FLORA_SPR_ROW.grass, StageRenderer.FLORA_SPR_ROW.clover];
+    /* tufos grandes desfocados nos cantos: so folhagem do bioma do mapa (sem flor gigante) */
+    const leafy = [...new Set(this.flora.map((p) => p.k))].filter((k) => ['grass', 'grass_tall', 'fern', 'dry', 'clover'].includes(k));
+    const cells = (leafy.length ? leafy : ['grass']).flatMap((k) => StageRenderer.FLORA_SPECIES[k].cells);
     const n = 4 + ((Math.random() * 4) | 0);
     for (let i = 0; i < n; i++) {
       const leftSide = i % 2 === 0;
+      const cell = cells[(Math.random() * cells.length) | 0];
       this.foreground.push({
-        row: rows[(Math.random() * rows.length) | 0] || 0,
+        row: cell[0],
+        col: cell[1],
         x: leftSide ? -30 + Math.random() * 170 : W - 140 + Math.random() * 170,
         y: gy + 6 + Math.random() * 10,
         scale: 2.6 + Math.random() * 1.8,
         dir: Math.random() < 0.5 ? -1 : 1,
         ph: Math.random() * 6,
-        col: (Math.random() * 4) | 0,
       });
     }
   }
@@ -1052,7 +1074,25 @@ class StageRenderer {
 /* Linhas do atlas de flora (assets/fauna/flora.png, gerado por
    tools/build_flora_atlas.py a partir de arte-fonte/flora/flores.png + arte-fonte/flora/grama.png)
    por tipo de planta; tipos sem linha caem no desenho vetorial. */
+/* (legado: linha por tipo; o desenho usa FLORA_SPECIES abaixo) */
 StageRenderer.FLORA_SPR_ROW = { grass: 0, grass_tall: 1, flower_red: 2, flower_yellow: 3, clover: 4 };
+/* FLORA v2: celulas [linha, coluna] de cada especie no atlas 4x5 e escala base.
+   linha 0: samambaia c/ flor amarela, cardo, campanula branca, flor escura
+   linha 1: tapete de grama (4)   linha 2: lotus, tulipas, galho de sakura, cacto florido
+   linha 3: girassol (2), capim seco (2)   linha 4: tufos de grama (4) */
+StageRenderer.FLORA_SPECIES = {
+  grass: { cells: [[4, 0], [4, 1], [4, 2], [4, 3]], sc: 0.3 },
+  grass_tall: { cells: [[1, 0], [1, 1], [1, 2], [1, 3]], sc: 0.34 },
+  clover: { cells: [[4, 0], [4, 2]], sc: 0.2 },
+  fern: { cells: [[0, 0]], sc: 0.42 },
+  thistle: { cells: [[0, 1]], sc: 0.38 },
+  snowdrop: { cells: [[0, 2]], sc: 0.34 },
+  nightshade: { cells: [[0, 3]], sc: 0.38 },
+  flower_red: { cells: [[2, 1]], sc: 0.36 },
+  cactus: { cells: [[2, 3]], sc: 0.4 },
+  flower_yellow: { cells: [[3, 0], [3, 1]], sc: 0.42 },
+  dry: { cells: [[3, 2], [3, 3]], sc: 0.36 },
+};
 
 /* Paleta de ceu por tema do palco: [regex no id+nome+grupo, stops [[rgba, offset]...]]
    (topo -> horizonte). O ultimo fallback deriva a cor do proprio tint do mapa. */
