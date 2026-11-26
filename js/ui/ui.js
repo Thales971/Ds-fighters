@@ -1774,7 +1774,7 @@ const UI = {
     document.querySelectorAll('[data-set]').forEach((el) => {
       const k = el.dataset.set;
       const v = Profile.setting(k);
-      if (el.type === 'checkbox') el.checked = (k === 'shake' || k === 'smooth' || k === 'haptic') ? v !== false : !!v;
+      if (el.type === 'checkbox') el.checked = (k === 'shake' || k === 'smooth' || k === 'haptic' || k === 'touchFloat' || k === 'touchAuto') ? v !== false : !!v;
       else if (el.type === 'range' && (v == null || v === '')) el.value = el.getAttribute('value') || el.min;
       else if (k === 'reducedMotion') el.value = v === true ? 'on' : v === false ? 'off' : 'auto';
       else el.value = v == null ? '' : v;
@@ -1814,9 +1814,14 @@ const UI = {
     const fighter = this.game.activeOf(team);
     if (!fighter) return;
     const kit = fighter.currentKit();
-    const key = fighter.def.id + ':' + kit.map((p) => p.id).join(',') + (fighter.has('trans') ? ':trans' : '');
+    const tagMode = this.game.mode === 'tag' || !!(this.game.teams && this.game.teams[team] && this.game.teams[team].members.length > 1);
+    const key = fighter.def.id + ':' + kit.map((p) => p.id).join(',') + (fighter.has('trans') ? ':trans' : '') + (tagMode ? ':tag' : '');
     if (key === this._touchKitKey) return;
     this._touchKitKey = key;
+    /* TROCA so existe no 2x2: no 1x1 era um botao morto no meio dos golpes */
+    const tagBtn = this.$('touch-controls').querySelector('.t-tag');
+    if (tagBtn) tagBtn.hidden = !tagMode;
+    this.$('touch-controls').classList.toggle('many-powers', kit.length > 5);
     this.$('touch-controls').querySelectorAll('[data-power]').forEach((button) => {
       const index = +button.dataset.power;
       const power = kit[index];
@@ -1824,9 +1829,36 @@ const UI = {
       button.setAttribute('aria-label', power ? `${index + 1}: ${power.name}` : 'Habilidade indisponível');
       button.classList.toggle('ult', !!power && power.slot === 'ultimate');
       button.innerHTML = `<span class="touch-key">${index === 9 ? '0' : index + 1}</span>`;
-      button.style.cssText = power ? Art.css('abil:' + (fighter.powerSheetId ? fighter.powerSheetId(power) : fighter.kitOwnerId(power)), power.row, 0, 44) : '';
+      const size = power && power.slot === 'ultimate' ? 58 : 50;
+      button.style.cssText = power ? Art.css('abil:' + (fighter.powerSheetId ? fighter.powerSheetId(power) : fighter.kitOwnerId(power)), power.row, 0, size) : '';
+      button._cd = null;
     });
     if (typeof AppViewport !== 'undefined' && AppViewport.ready) AppViewport.fit();
+  },
+
+  /* RECARGA nos botoes de toque: o poder escurece e "enche" enquanto recarrega
+     (--cd = fracao que falta) e brilha quando fica pronto. */
+  touchCooldowns() {
+    const tc = this.$('touch-controls');
+    if (!this.game || !tc || tc.classList.contains('hidden')) return;
+    const team = this.game.mode === 'online' ? this.game.cfg.localTeam || 0 : 0;
+    const f = this.game.activeOf(team);
+    if (!f || !f.powerState) return;
+    if (!this._touchPowerBtns) this._touchPowerBtns = [...tc.querySelectorAll('[data-power]')];
+    for (const b of this._touchPowerBtns) {
+      if (b.hidden) continue;
+      let st;
+      try { st = f.powerState(+b.dataset.power); } catch (e) { st = null; }
+      if (!st) continue;
+      const left = st.ready ? 0 : Math.max(0, Math.min(1, 1 - (st.pct || 0)));
+      const q = Math.round(left * 20) / 20;
+      const ready = !!st.ready && !st.locked;
+      if (b._cd === q && b._ready === ready) continue;
+      b._cd = q; b._ready = ready;
+      b.style.setProperty('--cd', String(q));
+      b.classList.toggle('ready', ready);
+      b.classList.toggle('locked', !!st.locked);
+    }
   },
 
   /* ---------- lista de golpes ---------- */
@@ -1930,6 +1962,7 @@ const UI = {
     if (this.screen === 'fight') {
       if (m.start) this.pause();
       if ((this._touchTick = (this._touchTick || 0) + 1) % 15 === 0) this.updateTouchPowers();
+      if (this._touchTick % 3 === 0) this.touchCooldowns();
       if (this.tutorial) this.tutorialTick();
       return;
     }

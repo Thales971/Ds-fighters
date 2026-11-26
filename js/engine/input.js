@@ -79,17 +79,24 @@ const Input = {
       const on = (e) => {
         e.preventDefault();
         if (this._touchPointers.has(e.pointerId)) return;
-        this._touchPointers.set(e.pointerId, { code, btn });
+        const held = { code, btn, timer: 0 };
+        this._touchPointers.set(e.pointerId, held);
         this._touchCodes.set(code, (this._touchCodes.get(code) || 0) + 1);
         try { btn.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
         mark(code);
         btn.classList.add('on');
+        /* COMBO FACIL: segurar SOCO/CHUTE repete o golpe (um toque novo a cada
+           ~8 quadros) — no vidro tocar rapido varias vezes e o que mais falha */
+        if ((code === 'MouseLeft' || code === 'MouseRight') && !(typeof Profile !== 'undefined' && Profile.setting('touchAuto') === false)) {
+          held.timer = setInterval(() => { if (this._touchCodes.has(code)) this.pressed.add(code); }, 135);
+        }
       };
       const off = (e) => {
         if (e.cancelable) e.preventDefault();
         const held = this._touchPointers.get(e.pointerId);
         if (!held) return;
         this._touchPointers.delete(e.pointerId);
+        if (held.timer) clearInterval(held.timer);
         const count = (this._touchCodes.get(held.code) || 1) - 1;
         if (count > 0) this._touchCodes.set(held.code, count);
         else { this._touchCodes.delete(held.code); if (!this._physical.has(held.code)) this.keys.delete(held.code); }
@@ -118,42 +125,76 @@ const Input = {
           else { this._touchCodes.delete(code); if (!this._physical.has(code)) this.keys.delete(code); }
         }
       };
+      /* centro do joystick: o do proprio desenho, ou onde o dedo pousou
+         (joystick FLUTUANTE: tocar em qualquer ponto do lado esquerdo) */
+      let center = null;
+      let owner = null;
       const move = (e) => {
         const box = stick.getBoundingClientRect();
-        const cx = box.left + box.width / 2;
-        const cy = box.top + box.height / 2;
+        const cx = center ? center.x : box.left + box.width / 2;
+        const cy = center ? center.y : box.top + box.height / 2;
         let dx = e.clientX - cx;
         let dy = e.clientY - cy;
         const max = box.width * 0.36;
         const len = Math.hypot(dx, dy) || 1;
         if (len > max) { dx = dx / len * max; dy = dy / len * max; }
         if (knob) knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        const dead = 18;
-        apply('KeyA', dx < -dead);
-        apply('KeyD', dx > dead);
-        apply('KeyW', dy < -dead);
-        apply('KeyS', dy > dead);
+        /* 8 direcoes por SETOR, com zona morta proporcional: andar puxando um
+           pouco pra cima nao pula mais sem querer (pulo so acima de ~30 graus) */
+        const dead = max * 0.26;
+        const on = len > dead;
+        const ux = dx / len, uy = dy / len;
+        apply('KeyA', on && ux < -0.38);
+        apply('KeyD', on && ux > 0.38);
+        apply('KeyW', on && uy < -0.5);
+        apply('KeyS', on && uy > 0.62);
       };
       const reset = () => {
         if (knob) knob.style.transform = '';
+        center = null; owner = null;
+        stick.classList.remove('floating');
+        stick.style.left = ''; stick.style.top = ''; stick.style.bottom = '';
         apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false);
       };
       this._resetStick = reset;
-      stick.addEventListener('pointerdown', (e) => {
+      const begin = (e, el, floating) => {
         e.preventDefault();
+        if (owner) return;
         this.touchUsed = true;
-        try { stick.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+        owner = el;
+        try { el.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+        if (floating) {
+          /* o desenho do joystick pula pra baixo do dedo */
+          const box = stick.getBoundingClientRect();
+          const host = stick.offsetParent ? stick.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
+          stick.classList.add('floating');
+          stick.style.left = (e.clientX - host.left - box.width / 2) + 'px';
+          stick.style.top = (e.clientY - host.top - box.height / 2) + 'px';
+          stick.style.bottom = 'auto';
+          center = { x: e.clientX, y: e.clientY };
+        }
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(10);
         move(e);
-      });
-      stick.addEventListener('pointermove', (e) => { if (stick.hasPointerCapture(e.pointerId)) move(e); });
+      };
+      stick.addEventListener('pointerdown', (e) => begin(e, stick, false));
+      stick.addEventListener('pointermove', (e) => { if (owner === stick && stick.hasPointerCapture(e.pointerId)) move(e); });
       stick.addEventListener('pointerup', reset);
       stick.addEventListener('pointercancel', reset);
+      const zone = document.getElementById('stick-zone');
+      if (zone) {
+        zone.addEventListener('pointerdown', (e) => {
+          if (typeof Profile !== 'undefined' && Profile.setting('touchFloat') === false) return;
+          begin(e, zone, true);
+        });
+        zone.addEventListener('pointermove', (e) => { if (owner === zone && zone.hasPointerCapture(e.pointerId)) move(e); });
+        zone.addEventListener('pointerup', () => { if (owner === zone) reset(); });
+        zone.addEventListener('pointercancel', () => { if (owner === zone) reset(); });
+      }
     }
   },
   releaseAll() {
     if (this._resetStick) this._resetStick();
-    this._touchPointers.forEach(({ btn }) => btn.classList.remove('on'));
+    this._touchPointers.forEach(({ btn, timer }) => { btn.classList.remove('on'); if (timer) clearInterval(timer); });
     this._touchPointers.clear(); this._touchCodes.clear(); this._physical.clear();
     this.keys.clear(); this.pressed.clear();
   },
