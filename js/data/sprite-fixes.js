@@ -56,6 +56,36 @@
       frames: { ckick: 1 },
       poseScale: { crouch: 1.2, cpunch: 1.2, ckick: 0.7, block: 1.2 },
     },
+    /* MIRA: mesma familia de folha da Ada */
+    frontend: {
+      rows: { cpunch: R.crouch, ko: R.hit }, koFall: true,
+      frames: { ckick: 1 },
+      poseScale: { block: 1.3, special: 1.2, ckick: 0.66, ko: 1.1 },
+    },
+    /* KAIRO: o agachado inteiro era chute alto em pe; o 1o quadro do chute e
+       um agachado grande de verdade: os agachados usam so ele */
+    scrum: {
+      rows: { crouch: 5, cpunch: 5, ckick: 5, ko: R.hit }, koFall: true,
+      frames: { crouch: 1, cpunch: 1, ckick: 1, jkick: 3 },
+      poseScale: { crouch: 0.7, cpunch: 0.72, ckick: 0.7, block: 1.15 },
+    },
+    /* OMNI: soco agachado era chute em pe, bloqueio minusculo, KO era o especial */
+    fullstack: {
+      rows: { cpunch: R.crouch, ko: R.hit }, koFall: true,
+      frames: { ckick: 1 },
+      poseScale: { ckick: 0.8, block: 1.3, special: 1.2, ko: 1.1 },
+    },
+    /* CROMO: KO era o especial, bloqueio pequeno, chute agachado em pe */
+    merc: {
+      rows: { ko: R.hit }, koFall: true,
+      frames: { ckick: 1 },
+      poseScale: { crouch: 1.1, cpunch: 1.1, ckick: 0.68, block: 1.1, punch: 1.15, jpunch: 1.15, special: 1.15 },
+    },
+    /* HENRICO: folha regerada com grade explicita; as escalas antigas
+       (0.7-0.8) compensavam poses gigantes que nao existem mais */
+    henrico: {
+      poseScale: { block: 0.95, crouch: 1.05, cpunch: 1.0, ckick: 0.95, hit: 0.95, special: 0.95, win: 0.95 },
+    },
     /* KIRA: folha regerada com o agachado de verdade (estocada baixa); a
        escala antiga do agachado (0.78) era pra pose em pe encolhida */
     kira: {
@@ -65,6 +95,7 @@
   /* folhas regeradas (tools/integrate_fighter.py) nesta revisao: baixar de novo */
   SPRITE_LAYOUT.ver = SPRITE_LAYOUT.ver || {};
   for (const id of ['rafael', 'hana', 'kira']) SPRITE_LAYOUT.ver[id] = 'v98-sprites';
+  SPRITE_LAYOUT.ver.henrico = 'v99-henrico';
   for (const id of Object.keys(FIX)) {
     const f = FIX[id];
     const own = SPRITE_LAYOUT.perFighter[id] = SPRITE_LAYOUT.perFighter[id] || {};

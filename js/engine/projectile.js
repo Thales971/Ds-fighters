@@ -120,7 +120,9 @@ class Projectile {
     });
     if (p.heal) this.owner.heal(p.heal);
     game.spawnAbilityImpact(this.owner, p, this.x, this.y);
-    if (this.hitsLeft <= 0) { this.dead = true; if (p.zone) this.explode(game); }
+    /* passThrough (carro do ET): acerta uma vez e segue em frente ate sair da tela */
+    if (this.hitsLeft <= 0 && p.passThrough) this.rehit = 9999;
+    else if (this.hitsLeft <= 0) { this.dead = true; if (p.zone) this.explode(game); }
     else this.rehit = 9;
   }
   explode(game) {

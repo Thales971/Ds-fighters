@@ -554,21 +554,33 @@ PONTEIRO_POSES = {
 # confete de fundo que o recorte engole — evitar.
 # folhas: 0=sprite1 1=sprite2 2=sprite3 3=sprite5 4=sprite6(4x4!) 5=hab1 6=hab2
 HENRICO_POSES = {
-    'idle':    ([(4, 1, 0, False), (4, 1, 1, False), (2, 0, 1, False), (3, 0, 0, False)], 200, BASE),
-    'walk':    ([(4, 1, 0, False), (4, 2, 0, False), (4, 0, 1, False), (2, 0, 0, False)], 198, BASE),
-    'jump':    ([(4, 2, 0, False), (2, 2, 0, False), (2, 3, 0, False), (4, 2, 0, False)], 180, AIR),
-    'crouch':  ([(4, 1, 3, False), (3, 0, 1, False), (4, 1, 3, False), (3, 0, 1, False)], 140, BASE),
-    'punch':   ([(3, 2, 1, False), (3, 3, 1, False), (5, 0, 0, False), (5, 1, 0, False)], 195, BASE),
-    'kick':    ([(4, 3, 2, False), (0, 0, 3, False), (0, 1, 3, False), (4, 3, 2, False)], 190, BASE),
-    'cpunch':  ([(4, 0, 3, False), (3, 2, 3, False), (4, 0, 3, False), (3, 2, 3, False)], 145, BASE),
-    'ckick':   ([(4, 2, 3, False), (2, 0, 3, False), (2, 1, 3, False), (3, 3, 3, False)], 150, BASE),
-    'jpunch':  ([(4, 3, 0, False), (2, 2, 2, False), (2, 3, 2, False), (4, 3, 0, False)], 185, AIR),
-    'jkick':   ([(4, 3, 1, False), (4, 3, 1, False), (2, 3, 3, False), (2, 3, 3, False)], 180, AIR),
-    'special': ([(3, 1, 1, False), (1, 1, 1, False), (0, 2, 2, False), (3, 1, 1, False)], 200, BASE),
-    'hit':     ([(4, 3, 3, False), (2, 0, 4, False), (0, 1, 4, False), (1, 1, 2, False)], 195, BASE),
-    'block':   ([(3, 2, 2, False), (1, 2, 2, False), (3, 2, 2, False), (1, 2, 2, False)], 198, BASE),
-    'ko':      ([(2, 2, 4, False), (3, 0, 4, False), (0, 2, 4, False), (2, 2, 4, False)], 80, BASE),
-    'win':     ([(3, 1, 4, False), (3, 1, 4, False), (3, 1, 4, False), (3, 1, 4, False)], 200, BASE),
+    # nov/2026: grade explicita (row_bands_per/col_bands_per) nas folhas 2 e 3 — a
+    # deteccao automatica fundia figuras vizinhas (boneco duplicado/minusculo,
+    # parado gigante, KO em pe de 80px). Tudo de shorts preto (a folha de
+    # habilidades 2 tem shorts branco e nao entra mais nas poses).
+    # folha2 (henrico-sprite-3, 4x5): r0 drible / drible / corrida c/ bola / arremesso
+    #   r1 base / bracos cruzados / corrida / apontando | r2 soco / soco / punho / chute alto
+    #   r3 rasteira / flexao / KO deitado / dor | r4 flexao / biceps / paz / punho
+    # folha3 (henrico-sprite-5, 4x5): r0 segura bola / gira bola / drible baixo / drible
+    #   r1 bola no alto / bola explodindo / arremesso / arrancada c/ poeira
+    #   r2 apontando / ajoelhado c/ bola / bracos abertos / anel de fogo
+    #   r3 caindo c/ estrelas / deitado tonto / sentado / cabeca baixa
+    #   r4 gira bola c/ brilho / paz / biceps / anel de fogo encolhido
+    'idle':    ([(3, 3, 0, False), (3, 2, 0, False)] * 2, 198, BASE),
+    'walk':    ([(2, 0, 0, False), (2, 2, 0, False), (2, 1, 0, False), (2, 2, 1, False)], 196, BASE),
+    'jump':    ([(2, 3, 0, False)] * 4, 180, AIR),
+    'crouch':  ([(3, 1, 2, False)] * 4, 140, BASE),
+    'punch':   ([(2, 0, 2, False), (2, 1, 2, False), (2, 1, 2, False), (2, 0, 2, False)], 195, BASE),
+    'kick':    ([(2, 3, 2, False)] * 4, 190, BASE),
+    'cpunch':  ([(3, 1, 2, False), (3, 3, 1, False), (3, 3, 1, False), (3, 1, 2, False)], 150, BASE),
+    'ckick':   ([(2, 0, 3, False)] * 4, 140, BASE),
+    'jpunch':  ([(3, 0, 1, False)] * 4, 180, AIR),
+    'jkick':   ([(2, 3, 2, False)] * 4, 175, AIR),
+    'special': ([(3, 1, 1, False), (3, 3, 2, False), (3, 3, 2, False), (3, 2, 1, False)], 195, BASE),
+    'hit':     ([(2, 3, 3, False)] * 4, 185, BASE),
+    'block':   ([(2, 1, 1, False)] * 4, 190, BASE),
+    'ko':      ([(3, 1, 3, False)] * 4, 95, BASE),
+    'win':     ([(3, 1, 4, False), (3, 2, 4, False), (3, 0, 4, False), (3, 2, 4, False)], 195, BASE),
 }
 
 # DEV VIRADO — "O Que Virou a Noite" (3 folhas de poses 4x2 + 1 atlas de
@@ -1106,6 +1118,8 @@ FIGHTERS = {
         'abilities': 'henrico-abilities-3.jpg',
         'poses': HENRICO_POSES,
         'ui_cell': (4, 1, 0, False),
+        'row_bands_per': {2: [(i * 179, (i + 1) * 179) for i in range(5)], 3: [(0, 185), (185, 390), (390, 570), (570, 712), (712, 896)]},
+        'col_bands_per': {2: [(i * 296, (i + 1) * 296) for i in range(4)], 3: [(i * 296, (i + 1) * 296) for i in range(4)]},
     },
 
     'henrico': {
@@ -1113,6 +1127,8 @@ FIGHTERS = {
         'abilities': 'henrico-abilities-3.jpg',
         'poses': HENRICO_POSES,
         'ui_cell': (4, 1, 0, False),
+        'row_bands_per': {2: [(i * 179, (i + 1) * 179) for i in range(5)], 3: [(0, 185), (185, 390), (390, 570), (570, 712), (712, 896)]},
+        'col_bands_per': {2: [(i * 296, (i + 1) * 296) for i in range(4)], 3: [(i * 296, (i + 1) * 296) for i in range(4)]},
     },
 
 
@@ -1402,7 +1418,8 @@ def main():
         SHEET_POST.update(cfg.get('desat', {}))
         for si, sh in enumerate(sheets):
             cb = (cfg.get('col_bands_per') or {}).get(si, cfg.get('col_bands'))
-            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=cfg.get('row_bands'), col_bands=cb, denoise=cfg.get('denoise', False))
+            rb = (cfg.get('row_bands_per') or {}).get(si, cfg.get('row_bands'))
+            sc = load_sheet((ROOT / cfg['src_dir'] if cfg.get('src_dir') else SRC) / sh, row_bands=rb, col_bands=cb, denoise=cfg.get('denoise', False))
             for k, v in sc.items():
                 cells[(si, k[0], k[1])] = v
         print(fid, '->', len(cells), 'figuras')
