@@ -95,6 +95,8 @@ const ART_SHEETS = {
 /* Dev Veterano: atlas refeito (tools/build_devvet_fx.py) — objetos inteiros, sem corte */
 ART_SHEETS["abil:dev-veterano"].v = "v80-devvet-fx";
 ART_SHEETS["fx2:dev-veterano"].v = "v80-devvet-fx";
+ART_SHEETS["abil:rafael"].v = "v98-rafael-fx";
+ART_SHEETS["fx2:rafael"].v = "v98-rafael-fx";
 
 const Art = {
   images: {},

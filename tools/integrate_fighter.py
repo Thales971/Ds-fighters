@@ -227,21 +227,27 @@ def place(sheet, fig, target_h, foot_y, col, pose_i, dx=0, flip=False):
 # agachar/chute/tiro/block) folha2 (si=1: andar/idle/pulo-ar/vitoria |
 # garra/agachar/KO-deitado/block). Toda virada pra direita, sem flips.
 HANA_POSES = {
-    'idle':    ([(0, 0, 0, False), (1, 1, 0, False), (0, 0, 0, False), (1, 1, 0, False)], 195, BASE),
-    'walk':    ([(0, 1, 0, False), (1, 0, 0, False), (0, 1, 0, False), (1, 0, 0, False)], 190, BASE),
-    'jump':    ([(0, 2, 0, False), (1, 2, 0, False), (0, 2, 0, False), (1, 2, 0, False)], 165, AIR),
-    'crouch':  ([(0, 0, 1, False), (1, 1, 1, False), (0, 0, 1, False), (1, 1, 1, False)], 125, BASE),
-    'punch':   ([(0, 3, 0, False), (1, 0, 1, False), (0, 3, 0, False), (1, 0, 1, False)], 175, BASE),
-    'kick':    ([(0, 1, 1, False)] * 4, 165, BASE),
-    'cpunch':  ([(0, 0, 1, False)] * 4, 130, BASE),
-    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
-    'jpunch':  ([(0, 3, 0, False)] * 4, 170, AIR),
-    'jkick':   ([(0, 1, 1, False)] * 4, 160, AIR),
-    'special': ([(0, 2, 1, False)] * 4, 195, BASE),
-    'hit':     ([(1, 3, 1, False)] * 4, 185, BASE),
-    'block':   ([(0, 3, 1, False), (1, 3, 1, False), (0, 3, 1, False), (1, 3, 1, False)], 190, BASE),
-    'ko':      ([(1, 2, 1, False)] * 4, 76, BASE),
-    'win':     ([(1, 3, 0, False)] * 4, 195, BASE),
+    # (folha, coluna, linha). Folha 1 (si=0): flutuando | passo | avanco | pulo com garra pra cima
+    #                                         agachada | GUARDA garras | garra pra frente | joelhada voadora
+    # folha 2 (si=1): giro de fogo | pulo soltando orbes | chicote de cipo | ajoelhada com petalas
+    #                 investida | levando golpe ajoelhada | NOCAUTE deitada | vitoria
+    # (antes o PARADO alternava com o pulo das orbes, o PULO usava o avanco no chao,
+    #  CHUTE/JPUNCH/JKICK eram poses paradas e a DEFESA alternava com um soco)
+    'idle':    ([(0, 1, 1, False)] * 4, 195, BASE),
+    'walk':    ([(0, 1, 0, False), (0, 2, 0, False)] * 2, 190, BASE),
+    'jump':    ([(0, 0, 0, False)] * 4, 170, AIR),
+    'crouch':  ([(0, 0, 1, False)] * 4, 140, BASE),
+    'punch':   ([(0, 1, 1, False), (0, 2, 1, False), (0, 2, 1, False), (0, 1, 1, False)], 185, BASE),
+    'kick':    ([(1, 0, 1, False)] * 4, 175, BASE),
+    'cpunch':  ([(0, 0, 1, False)] * 4, 140, BASE),
+    'ckick':   ([(1, 3, 0, False)] * 4, 150, BASE),
+    'jpunch':  ([(0, 3, 0, False)] * 4, 180, AIR),
+    'jkick':   ([(0, 3, 1, False)] * 4, 175, AIR),
+    'special': ([(1, 0, 0, False), (1, 2, 0, False)] * 2, 195, BASE),
+    'hit':     ([(1, 1, 1, False)] * 4, 160, BASE),
+    'block':   ([(0, 1, 1, False)] * 4, 190, BASE),
+    'ko':      ([(1, 2, 1, False)] * 4, 90, BASE),
+    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
 }
 
 # Ciber com mais sprites da folha: idle/walk alternam 2 quadros, punch/kick
@@ -616,24 +622,29 @@ MILENA_POSES = {
 
 # KIRA — cabelo azul longo, casaco preto, martelo azul com simbolo de seta.
 # 2 folhas de poses 4x2, TODAS olhando pra DIREITA (sem flip).
-# folha0 (batalha): r0 = parado / andando / andando / parado | r1 = pulo / especial(martelo) / especial / parado
-# folha1 (estados): r0 = parado / block / hit / chute | r1 = KO / esquiva / agarrão / parado(vitoria)
+# folha0 (batalha): r0 = guarda / andando c/ martelo / estocada baixa / martelo na horizontal
+#                   r1 = pulo c/ martelo / dano no ar / joelhada no ar / power-up
+# folha1 (estados): r0 = martelo no ombro / martelo erguido / marretada c/ impacto / chute
+#                   r1 = caindo (dano) / KO deitada / martelo no ombro / giro do martelo
+# marretada e chute olham pra ESQUERDA na folha (flip=True).
+# (nov/2026: o mapa antigo punha a KO deitada no ckick, a KO era a pose de queda
+#  minuscula e o agachado/cpunch eram a pose em pe encolhida)
 KIRA_POSES = {
     'idle':    ([(0, 0, 0, False), (0, 3, 0, False), (0, 0, 0, False), (0, 3, 0, False)], 195, BASE),
     'walk':    ([(0, 1, 0, False), (0, 2, 0, False), (0, 1, 0, False), (0, 2, 0, False)], 190, BASE),
-    'jump':    ([(0, 0, 1, False)] * 4, 165, AIR),
-    'crouch':  ([(1, 1, 0, False)] * 4, 125, BASE),
-    'punch':   ([(0, 1, 1, False), (0, 2, 1, False), (0, 1, 1, False), (0, 2, 1, False)], 175, BASE),
-    'kick':    ([(1, 3, 0, False)] * 4, 165, BASE),
-    'cpunch':  ([(0, 3, 0, False)] * 4, 130, BASE),
-    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
-    'jpunch':  ([(0, 0, 1, False)] * 4, 170, AIR),
-    'jkick':   ([(1, 3, 0, False)] * 4, 160, AIR),
-    'special': ([(1, 2, 1, False)] * 4, 195, BASE),
-    'hit':     ([(1, 2, 0, False)] * 4, 185, BASE),
-    'block':   ([(1, 1, 0, False)] * 4, 190, BASE),
-    'ko':      ([(1, 0, 1, False)] * 4, 76, BASE),
-    'win':     ([(1, 3, 1, False)] * 4, 195, BASE),
+    'jump':    ([(0, 0, 1, False)] * 4, 170, AIR),
+    'crouch':  ([(0, 2, 0, False)] * 4, 140, BASE),
+    'punch':   ([(1, 1, 0, True), (1, 2, 0, True), (1, 2, 0, True), (1, 1, 0, True)], 190, BASE),
+    'kick':    ([(1, 3, 0, True)] * 4, 180, BASE),
+    'cpunch':  ([(0, 2, 0, False)] * 4, 145, BASE),
+    'ckick':   ([(0, 2, 0, False)] * 4, 132, BASE),
+    'jpunch':  ([(0, 0, 1, False)] * 4, 175, AIR),
+    'jkick':   ([(0, 2, 1, False)] * 4, 170, AIR),
+    'special': ([(1, 3, 1, False), (1, 3, 1, False), (1, 2, 0, True), (1, 2, 0, True)], 195, BASE),
+    'hit':     ([(0, 1, 1, False)] * 4, 175, BASE),
+    'block':   ([(0, 3, 0, False)] * 4, 190, BASE),
+    'ko':      ([(1, 1, 1, False)] * 4, 95, BASE),
+    'win':     ([(0, 3, 1, False)] * 4, 195, BASE),
 }
 
 # CRACKER — cabelo verde, oculos, roupa preta com detalhes verdes e um laptop
@@ -668,20 +679,26 @@ CRACKER_POSES = {
 # descartadas pelo load_sheet, shifting os indices — ab_map usa os indices
 # reais da lista concatenada (31 itens).
 RAFAEL_POSES = {
-    'idle':    ([(0, 3, 0, False), (1, 3, 1, False)] * 2, 195, BASE),
-    'walk':    ([(2, 0, 0, False), (2, 1, 0, False)] * 2, 190, BASE),
-    'jump':    ([(1, 2, 1, False)] * 4, 165, AIR),
-    'crouch':  ([(1, 3, 0, False), (2, 1, 1, False)] * 2, 125, BASE),
-    'punch':   ([(0, 0, 1, False), (1, 0, 0, False)] * 2, 175, BASE),
-    'kick':    ([(2, 3, 0, False)] * 4, 165, BASE),
-    'cpunch':  ([(0, 1, 1, False)] * 4, 130, BASE),
-    'ckick':   ([(1, 1, 1, False)] * 4, 150, BASE),
+    # celula = (folha, coluna, linha). Folha 1 (si=0): guarda | bracos cruzados | soco com faisca | giro verde
+    #                                              upper verde | passo baixo vermelho | levando golpe | flexao
+    # folha 2 (si=1): parado | passada | passo/salto | agachado na guarda
+    #                 pulo encolhido | soco no chao com faisca | NOCAUTE deitado | flexao
+    # folha 3 (si=2): corrida x3 | investida verde / investida vermelha | carrinho | voadora | base verde
+    # (antes o PULO usava o nocaute deitado e o KO usava um passo encolhido a 76px)
+    'idle':    ([(0, 0, 0, False)] * 4, 195, BASE),
+    'walk':    ([(1, 1, 0, False), (1, 2, 0, False)] * 2, 192, BASE),
+    'jump':    ([(1, 0, 1, False)] * 4, 175, AIR),
+    'crouch':  ([(1, 3, 0, False)] * 4, 150, BASE),
+    'punch':   ([(0, 0, 0, False), (0, 2, 0, False), (0, 2, 0, False), (0, 0, 0, False)], 190, BASE),
+    'kick':    ([(2, 3, 0, False)] * 4, 180, BASE),
+    'cpunch':  ([(0, 1, 1, False)] * 4, 160, BASE),
+    'ckick':   ([(1, 1, 1, False)] * 4, 160, BASE),
     'jpunch':  ([(2, 2, 1, False)] * 4, 170, AIR),
-    'jkick':   ([(0, 2, 0, False)] * 4, 160, AIR),
-    'special': ([(0, 0, 0, False)] * 4, 195, BASE),
+    'jkick':   ([(1, 0, 1, False), (2, 2, 1, False), (2, 2, 1, False), (1, 0, 1, False)], 175, AIR),
+    'special': ([(0, 3, 0, False), (0, 0, 1, False)] * 2, 195, BASE),
     'hit':     ([(0, 2, 1, False)] * 4, 185, BASE),
-    'block':   ([(1, 1, 0, False)] * 4, 190, BASE),
-    'ko':      ([(1, 2, 0, False)] * 4, 76, BASE),
+    'block':   ([(0, 1, 0, False)] * 4, 190, BASE),
+    'ko':      ([(1, 2, 1, False)] * 4, 100, BASE),
     'win':     ([(0, 3, 1, False)] * 4, 195, BASE),
 }
 
@@ -1016,6 +1033,8 @@ FIGHTERS = {
         # 5 folhas de habilidades (31 icones uteis apos descartar celulas vazias)
         'abilities': ['Rafael habilidades 1.jpg', 'Rafael habilidades 2.jpg', 'Rafael habilidades 4.jpg', 'Rafel habilidades 3.jpg', 'habilidades rafael 5.jpg'],
         'poses': RAFAEL_POSES,
+        # atlas de habilidades desenhado por codigo (tools/build_rafael_fx.py): nao regerar daqui
+        'abilities_keep': True,
         'ui_cell': (0, 3, 0, False),
         'row_bands': [(0, 448), (448, 896)],
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],

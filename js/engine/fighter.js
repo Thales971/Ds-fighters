@@ -2305,6 +2305,15 @@ class Fighter {
      achata no pouso, avanço no golpe e recuo ao apanhar. Deixa animações de poucos
      quadros bem mais fluidas. Desligada em "movimento reduzido". */
   motionXf(pose) {
+    /* koFall (js/data/sprite-fixes.js): folha sem pose deitada — o KO usa uma
+       pose de dano e o boneco tomba de costas, giro no pe. Vale ate com
+       "movimento reduzido" (senao o KO ficaria em pe). */
+    const pf = pose === 'ko' && SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[this.spriteKey()];
+    if (pf && pf.koFall) {
+      const k = this.game.reduced ? 1 : Math.min(1, this.stateTime / 16);
+      const e = 1 - Math.pow(1 - k, 3);
+      return { sx: 1, sy: 1, rot: -1.42 * e, dx: -8 * e, dy: -16 * e };
+    }
     if (this.game.reduced) return null;
     const t = this.frame;
     let sx = 1, sy = 1, rot = 0, dx = 0, dy = 0;

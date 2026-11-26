@@ -336,47 +336,106 @@ class Game {
     if (this.imgFx.length > 48) this.imgFx.shift();
     this.imgFx.push({ sheet, clip, frame: 0, x, y, scale: opts.scale || 2, alpha: opts.alpha == null ? 1 : opts.alpha, life: opts.life || 16, max: opts.life || 16, dir: opts.dir || 1 });
   }
-  /* Rachadura no ar (Urbano / All For One). Coordenadas do mundo. */
+  /* Rachadura no ar (Urbano / All For One). Coordenadas do mundo.
+     Vidro partindo: raios serrilhados com GALHOS, aneis de teia ligando os
+     raios, esticada pro lado do golpe (dir). Abre do centro pra fora com
+     clarao + onda de choque + cacos, e fecha de fora pra dentro no fim. */
   addCrack(x, y, scale = 1, dir = 1, crackSeed) {
     if (!this.cracks) this.cracks = [];
     const seed = crackSeed ? crackSeed : Math.floor((this.rnd ? this.rnd() : Math.random()) * 1e6);
     let r = seed;
     const rnd = () => { r = (r * 16807) % 2147483647; return (r % 10000) / 10000; };
     const rays = [];
-    const n = 9;
+    const branches = [];
+    const n = 10;
+    const sgn = dir < 0 ? -1 : 1;
     for (let k = 0; k < n; k++) {
-      const a0 = (k / n) * Math.PI * 2 + rnd() * 0.5;
+      const a0 = (k / n) * Math.PI * 2 + rnd() * 0.45;
+      /* pro lado do golpe a trinca vai mais longe */
+      const fwd = Math.max(0, Math.cos(a0) * sgn);
+      const total = (55 + rnd() * 60 + fwd * 70) * scale;
       const pts = [[0, 0]];
       let len = 0;
-      const total = (60 + rnd() * 70) * scale;
       let a = a0;
-      while (len < total) { len += 14 + rnd() * 16; a += (rnd() - 0.5) * 0.7; pts.push([Math.cos(a) * len, Math.sin(a) * len * 0.8]); }
+      while (len < total) {
+        len += 10 + rnd() * 14;
+        a += (rnd() - 0.5) * 0.55;
+        const pt = [Math.cos(a) * len, Math.sin(a) * len * 0.82];
+        pts.push(pt);
+        if (len > 26 * scale && rnd() < 0.2) {
+          /* galho: sai do raio num angulo e morre logo */
+          const ba = a + (rnd() < 0.5 ? -1 : 1) * (0.5 + rnd() * 0.6);
+          const bl = (10 + rnd() * 16) * scale;
+          branches.push({ at: len / total, pts: [pt, [pt[0] + Math.cos(ba) * bl * 0.55, pt[1] + Math.sin(ba) * bl * 0.45], [pt[0] + Math.cos(ba + (rnd() - 0.5) * 0.6) * bl, pt[1] + Math.sin(ba) * bl * 0.82]] });
+        }
+      }
       rays.push(pts);
     }
-    this.cracks.push({ x, y, rays, life: 54, max: 54, scale });
+    /* anel de teia: liga pontos de raios vizinhos, com FALHAS (vidro de verdade
+       nao fecha o anel inteiro) */
+    const ringPts = rays.map((pts) => pts[Math.max(1, Math.round((pts.length - 1) * (0.34 + rnd() * 0.12)))]);
+    const rings = [];
+    for (let i = 0; i < ringPts.length; i++) if (rnd() < 0.62) rings.push([ringPts[i], ringPts[(i + 1) % ringPts.length]]);
+    this.cracks.push({ x, y, rays, branches, rings, life: 60, max: 60, scale, dir: sgn });
     if (this.cracks.length > 8) this.cracks.shift();
+    /* cacos de vidro voando no impacto */
+    if (!this.reduced && this.spark) {
+      for (let k = 0; k < 3; k++) this.spark(x, y, k % 2 ? '#dff3ff' : '#9fd8ff', { count: 4, speed: 7 * Math.min(1.6, scale), glow: true });
+    }
     if (this.netRole === 'host') this.netFx.push(['k', Math.round(x), Math.round(y), scale, dir, seed]);
   }
   drawCracks(ctx) {
     if (!this.cracks || !this.cracks.length) return;
     ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const path = (pts, frac) => {
+      /* desenha so o comeco do raio (abre do centro / fecha de fora pra dentro) */
+      const last = Math.max(1, Math.floor((pts.length - 1) * frac));
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i <= last; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    };
     for (const c of this.cracks) {
-      const a = Math.min(1, c.life / 20);
+      const age = c.max - c.life;
+      const open = Math.min(1, age / 6);            /* abre em 0,1 s */
+      const close = Math.min(1, c.life / 18);        /* fecha nos ultimos 0,3 s */
+      const frac = open * (0.25 + 0.75 * close);
+      const a = Math.min(1, c.life / 14);
       ctx.translate(c.x, c.y);
-      ctx.globalAlpha = a * 0.35;
-      ctx.fillStyle = '#e8f6ff';
-      ctx.beginPath(); ctx.arc(0, 0, 26 * c.scale * (1.2 - c.life / c.max), 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = a;
-      for (const [w, col] of [[5, 'rgba(0,0,0,0.75)'], [2, '#ffffff']]) {
-        ctx.lineWidth = w; ctx.strokeStyle = col;
-        for (const ray of c.rays) {
-          ctx.beginPath(); ctx.moveTo(ray[0][0], ray[0][1]);
-          for (const pt of ray) ctx.lineTo(pt[0], pt[1]);
-          ctx.stroke();
+      /* clarao + onda de choque na abertura */
+      if (age < 14) {
+        const k = age / 14;
+        if (ctx.createRadialGradient) {
+          const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 80 * c.scale);
+          g.addColorStop(0, 'rgba(235,248,255,' + (0.85 * (1 - k)).toFixed(3) + ')');
+          g.addColorStop(1, 'rgba(160,210,255,0)');
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(0, 0, 80 * c.scale, 0, Math.PI * 2); ctx.fill();
         }
+        ctx.globalAlpha = 0.7 * (1 - k);
+        ctx.strokeStyle = '#cfeaff';
+        ctx.lineWidth = 4 * (1 - k) + 1;
+        ctx.beginPath(); ctx.ellipse ? ctx.ellipse(0, 0, (24 + k * 110) * c.scale, (20 + k * 90) * c.scale, 0, 0, Math.PI * 2) : ctx.arc(0, 0, (24 + k * 110) * c.scale, 0, Math.PI * 2); ctx.stroke();
+      }
+      /* nucleo do impacto (vidro estourado no centro) */
+      ctx.globalAlpha = a * 0.4;
+      ctx.fillStyle = '#e8f6ff';
+      ctx.beginPath(); ctx.arc(0, 0, 10 * c.scale + 6, 0, Math.PI * 2); ctx.fill();
+      /* 3 passadas: brilho azul largo, sombra escura, traco branco */
+      for (const [w, col, ga] of [[7, 'rgba(120,200,255,0.2)', 1], [3, 'rgba(0,10,25,0.7)', 1], [1.2, '#ffffff', 1]]) {
+        ctx.globalAlpha = a * ga;
+        ctx.lineWidth = w * Math.max(0.85, Math.min(1.3, c.scale));
+        ctx.strokeStyle = col;
+        ctx.beginPath();
+        for (const ray of c.rays) path(ray, frac);
+        for (const b of c.branches) if (b.at <= frac) path(b.pts, 1);
+        if (frac > 0.45) for (const seg of c.rings) { ctx.moveTo(seg[0][0], seg[0][1]); ctx.lineTo(seg[1][0], seg[1][1]); }
+        ctx.stroke();
       }
       ctx.translate(-c.x, -c.y);
     }
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
   spawnBurst(sheet, row, x, y, dir = 1, scale = 2) {
