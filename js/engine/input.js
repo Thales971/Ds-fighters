@@ -96,6 +96,7 @@ const Input = {
         held.btn.classList.toggle('on', count > 0);
       };
       btn.addEventListener('pointerdown', (e) => {
+        this.touchUsed = true; /* a luta foi jogada no toque (nota do torneio usa a regua do toque) */
         on(e);
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(12);
       });
@@ -140,6 +141,7 @@ const Input = {
       this._resetStick = reset;
       stick.addEventListener('pointerdown', (e) => {
         e.preventDefault();
+        this.touchUsed = true;
         try { stick.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(10);
         move(e);

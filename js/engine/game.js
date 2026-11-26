@@ -1322,7 +1322,10 @@ class Game {
       body.classList.toggle('perf-xlow', level >= 2);
     }
     const quietStart = typeof window !== 'undefined' && window.__perf && window.__perf.quiet && level === 1;
-    if (level >= 1 && !quietStart && this._perfToast !== level && typeof UI !== 'undefined' && UI.toast) {
+    /* luta de demonstracao (fundo do START/menu) baixa a qualidade em silencio:
+       o aviso e pra quem esta jogando */
+    if (this.mode === 'demo' && level >= 1) this._perfToast = level; /* a luta seguinte nao anuncia o que a demo ja baixou */
+    if (level >= 1 && !quietStart && this.mode !== 'demo' && this._perfToast !== level && typeof UI !== 'undefined' && UI.toast) {
       this._perfToast = level;
       try { UI.toast('\u26a1 Modo performance ligado (fps baixo detectado)', 2600); } catch (e) {}
     }

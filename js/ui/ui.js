@@ -1224,6 +1224,7 @@ const UI = {
       this.$('stage-wrap').classList.remove('demo');
       this.$('stage-wrap').classList.add('on');
       this.show('fight');
+      if (typeof Input !== 'undefined') Input.touchUsed = false; /* cada luta comeca sem toque marcado */
       this.game.start(cfg);
       if (this.flow && this.flow.tutorial) this.tutorialBegin();
       if (cfg && cfg.mode === 'online' && typeof Net !== 'undefined' && Net.room && window.TournamentUI && typeof window.TournamentUI.matchStarted === 'function') {
@@ -1585,13 +1586,13 @@ const UI = {
           this.$('res-title').textContent = title;
         }
         const ranked = row.shadow ? f.ranks[f.arcadeStep] : typeof torneioRank === 'function'
-          ? torneioRank(p0.hp / p0.maxHp, res.seconds, (res.teams[0][0] && res.teams[0][0].combo) || 0, !!row.boss)
+          ? torneioRank(p0.hp / p0.maxHp, res.seconds, (res.teams[0][0] && res.teams[0][0].combo) || 0, !!row.boss, !!(typeof Input !== 'undefined' && Input.touchUsed))
           : { letter: 'B', pts: 0 };
         f.ranks = f.ranks || [];
         f.ranks[f.arcadeStep] = ranked;
         f.tourneyScore = (f.ranks || []).reduce((s, r) => s + (typeof torneioRankPoints === 'function' ? torneioRankPoints(r.letter) : 0), 0);
         if (row.shadow) { /* ja montado acima */ } else {
-        rankHtml = `<p class="tourney-rank">NOTA <b class="rk-${ranked.letter}">${ranked.letter}</b> <small>vida ${Math.round(p0.hp / p0.maxHp * 100)}% · ${res.seconds}s · combo ${res.teams[0][0].combo} · pts ${f.tourneyScore}</small></p>`;
+        rankHtml = `<p class="tourney-rank">NOTA${ranked.touch ? ' DO TOQUE' : ''} <b class="rk-${ranked.letter}">${ranked.letter}</b> <small>vida ${Math.round(p0.hp / p0.maxHp * 100)}% · ${res.seconds}s · combo ${res.teams[0][0].combo} · pts ${f.tourneyScore}</small></p>`;
         if (f.arcadeStep >= 3) Profile.grantAchievement('arcade-3');
         const cleared = !!row.boss || f.arcadeStep >= (f.ladder || []).length - 1;
         if (cleared) {

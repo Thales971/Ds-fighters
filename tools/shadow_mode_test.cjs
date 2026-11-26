@@ -221,6 +221,21 @@ const tickN = (g, k) => { for (let t = 0; t < k && g.running; t++) g.tick(); };
 }
 
 let musicDone = Promise.resolve();
+/* ---------- 7b. nota do torneio no toque (celular) ---------- */
+{
+  const R = vm.runInContext('torneioRank', ctx);
+  check('teclado: regua antiga intacta (vida cheia, 60s, combo 8 no chefe = S)', R(1, 60, 8, true).letter === 'S' && R(1, 60, 8, true, false).pts === R(1, 60, 8, true).pts);
+  check('teclado: chefe com 50% de vida, 160s, combo 4 = C', R(0.5, 160, 4, true).letter === 'C', R(0.5, 160, 4, true).pts);
+  check('toque: o mesmo chefe (50%, 160s, combo 4) = A — abre a luta contra si mesmo', R(0.5, 160, 4, true, true).letter === 'A', R(0.5, 160, 4, true, true).pts);
+  check('toque: S possivel (75% de vida, 120s, combo 5)', R(0.75, 120, 5, true, true).letter === 'S', R(0.75, 120, 5, true, true).pts);
+  check('toque: perder quase toda a vida ainda nao da A (20%, 200s, combo 2)', R(0.2, 200, 2, true, true).letter !== 'A' && R(0.2, 200, 2, true, true).letter !== 'S', R(0.2, 200, 2, true, true).letter);
+  check('nota do toque marcada no resultado', R(1, 60, 8, true, true).touch === true && R(1, 60, 8, true).touch === false);
+  const inputSrc = fs.readFileSync(path.join(ROOT, 'js/engine/input.js'), 'utf8');
+  const uiSrc = fs.readFileSync(path.join(ROOT, 'js/ui/ui.js'), 'utf8');
+  check('botoes e direcional de toque marcam a luta como "no toque"', (inputSrc.match(/this\.touchUsed = true/g) || []).length >= 2);
+  check('cada luta zera a marca e a nota do torneio usa ela', /Input\.touchUsed = false/.test(uiSrc) && uiSrc.split('\n').some((l) => l.includes('torneioRank(') && l.includes('Input.touchUsed')));
+}
+
 /* ---------- 8. musica: lista sombria exclusiva + Helena no menu ---------- */
 {
   const pl = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/music/playlist.json'), 'utf8'));
