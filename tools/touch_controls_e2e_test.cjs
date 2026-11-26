@@ -123,6 +123,33 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const rel = await p.evaluate(() => { const s = document.getElementById('stick'); return { keys: [...Input.keys], floating: s.classList.contains('floating'), left: s.style.left }; });
     check('soltar o dedo: para tudo e o joystick volta pro lugar', rel.keys.length === 0 && !rel.floating && !rel.left, JSON.stringify(rel));
 
+    /* inverter rapido: arrasta longe pra frente e volta so ~45px */
+    await touch('touchStart', [[sx, sy]]);
+    await touch('touchMove', [[sx + 60, sy]]);
+    await touch('touchMove', [[sx + 140, sy]]);
+    await sleep(40);
+    const far = await p.evaluate(() => [...Input.keys]);
+    await touch('touchMove', [[sx + 95, sy]]);
+    await sleep(40);
+    const rev = await p.evaluate(() => ({ keys: [...Input.keys], left: parseFloat(document.getElementById('stick').style.left) }));
+    await touch('touchEnd', []);
+    await sleep(40);
+    check('joystick acompanha o dedo: depois de arrastar longe, voltar ~45px ja inverte (defende)', far.includes('KeyD') && rev.keys.includes('KeyA') && !rev.keys.includes('KeyD'), JSON.stringify({ far, rev }));
+    /* segundo dedo no lado esquerdo nao mexe no joystick nem solta ele */
+    await touch('touchStart', [[sx, sy]]);
+    await touch('touchMove', [[sx + 50, sy]]);
+    await touch('touchStart', [[sx + 50, sy], [sx - 40, sy - 60]]);
+    await touch('touchMove', [[sx + 50, sy], [sx - 120, sy - 60]]);
+    await sleep(40);
+    const two = await p.evaluate(() => [...Input.keys]);
+    await touch('touchMove', [[sx + 50, sy]]); /* CDP: some da lista = esse dedo soltou */
+    await sleep(40);
+    const stillOn = await p.evaluate(() => [...Input.keys]);
+    await touch('touchEnd', []);
+    await sleep(40);
+    check('segundo dedo no lado esquerdo nao mexe no joystick', two.includes('KeyD') && !two.includes('KeyA'), two.join(','));
+    check('soltar o segundo dedo nao solta o joystick', stillOn.includes('KeyD'), stillOn.join(','));
+
     /* dois dedos: anda com o joystick e soca ao mesmo tempo */
     await touch('touchStart', [[sx, sy]]);
     await touch('touchMove', [[sx + 50, sy]]);

@@ -125,33 +125,53 @@ const Input = {
           else { this._touchCodes.delete(code); if (!this._physical.has(code)) this.keys.delete(code); }
         }
       };
-      /* centro do joystick: o do proprio desenho, ou onde o dedo pousou
-         (joystick FLUTUANTE: tocar em qualquer ponto do lado esquerdo) */
+      /* JOYSTICK v3 (resposta rapida pra luta):
+         - o centro e onde o dedo pousou e ACOMPANHA o dedo: se o dedo passa do
+           curso, o joystick e arrastado junto. Inverter a direcao (andar ->
+           defender) custa ~40px em qualquer ponto, em vez de voltar ate o meio.
+         - curso curto (direcao cheia rapido) e zona morta pequena
+         - histerese nas bordas dos setores: nao pisca entre andar e pular
+         - le pointerrawupdate quando existe (menos atraso que pointermove) */
       let center = null;
       let owner = null;
-      const move = (e) => {
+      let ownerId = null; /* so o dedo que comecou mexe no joystick */
+      const host = () => (stick.offsetParent ? stick.offsetParent.getBoundingClientRect() : { left: 0, top: 0 });
+      const placeStick = (x, y) => {
         const box = stick.getBoundingClientRect();
-        const cx = center ? center.x : box.left + box.width / 2;
-        const cy = center ? center.y : box.top + box.height / 2;
-        let dx = e.clientX - cx;
-        let dy = e.clientY - cy;
-        const max = box.width * 0.36;
-        const len = Math.hypot(dx, dy) || 1;
-        if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+        const h = host();
+        stick.classList.add('floating');
+        stick.style.left = (x - h.left - box.width / 2) + 'px';
+        stick.style.top = (y - h.top - box.height / 2) + 'px';
+        stick.style.bottom = 'auto';
+      };
+      const move = (e) => {
+        if (!center) return;
+        const box = stick.getBoundingClientRect();
+        const max = Math.max(26, box.width * 0.26);
+        let dx = e.clientX - center.x;
+        let dy = e.clientY - center.y;
+        let len = Math.hypot(dx, dy);
+        if (len > max) {
+          /* arrasta o centro: o dedo fica sempre no maximo a "max" dele */
+          const k = (len - max) / len;
+          center.x += dx * k; center.y += dy * k;
+          dx -= dx * k; dy -= dy * k; len = max;
+          placeStick(center.x, center.y);
+        }
         if (knob) knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        /* 8 direcoes por SETOR, com zona morta proporcional: andar puxando um
-           pouco pra cima nao pula mais sem querer (pulo so acima de ~30 graus) */
-        const dead = max * 0.26;
-        const on = len > dead;
+        const dead = Math.max(6, max * 0.22);
+        if (len < dead) { apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false); return; }
         const ux = dx / len, uy = dy / len;
-        apply('KeyA', on && ux < -0.38);
-        apply('KeyD', on && ux > 0.38);
-        apply('KeyW', on && uy < -0.5);
-        apply('KeyS', on && uy > 0.62);
+        /* liga num limite, desliga num limite menor (histerese) */
+        const keep = (code, val, onAt, offAt) => apply(code, dirs[code] ? val > offAt : val > onAt);
+        keep('KeyA', -ux, 0.38, 0.25);
+        keep('KeyD', ux, 0.38, 0.25);
+        keep('KeyW', -uy, 0.5, 0.36);
+        keep('KeyS', uy, 0.62, 0.48);
       };
       const reset = () => {
         if (knob) knob.style.transform = '';
-        center = null; owner = null;
+        center = null; owner = null; ownerId = null;
         stick.classList.remove('floating');
         stick.style.left = ''; stick.style.top = ''; stick.style.bottom = '';
         apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false);
@@ -161,34 +181,36 @@ const Input = {
         e.preventDefault();
         if (owner) return;
         this.touchUsed = true;
-        owner = el;
+        owner = el; ownerId = e.pointerId;
         try { el.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
         if (floating) {
           /* o desenho do joystick pula pra baixo do dedo */
-          const box = stick.getBoundingClientRect();
-          const host = stick.offsetParent ? stick.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
-          stick.classList.add('floating');
-          stick.style.left = (e.clientX - host.left - box.width / 2) + 'px';
-          stick.style.top = (e.clientY - host.top - box.height / 2) + 'px';
-          stick.style.bottom = 'auto';
           center = { x: e.clientX, y: e.clientY };
+          placeStick(center.x, center.y);
+        } else {
+          const box = stick.getBoundingClientRect();
+          center = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
         }
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(10);
         move(e);
       };
+      const moveEv = ('onpointerrawupdate' in window) ? 'pointerrawupdate' : 'pointermove';
       stick.addEventListener('pointerdown', (e) => begin(e, stick, false));
-      stick.addEventListener('pointermove', (e) => { if (owner === stick && stick.hasPointerCapture(e.pointerId)) move(e); });
-      stick.addEventListener('pointerup', reset);
-      stick.addEventListener('pointercancel', reset);
+      const mine = (e, el) => owner === el && e.pointerId === ownerId;
+      stick.addEventListener(moveEv, (e) => { if (mine(e, stick)) move(e); });
+      if (moveEv !== 'pointermove') stick.addEventListener('pointermove', (e) => { if (mine(e, stick)) move(e); });
+      stick.addEventListener('pointerup', (e) => { if (mine(e, stick)) reset(); });
+      stick.addEventListener('pointercancel', (e) => { if (mine(e, stick)) reset(); });
       const zone = document.getElementById('stick-zone');
       if (zone) {
         zone.addEventListener('pointerdown', (e) => {
           if (typeof Profile !== 'undefined' && Profile.setting('touchFloat') === false) return;
           begin(e, zone, true);
         });
-        zone.addEventListener('pointermove', (e) => { if (owner === zone && zone.hasPointerCapture(e.pointerId)) move(e); });
-        zone.addEventListener('pointerup', () => { if (owner === zone) reset(); });
-        zone.addEventListener('pointercancel', () => { if (owner === zone) reset(); });
+        zone.addEventListener(moveEv, (e) => { if (mine(e, zone)) move(e); });
+        if (moveEv !== 'pointermove') zone.addEventListener('pointermove', (e) => { if (mine(e, zone)) move(e); });
+        zone.addEventListener('pointerup', (e) => { if (mine(e, zone)) reset(); });
+        zone.addEventListener('pointercancel', (e) => { if (mine(e, zone)) reset(); });
       }
     }
   },
