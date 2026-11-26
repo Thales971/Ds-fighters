@@ -97,6 +97,8 @@ ART_SHEETS["abil:dev-veterano"].v = "v80-devvet-fx";
 ART_SHEETS["fx2:dev-veterano"].v = "v80-devvet-fx";
 ART_SHEETS["abil:rafael"].v = "v98-rafael-fx";
 ART_SHEETS["fx2:rafael"].v = "v98-rafael-fx";
+/* habilidades que eram 4 quadros iguais, animadas por tools/animate_static_abilities.py */
+for (const id of ['kira', 'milena', 'dev-virado']) for (const k of ['abil:' + id, 'fx2:' + id]) if (ART_SHEETS[k]) ART_SHEETS[k].v = 'v101-anim';
 
 const Art = {
   images: {},

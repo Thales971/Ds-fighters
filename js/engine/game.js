@@ -1432,6 +1432,7 @@ class Game {
     this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
     if (this.stage.drawRays && !this.photo) this.stage.drawRays(ctx);
     if (this.stage.drawVibeBack) this.stage.drawVibeBack(ctx);     /* vibe do mapa: nevoa de horizonte + particulas de fundo */
+    if (this.stage.drawUrbanBack) this.stage.drawUrbanBack(ctx);   /* mapa de rua: vapor do bueiro + lixo voando atras */
     if (this.stage.drawLife) this.stage.drawLife(ctx);             /* sombras de nuvem + brilho no piso */
     if (this.stage.drawLiving) this.stage.drawLiving(ctx);         /* fundo vivo: fumaca, neon, agua, lanternas */
     if (this.stage.drawEventBack) this.stage.drawEventBack(ctx);   /* especiais do evento (fundo) */
@@ -1518,6 +1519,7 @@ class Game {
         ctx.restore();
       }
     }
+    if (this.stage.drawUrbanFloor) this.stage.drawUrbanFloor(ctx, fs, this); /* mapa de rua: pocas com reflexo, bueiro, rachaduras com mato, lixo */
     if (guest) this.drawNetEntities(ctx, ['s', 'p']);
     else if (this.shadow && this.darkDraw) { this.strikes.forEach((s) => this.darkDraw(ctx, s.owner, () => s.draw(ctx, this))); this.projectiles.forEach((p) => this.darkDraw(ctx, p.owner, () => p.draw(ctx, this))); }
     else { this.strikes.forEach((s) => s.draw(ctx, this)); this.projectiles.forEach((p) => p.draw(ctx, this)); }
@@ -1564,6 +1566,7 @@ class Game {
     /* foreground do palco (grama alta na frente dos lutadores) fica sobre os
        lutadores mas abaixo da chuva/clima */
     if (this.stage.drawForeground && this.qFxOn !== false) this.stage.drawForeground(ctx, camX); /* foreground desligado na qualidade baixa */
+    if (this.stage.drawUrbanFront) this.stage.drawUrbanFront(ctx); /* mapa de rua: lixo voando na frente */
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);

@@ -1077,6 +1077,9 @@ FIGHTERS = {
         # 3 folhas de habilidades (24 icones, ordem: habilidades.png, habilidades 2, habilidades 3)
         'abilities': ['kira_habilidades.png', 'kira habilidades 2.jpg', 'Kira habilidades 3.jpg'],
         'poses': KIRA_POSES,
+        # atlas de habilidades animado por tools/animate_static_abilities.py (o icone
+        # unico repetido 4x ficava parado): nao regerar daqui
+        'abilities_keep': True,
         'ui_cell': (0, 0, 0, False),
         'row_bands': [(0, 448), (448, 896)],
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
@@ -1091,6 +1094,9 @@ FIGHTERS = {
         'sheets': ['Milena sprites 1.jpg', 'Milena sprites 2.jpg'],
         'abilities': 'HabilidadesMilena.png',
         'poses': MILENA_POSES,
+        # atlas de habilidades animado por tools/animate_static_abilities.py (o icone
+        # unico repetido 4x ficava parado): nao regerar daqui
+        'abilities_keep': True,
         'ui_cell': (0, 0, 0, False),
         'row_bands': [(0, 448), (448, 896)],
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
@@ -1103,6 +1109,9 @@ FIGHTERS = {
         'sheets': ['Dev virado sprite 1.jpg', 'Dev virado sprite 2.jpg', 'Sprite dev virado 3.jpg'],
         'abilities': 'Dev virado habilidades.jpg',
         'poses': DEV_VIRADO_POSES,
+        # atlas de habilidades animado por tools/animate_static_abilities.py (o icone
+        # unico repetido 4x ficava parado): nao regerar daqui
+        'abilities_keep': True,
         'ui_cell': (1, 0, 0, True),
         # folhas 1184x896 = grade exata 4x2 de 296x448 (projecao erra em celula vazia)
         'row_bands': [(0, 448), (448, 896)],
