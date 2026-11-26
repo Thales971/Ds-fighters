@@ -2,12 +2,12 @@
    DS FIGHTERS — HABILIDADES ATIVAS DOS PETS DEV (nov/2026).
    Os pets antigos so davam numero (+defesa, +dano...). Estes AGEM na luta:
      postgres      ROLLBACK: 1x por round, golpe pesado (18+) perde metade do dano
-     npm           NPM INSTALL: a cada 12s, pacote aleatorio por 5s
-                   (velocidade +25% | dano +18% | defesa +18% | medidor +25)
+     npm           NPM INSTALL: a cada 9s, pacote aleatorio por 6s
+                   (velocidade +30% | dano +22% | defesa +22% | medidor +30)
      mysql         SONAR: a cada 7s, pulso no rival (ate 520px): 6 de dano + LENTO
      stackoverflow RESPOSTA ACEITA: 15% de chance de tomar so 25% do dano
-     gopher-go     GOROUTINES: a cada 4o acerto do dono, 2 golpes extras de 3
-     pato          DEBUG: com debuff, em 1s limpa tudo e cura 6 (recarga 9s)
+     gopher-go     GOROUTINES: a cada 4o acerto do dono, 2 golpes extras de 4
+     pato          DEBUG: com debuff, em 1s limpa tudo e cura 10 (recarga 7s)
    Ganchos no fighter.js: petBeforeDamage (takeHit), petOnHit (acerto do
    dono), petTick (update), petResetRound (applyPet), petRow (desenho).
    Sorteios usam game.rnd quando existe (online deterministico).
@@ -18,10 +18,10 @@
   const rnd = (f) => (f.game.rnd ? f.game.rnd() : Math.random());
   const DEBUFFS = ['burn', 'poison', 'slow', 'trap', 'freeze', 'locked', 'blind', 'shock', 'chill', 'bleed', 'vuln', 'dizzy', 'meterSlow', 'glitch', 'shuffled'];
   const NPM_PKGS = [
-    { k: 'speed', v: 0.25, txt: 'npm i turbo-speed', c: '#ffd84b' },
-    { k: 'dmg', v: 0.18, txt: 'npm i mega-dano', c: '#ff6a4a' },
-    { k: 'def', v: 0.18, txt: 'npm i escudo-js', c: '#4ba3ff' },
-    { k: 'meter', v: 25, txt: 'npm i ult-booster', c: '#b06bff' },
+    { k: 'speed', v: 0.30, txt: 'npm i turbo-speed', c: '#ffd84b' },
+    { k: 'dmg', v: 0.22, txt: 'npm i mega-dano', c: '#ff6a4a' },
+    { k: 'def', v: 0.22, txt: 'npm i escudo-js', c: '#4ba3ff' },
+    { k: 'meter', v: 30, txt: 'npm i ult-booster', c: '#b06bff' },
   ];
 
   P.petResetRound = function () {
@@ -78,7 +78,8 @@
 
   P.petTick = function () {
     const fx = this.pet && this.pet.fx;
-    if (!fx || !this.alive || !this.game || this.game.roundState !== 'fight') return;
+    if (!fx || !this.alive || this.benched || this.hidden || !this.game || this.game.roundState !== 'fight') return; /* reserva do 2x2 nao age */
+    if (this.game.netRole === 'guest') return; /* online: o anfitriao decide; o convidado so recebe o resultado */
     if (!this._petT) this.petResetRound();
     const t = this.now || 0;
     const T = this._petT;
@@ -96,9 +97,9 @@
     }
     /* NPM INSTALL */
     if (fx.npm && t >= T.npm) {
-      T.npm = t + 720;
+      T.npm = t + 540; /* a cada 9s */
       const pkg = NPM_PKGS[Math.floor(rnd(this) * NPM_PKGS.length) % NPM_PKGS.length];
-      this._npmPkg = { k: pkg.k, v: pkg.v, until: t + 300 };
+      this._npmPkg = { k: pkg.k, v: pkg.v, until: t + 360 }; /* dura 6s */
       if (pkg.k === 'meter') {
         this.charge[0] = Math.min(100, this.charge[0] + pkg.v);
         this.charge[1] = Math.min(100, this.charge[1] + pkg.v);
@@ -128,7 +129,7 @@
         DEBUFFS.forEach((s) => { this.status[s] = 0; });
         this.heal(fx.debug);
         T.debugAt = 0;
-        T.debugCd = t + 540;
+        T.debugCd = t + 420; /* recarga 7s */
         this.petCheer('DEBUGADO!', '#ffe14a');
         this.petFx('duck', { life: 50 });
       }

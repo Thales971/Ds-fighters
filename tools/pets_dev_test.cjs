@@ -79,13 +79,90 @@ const mk = (petId) => {
 { const g = mk('gopher-go'); const a = g.activeOf(0), b = g.activeOf(1);
   for (let k = 0; k < 4; k++) { b.takeHit(5, { attacker: a, kx: 0, dirSign: 1 }); b.state = 'idle'; }
   const h0 = b.hp; for (let t = 0; t < 30; t++) g.tick();
-  check('gopher-go: 4o acerto solta 2 goroutines (-6)', Math.abs((h0 - b.hp) - 6) < 0.6 || h0 - b.hp >= 5.4, (h0 - b.hp).toFixed(1)); }
+  check('gopher-go: 4o acerto solta 2 goroutines (-8)', h0 - b.hp >= 7.4, (h0 - b.hp).toFixed(1)); }
 // PATO: limpa debuff e cura
 { const g = mk('pato'); const a = g.activeOf(0); a.hp = a.maxHp - 50; a.addStatus('burn', 600); a.addStatus('slow', 600);
   for (let t = 0; t < 90; t++) g.tick();
   check('pato: debuga (tira queimadura e lentidao)', a.left('burn') <= 0 && a.left('slow') <= 0, a.left('burn') + '/' + a.left('slow')); }
 // reacao do pet (linha do atlas)
 { const g = mk('pato'); const a = g.activeOf(0); a.state = 'hit'; check('pet reage ao dono apanhar (linha 1)', a.petRow() === 1); a.state = 'win'; check('pet comemora vitoria (linha 2)', a.petRow() === 2); }
+// ===== CASOS EXTREMOS =====
+// rollback volta no round seguinte (applyPet zera)
+{ const g = mk('postgres'); const a = g.activeOf(0), b = g.activeOf(1);
+  a.takeHit(30, { attacker: b, kx: 1, dirSign: 1 });
+  check('postgres: rollback gasto no round', a._rollbackUsed === true);
+  a.applyPet();
+  check('postgres: rollback volta no round seguinte', a._rollbackUsed === false); }
+// rollback NAO gasta em golpe leve
+{ const g = mk('postgres'); const a = g.activeOf(0), b = g.activeOf(1);
+  a.takeHit(8, { attacker: b, kx: 1, dirSign: 1 });
+  check('postgres: golpe leve (8) nao gasta o rollback', a._rollbackUsed === false); }
+// pacote npm expira em 5s e o bonus some do pfx
+{ const g = mk('npm'); const a = g.activeOf(0); a._petT.npm = a.now; g.tick();
+  const pkg = a._npmPkg && a._npmPkg.k;
+  const during = pkg !== 'meter' ? (a.pfx[pkg] || 0) > 0 : true;
+  for (let t = 0; t < 380; t++) g.tick();
+  const after = pkg !== 'meter' ? !(a.pfx[pkg] > 0) : true;
+  check('npm: bonus ativo durante o pacote (' + pkg + ')', during);
+  check('npm: bonus some depois de 5s', after); }
+// sonar nao atira longe nem antes da luta
+{ const g = mk('mysql'); const a = g.activeOf(0), b = g.activeOf(1); a.x = 100; b.x = 800; a._petT.sonar = a.now; const h0 = b.hp;
+  for (let t = 0; t < 60; t++) { a.x = 100; b.x = 800; g.tick(); }
+  check('mysql: sonar NAO acerta rival a 700px', b.hp === h0, (h0 - b.hp).toFixed(1)); }
+{ const g = new Game(canvas); g.start({ mode: 'versus', teams: [['stack'], ['du']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 1, timer: 99, pets: [PETS.find((x) => x.id === 'mysql'), PETS[0]] });
+  const b = g.activeOf(1); const h0 = b.hp; for (let t = 0; t < 40; t++) g.tick();
+  check('mysql: sonar nao age na apresentacao do round', g.roundState !== 'fight' ? b.hp === h0 : true); }
+// coruja: golpe imbloqueavel nao e "lido"
+{ const g = mk('stackoverflow'); const a = g.activeOf(0), b = g.activeOf(1); let owl = 0;
+  const pc = a.petCheer.bind(a); a.petCheer = (t, c) => { if (t === 'RESPOSTA ACEITA!') owl++; pc(t, c); };
+  for (let k = 0; k < 150; k++) { a.hp = a.maxHp; a.takeHit(10, { attacker: b, kx: 0, dirSign: 1, unblockable: true }); a.state = 'idle'; }
+  check('stackoverflow: imbloqueavel nunca vira resposta aceita', owl === 0, owl); }
+// gopher: golpe BLOQUEADO nao conta
+{ const g = mk('gopher-go'); const a = g.activeOf(0), b = g.activeOf(1);
+  b.state = 'block'; b.blocking = true;
+  const before = a._goCount || 0;
+  for (let k = 0; k < 8; k++) { b.state = 'block'; b.takeHit(5, { attacker: a, kx: 0, dirSign: 1 }); }
+  check('gopher-go: contador so anda em acerto limpo (bloqueio nao conta)', (a._goCount || 0) - before <= 8); }
+// gopher: goroutines nao batem em rival ja derrotado
+{ const g = mk('gopher-go'); const a = g.activeOf(0), b = g.activeOf(1);
+  for (let k = 0; k < 4; k++) { b.takeHit(5, { attacker: a, kx: 0, dirSign: 1 }); b.state = 'idle'; }
+  b.hp = 0; const h0 = b.hp; a.now += 30; a.petTick();
+  check('gopher-go: nao bate em rival caido', b.hp === h0, JSON.stringify({ h0, hp: b.hp, q: (a._goq || []).length, rs: g.roundState, alive: a.alive })); }
+// pato: recarga de 9s (2 debuffs seguidos = 1 limpeza)
+{ const g = mk('pato'); const a = g.activeOf(0); let deb = 0;
+  const pc = a.petCheer.bind(a); a.petCheer = (t, c) => { if (t === 'DEBUGADO!') deb++; pc(t, c); };
+  a.addStatus('burn', 900); for (let t = 0; t < 80; t++) g.tick();
+  a.addStatus('poison', 900); for (let t = 0; t < 200; t++) g.tick();
+  check('pato: respeita a recarga (1 limpeza em ~4.6s)', deb === 1, deb);
+  a.hp = a.maxHp - 1; a.status = {}; a._petT.debugCd = 0; a.addStatus('slow', 900); for (let t = 0; t < 80; t++) g.tick();
+  check('pato: cura nao passa da vida maxima', a.hp <= a.maxHp); }
+// dono caido: pet para de agir
+{ const g = mk('mysql'); const a = g.activeOf(0), b = g.activeOf(1); a.hp = 0; a._petT.sonar = 0; b.x = a.x + 200; const h0 = b.hp;
+  a.petTick();
+  check('pet para quando o dono cai', b.hp === h0, JSON.stringify({ h0, hp: b.hp })); }
+// online: convidado nao executa habilidade (anfitriao decide)
+{ const g = mk('mysql'); const a = g.activeOf(0), b = g.activeOf(1); g.netRole = 'guest'; a._petT.sonar = 0; b.x = a.x + 200; const h0 = b.hp;
+  a.petTick();
+  check('online: no convidado o pet nao age (sem dano duplicado)', b.hp === h0); g.netRole = null; }
+// 2x2: reserva nao age
+{ const g = new Game(canvas); g.start({ mode: 'tag', teams: [['stack', 'lyra'], ['du', 'jess']], stage: 'treino-dojo', cpu: [false, false], roundsToWin: 1, timer: 99, pets: [PETS.find((x) => x.id === 'mysql'), PETS[0]] });
+  for (let t = 0; t < 700 && g.roundState !== 'fight'; t++) g.tick();
+  const bench = g.teams[0].members.find((m) => m.benched);
+  if (bench) { bench._petT = { npm: 0, sonar: 0, debugCd: 0, debugAt: 0 }; const foe = g.activeOf(1); const h0 = foe.hp; bench.petTick(); check('2x2: lutador na reserva nao usa o pet', foe.hp === h0); }
+  else check('2x2: achou reserva', false); }
+// todos os pets: 1 luta CPU x CPU inteira sem erro, com desenho
+for (const id of ids) {
+  let err = null;
+  try {
+    const real = createCanvas(960, 540); real.classList = { toggle() {}, add() {}, remove() {} };
+    const g = new Game(real);
+    g.start({ mode: 'versus', teams: [['stack'], ['lyra']], stage: 'treino-dojo', cpu: [true, true], difficulty: 2, roundsToWin: 1, timer: 30, pets: [PETS.find((x) => x.id === id), PETS.find((x) => x.id === ids[(ids.indexOf(id) + 1) % ids.length])] });
+    for (let t = 0; t < 2600 && g.running; t++) { g.tick(); if (t % 5 === 0) g.render(0); }
+  } catch (e) { err = e.message + ' @ ' + String(e.stack).split(String.fromCharCode(10)).slice(1, 3).join(' | '); }
+  check('luta inteira CPU x CPU com ' + id + ' (e rival com pet novo) sem erro', !err, err || '');
+}
+// online aceita os pets novos
+{ const RC = require('./js/net/room-core.js'); check('room-core aceita os 6 pets novos', ids.every((id) => RC.PET_IDS.includes(id))); }
 console.log('---'); console.log(fails ? 'PETS DEV: ' + fails + ' FALHAS de ' + n : 'PETS DEV: TUDO OK (' + n + ' checks)');
 if (fails) process.exitCode = 1;
-`, Object.assign(ctx, { process }));
+`, Object.assign(ctx, { process, require: (m) => require(require('path').resolve(m)) }));

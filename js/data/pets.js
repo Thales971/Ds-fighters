@@ -22,11 +22,11 @@ const PETS = [
      ativa que age na luta (js/engine/pet-skills.js) e reage ao dono (susto ao
      apanhar, comemora na vitoria). Atlas 4x3: tools/build_pets_v2.py */
   { id: 'postgres', name: 'Elefante Postgres', row: -3, sheet: 'pet-postgres', img: 'assets/pets/pet-postgres.png?v=v90-pets', buff: 'ROLLBACK: 1x por round, um golpe pesado (18+) tem metade do dano desfeito. +10% de defesa.', fx: { def: 0.10, rollback: 0.5 } },
-  { id: 'npm', name: 'Unicórnio npm', row: -3, sheet: 'pet-npm', img: 'assets/pets/pet-npm.png?v=v90-pets', buff: 'NPM INSTALL: a cada 12s instala um pacote aleatório por 5s (+25% velocidade, +18% dano, +18% defesa ou +25 de medidor).', fx: { npm: true } },
+  { id: 'npm', name: 'Unicórnio npm', row: -3, sheet: 'pet-npm', img: 'assets/pets/pet-npm.png?v=v90-pets', buff: 'NPM INSTALL: a cada 9s instala um pacote aleatório por 6s (+30% velocidade, +22% dano, +22% defesa ou +30 de medidor).', fx: { npm: true } },
   { id: 'mysql', name: 'Golfinho MySQL', row: -3, sheet: 'pet-mysql', img: 'assets/pets/pet-mysql.png?v=v90-pets', buff: 'SONAR: a cada 7s acerta o rival (até 520px) com um pulso de 6 de dano que deixa LENTO.', fx: { sonar: 6 } },
   { id: 'stackoverflow', name: 'Coruja StackOverflow', row: -3, sheet: 'pet-stackoverflow', img: 'assets/pets/pet-stackoverflow.png?v=v90-pets', buff: 'RESPOSTA ACEITA: 15% de chance de ler o golpe e tomar só 25% do dano. +10% de medidor.', fx: { owlGuard: 0.15, meter: 0.10 } },
-  { id: 'gopher-go', name: 'Gopher Go', row: -3, sheet: 'pet-gopher', img: 'assets/pets/pet-gopher.png?v=v90-pets', buff: 'GOROUTINES: a cada 4º acerto seu, 2 golpes extras concorrentes de 3 de dano cada.', fx: { goroutines: 3 } },
-  { id: 'pato', name: 'Pato de Borracha', row: -3, sheet: 'pet-pato', img: 'assets/pets/pet-pato.png?v=v90-pets', buff: 'DEBUG: com debuff (queimando, veneno, lento, tonto...), em 1s o pato limpa tudo e cura 6. Recarga 9s.', fx: { debug: 6 } },
+  { id: 'gopher-go', name: 'Gopher Go', row: -3, sheet: 'pet-gopher', img: 'assets/pets/pet-gopher.png?v=v90-pets', buff: 'GOROUTINES: a cada 4º acerto seu, 2 golpes extras concorrentes de 4 de dano cada.', fx: { goroutines: 4 } },
+  { id: 'pato', name: 'Pato de Borracha', row: -3, sheet: 'pet-pato', img: 'assets/pets/pet-pato.png?v=v90-pets', buff: 'DEBUG: com debuff (queimando, veneno, lento, tonto...), em 1s o pato limpa tudo e cura 10. Recarga 7s.', fx: { debug: 10 } },
   /* RECOMPENSA DE LOGIN: so equipa com a conta conectada (Profile.LOGIN_PETS). Acima da media de proposito. */
   { id: 'firefox', name: 'Raposa do Firefox', row: -3, sheet: 'firefox', img: 'assets/pets/firefox.png?v=v82-raposa', buff: 'Rápida como o navegador: +12% de velocidade, +10% de dano, +6% de defesa e regenera 0,5 HP/s. Só com login.', fx: { speed: 0.12, dmg: 0.10, def: 0.06, regen: 0.5 / 60 }, login: true },
   /* O SEGREDO: so existe por codigo — digite PITOCO na tela de pet. Apelao DE PROPOSITO. */
