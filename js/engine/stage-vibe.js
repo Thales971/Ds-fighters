@@ -62,9 +62,11 @@
   P.vibeLevel = function () {
     const g = this.game;
     if (!g || this.reducedFlag || g.reduced) return 0;
-    if (g.quality === 'low' || (g.perfLevel || 0) >= 2) return 0;
+    /* modo performance (celular comeca no nivel 1, ou fps caiu): desliga — a
+       gradacao e um passe de tela cheia e derrubava o fps no celular */
+    if (g.quality === 'low' || (g.perfLevel || 0) >= 1) return 0;
     if (g.shadow) return 0; /* luta sombria tem a propria cor */
-    return g.quality === 'high' && !(g.perfLevel > 0) ? 2 : 1;
+    return g.quality === 'high' ? 2 : 1;
   };
 
   function mkMotes(th, count, W, H, seed, back) {

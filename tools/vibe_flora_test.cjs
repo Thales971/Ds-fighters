@@ -55,7 +55,7 @@ const gQ = mk('parque-lago');
 gQ.quality = 'low'; check('qualidade BAIXA: vibe desligada', gQ.stage.vibeLevel() === 0);
 gQ.quality = 'medium'; check('qualidade MEDIA: vibe leve (1)', gQ.stage.vibeLevel() === 1);
 gQ.quality = 'high'; check('qualidade ALTA (maximo): vibe completa (2)', gQ.stage.vibeLevel() === 2);
-gQ.perfLevel = 1; check('modo performance 1: cai pra leve', gQ.stage.vibeLevel() === 1);
+gQ.perfLevel = 1; check('modo performance 1 (celular / fps baixo): desliga', gQ.stage.vibeLevel() === 0);
 gQ.perfLevel = 2; check('modo performance 2: desliga', gQ.stage.vibeLevel() === 0);
 gQ.perfLevel = 0; gQ.reduced = true; check('movimento reduzido: desliga', gQ.stage.vibeLevel() === 0);
 gQ.reduced = false;
