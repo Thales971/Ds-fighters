@@ -198,3 +198,8 @@ body.mobile .ln-lyra { flex-basis: 90px; height: 100px; }
 body.mobile .ln-card h2 { font-size: 12px; }
 body.mobile .ln-rewards { gap: 14px; }
 body.mobile .ln-fig { width: 56px; height: 56px; }
+/* ---- celular em pe: a luta de demonstracao cobre a tela toda atras do START e do menu ---- */
+body.mobile.demo-bg:not(.landscape)[data-screen="title"] #game-view,
+body.mobile.demo-bg:not(.landscape)[data-screen="menu"] #game-view {
+  left: var(--cover-left, 0px); top: var(--cover-top, 0px); transform: scale(var(--cover-scale, 1));
+}

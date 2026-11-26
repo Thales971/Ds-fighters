@@ -51,6 +51,13 @@ const AppViewport = {
       app.style.setProperty('--scale', Math.min(width / 960, height / 540).toFixed(5));
       return;
     }
+    /* FUNDO VIVO no celular em pe: a luta de demonstracao cobre a tela toda
+       atras do START e do menu (sem faixa preta em cima e embaixo). A escala
+       "cover" corta as laterais; o main.js desliza o recorte atras da luta. */
+    const coverScale = Math.max(width / 960, height / 540);
+    this.cover = { scale: coverScale, width };
+    app.style.setProperty('--cover-scale', coverScale.toFixed(6));
+    app.style.setProperty('--cover-top', ((height - 540 * coverScale) / 2).toFixed(2) + 'px');
     const cs = this.insets ? getComputedStyle(this.insets) : null;
     const inset = (key) => cs ? parseFloat(cs[key]) || 0 : 0;
     let left = inset('paddingLeft') + 8;
