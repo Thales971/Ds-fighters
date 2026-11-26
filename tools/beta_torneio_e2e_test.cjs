@@ -242,9 +242,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         UI.show('menu');
         await new Promise((res) => setTimeout(res, 300));
         const t0 = UI.game.time; await new Promise((res) => setTimeout(res, 600));
-        return { hidden: document.body.classList.contains('demo-hidden'), parado: UI.game.time === t0, mode: UI.game.mode };
+        const menu = { hidden: document.body.classList.contains('demo-hidden'), anda: UI.game.time > t0, mode: UI.game.mode, vis: getComputedStyle(document.getElementById('game-view')).visibility };
+        UI.show('ladder');
+        await new Promise((res) => setTimeout(res, 300));
+        const t1 = UI.game.time; await new Promise((res) => setTimeout(res, 600));
+        const outra = { hidden: document.body.classList.contains('demo-hidden'), parado: UI.game.time === t1 };
+        UI.show('menu');
+        return { menu, outra };
       });
-      if (name === 'horizontal') check('celular: luta de demonstracao escondida e PARADA no menu (economia)', demo.hidden && demo.parado, JSON.stringify(demo));
+      if (name === 'horizontal') check('celular: luta de demonstracao VIVA atras do menu (fundo nao fica preto)', !demo.menu.hidden && demo.menu.anda && demo.menu.mode === 'demo' && demo.menu.vis === 'visible', JSON.stringify(demo.menu));
+      if (name === 'horizontal') check('celular: demonstracao escondida e PARADA nas telas de painel (sem sprite duplo, economia)', demo.outra.hidden && demo.outra.parado, JSON.stringify(demo.outra));
       if (name === 'horizontal') {
         const tuto = await m.evaluate(() => { UI.tutorialBegin(); const s0 = UI.tutorial.steps[0].sub; UI.tutorial = null; return s0; });
         check('celular: treino guiado fala de joystick, nao de teclado', /joystick/i.test(tuto) && !/A \/ D/.test(tuto), tuto);

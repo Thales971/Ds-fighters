@@ -378,13 +378,18 @@ function torneioBuffChoices(owned) {
   while (pick.length > 3) pick.splice((Math.random() * pick.length) | 0, 1);
   return pick;
 }
-function torneioRank(hpRatio, seconds, combo, boss) {
+/* touch = luta jogada nos controles de toque (celular): combo longo e luta
+   rapida sao bem mais dificeis no vidro, entao a regua muda — combo cheio com
+   5 golpes, mais tempo pra contar como rapida e cortes de S/A mais baixos. */
+function torneioRank(hpRatio, seconds, combo, boss, touch) {
   const hp = Math.max(0, Math.min(1, hpRatio || 0));
-  const time = Math.max(0, 1 - (seconds || 99) / (boss ? 140 : 75));
-  const cb = Math.min(1, (combo || 0) / 8);
+  const window = touch ? (boss ? 220 : 110) : (boss ? 140 : 75);
+  const time = Math.max(0, 1 - (seconds || 99) / window);
+  const cb = Math.min(1, (combo || 0) / (touch ? 5 : 8));
   const pts = hp * 55 + time * 25 + cb * 20;
-  const letter = pts >= 78 ? 'S' : pts >= 58 ? 'A' : pts >= 38 ? 'B' : 'C';
-  return { letter: letter, pts: Math.round(pts) };
+  const cutS = touch ? 70 : 78, cutA = touch ? 50 : 58, cutB = touch ? 32 : 38;
+  const letter = pts >= cutS ? 'S' : pts >= cutA ? 'A' : pts >= cutB ? 'B' : 'C';
+  return { letter: letter, pts: Math.round(pts), touch: !!touch };
 }
 function torneioRankPoints(letter) {
   return { S: 400, A: 300, B: 200, C: 100 }[letter] || 0;

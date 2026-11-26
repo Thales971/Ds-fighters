@@ -13,9 +13,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="DS Fighters" />
   <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v91-sombra" />
+  <link rel="stylesheet" href="css/style.css?v=v92-sombra" />
   <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
-  <link rel="stylesheet" href="css/mobile.css?v=v82-login" />
+  <link rel="stylesheet" href="css/mobile.css?v=v95-toque" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
@@ -86,6 +86,7 @@
         <button class="nav mm" data-go="versus"><span>VERSUS</span><small>1 contra 1 local ou contra a CPU</small></button>
         <button class="nav mm" data-go="tag"><span>2 × 2 EQUIPES</span><small>Duplas com troca (R / 8)</small></button>
         <button class="nav mm" data-go="survival"><span>SURVIVAL</span><small>Lute contra todos até cair — placar de vitórias</small></button>
+        <button class="nav mm mm-shadow" id="btn-shadow-mode" data-go="shadow" hidden><span>VOCÊ MESMO</span><small>Enfrente a sua sombra de novo — com qualquer lutador</small></button>
         <button class="nav mm" data-go="events"><span>EVENTOS</span><small>Calendário do ano e mapas de festa</small></button>
         <button class="nav mm" data-go="training"><span>TREINO</span><small>Boneco, medidores infinitos</small></button>
         <button class="nav mm" id="btn-tutorial" data-go="tutorial" hidden><span>TREINO GUIADO</span><small>Novo por aqui? Aprenda em 2 minutos</small></button>
@@ -333,6 +334,8 @@
           <label>Tamanho dos botões <input type="range" min="0.8" max="1.35" step="0.05" value="1" data-set="touchScale" /></label>
           <label>Opacidade dos botões <input type="range" min="0.35" max="1" step="0.05" value="0.72" data-set="touchOpacity" /></label>
           <label class="chk"><input type="checkbox" data-set="touchDpad" /> Mostrar também o direcional</label>
+          <label class="chk"><input type="checkbox" data-set="touchFloat" checked /> Joystick flutuante (aparece onde o dedo toca, no lado esquerdo)</label>
+          <label class="chk"><input type="checkbox" data-set="touchAuto" checked /> Segurar SOCO/CHUTE repete o golpe (combo fácil)</label>
           <label class="chk"><input type="checkbox" data-set="haptic" checked /> Vibração ao tocar</label>
           <label>Servidor online <input type="text" data-set="serverUrl" placeholder="wss://seu-servidor.exemplo.com" /></label>
         </div>
@@ -464,6 +467,7 @@
     <div id="net-hud" class="fps net-hud" hidden>🌐 —</div>
     <div id="build" class="build">build v36-balance13</div>
     <div id="touch-controls" class="hidden" aria-hidden="true">
+      <div class="stick-zone" id="stick-zone" aria-hidden="true"></div>
       <div class="stick" id="stick" aria-label="Joystick"><i></i></div>
       <div class="dpad" hidden>
         <button data-k="KeyW" class="t-up" aria-label="Pular">▲</button>
@@ -472,9 +476,9 @@
         <button data-k="KeyS" class="t-down" aria-label="Agachar">▼</button>
       </div>
       <div class="tbtns">
-        <button data-k="MouseLeft" aria-label="Soco">SOCO</button>
-        <button data-k="MouseRight" aria-label="Chute">CHUTE</button>
-        <button data-k="KeyR" aria-label="Trocar lutador">TROCA</button>
+        <button data-k="MouseLeft" class="t-big t-punch" aria-label="Soco">SOCO</button>
+        <button data-k="MouseRight" class="t-big t-kick" aria-label="Chute">CHUTE</button>
+        <button data-k="KeyR" class="t-tag" aria-label="Trocar lutador" hidden>TROCA</button>
         <button data-k="Digit1" data-power="0">1</button>
         <button data-k="Digit2" data-power="1">2</button>
         <button data-k="Digit3" data-power="2">3</button>
@@ -525,7 +529,7 @@
   <script src="js/config/supabase-config.js?v=v47-maresprites"></script>
   <script src="js/vendor/supabase-2.118.0.js"></script>
   <script src="js/core/supabase-cloud.js?v=v82-login"></script>
-  <script src="js/core/match-stats.js?v=v81-stats"></script>
+  <script src="js/core/match-stats.js?v=v91-sombra"></script>
   <script src="js/core/ranking.js?v=v82-ranking"></script>
   <script src="js/data/fighters.js?v=v47-maresprites"></script>
   <script src="js/data/fighters-v10.js?v=v47-maresprites"></script>
@@ -590,20 +594,20 @@
   <script src="js/engine/sprites.js?v=v91-sombra"></script>
   <script src="js/engine/fx.js?v=v90-pets"></script>
   <script src="js/data/voice-book.js?v=v47-maresprites"></script>
-  <script src="js/engine/audio.js?v=v91-sombra"></script>
-  <script src="js/engine/input.js?v=v47-maresprites"></script>
-  <script src="js/ui/viewport.js?v=v47-maresprites"></script>
+  <script src="js/engine/audio.js?v=v92-fundo"></script>
+  <script src="js/engine/input.js?v=v96-stick"></script>
+  <script src="js/ui/viewport.js?v=v92-fundo"></script>
   <script src="js/engine/projectile.js?v=v72-kuno"></script>
   <script src="js/engine/fighter.js?v=v90-petsfx"></script>
   <script src="js/engine/pet-skills.js?v=v90-petsbal"></script>
   <script src="js/engine/vfx.js?v=v47-maresprites"></script>
   <script src="js/engine/weather.js?v=v81-aurora"></script>
   <script src="js/engine/mechanics.js?v=v55-revisao"></script>
-  <script src="js/engine/torneio.js?v=v80-semgrama"></script>
+  <script src="js/engine/torneio.js?v=v93-toque"></script>
   <script src="js/engine/stage.js?v=v89-vivo"></script>
   <script src="js/engine/stage-extras.js?v=v89-vivo2"></script>
   <script src="js/engine/ai.js?v=v78-kernor-ia"></script>
-  <script src="js/engine/game.js?v=v91-sombra"></script>
+  <script src="js/engine/game.js?v=v93-toque"></script>
   <script src="js/engine/impact-fx.js?v=v89-vivo2"></script>
   <script src="js/engine/weather-react.js?v=v89-vivo2"></script>
   <script src="js/engine/shadow-mode.js?v=v91-sombra"></script>
@@ -612,9 +616,9 @@
   <script src="js/net/online.js?v=v86-ping"></script>
   <script src="js/ui/hud.js?v=v88-clima"></script>
   <script src="js/data/roster-portraits.js?v=v82-captcha"></script>
-  <script src="js/ui/ui.js?v=v91-sombra"></script>
+  <script src="js/ui/ui.js?v=v94-toque"></script>
   <script src="js/ui/account.js?v=v82-login"></script>
-  <script src="js/main.js?v=v91-sombra"></script>
+  <script src="js/main.js?v=v92-fundo"></script>
   <script src="js/net/tournament.js?v=v47-maresprites"></script>
 </body>
 </html>

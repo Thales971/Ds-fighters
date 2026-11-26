@@ -426,6 +426,15 @@ const AudioSys = {
   playMusic(kind, force) {
     if (!this.unlocked && !force) { this.pending = kind; return; }
     if ((kind === 'menu' || kind === 'boss' || kind === 'shadow') && this.musicKind === kind && this.music && !this.music.paused) return this.music;
+    /* faixa do menu que o navegador ainda nao deixou comecar (autoplay barrado,
+       pedido pendente): retoma a MESMA faixa (Helena) em vez de pular pra
+       proxima e criar uma segunda musica por cima */
+    if (kind === 'menu' && this.musicKind === 'menu' && this.music && this.music.paused && !this.music.ended && !(this.music.currentTime > 0)) {
+      const m = this.music;
+      this._lastPlayback = null;
+      try { const pb = m.play(); this._lastPlayback = pb; if (pb && pb.catch) pb.catch(() => {}); } catch (e) { /* autoplay */ }
+      return m;
+    }
     if (kind === 'menu') {
       this.intensity = 0;
       this.intensityTarget = 0;
@@ -437,11 +446,12 @@ const AudioSys = {
     this.musicKind = kind;
     if (!track || !track.file) return;
     const a = new Audio(track.file);
+    this._guardMusic(a);
     a.loop = kind === 'menu' && this.menuList().length <= 1;
     a.volume = 0;
     a.onended = () => {
       /* menu: acabou a faixa, entra a proxima da lista (Helena <-> tema) */
-      if (this.music === a && this.musicKind === kind) this.playMusic(kind, true);
+      if (this.music === a && this.musicKind === kind) { this.stopMusic(); this.playMusic(kind, true); } /* stop antes: nunca "retoma" a faixa que acabou */
     };
     a.onerror = () => {
       // faixa listada mas ainda não enviada: cai para a trilha original
@@ -482,13 +492,26 @@ const AudioSys = {
     this._stopHot();
     this.musicCross = 0;
     this.hotWanted = false;
-    if (this.music) { this.music.pause(); this.music.removeAttribute('src'); this.music = null; }
+    if (this.music) { this._kill(this.music); this.music = null; }
     this.musicKind = null;
   },
   _stopHot() {
     if (!this.musicHot) return;
-    try { this.musicHot.pause(); this.musicHot.removeAttribute('src'); } catch (e) { /* já parado */ }
+    this._kill(this.musicHot);
     this.musicHot = null;
+  },
+  /* para E descarrega: so tirar o src deixava o navegador (Firefox no celular)
+     tocar o que ja tinha baixado — duas musicas ao mesmo tempo */
+  _kill(a) {
+    try { a.pause(); a.removeAttribute('src'); if (a.load) a.load(); } catch (e) { /* ja parado */ }
+  },
+  /* trava contra musica fantasma: um pedido de tocar antigo que o navegador
+     solta depois (autoplay liberado no 1o toque) e calado na hora */
+  _guardMusic(a) {
+    if (!a || !a.addEventListener) return;
+    const hush = () => { if (a !== this.music && a !== this.musicHot) { try { a.pause(); } catch (e) { /* ok */ } } };
+    a.addEventListener('play', hush);
+    a.addEventListener('playing', hush);
   },
   flushPending() { if (this.pending) { const k = this.pending; this.pending = null; this.playMusic(k); } },
   /* O drama visual ainda avisa o palco. O volume do rock sobe pelo intensity, sem salto de taxa. */
@@ -555,6 +578,7 @@ const AudioSys = {
     const next = this.pickBattleTrack();
     if (!next || !next.file || next.file === this.music.src) { this._hotMiss = true; return; }
     const a = new Audio(next.file);
+    this._guardMusic(a);
     a.loop = false;
     a.volume = 0;
     a.onended = () => { if (this.musicHot === a) this._stopHot(); };

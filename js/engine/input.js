@@ -79,23 +79,31 @@ const Input = {
       const on = (e) => {
         e.preventDefault();
         if (this._touchPointers.has(e.pointerId)) return;
-        this._touchPointers.set(e.pointerId, { code, btn });
+        const held = { code, btn, timer: 0 };
+        this._touchPointers.set(e.pointerId, held);
         this._touchCodes.set(code, (this._touchCodes.get(code) || 0) + 1);
         try { btn.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
         mark(code);
         btn.classList.add('on');
+        /* COMBO FACIL: segurar SOCO/CHUTE repete o golpe (um toque novo a cada
+           ~8 quadros) — no vidro tocar rapido varias vezes e o que mais falha */
+        if ((code === 'MouseLeft' || code === 'MouseRight') && !(typeof Profile !== 'undefined' && Profile.setting('touchAuto') === false)) {
+          held.timer = setInterval(() => { if (this._touchCodes.has(code)) this.pressed.add(code); }, 135);
+        }
       };
       const off = (e) => {
         if (e.cancelable) e.preventDefault();
         const held = this._touchPointers.get(e.pointerId);
         if (!held) return;
         this._touchPointers.delete(e.pointerId);
+        if (held.timer) clearInterval(held.timer);
         const count = (this._touchCodes.get(held.code) || 1) - 1;
         if (count > 0) this._touchCodes.set(held.code, count);
         else { this._touchCodes.delete(held.code); if (!this._physical.has(held.code)) this.keys.delete(held.code); }
         held.btn.classList.toggle('on', count > 0);
       };
       btn.addEventListener('pointerdown', (e) => {
+        this.touchUsed = true; /* a luta foi jogada no toque (nota do torneio usa a regua do toque) */
         on(e);
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(12);
       });
@@ -117,41 +125,98 @@ const Input = {
           else { this._touchCodes.delete(code); if (!this._physical.has(code)) this.keys.delete(code); }
         }
       };
-      const move = (e) => {
+      /* JOYSTICK v3 (resposta rapida pra luta):
+         - o centro e onde o dedo pousou e ACOMPANHA o dedo: se o dedo passa do
+           curso, o joystick e arrastado junto. Inverter a direcao (andar ->
+           defender) custa ~40px em qualquer ponto, em vez de voltar ate o meio.
+         - curso curto (direcao cheia rapido) e zona morta pequena
+         - histerese nas bordas dos setores: nao pisca entre andar e pular
+         - le pointerrawupdate quando existe (menos atraso que pointermove) */
+      let center = null;
+      let owner = null;
+      let ownerId = null; /* so o dedo que comecou mexe no joystick */
+      const host = () => (stick.offsetParent ? stick.offsetParent.getBoundingClientRect() : { left: 0, top: 0 });
+      const placeStick = (x, y) => {
         const box = stick.getBoundingClientRect();
-        const cx = box.left + box.width / 2;
-        const cy = box.top + box.height / 2;
-        let dx = e.clientX - cx;
-        let dy = e.clientY - cy;
-        const max = box.width * 0.36;
-        const len = Math.hypot(dx, dy) || 1;
-        if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+        const h = host();
+        stick.classList.add('floating');
+        stick.style.left = (x - h.left - box.width / 2) + 'px';
+        stick.style.top = (y - h.top - box.height / 2) + 'px';
+        stick.style.bottom = 'auto';
+      };
+      const move = (e) => {
+        if (!center) return;
+        const box = stick.getBoundingClientRect();
+        const max = Math.max(26, box.width * 0.26);
+        let dx = e.clientX - center.x;
+        let dy = e.clientY - center.y;
+        let len = Math.hypot(dx, dy);
+        if (len > max) {
+          /* arrasta o centro: o dedo fica sempre no maximo a "max" dele */
+          const k = (len - max) / len;
+          center.x += dx * k; center.y += dy * k;
+          dx -= dx * k; dy -= dy * k; len = max;
+          placeStick(center.x, center.y);
+        }
         if (knob) knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        const dead = 18;
-        apply('KeyA', dx < -dead);
-        apply('KeyD', dx > dead);
-        apply('KeyW', dy < -dead);
-        apply('KeyS', dy > dead);
+        const dead = Math.max(6, max * 0.22);
+        if (len < dead) { apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false); return; }
+        const ux = dx / len, uy = dy / len;
+        /* liga num limite, desliga num limite menor (histerese) */
+        const keep = (code, val, onAt, offAt) => apply(code, dirs[code] ? val > offAt : val > onAt);
+        keep('KeyA', -ux, 0.38, 0.25);
+        keep('KeyD', ux, 0.38, 0.25);
+        keep('KeyW', -uy, 0.5, 0.36);
+        keep('KeyS', uy, 0.62, 0.48);
       };
       const reset = () => {
         if (knob) knob.style.transform = '';
+        center = null; owner = null; ownerId = null;
+        stick.classList.remove('floating');
+        stick.style.left = ''; stick.style.top = ''; stick.style.bottom = '';
         apply('KeyA', false); apply('KeyD', false); apply('KeyW', false); apply('KeyS', false);
       };
       this._resetStick = reset;
-      stick.addEventListener('pointerdown', (e) => {
+      const begin = (e, el, floating) => {
         e.preventDefault();
-        try { stick.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+        if (owner) return;
+        this.touchUsed = true;
+        owner = el; ownerId = e.pointerId;
+        try { el.setPointerCapture(e.pointerId); } catch (ignored) { /* navegador antigo */ }
+        if (floating) {
+          /* o desenho do joystick pula pra baixo do dedo */
+          center = { x: e.clientX, y: e.clientY };
+          placeStick(center.x, center.y);
+        } else {
+          const box = stick.getBoundingClientRect();
+          center = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+        }
         if (typeof Profile !== 'undefined' && Profile.setting('haptic') !== false && navigator.vibrate) navigator.vibrate(10);
         move(e);
-      });
-      stick.addEventListener('pointermove', (e) => { if (stick.hasPointerCapture(e.pointerId)) move(e); });
-      stick.addEventListener('pointerup', reset);
-      stick.addEventListener('pointercancel', reset);
+      };
+      const moveEv = ('onpointerrawupdate' in window) ? 'pointerrawupdate' : 'pointermove';
+      stick.addEventListener('pointerdown', (e) => begin(e, stick, false));
+      const mine = (e, el) => owner === el && e.pointerId === ownerId;
+      stick.addEventListener(moveEv, (e) => { if (mine(e, stick)) move(e); });
+      if (moveEv !== 'pointermove') stick.addEventListener('pointermove', (e) => { if (mine(e, stick)) move(e); });
+      stick.addEventListener('pointerup', (e) => { if (mine(e, stick)) reset(); });
+      stick.addEventListener('pointercancel', (e) => { if (mine(e, stick)) reset(); });
+      const zone = document.getElementById('stick-zone');
+      if (zone) {
+        zone.addEventListener('pointerdown', (e) => {
+          if (typeof Profile !== 'undefined' && Profile.setting('touchFloat') === false) return;
+          begin(e, zone, true);
+        });
+        zone.addEventListener(moveEv, (e) => { if (mine(e, zone)) move(e); });
+        if (moveEv !== 'pointermove') zone.addEventListener('pointermove', (e) => { if (mine(e, zone)) move(e); });
+        zone.addEventListener('pointerup', (e) => { if (mine(e, zone)) reset(); });
+        zone.addEventListener('pointercancel', (e) => { if (mine(e, zone)) reset(); });
+      }
     }
   },
   releaseAll() {
     if (this._resetStick) this._resetStick();
-    this._touchPointers.forEach(({ btn }) => btn.classList.remove('on'));
+    this._touchPointers.forEach(({ btn, timer }) => { btn.classList.remove('on'); if (timer) clearInterval(timer); });
     this._touchPointers.clear(); this._touchCodes.clear(); this._physical.clear();
     this.keys.clear(); this.pressed.clear();
   },

@@ -114,6 +114,7 @@ function preloadAll() {
   const fpsEl = document.getElementById('fps');
   let fpsFrames = 0;
   let fpsT = last;
+  let coverX = null, coverDrawn = -1e9;
   function frame(now) {
     requestAnimationFrame(frame);
     acc += Math.min(100, now - last);
@@ -122,11 +123,24 @@ function preloadAll() {
     /* selecao com palco ao vivo: o demo fica 100% coberto atras da tela
        (z 20 > canvas), entao nem ticka nem renderiza ele — sobra GPU pro jogo */
     const selBgOn = (typeof UI !== 'undefined' && UI.screen === 'select' && !!UI._selBg);
-    /* CELULAR: a luta de demonstracao fica escondida fora da tela de titulo
-       (css: body.demo-hidden). Escondida, nem calcula nem desenha: bateria e fps. */
-    const demoHidden = document.body.classList.contains('mobile') && game.mode === 'demo' && typeof UI !== 'undefined' && UI.screen !== 'title';
+    /* CELULAR: a luta de demonstracao aparece atras do titulo e do MENU (o
+       fundo vivo do jogo). Nas outras telas (selecao, chave, bonus...) ela
+       ficava por baixo dos paineis parecendo "sprite duplo": la fica escondida
+       (css: body.demo-hidden) e nem calcula nem desenha — bateria e fps. */
+    const demoHidden = document.body.classList.contains('mobile') && game.mode === 'demo' && typeof UI !== 'undefined' && UI.screen !== 'title' && UI.screen !== 'menu';
     if (demoHidden !== document.body.classList.contains('demo-hidden')) document.body.classList.toggle('demo-hidden', demoHidden);
     const skipGame = selBgOn || demoHidden;
+    const demoBg = game.mode === 'demo' && !demoHidden;
+    if (demoBg !== document.body.classList.contains('demo-bg')) document.body.classList.toggle('demo-bg', demoBg);
+    /* celular em pe: o recorte "cover" do fundo segue o meio da luta */
+    if (!demoHidden && game.mode === 'demo' && document.body.classList.contains('mobile') && !document.body.classList.contains('landscape') && typeof AppViewport !== 'undefined' && AppViewport.cover) {
+      const cv = AppViewport.cover;
+      const pair = game.activePair ? game.activePair() : [];
+      const mid = pair[0] && pair[1] ? (pair[0].x + pair[1].x) / 2 : 480;
+      const target = Math.max(cv.width - 960 * cv.scale, Math.min(0, cv.width / 2 - mid * cv.scale));
+      coverX = coverX == null ? target : coverX + (target - coverX) * 0.06;
+      if (Math.abs(coverX - coverDrawn) > 0.5) { coverDrawn = coverX; document.getElementById('app').style.setProperty('--cover-left', coverX.toFixed(1) + 'px'); }
+    }
     while (acc >= STEP && steps < 5) {
       Input.pollPads();
       UI.tick();

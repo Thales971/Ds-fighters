@@ -221,6 +221,21 @@ const tickN = (g, k) => { for (let t = 0; t < k && g.running; t++) g.tick(); };
 }
 
 let musicDone = Promise.resolve();
+/* ---------- 7b. nota do torneio no toque (celular) ---------- */
+{
+  const R = vm.runInContext('torneioRank', ctx);
+  check('teclado: regua antiga intacta (vida cheia, 60s, combo 8 no chefe = S)', R(1, 60, 8, true).letter === 'S' && R(1, 60, 8, true, false).pts === R(1, 60, 8, true).pts);
+  check('teclado: chefe com 50% de vida, 160s, combo 4 = C', R(0.5, 160, 4, true).letter === 'C', R(0.5, 160, 4, true).pts);
+  check('toque: o mesmo chefe (50%, 160s, combo 4) = A — abre a luta contra si mesmo', R(0.5, 160, 4, true, true).letter === 'A', R(0.5, 160, 4, true, true).pts);
+  check('toque: S possivel (75% de vida, 120s, combo 5)', R(0.75, 120, 5, true, true).letter === 'S', R(0.75, 120, 5, true, true).pts);
+  check('toque: perder quase toda a vida ainda nao da A (20%, 200s, combo 2)', R(0.2, 200, 2, true, true).letter !== 'A' && R(0.2, 200, 2, true, true).letter !== 'S', R(0.2, 200, 2, true, true).letter);
+  check('nota do toque marcada no resultado', R(1, 60, 8, true, true).touch === true && R(1, 60, 8, true).touch === false);
+  const inputSrc = fs.readFileSync(path.join(ROOT, 'js/engine/input.js'), 'utf8');
+  const uiSrc = fs.readFileSync(path.join(ROOT, 'js/ui/ui.js'), 'utf8');
+  check('botoes e direcional de toque marcam a luta como "no toque"', (inputSrc.match(/this\.touchUsed = true/g) || []).length >= 2);
+  check('cada luta zera a marca e a nota do torneio usa ela', /Input\.touchUsed = false/.test(uiSrc) && uiSrc.split('\n').some((l) => l.includes('torneioRank(') && l.includes('Input.touchUsed')));
+}
+
 /* ---------- 8. musica: lista sombria exclusiva + Helena no menu ---------- */
 {
   const pl = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/music/playlist.json'), 'utf8'));
@@ -238,11 +253,25 @@ let musicDone = Promise.resolve();
   check('build do site publica "shadow" e "menuTracks"', /'shadow', 'menuTracks'/.test(bs));
 
   /* AudioSys real com Audio falso */
+  const held = { open: false, list: [] };
   const mkAudio = (autoplay) => {
     const played = [];
     const c = { console: { log() {}, warn() {}, error() {} }, Math, Date, JSON, performance: { now: () => 0 },
       fetch: () => Promise.resolve({ ok: true, json: () => Promise.resolve(pl) }),
-      Audio: class { constructor(src) { this.src = src; this.paused = true; played.push(this); } play() { if (!autoplay) return Promise.reject(new Error('NotAllowed')); this.paused = false; return Promise.resolve(); } pause() { this.paused = true; } removeAttribute() {} },
+      /* autoplay: true = toca; false = recusa (Chrome); 'held' = segura o pedido e solta depois do toque (Firefox no celular) */
+      Audio: class {
+        constructor(src) { this.src = src; this.paused = true; this.currentTime = 0; this.ev = {}; played.push(this); }
+        addEventListener(k, f) { (this.ev[k] = this.ev[k] || []).push(f); }
+        emit(k) { (this.ev[k] || []).forEach((f) => f()); }
+        play() {
+          if (autoplay === 'held' && !held.open) { held.list.push(this); return new Promise(() => {}); }
+          if (!autoplay) return Promise.reject(new Error('NotAllowed'));
+          this.paused = false; this.emit('play'); return Promise.resolve();
+        }
+        pause() { this.paused = true; }
+        removeAttribute(k) { if (k === 'src') this.src = ''; }
+        load() {}
+      },
       Profile: { data: { settings: { music: 0.5, sfx: 0.8, voice: 0.9 } } },
       window: {}, document: { addEventListener() {} }, UI: { toast() {} } };
     c.globalThis = c; vm.createContext(c);
@@ -284,6 +313,28 @@ let musicDone = Promise.resolve();
     check('sem autoplay: musica do menu fica pendente', B.A.pending === 'menu' && !B.A.music, B.A.pending);
     B.A.unlocked = true; B.A.flushPending();
     check('1o toque: comeca pela Helena', B.A.music && /Helena/.test(B.A.music.src), B.A.music && B.A.music.src);
+
+    /* Firefox no celular: o pedido de tocar fica pendurado e o navegador solta
+       depois do toque. Antes: pulava a Helena, criava o tema e a Helena voltava
+       por tras (duas musicas). */
+    const H = mkAudio('held');
+    await H.A._ready;
+    H.A.titleMusic();
+    await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));
+    const h0 = H.A.music;
+    H.A.unlocked = true; held.open = true;
+    H.A.flushPending();            /* 1o toque (ensure) */
+    H.A.playMusic('menu');         /* START -> menu */
+    held.list.forEach((a) => { a.paused = false; a.emit('play'); }); /* o navegador solta o pedido antigo */
+    const tocando = H.played.filter((a) => !a.paused);
+    check('Firefox: o toque retoma a MESMA Helena (nao pula pro tema)', H.A.music === h0 && /Helena/.test(h0.src), H.A.music && H.A.music.src);
+    check('Firefox: so UMA musica tocando no menu', tocando.length === 1 && tocando[0] === H.A.music, tocando.map((a) => a.src).join(' + '));
+    /* musica fantasma: elemento antigo que o navegador solta depois e calado */
+    const ghost = H.played.length;
+    H.A.playMusic('battle', true);
+    const old = H.played.find((a) => a !== H.A.music && /Helena/.test(String(a._src || a.src || '')) ) || h0;
+    old.paused = false; old.emit('play');
+    check('musica antiga que volta a tocar sozinha e calada na hora', old.paused === true && H.played.filter((a) => !a.paused).length === 1, ghost + ' elementos');
 
     const S = mkAudio(true);
     await S.A._ready;

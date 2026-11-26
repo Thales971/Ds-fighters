@@ -198,3 +198,53 @@ body.mobile .ln-lyra { flex-basis: 90px; height: 100px; }
 body.mobile .ln-card h2 { font-size: 12px; }
 body.mobile .ln-rewards { gap: 14px; }
 body.mobile .ln-fig { width: 56px; height: 56px; }
+/* ---- celular em pe: a luta de demonstracao cobre a tela toda atras do START e do menu ---- */
+body.mobile.demo-bg:not(.landscape)[data-screen="title"] #game-view,
+body.mobile.demo-bg:not(.landscape)[data-screen="menu"] #game-view {
+  left: var(--cover-left, 0px); top: var(--cover-top, 0px); transform: scale(var(--cover-scale, 1));
+}
+/* menu em pe: o degrade do computador (quase opaco nos 40% da esquerda) escurecia a
+   luta de fundo; aqui um veu uniforme deixa a luta aparecer na tela toda. O desfile
+   de bonecos do rodape sai no celular: com a luta atras ele so poluia os botoes. */
+body.mobile:not(.landscape) #scr-menu { background: linear-gradient(180deg, rgba(5,2,11,.55), rgba(5,2,11,.28) 45%, rgba(5,2,11,.5)); }
+body.mobile .menu-parade { display: none; }
+
+/* ===== CONTROLES DE TOQUE v2 (arcade) =====
+   SOCO/CHUTE grandes embaixo, poderes em arco em volta, ULT destacado acima
+   do CHUTE; cada poder mostra a recarga (escurece e enche) e brilha pronto.
+   Joystick maior e FLUTUANTE: aparece onde o dedo pousa no lado esquerdo. */
+body.mobile #touch-controls .tbtns { display: block; width: 194px; height: 186px; grid-template-columns: none; gap: 0; }
+body.mobile #touch-controls .tbtns button { position: absolute; width: 50px; height: 50px; min-width: 0; min-height: 0; border-radius: 50%; }
+body.mobile #touch-controls .tbtns .t-big { width: 66px; height: 66px; font-size: 9px; letter-spacing: 0; border-width: 3px; background: rgba(60,36,100,.95); border-color: #c9b2ff; box-shadow: 0 4px 0 rgba(0,0,0,.55); }
+body.mobile #touch-controls .tbtns .t-kick { right: 0; bottom: 0; }
+body.mobile #touch-controls .tbtns .t-punch { right: 72px; bottom: 12px; }
+body.mobile #touch-controls .tbtns .t-big.on { background: #8a6420; border-color: var(--gold); transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.55); }
+body.mobile #touch-controls .tbtns [data-power="0"] { right: 142px; bottom: 6px; }
+body.mobile #touch-controls .tbtns [data-power="1"] { right: 140px; bottom: 64px; }
+body.mobile #touch-controls .tbtns [data-power="2"] { right: 102px; bottom: 116px; }
+body.mobile #touch-controls .tbtns [data-power="3"] { right: 50px; bottom: 136px; }
+body.mobile #touch-controls .tbtns [data-power="4"] { right: 0; bottom: 72px; width: 58px; height: 58px; }
+body.mobile #touch-controls .tbtns .t-tag { right: 0; bottom: 138px; width: 44px; height: 44px; font-size: 6px; }
+/* Iales/Kernor (6 a 10 poderes): fileira menor em cima */
+body.mobile #touch-controls.many-powers .tbtns { height: 232px; }
+body.mobile #touch-controls .tbtns [data-power="5"], body.mobile #touch-controls .tbtns [data-power="6"], body.mobile #touch-controls .tbtns [data-power="7"],
+body.mobile #touch-controls .tbtns [data-power="8"], body.mobile #touch-controls .tbtns [data-power="9"] { width: 38px; height: 38px; bottom: 192px; }
+body.mobile #touch-controls .tbtns [data-power="5"] { right: 160px; }
+body.mobile #touch-controls .tbtns [data-power="6"] { right: 120px; }
+body.mobile #touch-controls .tbtns [data-power="7"] { right: 80px; }
+body.mobile #touch-controls .tbtns [data-power="8"] { right: 40px; }
+body.mobile #touch-controls .tbtns [data-power="9"] { right: 0; }
+/* recarga: fatia escura no sentido do relogio (--cd = quanto falta) */
+body.mobile #touch-controls .tbtns [data-power]::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; pointer-events: none; background: conic-gradient(rgba(6,2,14,.72) calc(var(--cd, 0) * 360deg), transparent 0); }
+body.mobile #touch-controls .tbtns [data-power].ready { border-color: var(--gold); box-shadow: 0 0 10px rgba(255,210,125,.85), inset 0 0 6px rgba(255,210,125,.5); }
+body.mobile #touch-controls .tbtns [data-power].ult.ready { border-color: #ff8a3a; box-shadow: 0 0 14px rgba(255,120,40,.95), inset 0 0 8px rgba(255,160,60,.6); animation: ultReady 1s ease-in-out infinite; }
+body.mobile #touch-controls .tbtns [data-power].locked { opacity: .4; }
+body.mobile #touch-controls .tbtns [data-power].on { transform: scale(.92); }
+@keyframes ultReady { 50% { box-shadow: 0 0 22px rgba(255,140,50,1), inset 0 0 10px rgba(255,180,80,.8); } }
+body.mobile #touch-controls .touch-key { z-index: 1; font-size: 7px; }
+/* joystick maior + zona flutuante */
+body.mobile .stick { width: 132px; height: 132px; }
+body.mobile .stick i { left: 41px; top: 41px; width: 50px; height: 50px; transition: none; }
+body.mobile .stick.floating { transform-origin: center; border-color: rgba(255,210,125,.95); background: rgba(18,10,36,.6); }
+.stick-zone { display: none; }
+body.mobile .stick-zone { display: block; position: absolute; left: 0; top: 22%; bottom: 0; width: 42%; pointer-events: auto; touch-action: none; }
