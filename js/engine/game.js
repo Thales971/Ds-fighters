@@ -1431,6 +1431,7 @@ class Game {
     ctx.translate(sx, sy);
     this.stage.drawBack(ctx, camX * 0.5, this.freeze > 0 ? 1 : 0);
     if (this.stage.drawRays && !this.photo) this.stage.drawRays(ctx);
+    if (this.stage.drawVibeBack) this.stage.drawVibeBack(ctx);     /* vibe do mapa: nevoa de horizonte + particulas de fundo */
     if (this.stage.drawLife) this.stage.drawLife(ctx);             /* sombras de nuvem + brilho no piso */
     if (this.stage.drawLiving) this.stage.drawLiving(ctx);         /* fundo vivo: fumaca, neon, agua, lanternas */
     if (this.stage.drawEventBack) this.stage.drawEventBack(ctx);   /* especiais do evento (fundo) */
@@ -1566,6 +1567,7 @@ class Game {
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
+    if (this.stage.drawVibeFront) this.stage.drawVibeFront(ctx);   /* vibe do mapa: particulas do tema na frente */
     if (this.stage.drawEventFront) this.stage.drawEventFront(ctx); /* especiais do evento (frente) + chuva do K.O. */
     /* MORTE SÚBITA: a tela fica avermelada enquanto o fogo avança. */
     if (this._bossDim > 0) {
@@ -1588,6 +1590,7 @@ class Game {
       ctx.fillRect(0, 0, W, H);
     }
     this.weather.drawOverlay(ctx, W, H);
+    if (this.stage.drawVibeGrade) this.stage.drawVibeGrade(ctx);   /* vibe do mapa: gradacao de cor + luz chave + grao */
     /* GÁS ROSA do Daltonic Mode: neblina rosa cobre a tela do jogador atingido. */
     const gasF = this.localTeams().map((ti) => this.activeOf(ti)).find((f) => f && f.has('daltonic'));
     if (gasF) this.drawDaltonicGas(ctx, W, H);

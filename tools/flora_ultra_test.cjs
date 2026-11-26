@@ -70,7 +70,7 @@ for (const st of STAGES) {
   if (!fl.length) continue;
   comFlora++;
   const gy = g.stage.groundY || 458;
-  const ruinsLocal = fl.filter((p) => !(p.x >= 0 && p.x <= 960 && p.y > gy - 12 && p.y <= gy + 2 && ['grass','grass_tall','flower_red','flower_yellow','mushroom','clover'].includes(p.k)));
+  const ruinsLocal = fl.filter((p) => !(p.x >= 0 && p.x <= 960 && p.y > gy - 12 && p.y <= gy + 2 && (p.k === 'mushroom' || !!StageRenderer.FLORA_SPECIES[p.k])));
   if (ruinsLocal.length) ruins.push(st.id + ':' + ruinsLocal.length);
 }
 check('todos os ' + comFlora + ' palcos com flora: itens validos e no chao (y ~ groundY, x na tela)', ruins.length === 0, ruins.slice(0, 5).join(' | '));
@@ -132,10 +132,13 @@ Art.cell = origCell;
 const sprCalls = calls.filter((c) => c.row != null);
 check('drawFlora com atlas: 5 tipos mapeados usam sprite (grass..clover)', sprCalls.length === 5, sprCalls.map((c) => c.row).join(','));
 const rowEsperada = { grass: 0, grass_tall: 1, flower_red: 2, flower_yellow: 3, clover: 4 };
-check('linha do atlas bate com o tipo (FLORA_SPR_ROW)', sprCalls.every((c) => true) && [0, 1, 2, 3, 4].every((r) => sprCalls.some((c) => c.row === r)), sprCalls.map((c) => c.row).join(','));
+/* FLORA v2: cada tipo usa as celulas da especie (FLORA_SPECIES), nao mais "linha inteira por tipo"
+   (o mapa antigo fazia a grama desenhar cardo e flor escura) */
+const tiposSpr = ['grass', 'grass_tall', 'flower_red', 'flower_yellow', 'clover'];
+check('celula do atlas bate com a especie (FLORA_SPECIES)', sprCalls.every((c, i) => StageRenderer.FLORA_SPECIES[tiposSpr[i]].cells.some((cc) => cc[0] === c.row && cc[1] === c.col)), sprCalls.map((c) => c.row + ':' + c.col).join(','));
 check('tipos mapeados usam anchor bottom e escala proporcional', sprCalls.every((c) => c.opts && c.opts.anchor === 'bottom' && c.opts.scale > 0), '');
 check('mushroom NAO usa sprite (fica vetorial: fillRect/arc > 0)', rec.fillRect + rec.arc > 0, 'fillRect=' + rec.fillRect + ' arc=' + rec.arc);
-check('variante rotaciona por indice (col = fi % 4, com wrap)', sprCalls.map((c) => c.col).join(',') === '0,1,2,3,0', sprCalls.map((c) => c.col).join(','));
+check('variante sem pl.v cai no indice (fi % celulas da especie)', sprCalls.map((c, i) => { const ce = StageRenderer.FLORA_SPECIES[tiposSpr[i]].cells; return ce[i % ce.length][1] === c.col; }).every(Boolean), sprCalls.map((c) => c.col).join(','));
 // fallback: sem atlas -> vetorial para todos
 const calls2 = [];
 Art.cell = (c, key, row, col, x, y, opts) => { if (key === 'flora') calls2.push({ row }); return origCell(c, key, row, col, x, y, opts); };
