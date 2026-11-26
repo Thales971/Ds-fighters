@@ -203,3 +203,8 @@ body.mobile.demo-bg:not(.landscape)[data-screen="title"] #game-view,
 body.mobile.demo-bg:not(.landscape)[data-screen="menu"] #game-view {
   left: var(--cover-left, 0px); top: var(--cover-top, 0px); transform: scale(var(--cover-scale, 1));
 }
+/* menu em pe: o degrade do computador (quase opaco nos 40% da esquerda) escurecia a
+   luta de fundo; aqui um veu uniforme deixa a luta aparecer na tela toda. O desfile
+   de bonecos do rodape sai no celular: com a luta atras ele so poluia os botoes. */
+body.mobile:not(.landscape) #scr-menu { background: linear-gradient(180deg, rgba(5,2,11,.55), rgba(5,2,11,.28) 45%, rgba(5,2,11,.5)); }
+body.mobile .menu-parade { display: none; }
