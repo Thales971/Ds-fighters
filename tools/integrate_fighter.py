@@ -1033,6 +1033,8 @@ FIGHTERS = {
         # 5 folhas de habilidades (31 icones uteis apos descartar celulas vazias)
         'abilities': ['Rafael habilidades 1.jpg', 'Rafael habilidades 2.jpg', 'Rafael habilidades 4.jpg', 'Rafel habilidades 3.jpg', 'habilidades rafael 5.jpg'],
         'poses': RAFAEL_POSES,
+        # atlas de habilidades desenhado por codigo (tools/build_rafael_fx.py): nao regerar daqui
+        'abilities_keep': True,
         'ui_cell': (0, 3, 0, False),
         'row_bands': [(0, 448), (448, 896)],
         'col_bands': [(0, 296), (296, 592), (592, 888), (888, 1184)],
