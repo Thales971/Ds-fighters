@@ -1,6 +1,6 @@
 /* DS Fighters V12 — Dev Veterano (Kaíke): veterano blindado com duas pistolas
    anti-bug, soco de 1TB, correntes de aço e a Turbina de Socos.
-   Arte enviada pelo proprietário em bugs/Novos-personagens/, recortada por
+   Arte enviada pelo proprietário em arte-fonte/personagens/, recortada por
    tools/integrate_dev_veterano.py. Carregado após o V11. */
 (() => {
   const id = 'dev-veterano';

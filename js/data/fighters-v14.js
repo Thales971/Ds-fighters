@@ -1,5 +1,5 @@
 /* DS Fighters V14 — Grika reformulada (novo design) e Guarda Digital.
-   Arte do dono em bugs/Novos-personagens/, recortada por
+   Arte do dono em arte-fonte/personagens/, recortada por
    tools/integrate_fighter.py (flood-fill + grid por projeção).
    Carregado após o V13. */
 (() => {

@@ -1,5 +1,5 @@
 /* DS Fighters — STELLA, a Maga do Front-end (nov/2026). Arte do dono
-   (bugs/Novos-personagens/Maga Front *.jpg): maria-chiquinhas douradas,
+   (arte-fonte/personagens/Maga Front *.jpg): maria-chiquinhas douradas,
    tiara, laço vermelho e varinha de estrela. poses ->
    tools/integrate_fighter.py stella; poderes -> tools/build_stella_fx.py.
    Zoner fofa e chata: lua que corta, chuva de estrelas, coracoes que curam,

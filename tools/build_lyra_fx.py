@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades da LYRA, a Maga do JavaScript (arte do dono, nov/2026).
 
-Fontes (bugs/Novos-personagens/, fundo magenta):
+Fontes (arte-fonte/personagens/, fundo magenta):
   'Maga JS habilidades 1.jpg': raio de fogo | setas roxas | 3 raios em V | tabua
       de pedra / tornado | X roxo | circulo no chao | circulo de runas
   'Maga JS habilidades 2.jpg': cometa => | circulo {} | raio azul | hexagono {} /
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, biggest_blob, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 
 B1 = {
     'beam': (0, 120, 325, 285), 'arrows': (330, 60, 585, 300), 'vbeams': (590, 15, 890, 385), 'tablet': (890, 35, 1184, 385),

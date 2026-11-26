@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Atlas de habilidades da MIKO (sacerdotisa) — arte do dono, nov/2026.
-Fontes (bugs/Novos-personagens/, grade 4x2, fundo magenta):
+Fontes (arte-fonte/personagens/, grade 4x2, fundo magenta):
   'Miko habilidades 1.jpg': pergaminho | torii em chamas | flecha | anel roxo /
       orbe azul | tornado de papel | sino | anel de pergaminhos
   'Miko habilidades 2.jpg': portal torii | muralha de ofudas | corte | vortice /
@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 G = [(c * 296 + 6, r * 448 + 6, c * 296 + 290, r * 448 + 442) for r in range(2) for c in range(4)]
 N1 = ['scroll', 'torii', 'arrow', 'ring', 'orb', 'tornado', 'bell', 'scrolls']
 N2 = ['portal', 'wall', 'slash', 'vortex', 'rain', 'dome', 'dragon', 'kitsune']

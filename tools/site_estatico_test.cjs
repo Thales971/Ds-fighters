@@ -10,7 +10,7 @@ const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsf-site-'));
 execFileSync(process.execPath, [path.join(__dirname, 'build_site.cjs'), OUT], { stdio: 'ignore' });
 const has = (p) => fs.existsSync(path.join(OUT, p));
 check('site tem index, manifest, sw, css, js e assets', ['index.html', 'manifest.webmanifest', 'sw.js', '.nojekyll', 'css/style.css', 'js/main.js', 'assets/sprites/du.png', 'assets/music/playlist.json'].every(has));
-check('site sem arte-fonte, ferramentas, api e docs', !has('assets/art-pack') && !has('tools') && !has('api') && !has('bugs') && !has('README.md'));
+check('site sem arte-fonte, ferramentas, api e docs', !has('arte-fonte') && !has('assets/art-pack') && !has('tools') && !has('api') && !has('docs') && !has('README.md'));
 let size = 0; const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); const s = fs.statSync(p); if (s.isDirectory()) walk(p); else size += s.size; } }; walk(OUT);
 check('site cabe no limite do GitHub Pages (< 1 GB)', size < 1e9, (size / 1e6).toFixed(0) + ' MB');
 let pw; try { pw = require('playwright'); } catch (e) { pw = null; }

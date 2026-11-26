@@ -1,5 +1,5 @@
 /* DS Fighters — HENRICO, o Campeão da Quadra.
-   Arte do dono em assets/maps/henrico-personagem/ (recortada para
+   Arte do dono em arte-fonte/henrico-personagem/ (recortada para
    assets/sprites/henrico.png). Pedido: nível do BHM e Nunes PRA CIMA.
    Arquétipo: boxeador de rua — pressão constante, status em tudo. */
 (() => {

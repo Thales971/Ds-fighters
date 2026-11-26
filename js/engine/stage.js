@@ -540,7 +540,7 @@ class StageRenderer {
     const gy = this.groundY || 458;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    /* Arte real da pasta flora/ (atlas assets/fauna/flora.png, gerado por
+    /* Arte real da pasta arte-fonte/flora/ (atlas assets/fauna/flora.png, gerado por
        tools/build_flora_atlas.py): linha por tipo, 4 variantes por linha.
        Se o atlas nao carregou, cai no desenho vetorial de antes. */
     const sprReady = typeof Art !== 'undefined' && Art.ready('flora');
@@ -1050,7 +1050,7 @@ class StageRenderer {
 }
 
 /* Linhas do atlas de flora (assets/fauna/flora.png, gerado por
-   tools/build_flora_atlas.py a partir de flora/flores.png + flora/grama.png)
+   tools/build_flora_atlas.py a partir de arte-fonte/flora/flores.png + arte-fonte/flora/grama.png)
    por tipo de planta; tipos sem linha caem no desenho vetorial. */
 StageRenderer.FLORA_SPR_ROW = { grass: 0, grass_tall: 1, flower_red: 2, flower_yellow: 3, clover: 4 };
 

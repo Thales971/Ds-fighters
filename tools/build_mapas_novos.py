@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mapas novos do dono (bugs/Novos-mapas/*.jpg, 1184x896) -> assets/maps/*.jpg
+"""Mapas novos do dono (arte-fonte/mapas-novos/*.jpg, 1184x896) -> assets/maps/*.jpg
 960x540. Corta em 16:9 com o chao onde os lutadores pisam (y 458 de 540).
 Uso: python3 tools/build_mapas_novos.py
 """
@@ -8,14 +8,14 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-mapas'
-TOR = ROOT / 'mapas-torneio'
+SRC = ROOT / 'arte-fonte/mapas-novos'
+TOR = ROOT / 'arte-fonte/mapas-torneio'
 # (arquivo, saida, y do chao na arte original onde o pe do lutador fica)
 MAPS = [
     ('Metropole dia e noite.jpg', 'metropole-dia-noite.jpg', 760),
     ('Churrasco na laje.jpg', 'churrasco-laje.jpg', 740),
     ('Data center abandonado.jpg', 'datacenter-abandonado.jpg', 770),
-    # mapas do TORNEIO (pasta mapas-torneio/ do dono)
+    # mapas do TORNEIO (pasta arte-fonte/mapas-torneio/ do dono)
     (TOR / 'Praça hello word.jpg', 'torneio-praca-hello-world.jpg', 820),
     (TOR / 'Floresta de dependencias.jpg', 'torneio-floresta-dependencias.jpg', 820),
     (TOR / 'ponte do cache.jpg', 'torneio-ponte-do-cache.jpg', 575),

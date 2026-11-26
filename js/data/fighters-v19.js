@@ -1,7 +1,7 @@
 /* DS Fighters V19 — NUNES, a Fênix de Nexo City.
    Zoner de dano contínuo: cada chama que ele acende fica na arena, queimando
    e travando o oponente, enquanto ele se cura dentro do próprio fogo
-   (Passiva: Fagulha Viva). Arte do dono em bugs/Novos-personagens/
+   (Passiva: Fagulha Viva). Arte do dono em arte-fonte/personagens/
    (nunes-*.jpg), recortada por tools/integrate_fighter.py. */
 (() => {
   const id = 'nunes';

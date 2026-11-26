@@ -1,5 +1,5 @@
 /* DS Fighters — LARPER, a toxicologista de rua (veneno), nov/2026.
-   Arte do dono (bugs/Novos-personagens/Larper *.jpg): tranças com pontas
+   Arte do dono (arte-fonte/personagens/Larper *.jpg): tranças com pontas
    verdes, mascara de gas, traje tatico preto com linhas verdes e cartuchos
    de gas na cintura.
      poses   -> tools/integrate_fighter.py larper

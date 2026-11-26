@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pets novos (nov/2026) a partir de novos-pets/*.jpg (arte do dono).
+"""Pets novos (nov/2026) a partir de arte-fonte/pets/*.jpg (arte do dono).
 
 Cada pet vira assets/pets/pet-<id>.png, 4x3 celulas de 96 px:
   linha 0  parado/andando (loop do lado do dono)
@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import integrate_fighter as I  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'novos-pets'
+SRC = ROOT / 'arte-fonte/pets'
 S = 96
 # id: (folha movimento, folha reacoes, mapa da folha 1 (idle, andar1, idle2, andar2, pulo))
 PETS = {

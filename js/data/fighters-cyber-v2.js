@@ -1,5 +1,5 @@
 /* DS Fighters — CYBER-PSICOPATA v2 (nov/2026).
-   Arte nova do dono (bugs/Novos-personagens/Ciber v2 *.jpg):
+   Arte nova do dono (arte-fonte/personagens/Ciber v2 *.jpg):
      poses   -> tools/integrate_fighter.py cyber-psicopata
      poderes -> tools/build_ciber_fx.py (atlas animado + explosao de impacto)
    Carregado DEPOIS de todas as camadas antigas de balanceamento (v9..v13) e

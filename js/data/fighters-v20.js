@@ -1,6 +1,6 @@
 /* DS Fighters V20 — PONTEIRO, o Relojoeiro Quebrado.
    Controle/tempo: não vence no dano, vence por nunca deixar você agir na
-   hora certa. Arte do dono em bugs/Novos-personagens/ (ponteiro-*.jpg),
+   hora certa. Arte do dono em arte-fonte/personagens/ (ponteiro-*.jpg),
    recortada por tools/integrate_fighter.js. */
 (() => {
   const id = 'ponteiro';

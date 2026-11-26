@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do CRACKER (assets/abilities/cracker.png, 4x5 de 128px).
 
-Fonte: arte do dono em Pitoco-pet/mare-alta-nova-sprites-recortar/Craker-personagem/
+Fonte: arte do dono em arte-fonte/pitoco-pet/mare-alta-nova-sprites-recortar/Craker-personagem/
   'Cracker efeitos 1.jpg' e 'Cracker efeitos 2.jpg' (8 sprites cada, fundo magenta).
 Cada sprite e recortado, o magenta vira transparencia (com despill na borda)
 e os 4 quadros de cada linha sao montados a partir deles.
@@ -22,7 +22,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageEnhance, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'Pitoco-pet/mare-alta-nova-sprites-recortar/Craker-personagem'
+SRC = ROOT / 'arte-fonte/pitoco-pet/mare-alta-nova-sprites-recortar/Craker-personagem'
 OUT = ROOT / 'assets/abilities/cracker.png'
 S = 128
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do CYBER-PSICOPATA v2 (arte nova do dono, nov/2026).
 
-Fontes (bugs/Novos-personagens/, fundo magenta):
+Fontes (arte-fonte/personagens/, fundo magenta):
   'Ciber v2 habilidades 1.jpg'  grade 4x2: tiro de canhao | bola de fogo |
       explosao | nuvem de poeira / erupcao | rastro azul | onda de choque | vapor
   'Ciber v2 habilidades 2.jpg'  solta: estrela | cratera | misseis | explosoes /
@@ -22,7 +22,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 S = 128
 
 

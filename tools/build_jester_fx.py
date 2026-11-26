@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas de habilidades do JESTER (bobo da corte) — arte do dono, nov/2026.
 
-Fontes (bugs/Novos-personagens/, fundo magenta/roxo):
+Fontes (arte-fonte/personagens/, fundo magenta/roxo):
   'Jester habilidades 1.jpg': polaroide | barra azul | sino | torta /
       bola ✓ | bola ✗ | bastao listrado | confete
   'Jester habilidades 2.jpg' (grade 4x2): clone | ✗ explodindo | bexigas | torta /
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_ciber_fx import S, bright, fit, key_out, place  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'bugs/Novos-personagens'
+SRC = ROOT / 'arte-fonte/personagens'
 B1 = {
     'polaroid': (15, 75, 295, 355), 'bar': (315, 185, 585, 305), 'bell': (615, 95, 875, 355), 'pie': (885, 85, 1184, 325),
     'check': (20, 515, 275, 775), 'x': (320, 515, 575, 775), 'pole': (625, 495, 835, 775), 'confetti': (890, 520, 1175, 765),

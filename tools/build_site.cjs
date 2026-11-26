@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Monta a pasta do site estatico (pra GitHub Pages / Cloudflare Pages / qualquer
    hospedagem): so o que o jogo usa — index.html, manifest, sw.js, css/, js/,
-   assets/ (sem a arte-fonte assets/art-pack). Sem api/ (funcoes so na Vercel).
+   assets/ (a arte-fonte fica em arte-fonte/, fora do site). Sem api/ (funcoes so na Vercel).
    Uso: node tools/build_site.cjs [saida]   (padrao: _site) */
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,7 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = path.resolve(ROOT, process.argv[2] || '_site');
 const FILES = ['index.html', 'manifest.webmanifest', 'sw.js'];
 const DIRS = ['css', 'js', 'assets'];
-const SKIP = [path.join('assets', 'art-pack')];
+const SKIP = []; /* a arte-fonte mora em arte-fonte/ (fora de assets/): nada pra pular aqui */
 /* MUSICA: so publica o audio que o jogo usa (playlist.json + caminhos citados
    no codigo). As copias repetidas que o dono guarda em varias pastas
    (rock/AMV/, rock/One-X/...) ficam no repositorio mas nao vao pro site:

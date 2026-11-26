@@ -1,5 +1,5 @@
 /* ============================================================
-   DS FIGHTERS — MAPAS DO TORNEIO (arte do dono em mapas-torneio/,
+   DS FIGHTERS — MAPAS DO TORNEIO (arte do dono em arte-fonte/mapas-torneio/,
    recortada por tools/build_mapas_novos.py). Cada mapa tem clima,
    luz, ambientacao e EVENTOS de batalha so dele. O torneio percorre
    os mapas em ordem e termina na Fortaleza do Dev contra o chefe.

@@ -20,7 +20,7 @@ desenhado para cada mapa, não colado por cima.
    desenho do mapa tem arquibancada/calçada. Pessoas menores que os lutadores, usando
    as 25, sem cortar cabeça. Pulo na empolgação continua.
 3. **Maré — recortar direito.** As imagens do dono
-   (`Pitoco-pet/mare-alta-nova-sprites-recortar/*.jpg`) são quadros de animação
+   (`arte-fonte/pitoco-pet/mare-alta-nova-sprites-recortar/*.jpg`) são quadros de animação
    (onda cresce → quebra → some), não faixas contínuas. Refazer
    `tools/build_mare_atlas.py` para recortar quadro a quadro (sem as divisórias
    que hoje viram riscos verticais) e gerar um atlas novo em `assets/fx/mare.png`.

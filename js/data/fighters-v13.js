@@ -1,5 +1,5 @@
 /* DS Fighters V13 — Hana e Cyber-Psicopata. Arte enviada pelo proprietário em
-   bugs/Novos-personagens/, recortada por tools/integrate_fighter.py (grid
+   arte-fonte/personagens/, recortada por tools/integrate_fighter.py (grid
    detectado por projeção de alpha). Carregado após o V12. */
 (() => {
   const register = (id) => {

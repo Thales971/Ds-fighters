@@ -1,5 +1,5 @@
 /* DS Fighters — JESTER, o Bobo da Corte (nov/2026).
-   Arte do dono (bugs/Novos-personagens/Jester *.jpg): bobo de chapéu de
+   Arte do dono (arte-fonte/personagens/Jester *.jpg): bobo de chapéu de
    guizos, gola dourada, roupa vinho com losangos, malabares de ✓ e ✗.
      poses   -> tools/integrate_fighter.py jester
      poderes -> tools/build_jester_fx.py (atlas animado + extra de impacto)

@@ -104,7 +104,7 @@ def main():
         if src.exists():
             stage(src, ROOT / f'assets/maps/{sid}.jpg')
             report[f'map/{sid}'] = 'ok'
-    pack = ROOT / 'assets/art-pack'
+    pack = ROOT / 'arte-fonte/art-pack'
     for p in sorted((pack / 'maps').glob('*.png')):
         stage(p, ROOT / f'assets/maps/{p.stem}.jpg')
         report[f'map/{p.stem}'] = 'ok'

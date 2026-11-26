@@ -1,5 +1,5 @@
 /* DS Fighters — KERNOR, o chefe final do torneio (nov/2026).
-   Arte do dono (Kernor-chefe-torneio/): colosso de pedra negra com chifres,
+   Arte do dono (arte-fonte/kernor-chefe-torneio/): colosso de pedra negra com chifres,
    olho vermelho e aureola. poses -> tools/integrate_fighter.py kernor;
    poderes -> tools/build_kernor_fx.py (atlas 4x10 + extra).
    Chefe: 10 habilidades, resiste a debuffs (duram 40% menos), muita vida e
