@@ -36,7 +36,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     p.on('pageerror', (e) => errs.push(e.message));
     await p.goto(url);
     await p.waitForFunction(() => typeof UI !== 'undefined' && UI.screen === 'title', null, { timeout: 30000 });
-    await p.evaluate(() => { DSGame.applyPerf = () => {}; UI.pressStart(); });
+    /* o convite de login (Lyra) aparece sozinho depois de algumas lutas e cobre os botoes do resultado: fora deste teste */
+    await p.evaluate(() => { DSGame.applyPerf = () => {}; UI._nudgeShown = 99; UI.pressStart(); });
     await p.waitForFunction(() => UI.screen === 'menu', null, { timeout: 8000 });
 
     const before = await p.evaluate(() => ({ hidden: document.getElementById('btn-shadow-mode').hidden, has: Profile.hasAchievement('eu-mesmo') }));
@@ -126,7 +127,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.evaluate(() => UI.toMenu());
     check('nenhum erro de pagina', errs.length === 0, errs.slice(0, 3).join(' | '));
   } catch (e) {
-    check('execucao sem excecao', false, e.message.split('\n')[0]);
+    check('execucao sem excecao', false, e.message.split('\n').slice(0, 12).join(' | '));
   } finally {
     await b.close();
     server.close();
