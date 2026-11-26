@@ -39,10 +39,11 @@ const AudioSys = {
   _mixFrame: 0,
   _ultUntil: 0,
   init() {
-    fetch('assets/music/playlist.json', { cache: 'no-cache' })
+    this._ready = fetch('assets/music/playlist.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => { if (j) this.playlist = Object.assign(this.playlist, j); })
       .catch(() => {});
+    return this._ready;
   },
   ensure() {
     if (!this.ctx) {
@@ -354,6 +355,37 @@ const AudioSys = {
   sfx(name) { if (name && !this.play(name)) this.special(); },
 
   /* ---------- música ---------- */
+  /* MENU: "menuTracks" alterna (Helena primeiro, depois o tema do jogo...).
+     Sem a lista, so o tema em loop. */
+  menuList() {
+    const l = (this.playlist.menuTracks || []).filter((t) => t && t.file);
+    return l.length ? l : (this.playlist.menu ? [this.playlist.menu] : []);
+  },
+  nextMenuTrack() {
+    const l = this.menuList();
+    if (!l.length) return null;
+    const i = (this._menuIdx || 0) % l.length;
+    this._menuIdx = i + 1;
+    return l[i];
+  },
+  /* TELA DE START: depois que os assets carregam, tenta tocar a musica do
+     menu ja ali. Navegador que bloqueia autoplay: fica pendente e comeca no
+     1o toque/tecla (ou no START, que continua a mesma faixa no menu). */
+  titleMusic() {
+    const go = () => {
+      if (this.music && this.musicKind === 'menu' && !this.music.paused) return;
+      if (this.unlocked) return this.playMusic('menu');
+      this.pending = 'menu';
+      const a = this.playMusic('menu', true);
+      const p = this._lastPlayback;
+      /* main.js ja chama ensure() no 1o toque/tecla, que toca o pendente */
+      if (a && p && typeof p.then === 'function') {
+        p.then(() => { if (this.music === a) this.pending = null; })
+          .catch(() => { if (this.music === a && !this.unlocked) { this.stopMusic(); this._menuIdx = 0; this.pending = 'menu'; } });
+      }
+    };
+    if (this._ready && typeof this._ready.then === 'function') this._ready.then(go, go); else go();
+  },
   pickBattleTrack(kind) {
     const uniqueByFile = (list) => {
       const seen = new Set();
@@ -372,6 +404,15 @@ const AudioSys = {
       this.lastTrack = c.file;
       return c;
     }
+    /* O SEU MAIOR INIMIGO: so as faixas sombrias ("shadow"), nunca o rock normal */
+    if (kind === 'shadow' && this.playlist.shadow && this.playlist.shadow.length) {
+      const sh = uniqueByFile(this.playlist.shadow);
+      const ch = sh.length > 1 && this.lastTrack ? sh.filter((t) => t.file !== this.lastTrack) : sh;
+      const src = ch.length ? ch : sh;
+      const c = src[Math.floor(Math.random() * src.length)] || src[0];
+      this.lastTrack = c.file;
+      return c;
+    }
     const own = uniqueByFile(this.playlist.tracks);
     const pool = own.length ? own : uniqueByFile(this.playlist.fallback);
     if (!pool.length) return null;
@@ -382,9 +423,9 @@ const AudioSys = {
     this.lastTrack = choice.file;
     return choice;
   },
-  playMusic(kind) {
-    if (!this.unlocked) { this.pending = kind; return; }
-    if ((kind === 'menu' || kind === 'boss') && this.musicKind === kind && this.music && !this.music.paused) return;
+  playMusic(kind, force) {
+    if (!this.unlocked && !force) { this.pending = kind; return; }
+    if ((kind === 'menu' || kind === 'boss' || kind === 'shadow') && this.musicKind === kind && this.music && !this.music.paused) return this.music;
     if (kind === 'menu') {
       this.intensity = 0;
       this.intensityTarget = 0;
@@ -392,18 +433,29 @@ const AudioSys = {
       this._ultUntil = 0;
     }
     this.stopMusic();
-    const track = kind === 'menu' ? this.playlist.menu : this.pickBattleTrack(kind);
+    const track = kind === 'menu' ? this.nextMenuTrack() : this.pickBattleTrack(kind);
     this.musicKind = kind;
     if (!track || !track.file) return;
     const a = new Audio(track.file);
-    a.loop = kind === 'menu';
+    a.loop = kind === 'menu' && this.menuList().length <= 1;
     a.volume = 0;
     a.onended = () => {
-      if (kind !== 'menu' && this.music === a && this.musicKind === kind) this.playMusic(kind);
+      /* menu: acabou a faixa, entra a proxima da lista (Helena <-> tema) */
+      if (this.music === a && this.musicKind === kind) this.playMusic(kind, true);
     };
     a.onerror = () => {
       // faixa listada mas ainda não enviada: cai para a trilha original
       if (this.music !== a) return;
+      if (kind === 'menu' && Array.isArray(this.playlist.menuTracks) && this.playlist.menuTracks.length > 1) {
+        this.playlist.menuTracks = this.playlist.menuTracks.filter((t) => t.file !== track.file);
+        this.playMusic('menu', true);
+        return;
+      }
+      if (kind === 'shadow' && Array.isArray(this.playlist.shadow) && this.playlist.shadow.length > 1) {
+        this.playlist.shadow = this.playlist.shadow.filter((t) => t.file !== track.file);
+        this.playMusic('shadow', true);
+        return;
+      }
       if (kind !== 'menu' && Array.isArray(this.playlist.tracks) && this.playlist.tracks.length) {
         this.playlist.tracks = this.playlist.tracks.filter((t) => t.file !== track.file);
         this.playMusic(kind);
@@ -417,11 +469,14 @@ const AudioSys = {
     this._hotMiss = false;
     this.applyMusicVolumes();
     this.nowPlaying = track.title || track.file.split('/').pop();
+    this._lastPlayback = null;
     try {
       const playback = a.play();
+      this._lastPlayback = playback;
       if (playback && typeof playback.catch === 'function') playback.catch(() => {});
     } catch (e) { /* política de autoplay ou falha do elemento */ }
     if (typeof UI !== 'undefined' && UI.toast && kind !== 'menu') UI.toast('♪ ' + this.nowPlaying, 2600);
+    return a;
   },
   stopMusic() {
     this._stopHot();

@@ -69,6 +69,10 @@ function preloadAll() {
     } else {
       box.classList.add('done');
       setTimeout(() => box.remove(), 400);
+      /* assets prontos: a musica do menu (Helena primeiro) ja toca na tela de
+         START. Sem autoplay, fica pendente ate o 1o toque e o START continua
+         a mesma faixa no menu. */
+      if (typeof AudioSys !== 'undefined' && AudioSys.titleMusic && typeof UI !== 'undefined' && UI.screen === 'title') AudioSys.titleMusic();
     }
   };
   list.forEach((u) => { const i = new Image(); i.onload = () => { done++; step(); }; i.onerror = () => { done++; failed.push(u); step(); }; i.src = u; });

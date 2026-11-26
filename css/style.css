@@ -955,3 +955,28 @@ body.reduced .menu-parade, body.reduced .menu-motes, body.perf-xlow .menu-parade
 #scr-title .title-bg { transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -10px)) scale(1.04); transition: transform .2s ease-out; }
 #scr-title .title-fx { transform: translate(calc(var(--px, 0) * 10px), calc(var(--py, 0) * 6px)); transition: transform .2s ease-out; }
 #scr-title .logo { translate: calc(var(--px, 0) * 22px) calc(var(--py, 0) * 12px); transition: translate .2s ease-out; }
+
+/* ===== O SEU MAIOR INIMIGO (luta sombria) ===== */
+.shadow-hud {
+  position: absolute; left: 50%; top: 124px; transform: translateX(-50%); z-index: 6;
+  display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;
+  padding: 6px 14px; border: 1px solid rgba(185,140,255,.55); border-radius: 4px;
+  background: linear-gradient(180deg, rgba(14,2,24,.82), rgba(4,0,10,.82));
+  box-shadow: 0 0 18px rgba(120,40,200,.35), inset 0 0 12px rgba(80,0,140,.4);
+  font: 10px/1.2 "Press Start 2P", monospace; color: #e8dcff; pointer-events: none;
+  text-shadow: 0 0 6px rgba(185,140,255,.8);
+}
+.shadow-hud[hidden] { display: none; }
+.shadow-hud .sh-lives { color: #ff4b6b; font-size: 13px; letter-spacing: 3px; text-shadow: 0 0 8px rgba(255,40,70,.9); }
+.shadow-hud .sh-time { font-size: 14px; color: #fff; min-width: 64px; text-align: center; }
+.shadow-hud .sh-mem { color: #d8e8ff; }
+.shadow-hud .sh-stun { color: #8affc1; animation: shStun .5s steps(2) infinite; }
+.shadow-hud .sh-stun:empty { display: none; }
+@keyframes shStun { 50% { opacity: .45; } }
+.lad-row.shadow { border-color: #7a3cff; background: linear-gradient(90deg, rgba(40,0,70,.65), rgba(0,0,0,.4)); }
+.lad-row.shadow .lad-face { filter: grayscale(.6) brightness(.4) contrast(1.4) hue-rotate(225deg) saturate(2.2); }
+.lad-row.shadow b { animation: shFlick 3.2s steps(1) infinite; }
+@keyframes shFlick { 0%, 92%, 100% { opacity: 1; } 93% { opacity: .2; } 95% { opacity: .9; } 97% { opacity: .3; } }
+.vs-shadow .vs-sprite { filter: grayscale(.55) brightness(.42) contrast(1.35) sepia(.35) hue-rotate(225deg) saturate(2.2) drop-shadow(0 0 14px rgba(140,60,255,.85)); }
+.tourney-rank.shadow-open, .tourney-rank.shadow-end { color: #d8c4ff; text-shadow: 0 0 8px rgba(150,80,255,.8); }
+@media (max-width: 700px) { .shadow-hud { top: 96px; gap: 8px; font-size: 8px; padding: 4px 8px; } .shadow-hud .sh-time { font-size: 11px; } }
