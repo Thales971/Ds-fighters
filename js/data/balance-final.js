@@ -13,22 +13,23 @@
    dano das habilidades (--kits) so le, nao grava, com --so-relatorio.
    ============================================================ */
 /* nov/2026: buff medido por simulacao (tools/balance_sim.cjs --vs normal, 3 sementes)
-   Rafael x1.10, Hana x1.10, Titan x1.05, Dandara x1.04, Lobao x1.05, Kira x1.05, Yumi/Ada/Kael/Tracy x1.03 (forca e vida):
+   Rafael x1.10, Hana x1.10, Titan x1.05, Dandara x1.04, Lobao x1.05, Kira x1.05, Yumi/Ada/Kael/Tracy x1.03; depois ET x1.12 (+ carro na ultimate),
+   Omni x1.08, Kairo x1.03 (x1.08 passou de 60%), Mira x1.05, Henrico x1.04, Cromo x1.02 (forca e vida):
    antes 37-43% de vitoria, depois ~48-53%. */
 const BALANCE_FINAL = {
-  'stack': { power: 1.94, hp: 179, speed: 1.24, weight: 1, meterRate: 1.4 }, /* ET 1155 */
+  'stack': { power: 2.173, hp: 200, speed: 1.24, weight: 1, meterRate: 1.4 }, /* ET 1155 */
   'gitmaster': { power: 1.451, hp: 140, speed: 1.24, weight: 0.92, meterRate: 1.3 }, /* KAGE COMMIT */
   'bughunter': { power: 2.042, hp: 200, speed: 1.18, weight: 0.98, meterRate: 1.28 }, /* TRACY (era LYRA TRACE, nome repetido com a LYRA) */
-  'frontend': { power: 2.721, hp: 265, speed: 1.2, weight: 0.96, meterRate: 1.3 }, /* MIRA PIXEL */
+  'frontend': { power: 2.857, hp: 278, speed: 1.2, weight: 0.96, meterRate: 1.3 }, /* MIRA PIXEL */
   'backend': { power: 3.484, hp: 412, speed: 0.94, weight: 1.24, meterRate: 1.08 }, /* TITAN 500 */
   'devops': { power: 2.176, hp: 213, speed: 1.1, weight: 1.12, meterRate: 1.26 }, /* CID PIPE */
   'qa': { power: 2.855, hp: 308, speed: 1.1, weight: 1.04, meterRate: 1.18 }, /* ADA ASSERT */
-  'scrum': { power: 1.273, hp: 126, speed: 1.24, weight: 0.96, meterRate: 1.38 }, /* KAIRO SPRINT */
-  'fullstack': { power: 2.805, hp: 327, speed: 1.05, weight: 1, meterRate: 1.1 }, /* OMNI STACK */
+  'scrum': { power: 1.311, hp: 130, speed: 1.24, weight: 0.96, meterRate: 1.38 }, /* KAIRO SPRINT */
+  'fullstack': { power: 3.029, hp: 353, speed: 1.05, weight: 1, meterRate: 1.1 }, /* OMNI STACK */
   'kotlin': { power: 1.240, hp: 119, speed: 1.32, weight: 0.96, meterRate: 1.34 }, /* YUMI LAMBDA */
   'hacker': { power: 1.838, hp: 179, speed: 1.26, weight: 0.94, meterRate: 1.3 }, /* ROOT PHANTOM */
   'java': { power: 1.600, hp: 212, speed: 0.95, weight: 1.16, meterRate: 1.18 }, /* KAEL JVM */
-  'merc': { power: 1.563, hp: 152, speed: 1.32, weight: 0.94, meterRate: 1.42 }, /* CROMO VX */
+  'merc': { power: 1.594, hp: 155, speed: 1.32, weight: 0.94, meterRate: 1.42 }, /* CROMO VX */
   'bhm': { power: 1.669, hp: 167, speed: 1.26, weight: 1.02, meterRate: 1.42 }, /* BHM NOIR */
   'gemini': { power: 0.904, hp: 89, speed: 1.26, weight: 1.04, meterRate: 1.42 }, /* GEMINI TWINBYTE */
   'meta': { power: 0.915, hp: 90, speed: 1.26, weight: 1.04, meterRate: 1.42 }, /* META */
@@ -56,7 +57,7 @@ const BALANCE_FINAL = {
   'ponteiro': { power: 1.726, hp: 301, speed: 0.98, weight: 1, meterRate: 1.6 }, /* PONTEIRO */
   'lia': { power: 2.796, hp: 608, speed: 1.22, weight: 0.92, meterRate: 1.28 }, /* LIA */
   'nexo': { power: 3.154, hp: 752, speed: 1.06, weight: 1.04, meterRate: 1.12 }, /* NEXO */
-  'henrico': { power: 1.061, hp: 100, speed: 1.28, weight: 1.08, meterRate: 1.5 }, /* HENRICO */
+  'henrico': { power: 1.103, hp: 104, speed: 1.28, weight: 1.08, meterRate: 1.5 }, /* HENRICO */
   'jess': { power: 2.486, hp: 335, speed: 1.3, weight: 0.85, meterRate: 1.36 }, /* JESS */
   'dev-virado': { power: 1.799, hp: 293, speed: 1.55, weight: 0.82, meterRate: 1.15 }, /* DEV VIRADO */
   'milena': { power: 2.569, hp: 390, speed: 1.08, weight: 1, meterRate: 1.15 }, /* MILENA */

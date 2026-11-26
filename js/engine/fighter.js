@@ -1231,6 +1231,21 @@ class Fighter {
           /* zoneAfter (LARPER — Nuvem da Morte): a explosao deixa uma nuvem no chao */
           if (p.zoneAfter) game.zones.push(new Zone(this, Object.assign({ fid, key, row: p.row, x: tx, w: 220, time: 240, dmg: 0.08, power: p }, p.zoneAfter)));
         }
+        /* p.car (ET 1155 — Debloat Total): o carro dele entra pela tela por
+           tras e atropela o rival antes do gabinete explodir. E um projetil de
+           chao comum (sai no snapshot online sem codigo extra). */
+        if (p.car) {
+          const c = p.car;
+          const carP = Object.assign({ id: p.id + '-car', ground: true, heavy: true, passThrough: true, multiHit: 1, push: 14, stun: 30, launch: -11, height: 'mid' }, c, { visualSheet: c.sheet, visualRow: 0 });
+          const car = new Projectile(this, carP, { fid, scale: c.scale || 1.3, dmg: c.dmg });
+          car.x = Math.max(-100, Math.min(game.W + 100, this.x - this.dir * (c.back || 240)));
+          car.vx = this.dir * (c.speed || 21);
+          car.life = c.life || 90;
+          car.r = 30 * (c.scale || 1.3);
+          game.projectiles.push(car);
+          game.audio.play('dash');
+          game.shake(8);
+        }
         if (p.heal) this.heal(p.heal);
         if (p.kernel) {
           game.bsod = 80;
