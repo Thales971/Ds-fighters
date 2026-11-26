@@ -28,7 +28,7 @@ check('profile.js: SECRET_IDS tem 5 secretos incl. dolynho + branch de resgate p
 check('achievements.js: 28 conquistas, ids unicos, todas com name+desc', /const ACHIEVEMENTS = \[/.test(achSrc));
 {
   const ids = [...achSrc.matchAll(/id: '([^']+)'/g)].map((m) => m[1]);
-  check('30 conquistas com ids unicos e completos (torneio + login)', ids.length === 31 && new Set(ids).size === 31, ids.length + ' ids');
+  check('31 conquistas com ids unicos e completos (torneio + login + sombra)', ids.length === 31 && new Set(ids).size === 31, ids.length + ' ids');
   const entries = achSrc.match(/\{ id: '[^']+',[^}]*\}/g) || [];
   check('todas as conquistas tem name e desc', entries.length === 31 && entries.every((e) => /name:/.test(e) && /desc:/.test(e)));
 }
@@ -238,7 +238,7 @@ for (const f of files) { try { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, 
 
   ui.renderConquistas();
   const cqHtml = ui.__els['conquistas-list'].innerHTML;
-  check('renderConquistas: barra de progresso + 2/30 + cartao .medal.on no primeiro-ko + recordes', cqHtml.indexOf('cq-bar') >= 0 && cqHtml.indexOf('2/30') >= 0 && /medal on/.test(cqHtml) && cqHtml.indexOf('RECORDES') >= 0 && cqHtml.indexOf('DU MAGMA') >= 0, cqHtml.slice(0, 120));
+  check('renderConquistas: barra de progresso + 2/31 + cartao .medal.on no primeiro-ko + recordes', cqHtml.indexOf('cq-bar') >= 0 && cqHtml.indexOf('2/31') >= 0 && /medal on/.test(cqHtml) && cqHtml.indexOf('RECORDES') >= 0 && cqHtml.indexOf('DU MAGMA') >= 0, cqHtml.slice(0, 120));
   check('renderConquistas: medalhas novas listadas (Fotógrafo, Turista, O Cão Mais Fiel...)', cqHtml.indexOf('Turista') >= 0 && cqHtml.length > 3000, 'len=' + cqHtml.length);
 
   ui.renderPets();
