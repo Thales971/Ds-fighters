@@ -1565,8 +1565,8 @@ class Game {
     this.drawCracks(ctx);
     /* foreground do palco (grama alta na frente dos lutadores) fica sobre os
        lutadores mas abaixo da chuva/clima */
-    if (this.stage.drawForeground && this.qFxOn !== false) this.stage.drawForeground(ctx, camX); /* foreground desligado na qualidade baixa */
     if (this.stage.drawUrbanFront) this.stage.drawUrbanFront(ctx); /* mapa de rua: lixo voando na frente */
+    if (this.stage.drawForeground && this.qFxOn !== false) this.stage.drawForeground(ctx, camX); /* foreground desligado na qualidade baixa */
     this.weather.draw(ctx);
     ctx.restore();
     this.stage.drawAmbient(ctx);
