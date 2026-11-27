@@ -79,19 +79,27 @@ function preloadAll() {
   step();
 }
 
+function buildToken() {
+  let best = null, bestN = -1;
+  for (const sc of document.querySelectorAll('script[src]')) {
+    const m = /[?&]v=(v(\d+)[\w-]*)/.exec(sc.getAttribute('src') || '');
+    if (m && +m[2] > bestN) { bestN = +m[2]; best = m[1]; }
+  }
+  return best || '?';
+}
+
 (function boot() {
   preloadAll();
   const canvas = document.getElementById('game');
   SpriteGen.load();
   Art.load();
   if (typeof Fx !== 'undefined' && Fx.load) Fx.load();
-  // Selo de build: mostra o MESMO token que o motor usa pra pedir as folhas.
-  // Se o aparelho estiver com arquivo velho em cache, o selo entrega na hora.
+  // Selo de build: a versao MAIS NOVA entre os scripts que esta pagina carregou
+  // (?v=vNNN-nome). Antes mostrava a versao da folha do Du, que nao muda ha
+  // meses (v47) e fazia parecer que o jogo nao atualizava. Se o aparelho ou o
+  // site estiver com a pagina velha, o numero aqui fica pra tras.
   const buildEl = document.getElementById('build');
-  if (buildEl) {
-    const token = (SpriteGen.url('du').split('?v=')[1] || '?');
-    buildEl.textContent = 'build ' + token;
-  }
+  if (buildEl) buildEl.textContent = 'build ' + buildToken();
   Input.init();
   const game = new Game(canvas);
   window.DSGame = game;
