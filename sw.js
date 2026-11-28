@@ -5,7 +5,7 @@
      (mesmo com o cache HTTP do GitHub Pages); o cache so e usado sem internet
    - imagens/fontes: cache primeiro e atualiza em segundo plano
    - musica (audio com Range) e API: passam direto, nunca entram no cache */
-const CACHE = 'dsf-032476ba'; /* trocar o nome apaga os caches antigos no activate */
+const CACHE = 'dsf-983173d3'; /* trocar o nome apaga os caches antigos no activate */
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'index.html', 'manifest.webmanifest'])).catch(() => {}));

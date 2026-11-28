@@ -449,8 +449,11 @@ class Game {
     const el = owner.elementOf(p);
     const fx = ELEMENT_FX[el] || { sheet: 'impact', color: '#fff' };
     const key = p.visualSheet ? 'fx2:' + p.visualSheet : 'abil:' + fid;
-    const row = Number.isInteger(p.visualRow) ? p.visualRow : p.row;
+    /* impactRow (opcional): o acerto tem efeito proprio (ex.: Dev Veterano v2) */
+    const row = Number.isInteger(p.impactRow) ? p.impactRow : Number.isInteger(p.visualRow) ? p.visualRow : p.row;
     this.spawnBurst(key, row, x, y, owner.dir, p.big ? 1.3 : 0.9);
+    /* impactRow2 (opcional): segunda camada no acerto (estilhacos, corrente...) */
+    if (Number.isInteger(p.impactRow2)) this.spawnBurst(key, p.impactRow2, x, y - 6, owner.dir, p.big ? 1.5 : 1.15);
     /* camada de som do ELEMENTO no acerto (fogo crepita, gelo tilinta, veneno
        borbulha, choque estala, agua espirra, metal bate) — baixinha, por cima do soco */
     if (this.audio && this.audio.play) {

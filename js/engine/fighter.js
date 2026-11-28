@@ -906,6 +906,9 @@ class Fighter {
     const el = this.elementOf(p);
     const scaleBig = p.big ? 1.9 : 1.45;
     const seek = p.seek || this.autoAim();
+    /* castRow (opcional): efeito de LANCAMENTO na mao (clarao do tiro, punho
+       carregando, chicote de corrente, esfera de energia da ult) */
+    if (Number.isInteger(p.castRow) && p.visualSheet && game.spawnBurst) game.spawnBurst('fx2:' + p.visualSheet, p.castRow, this.x + this.dir * 62, this.y - 112, this.dir, p.slot === 'ultimate' ? 1.6 : 1);
     switch (p.kind) {
       case 'shot': {
         const n = p.count || 1;
@@ -1371,6 +1374,7 @@ class Fighter {
           const dx = (tgt.x - this.x) * this.dir;
           if ((dx > 0 && dx < range) || seek) {
             if (tgt.takeHit(p.dmg, { attacker: this, kx: 0, dirSign: -this.dir, stun: p.stun || 40, ability: true, power: p, element: el })) {
+              if (p.visualSheet && Number.isInteger(p.impactRow) && game.spawnAbilityImpact) game.spawnAbilityImpact(this, p, tgt.x, tgt.y - 100); /* corrente prendendo */
               tgt.x = this.x + this.dir * 78;
               tgt.vx = 0;
             }
@@ -2272,7 +2276,8 @@ class Fighter {
     switch (pose) {
       case 'idle': return Math.floor(this.frame / 8) % n;
       case 'walk': return Math.floor(Math.abs(this.walkPhase)) % n;
-      case 'jump': return this.vy < -2 ? 0 : n - 1;
+      /* pulo usa todos os quadros da linha: subindo -> topo -> descendo */
+      case 'jump': return n <= 2 ? (this.vy < -2 ? 0 : n - 1) : Math.max(0, Math.min(n - 1, Math.floor(((this.vy + 9) / 18) * n)));
       case 'crouch': return Math.min(n - 1, Math.floor(this.stateTime / 3));
       case 'block': return Math.floor(this.frame / 7) % n;
       case 'hit': return Math.min(n - 1, Math.floor(this.stateTime / 3));

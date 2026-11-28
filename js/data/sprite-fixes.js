@@ -126,7 +126,6 @@
      agachado/bloqueio minusculos crescem; quem e menor que o resto cresce. */
   const MUL = {
     'captcha-guard': { ko: 0.81 },
-    'dev-veterano': { ko: 0.86 },
     'dolynho': { ko: 0.87 },
     'du': { ko: 0.79 },
     'kira': { ko: 0.83 },
