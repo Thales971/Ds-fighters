@@ -70,6 +70,8 @@ const htmlPath = 'index.html';
 let html = fs.readFileSync(path.join(ROOT, htmlPath), 'utf8');
 const stampRefs = (text, skip) => text.replace(/((?:src|href)=")([^"?#:]+\.(?:js|css|png|jpe?g|webp|svg|webmanifest|json))(\?v=[^"]*)?"/g, (m, pre, p, q) => {
   if (skip && skip(p)) return m;
+  /* manifesto do app instalado fica sem versao: a URL dele faz parte da identidade do PWA */
+  if (/\.webmanifest$/.test(p)) return pre + p + '"';
   const f = path.join(ROOT, p);
   if (!fs.existsSync(f)) return m; /* externo/inexistente: nao mexe */
   return pre + p + '?v=' + hashFile(p) + '"';

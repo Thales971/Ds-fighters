@@ -27,6 +27,9 @@ const mainSrc = fs.readFileSync('js/main.js', 'utf8');
 const fnPreload = mainSrc.match(/function buildPreloadUrls\(\) \{[\s\S]*?\n\}/);
 const fnNet = mainSrc.match(/function netHudText\(\) \{[\s\S]*?\n\}/);
 check('main.js tem buildPreloadUrls() e netHudText()', !!fnPreload && !!fnNet);
+/* versao por conteudo (tools/stamp.cjs): o preload e o motor pedem a MESMA URL com hash */
+vm.runInContext(fs.readFileSync('js/asset-hashes.js', 'utf8') + ';globalThis.assetUrl = assetUrl;', ctx);
+const AU = (u) => vm.runInContext('assetUrl(' + JSON.stringify(u) + ')', ctx);
 vm.runInContext(fnPreload[0] + '\n' + fnNet[0], ctx);
 
 // ===== PRELOAD =====
@@ -35,19 +38,19 @@ check('buildPreloadUrls retorna array grande (>150 assets)', Array.isArray(urls)
 check('sem URL duplicada', new Set(urls).size === urls.length, '');
 
 const STAGE_LIST = vm.runInContext('STAGE_LIST', ctx);
-const missing = STAGE_LIST.filter((s) => (s.image && !urls.includes(s.image)) || (s.sheet && !urls.includes(s.sheet)));
+const missing = STAGE_LIST.filter((s) => (s.image && !urls.includes(AU(s.image))) || (s.sheet && !urls.includes(AU(s.sheet))));
 check('TODOS os mapas/sheets das ' + STAGE_LIST.length + ' arenas estao no preload', missing.length === 0, missing.map((s) => s.id).join(','));
 const layersMissing = [];
-for (const s of STAGE_LIST) for (const l of (s.layers || [])) { const u = String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1'); if (!urls.includes(u)) layersMissing.push(s.id + ':' + l.src); }
+for (const s of STAGE_LIST) for (const l of (s.layers || [])) { const u = AU(String(l.src)); if (!urls.includes(u)) layersMissing.push(s.id + ':' + l.src); }
 check('todas as camadas parallax das arenas estao no preload', layersMissing.length === 0, layersMissing.slice(0, 3).join(','));
 
 for (const u of ['assets/fx/rain-streaks.png?v=v36-amb1', 'assets/fx/mare.png?v=v55-revisao',
   'assets/fauna/torcida.png?v=v47-maresprites', 'assets/weather/petals.png?v=v36-balance13', 'assets/weather/neon.png?v=v36-balance13',
   'assets/weather/snowflakes.png?v=v33-weather', 'assets/weather/leaf.png?v=v33-weather', 'assets/weather/spark.png?v=v33-weather',
   'assets/pets/pitoco.png?v=v47-maresprites']) {
-  if (!urls.includes(u)) check('preload inclui ' + u, false, 'faltando');
+  if (!urls.includes(AU(u))) check('preload inclui ' + AU(u), false, 'faltando');
 }
-check('torcida/maré/climas/petalas/pitoco com os MESMOS tokens que o motor pede', true, '');
+check('torcida/maré/climas/petalas/pitoco com a MESMA URL (hash do conteudo) que o motor pede', ['assets/fx/mare.png', 'assets/pets/pitoco.png'].every((p) => urls.includes(AU(p)) && /\?v=[0-9a-f]{8}$/.test(AU(p))), '');
 
 /* a garantia central: cada URL do preload existe no disco (sem query string) */
 const notOnDisk = urls.map((u) => u.split('?')[0]).filter((p) => !fs.existsSync(p));

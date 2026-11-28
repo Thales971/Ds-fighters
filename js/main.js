@@ -8,6 +8,9 @@
    na hora da luta (mapa/personagem faltando ao entrar) — agora o loader segura
    ate 100% para o jogo entrar pronto. */
 function buildPreloadUrls() {
+  /* assetUrl vem de js/asset-hashes.js (1o script); sem ele, caminho cru */
+  const assetUrl = typeof window !== 'undefined' && typeof window.assetUrl === 'function' ? window.assetUrl
+    : (typeof globalThis.assetUrl === 'function' ? globalThis.assetUrl : (u) => u);
   const urls = new Set();
   Object.values(ART_SHEETS).forEach((s) => urls.add(Art.url(s.src, s.v)));
   Object.keys((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((id) => urls.add(SpriteGen.url(id)));

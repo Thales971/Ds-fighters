@@ -15,7 +15,7 @@ const r = spawnSync(process.execPath, [path.join(__dirname, 'stamp.cjs'), '--che
 check('carimbo em dia (node tools/stamp.cjs --check)', r.status === 0, (r.stdout + r.stderr).trim().split('\n').pop());
 
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-const refs = [...html.matchAll(/(?:src|href)="([^"?#:]+\.(?:js|css|png|jpe?g|webp|webmanifest))(\?v=([^"]*))?"/g)].filter((m) => fs.existsSync(path.join(ROOT, m[1])));
+const refs = [...html.matchAll(/(?:src|href)="([^"?#:]+\.(?:js|css|png|jpe?g|webp|webmanifest))(\?v=([^"]*))?"/g)].filter((m) => fs.existsSync(path.join(ROOT, m[1])) && !/\.webmanifest$/.test(m[1])); /* manifesto: identidade do app instalado, sem versao */
 const semHash = refs.filter((m) => !m[3] || !/^[0-9a-f]{8}$/.test(m[3]));
 check('todo arquivo local do index.html tem ?v=<hash> (' + refs.length + ')', refs.length > 100 && semHash.length === 0, semHash.slice(0, 4).map((m) => m[1] + (m[2] || '')).join(', ') || 'ok');
 const errado = refs.filter((m) => m[1] !== 'js/asset-hashes.js' && m[3] !== h8(m[1]));
