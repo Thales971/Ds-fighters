@@ -86,6 +86,34 @@
     henrico: {
       poseScale: { block: 0.95, crouch: 1.05, cpunch: 1.0, ckick: 0.95, hit: 0.95, special: 0.95, win: 0.95 },
     },
+    /* ===== revisao do resto do elenco (nov/2026) =====
+       KO em pe/minusculo ou mostrando o especial -> tomba a pose de dano */
+    jess: { rows: { ko: R.hit }, koFall: true },
+    hacker: { /* ROOT PHANTOM: agachados com 2 bonecos colados; KO era o especial */
+      rows: { crouch: 2, cpunch: 2, ckick: 2, ko: R.hit }, koFall: true,
+      frameMap: { kick: [0, 2] },
+    },
+    iales: { rows: { ko: R.hit }, koFall: true, frameMap: { ckick: [1, 2], block: [1] } },
+    gitmaster: { rows: { ko: R.hit }, koFall: true, frameMap: { ckick: [1, 2], block: [1] } },
+    devops: { rows: { cpunch: R.crouch, ckick: R.crouch, ko: R.hit }, koFall: true, frameMap: { block: [1] } },
+    felipinho: { rows: { ckick: R.crouch, ko: R.hit }, koFall: true, frameMap: { block: [1] }, poseScale: { win: 0.82 } },
+    xeon: { rows: { cpunch: R.crouch, ckick: R.crouch, ko: R.hit }, koFall: true, frameMap: { block: [1] }, poseScale: { special: 1.2 } },
+    bhm: { rows: { ckick: R.crouch, ko: R.hit }, koFall: true, frameMap: { block: [1] }, poseScale: { win: 0.82 } },
+    'dev-virado': { rows: { ko: R.hit }, koFall: true, frameMap: { kick: [1, 3] } },
+    milena: { frameMap: { hit: [1, 3] } },           /* 2 dos 4 quadros de dano eram ela ja deitada */
+    stella: { rows: { ko: R.hit }, koFall: true },
+    jester: { rows: { ko: R.hit }, koFall: true },
+    domador: { rows: { ko: R.hit }, koFall: true },
+    kuno: { rows: { ko: R.hit }, koFall: true },
+    miko: { rows: { ko: R.hit, win: R.idle }, koFall: true },
+    emilio: { rows: { ko: R.hit }, koFall: true },
+    gemini: { rows: { ko: R.hit }, koFall: true },
+    nunes: { rows: { ko: R.hit }, koFall: true, frameMap: { jpunch: [1, 3], hit: [0, 2] }, poseScale: { crouch: 1.35, cpunch: 1.35, ckick: 1.3 } },
+    meta: { frameMap: { hit: [0, 1] } },
+    'dev-senior': { frameMap: { hit: [0, 1] } },
+    mis: { frameMap: { hit: [0, 1, 2], ko: [1, 3] } },
+    ponteiro: { rows: { ko: R.hit }, koFall: true, frameMap: { crouch: [0, 2], win: [1, 3] }, poseScale: { crouch: 1.35, cpunch: 1.35, ckick: 1.3 } }, /* comemorava deitado */
+    'guarda-digital': { rows: { punch: 10, jpunch: 10, ko: R.hit }, koFall: true }, /* soco com 2 bonecos por celula */
     /* KIRA: folha regerada com o agachado de verdade (estocada baixa); a
        escala antiga do agachado (0.78) era pra pose em pe encolhida */
     kira: {
@@ -103,5 +131,6 @@
     if (f.frames) own.frames = Object.assign({}, own.frames, f.frames);
     if (f.poseScale) own.poseScale = Object.assign({}, own.poseScale, f.poseScale);
     if (f.koFall) own.koFall = true;
+    if (f.frameMap) own.frameMap = Object.assign({}, own.frameMap, f.frameMap);
   }
 })();
