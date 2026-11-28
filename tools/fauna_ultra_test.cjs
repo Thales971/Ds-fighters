@@ -153,7 +153,7 @@ check('mare.png: todos os quadros da onda com conteudo', mareRows === MA.waveFra
 check('mare.png: 0 magenta (chroma-key limpo)', mareMag === 0, mareMag + ' px');
 const gM = mk('represa');
 const stageSrc = fs.readFileSync('js/engine/stage.js', 'utf8');
-check('stage carrega waveSheet (assets/fx/mare.png no codigo)', !!(gM.stage.waveSheet) && stageSrc.indexOf("waveSheet.src = 'assets/fx/mare.png") >= 0, '');
+check('stage carrega waveSheet (assets/fx/mare.png no codigo)', !!(gM.stage.waveSheet) && stageSrc.indexOf("waveSheet.src = ") >= 0 && stageSrc.indexOf("('assets/fx/mare.png')") >= 0, '');
 // tide.draw com sprite pronto usa drawImage (nao fillRect de onda)
 gM.mech.m.wave = 130;
 const recM = { drawImage: 0, fillRect: 0 };
