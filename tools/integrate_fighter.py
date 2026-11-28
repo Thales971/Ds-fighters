@@ -297,21 +297,26 @@ WINX_POSES = {
 # l0 idle/andar/correr/pulo | l1 agachado/guarda/soco/soco | l2 chute/saca/mira/tiro
 # l3 giro/hit/KO/ajoelhado | l4 vitoria/idle2/tiro forte/idle3
 DEVVET_POSES = {
-    'idle':    ([(0, 0, False), (1, 4, False), (0, 0, False), (3, 4, False)], 195, BASE),
-    'walk':    ([(1, 0, False), (2, 0, False), (1, 0, False), (2, 0, False)], 190, BASE),
-    'jump':    ([(3, 0, False)] * 4, 175, AIR),
-    'crouch':  ([(0, 1, False)] * 4, 135, BASE),
-    'punch':   ([(1, 1, False), (2, 1, False), (3, 1, False), (2, 1, False)], 190, BASE),
-    'kick':    ([(0, 2, False)] * 4, 185, BASE),
-    'cpunch':  ([(0, 1, False)] * 4, 135, BASE),
-    'ckick':   ([(3, 3, False)] * 4, 140, BASE),
-    'jpunch':  ([(3, 1, False)] * 4, 175, AIR),
-    'jkick':   ([(0, 2, False)] * 4, 175, AIR),
-    'special': ([(1, 2, False), (2, 2, False), (3, 2, False), (0, 3, False)], 195, BASE),
-    'hit':     ([(1, 3, False)] * 4, 185, BASE),
-    'block':   ([(1, 1, False)] * 4, 190, BASE),
-    'ko':      ([(2, 3, False)] * 4, 80, BASE),
-    'win':     ([(0, 4, False)] * 4, 195, BASE),
+    # dev-veterano v2 (nov/2026, arte-fonte/personagens/dev-veterano-v2): 3 folhas 4x5,
+    # 4 quadros por pose, tudo olhando pra DIREITA. 4-tuplas (folha, coluna, linha, flip).
+    # folha0: parado | andando | pulo | agachado | vitoria
+    # folha1: soco | chute | soco agachado | chute agachado | especial
+    # folha2: soco no ar | chute no ar | dano (2 recuos + ajoelhado + em pe) | bloqueio | KO deitado
+    'idle':    ([(0, c, 0, False) for c in range(4)], 196, BASE),
+    'walk':    ([(0, c, 1, False) for c in range(4)], 194, BASE),
+    'jump':    ([(0, c, 2, False) for c in range(4)], 168, AIR),
+    'crouch':  ([(0, c, 3, False) for c in range(4)], 142, BASE),
+    'punch':   ([(1, c, 0, False) for c in range(4)], 192, BASE),
+    'kick':    ([(1, c, 1, False) for c in range(4)], 190, BASE),
+    'cpunch':  ([(1, c, 2, False) for c in range(4)], 150, BASE),
+    'ckick':   ([(1, c, 3, False) for c in range(4)], 150, BASE),
+    'jpunch':  ([(2, c, 0, False) for c in range(4)], 172, AIR),
+    'jkick':   ([(2, c, 1, False) for c in range(4)], 172, AIR),
+    'special': ([(1, c, 4, False) for c in range(4)], 196, BASE),
+    'hit':     ([(2, 0, 2, False), (2, 1, 2, False), (2, 1, 2, False), (2, 0, 2, False)], 188, BASE),
+    'block':   ([(2, c, 3, False) for c in range(4)], 190, BASE),
+    'ko':      ([(2, c, 4, False) for c in range(4)], 44, BASE),  # deitado ~205px (altura de um boneco em pe)
+    'win':     ([(0, c, 4, False) for c in range(4)], 200, BASE),
 }
 
 # Grika reformulada: folha1 (si=0: idle/andar/pulo/agachar | garra-L/chute-L/tiro-L/hit-L)
@@ -1207,14 +1212,22 @@ FIGHTERS = {
         'dark_bg': True,
     },
     'dev-veterano': {
-        'sheet': 'dev veterano reformulado.jpg',
+        # v2 (nov/2026): arte nova do dono, 3 folhas com as 15 poses x 4 quadros
+        'src_dir': 'arte-fonte/personagens/dev-veterano-v2',
+        'sheets': ['poses-1-parado-andar-pulo-agachar-vitoria.jpg', 'poses-2-soco-chute-agachados-especial.jpg', 'poses-3-ar-dano-bloqueio-ko.jpg'],
+        'col_bands': [(i * 296, (i + 1) * 296) for i in range(4)],
+        # folha0 tem linhas pretas entre as fileiras (y 183/351/536/678/868): corta entre elas
+        # faixas medidas no espaco vazio entre as fileiras de cada folha
+        'row_bands_per': {0: [(0, 180), (187, 348), (355, 533), (540, 675), (682, 865)],
+                          1: [(10, 184), (184, 381), (381, 538), (538, 700), (700, 880)],
+                          2: [(14, 189), (189, 377), (377, 560), (560, 765), (765, 880)]},
         'abilities': 'habilidades-dev-veterano.png',
-        'abilities_keep': True,
+        'abilities_keep': True,  # atlas: tools/build_devvet_fx.py
         'holes': True,
         'strict_magenta': True,
         'denoise': True,  # JPEG pequeno (1184x896): sem isso fica pixelado ao ampliar
         'poses': DEVVET_POSES,
-        'ui_cell': (0, 0, False),
+        'ui_cell': (0, 0, 0, False),
     },
     'winx-exe': {
         'holes': True,  # o fundo entre as pernas ficava preso (triangulo escuro)
