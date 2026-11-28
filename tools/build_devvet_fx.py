@@ -40,6 +40,13 @@ ROWS = [
     L(4, 4),                                   # 7 impacto da ult: aneis
     L(5, 2),                                   # 8 impacto do tiro
     L(4, 2),                                   # 9 impacto do punho
+    [(5, 2, 3), (5, 0, 2), (5, 1, 2), (5, 2, 3)],  # 10 clarao do tiro na mao (lancamento)
+    L(4, 0),                                   # 11 punho energizado carregando (lancamento)
+    L(2, 0),                                   # 12 anel de corrente prendendo (acerto)
+    L(2, 2),                                   # 13 chicote de corrente em arco (lancamento)
+    [(3, 0, 3), (3, 1, 3), (3, 0, 3), (3, 1, 3)],  # 14 estilhacos da granada (2o acerto)
+    L(1, 0),                                   # 15 esfera de energia crescendo (lancamento da ult)
+    L(2, 3),                                   # 16 espiral de corrente (2o acerto)
 ]
 
 def key_out(cell):

@@ -313,7 +313,7 @@ DEVVET_POSES = {
     'jpunch':  ([(2, c, 0, False) for c in range(4)], 172, AIR),
     'jkick':   ([(2, c, 1, False) for c in range(4)], 172, AIR),
     'special': ([(1, c, 4, False) for c in range(4)], 196, BASE),
-    'hit':     ([(2, 0, 2, False), (2, 1, 2, False), (2, 1, 2, False), (2, 0, 2, False)], 188, BASE),
+    'hit':     ([(2, c, 2, False) for c in range(4)], 188, BASE),  # recuo -> curvado -> ajoelha -> levanta
     'block':   ([(2, c, 3, False) for c in range(4)], 190, BASE),
     'ko':      ([(2, c, 4, False) for c in range(4)], 44, BASE),  # deitado ~205px (altura de um boneco em pe)
     'win':     ([(0, c, 4, False) for c in range(4)], 200, BASE),
