@@ -119,7 +119,16 @@ const SpriteGen = {
     return ((SPRITE_LAYOUT.poses && SPRITE_LAYOUT.poses.length) || this.POSES.length) * SPRITE_LAYOUT.frameH;
   },
 
+  /* own.frameMap[pose] = [colunas]: quais quadros da linha a pose usa e em que
+     ordem (pula quadro quebrado no meio da linha, ex.: [1, 3]) */
+  frameMapOf(pose, id) {
+    const own = SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[id];
+    const m = own && own.frameMap && own.frameMap[pose];
+    return Array.isArray(m) && m.length ? m : null;
+  },
   count(pose, id) {
+    const fm = this.frameMapOf(pose, id);
+    if (fm) return fm.length;
     const own = SPRITE_LAYOUT.perFighter && SPRITE_LAYOUT.perFighter[id];
     const n = (own && own.frames && own.frames[pose])
       || SPRITE_LAYOUT.frames[pose] || SPRITE_LAYOUT.frames.idle || 1;
@@ -294,7 +303,8 @@ const SpriteGen = {
     const fw = L.frameW;
     const fh = L.frameH;
     const n = this.count(pose, id);
-    const col = ((frame % n) + n) % n;
+    const fm = this.frameMapOf(pose, id);
+    const col = fm ? fm[((frame % n) + n) % n] : ((frame % n) + n) % n;
     const rows = L.poses ? L.poses.length : this.POSES.length;
     const row = Math.min(Math.max(0, this.rowOf(pose, id)), Math.max(0, rows - 1));
     const dw = fw * sc;
