@@ -2,7 +2,7 @@
    DS FIGHTERS — Estilo arcade retrô (início dos anos 90).
    O #app tem 960x540 fixos e é escalado inteiro (pixels nítidos).
    ============================================================ */
-@font-face { font-family: 'Press Start 2P'; src: url('../assets/fonts/PressStart2P.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Press Start 2P'; src: url('../assets/fonts/PressStart2P.ttf?v=53d0ade1') format('truetype'); font-display: swap; }
 :root {
   --gold: #ffd27d; --red: #ff3b30; --cyan: #3fd0ff; --pink: #ff4fd8; --lime: #7dff5e; --violet: #b26bff;
   --ink: #0b0614; --panel: rgba(16, 8, 34, 0.92); --line: #3a2766;
@@ -702,8 +702,8 @@ body[data-event="criancas"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #7ec8ff
 body[data-event="anonovo"] #scr-menu .mm,
 body[data-event="anonovo"] #scr-menu .stats-card { box-shadow: 0 -3px 0 #ffe14a; }
 #fx-natal, #fx-halloween { clip-path: inset(0 270px 0 380px); }
-#fx-natal { background: url('../assets/ui/fx-snow.png') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
-#fx-halloween { background: url('../assets/ui/fx-bats.png') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
+#fx-natal { background: url('../assets/ui/fx-snow.png?v=4427d9ea') 0 0 / 960px 540px repeat-y; animation: eventFall 7s linear infinite; }
+#fx-halloween { background: url('../assets/ui/fx-bats.png?v=7b81bf36') 0 0 / 960px 540px repeat-y; animation: eventFall 9s linear infinite; }
 @keyframes eventFall { to { background-position: 0 540px; } }
 body.reduced #fx-natal, body.reduced #fx-halloween { animation: none; }
 /* tela de ACESSORIOS universais */
@@ -771,7 +771,7 @@ body.mobile .install-btn { top: max(8px, env(safe-area-inset-top)); right: max(8
 .login-nudge { position: absolute; inset: 0; z-index: 85; display: grid; place-items: center; background: rgba(5, 2, 14, .78); animation: lnFade .25s ease-out; }
 .ln-card { width: 720px; max-width: calc(100% - 32px); padding: 18px 22px 16px; background: var(--panel); border: 3px solid var(--cyan); box-shadow: 0 0 0 3px #10203a, 0 0 28px rgba(63, 208, 255, .35); text-align: center; }
 .ln-talk { display: flex; align-items: flex-end; gap: 14px; text-align: left; }
-.ln-lyra { flex: 0 0 120px; height: 135px; background: url(../assets/ui/portrait-lyra.png) center bottom / contain no-repeat; animation: lnBob 1.6s ease-in-out infinite; }
+.ln-lyra { flex: 0 0 120px; height: 135px; background: url(../assets/ui/portrait-lyra.png?v=322897c2) center bottom / contain no-repeat; animation: lnBob 1.6s ease-in-out infinite; }
 .ln-bubble { position: relative; flex: 1; margin-bottom: 26px; padding: 12px 14px; background: #fff; color: #1a1030; border: 3px solid #1a1030; border-radius: 10px; font-size: 9px; line-height: 1.7; }
 .ln-bubble::before { content: ''; position: absolute; left: -16px; bottom: 14px; border: 8px solid transparent; border-right-color: #1a1030; }
 .ln-bubble::after { content: ''; position: absolute; left: -10px; bottom: 16px; border: 6px solid transparent; border-right-color: #fff; }
@@ -781,8 +781,8 @@ body.mobile .install-btn { top: max(8px, env(safe-area-inset-top)); right: max(8
 .ln-rewards { display: flex; justify-content: center; gap: 30px; margin: 4px 0 8px; }
 .ln-rewards figure { margin: 0; display: flex; align-items: center; gap: 10px; }
 .ln-fig { width: 74px; height: 74px; border: 3px solid var(--cyan); background: #0a1428 center / contain no-repeat; image-rendering: auto; }
-.ln-cg { background-image: url(../assets/ui/face-captcha-guard.png); border-color: var(--c, var(--cyan)); }
-.ln-fox { background-image: url(../assets/ui/face-firefox.png); border-color: #ff8a2a; }
+.ln-cg { background-image: url(../assets/ui/face-captcha-guard.png?v=236827f6); border-color: var(--c, var(--cyan)); }
+.ln-fox { background-image: url(../assets/ui/face-firefox.png?v=eef3c65d); border-color: #ff8a2a; }
 .ln-rewards figcaption { text-align: left; font-size: 9px; line-height: 1.6; }
 .ln-rewards figcaption small { display: block; color: #9fe8ff; font-size: 7px; }
 .ln-small { margin: 4px 0 12px; font-size: 8px; line-height: 1.6; color: #cfc6ff; }

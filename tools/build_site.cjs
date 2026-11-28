@@ -6,6 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
+/* carimbo de versao por conteudo antes de copiar (tools/stamp.cjs) */
+require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'stamp.cjs')], { stdio: 'inherit' });
 const OUT = path.resolve(ROOT, process.argv[2] || '_site');
 const FILES = ['index.html', 'manifest.webmanifest', 'sw.js'];
 const DIRS = ['css', 'js', 'assets'];

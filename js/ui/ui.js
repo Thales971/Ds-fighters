@@ -42,7 +42,7 @@ function rosterPortraitStyle(id, px) {
   const rows = Math.ceil(order.length / cols);
   const col = idx % cols;
   const row = (idx / cols) | 0;
-  const src = `${book.file}?v=${book.version || 'v36-portraits1'}`;
+  const src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(`${book.file}?v=${book.version || 'v36-portraits1'}`);
   /* Uma célula só, no tamanho do cartão. Tamanho fixo em px cortava o vizinho
      quando o cartão ficava maior que 48px. */
   return `--pcols:${cols};--prows:${rows};--pcol:${col};--prow:${row};background-image:url(${src})`;
@@ -434,7 +434,7 @@ const UI = {
     const pimg = new Image();
     pimg.onload = () => { if (c.dataset.fid === pid) { faceEl.style.backgroundImage = `url(${pimg.src})`; faceEl.classList.add('portrait'); } };
     c.dataset.fid = pid;
-    pimg.src = `assets/ui/portrait-${pid}.png?v=` + (((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.ver) || {})[pid] || 'v1');
+    pimg.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(`assets/ui/portrait-${pid}.png?v=` + (((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.ver) || {})[pid] || 'v1'));
     c.querySelector('.ci-name').textContent = f.def.name;
     c.querySelector('.ci-move').textContent = p.name || '';
     c.style.setProperty('--accent', f.def.colors.accent || '#ffd27d');
@@ -1129,9 +1129,9 @@ const UI = {
     const grid = this.$('stage-grid');
     let lastGroup = '';
     grid.innerHTML = `<button class="nav st-cell random" data-id="random"><span class="th q">?</span><span class="nm">ALEATÓRIA</span></button>` + STAGE_LIST.map((s) => {
-      const thumb = s.image ? s.image : null;
+      const thumb = s.image ? (typeof assetUrl === 'function' ? assetUrl : (u) => u)(s.image) : null;
       const head = s.group !== lastGroup ? ((lastGroup = s.group), `<div class="st-group">${s.group}</div>`) : '';
-      return head + `<button class="nav st-cell" data-id="${s.id}"><span class="th" style="${thumb ? `background-image:url(${thumb})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`}"></span><span class="nm">${s.name}</span></button>`;
+      return head + `<button class="nav st-cell" data-id="${s.id}"><span class="th" style="${thumb ? `background-image:url(${thumb})` : `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(s.sheet)});background-size:600% 400%;background-position:0 0`}"></span><span class="nm">${s.name}</span></button>`;
     }).join('');
     grid.querySelectorAll('.st-cell').forEach((b) => {
       const pick = () => { f.stage = b.dataset.id; this.renderStagePreview(); grid.querySelectorAll('.st-cell').forEach((x) => x.classList.toggle('on', x === b)); };
@@ -1154,7 +1154,7 @@ const UI = {
     const s = STAGE_LIST.find((x) => x.id === f.stage);
     const el = this.$('stage-preview');
     if (!s) { el.innerHTML = `<div class="sp-img q">?</div><h3>ARENA ALEATÓRIA</h3><p>Uma das ${STAGE_LIST.length} arenas, com clima sorteado.</p>`; return; }
-    const img = s.image ? `background-image:url(${s.image})` : `background-image:url(${s.sheet});background-size:600% 400%;background-position:0 0`;
+    const img = s.image ? `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(s.image)})` : `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(s.sheet)});background-size:600% 400%;background-position:0 0`;
     const fauna = {
       bee: 'abelhas', bird: 'pássaros', birds: 'pássaros', butterfly: 'borboletas', butterflies: 'borboletas',
       bat: 'morcegos', fish: 'peixes', pigeons: 'pombos', cat: 'gato', dog: 'cachorro',
@@ -1180,7 +1180,7 @@ const UI = {
     const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
     const stage = now && (STAGE_LIST.find((s) => s.id === now.ev.hero) || STAGE_LIST.find((s) => s.event === now.ev.id));
     const when = !now ? '' : now.live ? (now.daysLeft <= 0 ? 'Termina hoje' : `Termina em ${dias(now.daysLeft)}`) : now.active ? 'Modo teste' : `Começa em ${dias(now.daysUntil)}`;
-    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" data-ev="${now.ev.id}" style="${stage ? `background-image:url(${stage.image})` : ''}">${evDecor(now.ev.id, 'hero')}
+    this.$('events-hero').innerHTML = now ? `<div class="ev-hero" data-ev="${now.ev.id}" style="${stage ? `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(stage.image)})` : ''}">${evDecor(now.ev.id, 'hero')}
       <div class="ev-hero-copy"><span>${now.ev.icon} ${now.active ? 'NO AR' : 'PRÓXIMO'}</span><h3>${now.ev.name}</h3><p>${when} · ${Events.fmt(now.window.start)} – ${Events.fmt(now.window.end)}</p></div>
     </div>` : '';
     this.$('events-upcoming').innerHTML = rows.map((r) => {
@@ -1190,7 +1190,7 @@ const UI = {
     const activeId = now && now.active ? now.ev.id : '';
     const maps = STAGE_LIST.filter((s) => s.event);
     maps.sort((a, b) => (a.event === activeId ? 0 : 1) - (b.event === activeId ? 0 : 1));
-    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}" data-ev="${s.event}">${evDecor(s.event, 'map')}<span class="th" style="background-image:url(${s.image})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
+    this.$('events-maps').innerHTML = maps.map((s) => `<button class="nav ev-map" data-id="${s.id}" data-ev="${s.event}">${evDecor(s.event, 'map')}<span class="th" style="background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(s.image)})"></span><b>${s.name}</b><small>${s.blurb || ''}</small></button>`).join('');
     this.$('events-maps').querySelectorAll('.ev-map').forEach((b) => {
       b.addEventListener('click', () => {
         this.startFlow('versus', { stage: b.dataset.id });
@@ -1432,7 +1432,7 @@ const UI = {
     if (!el || typeof ACC_LIST === 'undefined') return;
     el.innerHTML = ACC_LIST.map((a) => `
       <div class="acc-row${accOn(a.id) ? ' on' : ''}">
-        <img class="acc-img" src="${a.src}?v=v57-acessorios" alt="" aria-hidden="true" />
+        <img class="acc-img" src="${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(a.src)}" alt="" aria-hidden="true" />
         <div class="acc-info"><b>${a.icon} ${a.name}</b><small>${a.desc}</small></div>
         <button type="button" class="nav btn tiny acc-toggle" data-acc="${a.id}">${accOn(a.id) ? 'LIGADO ✓' : 'DESLIGADO'}</button>
       </div>`).join('') || '<p class="sub">Nenhum acessorio disponivel ainda.</p>';
@@ -1713,7 +1713,7 @@ const UI = {
       const loginLocked = !!p.login && !Profile.loggedIn();
       const spr = locked
         ? `<span class="pet-spr sil" title="???">?</span>`
-        : `<span class="pet-spr ${p.row < 0 && !p.img ? 'none' : ''}${loginLocked ? ' login-lock' : ''}" style="${p.id === 'pitoco' ? 'background-image:url(assets/pets/pitoco.png?v=v47-maresprites)' : p.img ? `background-image:url(${p.img})` : p.row >= 0 ? `background-image:url(assets/pets/pets.png?v=stable-loop-mistral-v1);--row:${p.row}` : ''}"></span>`;
+        : `<span class="pet-spr ${p.row < 0 && !p.img ? 'none' : ''}${loginLocked ? ' login-lock' : ''}" style="${p.id === 'pitoco' ? `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/pets/pitoco.png')})` : p.img ? `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)(p.img)})` : p.row >= 0 ? `background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/pets/pets.png')});--row:${p.row}` : ''}"></span>`;
       const name = locked ? '???' : p.name;
       const desc = locked ? 'Um mascote secreto... resgaste o código PITOCO ou digite P-I-T-O-C-O nesta tela.' : loginLocked ? '🔒 FAÇA LOGIN para liberar. ' + p.buff : p.buff;
       return `
@@ -1770,7 +1770,7 @@ const UI = {
     if (r.ok) {
       const ids = r.ids || [];
       const petFace = r.pet
-        ? `<div class="rf" style="--d:0s"><div class="vs-sprite" style="background-image:url(assets/pets/pitoco.png?v=v47-maresprites);background-size:384px auto"></div><b style="--c:#f0c24b">Pitoco</b><small>mascote secreto</small></div>`
+        ? `<div class="rf" style="--d:0s"><div class="vs-sprite" style="background-image:url(${(typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/pets/pitoco.png')});background-size:384px auto"></div><b style="--c:#f0c24b">Pitoco</b><small>mascote secreto</small></div>`
         : '';
       this.$('redeem-faces').innerHTML = petFace + ids.map((id, k) => {
         const d = FIGHTERS.find((x) => x.id === id);

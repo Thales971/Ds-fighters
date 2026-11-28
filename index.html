@@ -7,19 +7,19 @@
   <meta name="description" content="DS Fighters: jogo de luta arcade retrô 2D. O torneio termina no chefe KERNOR. Iales fica só no Versus." />
   <meta name="theme-color" content="#120a24" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="assets/share/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" href="assets/share/apple-touch-icon.png?v=3d656563" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="DS Fighters" />
-  <link rel="icon" type="image/png" href="assets/share/favicon.png" />
-  <link rel="stylesheet" href="css/style.css?v=v92-sombra" />
-  <link rel="stylesheet" href="css/account.css?v=v47-maresprites" />
-  <link rel="stylesheet" href="css/mobile.css?v=v97-dpad" />
+  <link rel="icon" type="image/png" href="assets/share/favicon.png?v=1ec932d5" />
+  <link rel="stylesheet" href="css/style.css?v=3c055541" />
+  <link rel="stylesheet" href="css/account.css?v=51d3dc8d" />
+  <link rel="stylesheet" href="css/mobile.css?v=a6979294" />
 </head>
 <body>
   <div id="loader" role="status" aria-live="polite">
-    <img src="assets/share/favicon.png" alt="" width="64" height="64" />
+    <img src="assets/share/favicon.png?v=1ec932d5" alt="" width="64" height="64" />
     <div class="ld-title">DS FIGHTERS</div>
     <div class="ld-bar"><i id="ld-fill"></i></div>
     <div id="ld-text">Carregando sprites… 0%</div>
@@ -58,7 +58,7 @@
     <section class="screen" id="scr-title" data-screen="title">
       <div class="title-bg"></div>
       <div class="title-fx"></div>
-      <img class="logo" src="assets/ui/logo.png" alt="DS Fighters" />
+      <img class="logo" src="assets/ui/logo.png?v=366a5494" alt="DS Fighters" />
       <p class="tagline">EDIÇÃO V20 · 42 LUTADORES · 47 ARENAS</p>
       <button class="press-start nav" id="btn-start">PRESSIONE START</button>
       <p class="hint">Enter, toque ou botão Start do controle</p>
@@ -68,18 +68,18 @@
 
     <section class="screen" id="scr-menu" data-screen="menu">
       <div class="menu-bg"></div>
-      <img class="menu-skin" id="skin-natal" alt="" src="assets/ui/skin-natal.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-halloween" alt="" src="assets/ui/skin-halloween.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-carnaval" alt="" src="assets/ui/skin-carnaval.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-pascoa" alt="" src="assets/ui/skin-pascoa.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-junina" alt="" src="assets/ui/skin-junina.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-criancas" alt="" src="assets/ui/skin-criancas.png?v=v47-maresprites" />
-      <img class="menu-skin" id="skin-anonovo" alt="" src="assets/ui/skin-anonovo.png?v=v47-maresprites" />
+      <img class="menu-skin" id="skin-natal" alt="" src="assets/ui/skin-natal.png?v=2bed5562" />
+      <img class="menu-skin" id="skin-halloween" alt="" src="assets/ui/skin-halloween.png?v=19fa4c1c" />
+      <img class="menu-skin" id="skin-carnaval" alt="" src="assets/ui/skin-carnaval.png?v=00f4ea23" />
+      <img class="menu-skin" id="skin-pascoa" alt="" src="assets/ui/skin-pascoa.png?v=a7bccd50" />
+      <img class="menu-skin" id="skin-junina" alt="" src="assets/ui/skin-junina.png?v=d14d4f05" />
+      <img class="menu-skin" id="skin-criancas" alt="" src="assets/ui/skin-criancas.png?v=16fc93ce" />
+      <img class="menu-skin" id="skin-anonovo" alt="" src="assets/ui/skin-anonovo.png?v=8f682306" />
       <div class="menu-fx" id="fx-natal"></div>
       <div class="menu-fx" id="fx-halloween"></div>
       <div class="menu-parade" id="menu-parade" aria-hidden="true"></div>
       <div class="menu-motes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <img class="logo small" src="assets/ui/logo.png" alt="DS Fighters" />
+      <img class="logo small" src="assets/ui/logo.png?v=366a5494" alt="DS Fighters" />
       <button class="nav btn mobile-only" id="btn-mobile-account">CONTA / SALVAR PROGRESSO</button>
       <nav class="main-menu" aria-label="Menu principal">
         <button class="nav mm" data-go="arcade"><span>TORNEIO ATÉ O CHEFE</span><small>6 rivais + KERNOR · música AMV no chefe</small></button>
@@ -494,7 +494,8 @@
     <div class="turn-phone"><b>GIRE O CELULAR</b><p>A luta é na horizontal. A arena fica no meio e os botões nos cantos.</p></div>
   </div>
 
-  <script src="assets/sprites/layout.js?v=v80-devvet"></script>
+  <script src="js/asset-hashes.js?v=58428851"></script>
+  <script src="assets/sprites/layout.js?v=e39c5c77"></script>
   <script>
     /* Blindagem contra layout.js velho em cache: os arquivos de dados
        (fighters-v7..v11) escrevem em SPRITE_LAYOUT.files / .perFighter,
@@ -518,110 +519,110 @@
       }
     })();
   </script>
-  <script src="assets/stages/sheets.js?v=v47-maresprites"></script>
-  <script src="assets/maps/anim.js?v=v47-maresprites"></script>
-  <script src="js/data/achievements.js?v=v82-login"></script>
-  <script src="js/core/profile.js?v=v82-login"></script>
-  <script src="js/config/firebase-config.js?v=v47-maresprites"></script>
-  <script src="js/core/cloud.js?v=v75-review"></script>
-  <script src="js/config/supabase-config.js?v=v47-maresprites"></script>
-  <script src="js/vendor/supabase-2.118.0.js"></script>
-  <script src="js/core/supabase-cloud.js?v=v82-login"></script>
-  <script src="js/core/match-stats.js?v=v91-sombra"></script>
-  <script src="js/core/ranking.js?v=v82-ranking"></script>
-  <script src="js/data/fighters.js?v=v98-sprites"></script>
-  <script src="js/data/fighters-v10.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-v11.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-dolynho.js?v=v58-balanco"></script>
-  <script src="js/data/powers.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-turbo.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v4.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v5.js?v=v58-balanco"></script>
-  <script src="js/data/powers-v6.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v6.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v7.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v8.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v9.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v10.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-v11.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v12.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v13.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v14.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v15.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v16.js?v=v47-maresprites"></script>
-    <script src="js/data/fighters-v17.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-v18.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-v19.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-v20.js?v=v78-ponteiro"></script>
-  <script src="js/data/powers-balance-v7.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v8.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v9.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v10.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v11.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v12.js?v=v47-maresprites"></script>
-  <script src="js/data/powers-balance-v13.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-pack.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-henrico.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-jess.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-dev-virado.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-milena.js?v=v47-maresprites"></script>
-  <script src="js/data/fighters-kira.js?v=v50-kira"></script>
-  <script src="js/data/fighters-cracker.js?v=v62-cracker"></script>
-  <script src="js/data/fighters-rafael.js?v=v52-rafael"></script>
-  <script src="js/data/fighters-cyber-v2.js?v=v69-acc"></script>
-  <script src="js/data/fighters-lyra.js?v=v69-acc"></script>
-  <script src="js/data/fighters-larper.js?v=v69-acc"></script>
-  <script src="js/data/fighters-jester.js?v=v69-acc"></script>
-  <script src="js/data/fighters-domador.js?v=v69-acc"></script>
-  <script src="js/data/fighters-miko.js?v=v71-miko"></script>
-  <script src="js/data/fighters-kuno.js?v=v72-kuno"></script>
-  <script src="js/data/fighters-stella.js?v=v73-stella"></script>
-  <script src="js/data/fighters-kernor.js?v=v78-kernor-ia"></script>
-  <script src="js/data/fighters-captcha.js?v=v82-captcha"></script>
-  <script src="js/data/balance-v14.js?v=v79-pr127"></script>
-  <script src="js/data/balance-final.js?v=v99-buffs"></script>
-  <script src="js/data/kits-v15.js?v=v79-kits"></script>
-  <script src="js/data/balance.js?v=v53-torneio"></script>
-  <script src="js/data/pets.js?v=v90-petsbal"></script>
-  <script src="js/data/accessories.js?v=v57-acessorios"></script>
-  <script src="js/data/stages.js?v=v80-semarenagit"></script>
-  <script src="js/data/stages-v21.js?v=v54-ambiente"></script>
-  <script src="js/data/events.js?v=v47-maresprites"></script>
-  <script src="js/data/stages-events.js?v=v47-maresprites"></script>
-  <script src="js/data/stages-brasil.js?v=v47-maresprites"></script>
-  <script src="js/engine/sprites.js?v=v91-sombra"></script>
-  <script src="js/engine/fx.js?v=v101-anim"></script>
-  <script src="js/data/voice-book.js?v=v47-maresprites"></script>
-  <script src="js/engine/audio.js?v=v92-fundo"></script>
-  <script src="js/engine/input.js?v=v97-dpad"></script>
-  <script src="js/ui/viewport.js?v=v97-dpad"></script>
-  <script src="js/engine/projectile.js?v=v99-etcar"></script>
-  <script src="js/engine/fighter.js?v=v99-etcar"></script>
-  <script src="js/engine/pet-skills.js?v=v90-petsbal"></script>
-  <script src="js/engine/vfx.js?v=v47-maresprites"></script>
-  <script src="js/engine/weather.js?v=v81-aurora"></script>
-  <script src="js/engine/mechanics.js?v=v55-revisao"></script>
-  <script src="js/engine/torneio.js?v=v93-toque"></script>
-  <script src="js/engine/stage.js?v=v100-vibe"></script>
-  <script src="js/engine/stage-extras.js?v=v89-vivo2"></script>
-  <script src="js/engine/stage-vibe.js?v=v100-vibe2"></script>
-  <script src="js/engine/stage-urban.js?v=v101-urbano"></script>
-  <script src="js/engine/ai.js?v=v78-kernor-ia"></script>
-  <script src="js/engine/game.js?v=v101-urbano"></script>
-  <script src="js/engine/impact-fx.js?v=v89-vivo2"></script>
-  <script src="js/engine/weather-react.js?v=v89-vivo2"></script>
-  <script src="js/engine/shadow-mode.js?v=v91-sombra"></script>
-  <script src="js/engine/touch-assist.js?v=v97-dpad"></script>
-  <script src="js/vendor/peerjs.min.js"></script>
-  <script src="js/net/room-core.js?v=v90-pets"></script>
-  <script src="js/net/online.js?v=v86-ping"></script>
-  <script src="js/ui/hud.js?v=v88-clima"></script>
-  <script src="js/data/roster-portraits.js?v=v82-captcha"></script>
-  <script src="js/data/sprite-fixes.js?v=v99-sprites"></script>
-  <script src="js/data/et-carro.js?v=v99-etcar"></script>
-  <script src="js/ui/ui.js?v=v102-bugs"></script>
-  <script src="js/ui/account.js?v=v82-login"></script>
-  <script src="js/main.js?v=v101-selo"></script>
-  <script src="js/net/tournament.js?v=v47-maresprites"></script>
+  <script src="assets/stages/sheets.js?v=32937ba4"></script>
+  <script src="assets/maps/anim.js?v=1ba9a59d"></script>
+  <script src="js/data/achievements.js?v=04a55959"></script>
+  <script src="js/core/profile.js?v=47b45bab"></script>
+  <script src="js/config/firebase-config.js?v=c312e2aa"></script>
+  <script src="js/core/cloud.js?v=35706385"></script>
+  <script src="js/config/supabase-config.js?v=c4eb2739"></script>
+  <script src="js/vendor/supabase-2.118.0.js?v=8795eb14"></script>
+  <script src="js/core/supabase-cloud.js?v=931ab1cd"></script>
+  <script src="js/core/match-stats.js?v=53c93d96"></script>
+  <script src="js/core/ranking.js?v=21e1339f"></script>
+  <script src="js/data/fighters.js?v=cec78eea"></script>
+  <script src="js/data/fighters-v10.js?v=a96d4d82"></script>
+  <script src="js/data/fighters-v11.js?v=a89b0282"></script>
+  <script src="js/data/fighters-dolynho.js?v=ae59123b"></script>
+  <script src="js/data/powers.js?v=07ddb562"></script>
+  <script src="js/data/powers-turbo.js?v=26df45cb"></script>
+  <script src="js/data/powers-v4.js?v=fab827e7"></script>
+  <script src="js/data/powers-v5.js?v=c7a24742"></script>
+  <script src="js/data/powers-v6.js?v=4ee7dd68"></script>
+  <script src="js/data/powers-balance-v6.js?v=0e87d403"></script>
+  <script src="js/data/powers-v7.js?v=4047f40e"></script>
+  <script src="js/data/powers-v8.js?v=0df51550"></script>
+  <script src="js/data/powers-v9.js?v=57285cf8"></script>
+  <script src="js/data/powers-v10.js?v=8b32df0e"></script>
+  <script src="js/data/powers-v11.js?v=7528aef0"></script>
+    <script src="js/data/fighters-v12.js?v=17749cd3"></script>
+    <script src="js/data/fighters-v13.js?v=ae258148"></script>
+    <script src="js/data/fighters-v14.js?v=6f6506f1"></script>
+    <script src="js/data/fighters-v15.js?v=cdbddb44"></script>
+    <script src="js/data/fighters-v16.js?v=09fe94e1"></script>
+    <script src="js/data/fighters-v17.js?v=54732920"></script>
+  <script src="js/data/fighters-v18.js?v=30d45067"></script>
+  <script src="js/data/fighters-v19.js?v=c02dfebf"></script>
+  <script src="js/data/fighters-v20.js?v=fabf85b7"></script>
+  <script src="js/data/powers-balance-v7.js?v=19784383"></script>
+  <script src="js/data/powers-balance-v8.js?v=9a7623f5"></script>
+  <script src="js/data/powers-balance-v9.js?v=e342df3f"></script>
+  <script src="js/data/powers-balance-v10.js?v=3e8a50a5"></script>
+  <script src="js/data/powers-balance-v11.js?v=660dc3f8"></script>
+  <script src="js/data/powers-balance-v12.js?v=ef3a5a75"></script>
+  <script src="js/data/powers-balance-v13.js?v=2c4e23f3"></script>
+  <script src="js/data/fighters-pack.js?v=19abbcb9"></script>
+  <script src="js/data/fighters-henrico.js?v=655b97ce"></script>
+  <script src="js/data/fighters-jess.js?v=f3b1d31e"></script>
+  <script src="js/data/fighters-dev-virado.js?v=d207614a"></script>
+  <script src="js/data/fighters-milena.js?v=5826e988"></script>
+  <script src="js/data/fighters-kira.js?v=5b6d9860"></script>
+  <script src="js/data/fighters-cracker.js?v=c09058f6"></script>
+  <script src="js/data/fighters-rafael.js?v=074979f3"></script>
+  <script src="js/data/fighters-cyber-v2.js?v=99cf4b9b"></script>
+  <script src="js/data/fighters-lyra.js?v=df08f9a5"></script>
+  <script src="js/data/fighters-larper.js?v=597a81fa"></script>
+  <script src="js/data/fighters-jester.js?v=a8c0a067"></script>
+  <script src="js/data/fighters-domador.js?v=82d0d568"></script>
+  <script src="js/data/fighters-miko.js?v=6178dd4b"></script>
+  <script src="js/data/fighters-kuno.js?v=41155409"></script>
+  <script src="js/data/fighters-stella.js?v=0666465d"></script>
+  <script src="js/data/fighters-kernor.js?v=cc0d2f94"></script>
+  <script src="js/data/fighters-captcha.js?v=49aa5a49"></script>
+  <script src="js/data/balance-v14.js?v=61974865"></script>
+  <script src="js/data/balance-final.js?v=9c3b5b2f"></script>
+  <script src="js/data/kits-v15.js?v=6b1f24c5"></script>
+  <script src="js/data/balance.js?v=58acef68"></script>
+  <script src="js/data/pets.js?v=e59776b6"></script>
+  <script src="js/data/accessories.js?v=c66a9cca"></script>
+  <script src="js/data/stages.js?v=807fa8ef"></script>
+  <script src="js/data/stages-v21.js?v=5fb95cc7"></script>
+  <script src="js/data/events.js?v=e21e7371"></script>
+  <script src="js/data/stages-events.js?v=437bf603"></script>
+  <script src="js/data/stages-brasil.js?v=2ff975df"></script>
+  <script src="js/engine/sprites.js?v=16c5d433"></script>
+  <script src="js/engine/fx.js?v=25d87b6d"></script>
+  <script src="js/data/voice-book.js?v=545da730"></script>
+  <script src="js/engine/audio.js?v=ee40b4e9"></script>
+  <script src="js/engine/input.js?v=6b48227b"></script>
+  <script src="js/ui/viewport.js?v=d8e65dc3"></script>
+  <script src="js/engine/projectile.js?v=b4a74c09"></script>
+  <script src="js/engine/fighter.js?v=1c9e0b46"></script>
+  <script src="js/engine/pet-skills.js?v=9978f27c"></script>
+  <script src="js/engine/vfx.js?v=80694374"></script>
+  <script src="js/engine/weather.js?v=d5a67b3a"></script>
+  <script src="js/engine/mechanics.js?v=a0ddd525"></script>
+  <script src="js/engine/torneio.js?v=6fc80f14"></script>
+  <script src="js/engine/stage.js?v=ea3c0cb7"></script>
+  <script src="js/engine/stage-extras.js?v=4211e33a"></script>
+  <script src="js/engine/stage-vibe.js?v=2e7b5e6d"></script>
+  <script src="js/engine/stage-urban.js?v=bbd82462"></script>
+  <script src="js/engine/ai.js?v=9b3ec81e"></script>
+  <script src="js/engine/game.js?v=e4e32458"></script>
+  <script src="js/engine/impact-fx.js?v=f0c026f2"></script>
+  <script src="js/engine/weather-react.js?v=bd55179a"></script>
+  <script src="js/engine/shadow-mode.js?v=45cbd1a8"></script>
+  <script src="js/engine/touch-assist.js?v=60861312"></script>
+  <script src="js/vendor/peerjs.min.js?v=7e60515a"></script>
+  <script src="js/net/room-core.js?v=27d5c32e"></script>
+  <script src="js/net/online.js?v=ce0d1f42"></script>
+  <script src="js/ui/hud.js?v=9b5f1639"></script>
+  <script src="js/data/roster-portraits.js?v=cb7a8ea1"></script>
+  <script src="js/data/sprite-fixes.js?v=50ee8056"></script>
+  <script src="js/data/et-carro.js?v=cbf87934"></script>
+  <script src="js/ui/ui.js?v=cefaebe8"></script>
+  <script src="js/ui/account.js?v=2ca35397"></script>
+  <script src="js/main.js?v=15de7d55"></script>
+  <script src="js/net/tournament.js?v=488b5f3e"></script>
 </body>
 </html>

@@ -260,3 +260,17 @@ body.mobile #touch-controls .dpad .d-left { left: 0; top: 57px; border-radius: 1
 body.mobile #touch-controls .dpad .d-right { right: 0; top: 57px; border-radius: 6px 14px 14px 6px; }
 body.mobile #touch-controls .dpad .d-mid { left: 57px; top: 57px; width: 58px; height: 58px; border-radius: 8px; background: rgba(30,18,54,.85); border-color: rgba(255,210,125,.35); box-shadow: none; }
 body.mobile #touch-controls .dpad i.on { background: #8a6420; border-color: var(--gold); color: #fff; transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.5); }
+
+/* ===== ARENA CHEIA no celular deitado (nov/2026) =====
+   A arena ocupa a altura toda; controles por cima das bordas. */
+body.mobile.arena-full #touch-controls { opacity: var(--touch-opacity, .62); }
+body.mobile.arena-full #touch-controls .dpad { background: radial-gradient(circle, rgba(18,10,36,.35) 0 62%, rgba(18,10,36,0) 63%); }
+body.mobile.arena-full #touch-controls .dpad i { background: rgba(48,30,84,.72); }
+body.mobile.arena-full #touch-controls .tbtns .t-big { background: rgba(60,36,100,.78); }
+/* os icones de poder embaixo da arena repetem os botoes de poder (que ja
+   mostram a recarga) e ficariam escondidos atras deles */
+body.mobile.arena-full .hud-bottom { display: none; }
+/* PAUSA e TELA CHEIA: coluna na lateral esquerda, acima do direcional (a
+   faixa de cima agora e o HUD de vida) */
+body.mobile.arena-full .touch-toolbar { left: max(6px, env(safe-area-inset-left)); right: auto; top: max(64px, 18%); transform: none; flex-direction: column; gap: 5px; }
+body.mobile.arena-full #touch-controls .touch-toolbar button { width: 58px; min-width: 0; height: 28px; min-height: 0; padding: 2px 4px; font-size: 7px; line-height: 1.1; opacity: .85; }

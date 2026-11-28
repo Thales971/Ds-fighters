@@ -40,14 +40,15 @@ const SpriteGen = {
 
   url(id) {
     const src = (SPRITE_LAYOUT.files || {})[id] || 'assets/sprites/' + id + '.png';
-    // v=... serve pra invalidar cache: SEMPRE bump quando o PNG mudar.
-    // v18-balance: rebalanceamento geral + cromo buff
-    /* SPRITE_LAYOUT.ver[id]: versao so daquele lutador (arte nova nao obriga
-       todo mundo a baixar de novo as ~50 folhas) */
+    /* versao = hash do conteudo (js/asset-hashes.js, gerado por tools/stamp.cjs):
+       PNG novo muda a URL sozinho, sem ?v= escrito a mao */
+    if (typeof assetUrl === 'function' && typeof ASSET_HASH !== 'undefined' && ASSET_HASH[src]) return assetUrl(src);
     return src + '?v=' + ((SPRITE_LAYOUT.ver || {})[id] || 'v47-maresprites');
   },
   faceUrl(id) {
-    return `assets/ui/face-${id}.png?v=` + ((SPRITE_LAYOUT.ver || {})[id] || 'spritefix-4x15d');
+    const p = `assets/ui/face-${id}.png`;
+    if (typeof assetUrl === 'function' && typeof ASSET_HASH !== 'undefined' && ASSET_HASH[p]) return assetUrl(p);
+    return p + '?v=' + ((SPRITE_LAYOUT.ver || {})[id] || 'spritefix-4x15d');
   },
   load() {
     const files = SPRITE_LAYOUT.files || {};

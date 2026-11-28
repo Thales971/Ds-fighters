@@ -1,0 +1,21 @@
+# Confere o carimbo de versao por conteudo (tools/stamp.cjs) em todo PR:
+# se algum arquivo mudou e o index.html/sw.js/asset-hashes.js nao foram
+# carimbados de novo, o jogador ficaria com arquivo velho em cache. Falha
+# com a instrucao de como corrigir.
+name: Carimbo de versao
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  carimbo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Conferir carimbo (rode "node tools/stamp.cjs" se falhar)
+        run: node tools/stamp.cjs --check

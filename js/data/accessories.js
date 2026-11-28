@@ -52,7 +52,7 @@ const ACC_IMAGES = {};
 for (const a of ACC_LIST) {
   try {
     const img = new Image();
-    img.src = a.src + '?v=v57-acessorios';
+    img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(a.src);
     ACC_IMAGES[a.id] = img;
   } catch (e) { /* sem DOM (teste): o desenho usa fallback */ }
 }

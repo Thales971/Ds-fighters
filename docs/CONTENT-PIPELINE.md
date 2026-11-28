@@ -23,7 +23,7 @@ O `<head>` e o fim do `index.html` fazem, nesta ordem:
 
 Quem carrega por último ganha. Um `stats.power` escrito em `fighters.js` não é o número da luta se um `powers-balance-v*.js` fizer `Object.assign` depois. O README lista o valor **final**.
 
-O cache-buster atual da maior parte dos scripts e das folhas de lutador/habilidade é `?v=v36-balance13` (`SpriteGen.url` e `Art.url`). Não é a edição pública. Clima usa `?v=v33-weather`. As folhas de arena clássica usam `?v=stable-loop-mistral-v1` dentro de `assets/stages/sheets.js`. Quando um PNG muda, o `?v=` daquele arquivo precisa mudar; o `vercel.json` manda `Cache-Control: no-store`, mas o query string continua sendo o que o próprio jogo compara no selo `build`.
+**Versão de arquivos (cache) — automática desde nov/2026.** Não existe mais `?v=` escrito à mão. `node tools/stamp.cjs` carimba cada arquivo com o hash do próprio conteúdo: os `<script>`/`<link>`/`<img>` do `index.html`, as imagens dos CSS, o cache do `sw.js` (`dsf-<BUILD_ID>`) e gera `js/asset-hashes.js` (`ASSET_HASH`, `BUILD_ID`, `assetUrl()`). O motor pede toda imagem de `assets/` pelo hash (e `asset-hashes.js` garante isso até pra um carregador novo que esqueça). Arquivo mudou = URL nova na hora; não mudou = cache. O selo `build` mostra o `BUILD_ID`. O `npm test` e o build do GitHub Pages carimbam sozinhos; o teste `stamp_test.cjs` e o check "Carimbo de versão" no GitHub barram commit sem carimbo. Com o app aberto, versão nova recarrega sozinha quando o jogador volta ao título/menu (nunca no meio da luta).
 
 ## Lutador
 
@@ -147,11 +147,11 @@ Dívida que isso deixa:
 1. Arte do dono recortada para a folha **1280×3900**, RGBA, pé em y=246, 15 poses × 4 quadros. `python3 tools/integrate_fighter.py <id>` faz isso quando a fonte está no formato que o script espera (`arte-fonte/personagens/` no texto do próprio script). Não invente pixel no canvas do jogo.
 2. Confira com `python3 tools/sprite_audit.py <id>`: tamanho, pé, centro, quadros diferentes entre si, `face-<id>.png` 168×168, `portrait-<id>.png`, `abilities/<id>.png`.
 3. Crie `js/data/fighters-v21.js` (o próximo número) no estilo do `fighters-v20.js`: registra a folha em `SPRITE_LAYOUT`, dá `FIGHTERS.push` com nome em português, 5 poderes (2 `simple`, 2 `charge`, 1 `ultimate`) e `secret: false`. Poder normal não passa de um soco “que ganha sozinho”; deixe o topo para Du, Iales e Felipinho.
-4. Inclua o `<script>` **depois** de `fighters-v20.js` e **antes** dos `powers-balance-*`, com `?v=` novo.
+4. Inclua o `<script>` **depois** de `fighters-v20.js` e **antes** dos `powers-balance-*` (sem `?v=`: o `node tools/stamp.cjs` carimba).
 5. Se o passe de balance precisar mexer nele, faça no **último** `powers-balance-v*.js` ou num arquivo novo carregado por último — e apague o número velho em vez de empilhar o sexto override.
 6. O online aceita o id sozinho (validação por formato em `validFighterId`); só mantenha `js/net/room-core.js` e `online-server/room-core.js` idênticos (copie o arquivo) — `FIGHTER_IDS` virou lista legada de compatibilidade.
 7. Rode `python3 tools/build_roster_portraits.py` para o busto entrar na grade. Se a cabeça ficar fora, ajuste `OVERRIDES` e rode de novo.
-8. Suba o `?v=` de `SpriteGen.url` / `Art.url` se a folha mudou, para o selo `build` não mentir.
+8. Rode `node tools/stamp.cjs` (ou `npm test`, que já carimba): folha nova ganha URL nova sozinha.
 
 ## Checklist — arena nova
 
@@ -167,12 +167,12 @@ Dívida que isso deixa:
 2. Sprite em `assets/weather/` ou `assets/fx/`, pixel art, fundo transparente. O `Stage` / `Weather` blita essa imagem. Não desenhe o efeito com `fillRect` se já existe folha.
 3. Ligue a flag ou o `kind` nos mapas que combinam com ele. Não ligue em todos: a névoa e o glitch foram parciais de propósito.
 4. Se houver som, um MP3 curto em `assets/audio/sfx/` e o nome em `SFX_FILES` (`js/engine/audio.js`).
-5. `?v=` novo na URL da imagem (`weather.js` ainda está em `v33-weather`).
+5. Rode `node tools/stamp.cjs` (a versão da imagem é o hash do conteúdo).
 
 ## Como simplificar daqui pra frente
 
 - **Um arquivo de elenco e um de poderes**, gerados ou editados no fim da cadeia. Os `v10`…`v20` e os `balance-v6`…`v13` ficam como histórico, mas lutador novo não deveria precisar de mais um arquivo só para existir. Enquanto a cadeia continuar, o número do script e a posição no `index.html` são obrigatórios.
-- **Um número de versão só.** Edição pública, cache-buster e selo `build` contam histórias diferentes. O próximo passe pode fazer os três lerem a mesma constante.
+- ~~**Um número de versão só.**~~ Feito (nov/2026): cache-buster e selo `build` vêm do mesmo `BUILD_ID` gerado por `tools/stamp.cjs`.
 - **`room-core` único.** A cópia do `online-server` já perdeu três lutadores. Um teste que compare as duas listas pega a próxima.
 - **`poseScale` não é pipeline.** Folha nova já nasce na escala do Du/Kage/Mira. O audit (`sprite_audit.py`) é o portão.
 - **Retrato da grade só pelo script.** Não voltar a misturar `face-*.png` com a folha inteira na célula de 48 px. O `face-*.png` continua valendo para a HUD.
