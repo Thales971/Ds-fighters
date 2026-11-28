@@ -270,10 +270,10 @@ class StageRenderer {
     this.img.onerror = () => {
       if (this.usingSheet && def.image) {
         this.usingSheet = false;
-        this.img.src = def.image;
+        this.img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(def.image);
       }
     };
-    this.img.src = def.sheet || def.image;
+    this.img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(def.sheet || def.image); /* versao por conteudo: fundo novo nao fica preso no cache */
     this.ambient = [];
     /* sprites de ambiente (petalas, neon) — pixel art em assets/weather/ */
     this.ambSprites = {};
@@ -281,7 +281,7 @@ class StageRenderer {
       try {
         const img = new Image();
         img.onload = () => { this.ambSprites[k] = img; };
-        img.src = src + '?v=v36-balance13';
+        img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(src);
       } catch (e) { /* sem DOM: fallback vetorial */ }
     }
     this.fauna = [];
@@ -333,16 +333,16 @@ class StageRenderer {
     this.floraShake = 0;
     this.drama = 0;
     this.rainSheet = new Image();
-    this.rainSheet.src = 'assets/fx/rain-streaks.png?v=v36-amb1';
+    this.rainSheet.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/fx/rain-streaks.png');
     /* ondas da maré alta em sprite real (tools/build_mare_atlas.py) */
     this.waveSheet = new Image();
-    this.waveSheet.src = 'assets/fx/mare.png?v=v55-revisao';
+    this.waveSheet.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/fx/mare.png');
     const specs = this.def.layers || [];
     for (const spec of specs) {
       const img = new Image();
       const layer = { img, speed: spec.speed == null ? 0.4 : spec.speed, y: spec.y || 0, ready: false };
       img.onload = () => { layer.ready = true; };
-      img.src = spec.src + (String(spec.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1');
+      img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(spec.src);
       this.layers.push(layer);
     }
     /* enfeites genericos (sheet antiga de postes, bonequinhos, placa...) removidos
@@ -509,7 +509,7 @@ class StageRenderer {
     const t = this.def.torcida;
     if (!t) return;
     this.crowdSheet = new Image();
-    this.crowdSheet.src = 'assets/fauna/torcida.png?v=v47-maresprites';
+    this.crowdSheet.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)('assets/fauna/torcida.png');
     this.crowdHype = 0;
     const rows = (t && Array.isArray(t.rows) && t.rows.length) ? t.rows : [{ y: 308, scale: 0.3 }];
     /* as fichas sao escritas em 960x540 (chao 458); o preview AO VIVO da selecao

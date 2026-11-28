@@ -58,7 +58,7 @@ class Weather {
     try {
       const img = new Image();
       img.onload = () => { this.sprites[name] = { img, cell }; };
-      img.src = src + '?v=v33-weather';
+      img.src = (typeof assetUrl === 'function' ? assetUrl : (u) => u)(src);
     } catch (e) { /* sem DOM (teste): clima cai no fallback vetorial */ }
   }
   roll(forceKind) {

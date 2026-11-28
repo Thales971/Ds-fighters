@@ -14,6 +14,9 @@ const suites = fs.readdirSync(__dirname)
   .filter((f) => !filter.length || filter.some((q) => f.includes(q)))
   .sort();
 
+/* carimbo de versao por conteudo (tools/stamp.cjs): quem roda os testes ja
+   deixa index.html/sw.js/asset-hashes.js em dia antes do commit */
+spawnSync(process.execPath, [path.join(__dirname, 'stamp.cjs')], { cwd: ROOT, stdio: 'inherit' });
 const failed = [];
 const t0 = Date.now();
 for (const f of suites) {

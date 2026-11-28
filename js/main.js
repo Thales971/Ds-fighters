@@ -13,19 +13,19 @@ function buildPreloadUrls() {
   Object.keys((typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT.files) || {}).forEach((id) => urls.add(SpriteGen.url(id)));
   /* mapas (jpg ou spritesheet) + camadas parallax de todas as arenas */
   (typeof STAGE_LIST !== 'undefined' ? STAGE_LIST : []).forEach((s) => {
-    if (s.image) urls.add(s.image);
-    if (s.sheet) urls.add(s.sheet);
-    (s.layers || []).forEach((l) => urls.add(String(l.src) + (String(l.src).indexOf('?') >= 0 ? '' : '?v=v36-amb1')));
+    if (s.image) urls.add(assetUrl(s.image));
+    if (s.sheet) urls.add(assetUrl(s.sheet));
+    (s.layers || []).forEach((l) => urls.add(assetUrl(String(l.src))));
   });
-  urls.add('assets/fx/rain-streaks.png?v=v36-amb1');
-  urls.add('assets/fx/mare.png?v=v55-revisao');
-  urls.add('assets/fauna/torcida.png?v=v47-maresprites');
-  urls.add('assets/weather/petals.png?v=v36-balance13');
-  urls.add('assets/weather/neon.png?v=v36-balance13');
-  urls.add('assets/weather/snowflakes.png?v=v33-weather');
-  urls.add('assets/weather/leaf.png?v=v33-weather');
-  urls.add('assets/weather/spark.png?v=v33-weather');
-  urls.add('assets/pets/pitoco.png?v=v47-maresprites');
+  urls.add(assetUrl('assets/fx/rain-streaks.png'));
+  urls.add(assetUrl('assets/fx/mare.png'));
+  urls.add(assetUrl('assets/fauna/torcida.png'));
+  urls.add(assetUrl('assets/weather/petals.png'));
+  urls.add(assetUrl('assets/weather/neon.png'));
+  urls.add(assetUrl('assets/weather/snowflakes.png'));
+  urls.add(assetUrl('assets/weather/leaf.png'));
+  urls.add(assetUrl('assets/weather/spark.png'));
+  urls.add(assetUrl('assets/pets/pitoco.png'));
   return [...urls];
 }
 
@@ -80,6 +80,9 @@ function preloadAll() {
 }
 
 function buildToken() {
+  /* BUILD_ID vem de js/asset-hashes.js (tools/stamp.cjs): hash de todo o
+     codigo + arte. Muda sozinho a cada versao publicada. */
+  if (typeof BUILD_ID === 'string' && BUILD_ID) return BUILD_ID;
   let best = null, bestN = -1;
   for (const sc of document.querySelectorAll('script[src]')) {
     const m = /[?&]v=(v(\d+)[\w-]*)/.exec(sc.getAttribute('src') || '');
@@ -94,10 +97,9 @@ function buildToken() {
   SpriteGen.load();
   Art.load();
   if (typeof Fx !== 'undefined' && Fx.load) Fx.load();
-  // Selo de build: a versao MAIS NOVA entre os scripts que esta pagina carregou
-  // (?v=vNNN-nome). Antes mostrava a versao da folha do Du, que nao muda ha
-  // meses (v47) e fazia parecer que o jogo nao atualizava. Se o aparelho ou o
-  // site estiver com a pagina velha, o numero aqui fica pra tras.
+  // Selo de build: BUILD_ID (hash do codigo + arte, gerado por tools/stamp.cjs).
+  // Antes mostrava a versao da folha do Du (v47), que nao mudava, e parecia
+  // que o jogo nao atualizava. Versao nova = codigo novo aqui na hora.
   const buildEl = document.getElementById('build');
   if (buildEl) buildEl.textContent = 'build ' + buildToken();
   Input.init();
@@ -209,6 +211,18 @@ function buildToken() {
   const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches) || navigator.standalone === true;
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    /* VERSAO NOVA PUBLICADA: o sw.js muda a cada build (cache 'dsf-<BUILD_ID>'),
+       o navegador instala o novo e ele assume a pagina. Recarrega sozinho na
+       proxima vez que o jogador estiver no titulo/menu (nunca no meio da luta),
+       pra pegar a pagina nova sem precisar limpar cache. */
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || window.__dsReloading) return; /* primeira instalacao: nada a recarregar */
+      const safe = () => typeof UI === 'undefined' || ['title', 'menu'].includes(UI.screen);
+      const go = () => { if (window.__dsReloading) return; window.__dsReloading = true; location.reload(); };
+      if (safe()) return go();
+      const iv = setInterval(() => { if (safe()) { clearInterval(iv); go(); } }, 1500);
+    });
   }
   const btn = document.getElementById('btn-install');
   if (!btn || standalone) return;

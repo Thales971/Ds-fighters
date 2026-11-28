@@ -105,6 +105,8 @@ const Art = {
   /* s.v (opcional) troca a versao so daquela folha: arte nova nao obriga
      todo mundo a baixar de novo as outras ~50 folhas. */
   url(src, v) {
+    /* versao por conteudo (tools/stamp.cjs); s.v manual so vale sem o mapa */
+    if (typeof assetUrl === 'function' && typeof ASSET_HASH !== 'undefined' && ASSET_HASH[src]) return assetUrl(src);
     return src + '?v=' + (v || 'v39-floraatlas');
   },
   load() {
