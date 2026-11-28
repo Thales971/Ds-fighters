@@ -120,6 +120,49 @@
       poseScale: { crouch: 0.9, cpunch: 0.9, ckick: 0.9 },
     },
   };
+  /* NIVELAMENTO (nov/2026): multiplica a escala que a pose ja tinha (poseScale,
+     ou a escala geral do lutador). Medido no jogo com tools de bbox:
+     KO deitado mais largo que ~205 px (a altura de um boneco em pe) encolhe;
+     agachado/bloqueio minusculos crescem; quem e menor que o resto cresce. */
+  const MUL = {
+    'captcha-guard': { ko: 0.81 },
+    'dev-veterano': { ko: 0.86 },
+    'dolynho': { ko: 0.87 },
+    'du': { ko: 0.79 },
+    'kira': { ko: 0.83 },
+    'lia': { ko: 0.82 },
+    'lobao': { ko: 0.71 },
+    'maximilian': { ko: 0.82 },
+    'meta': { ko: 0.76 },
+    'nexo': { ko: 0.88 },
+    'qwen': { ko: 0.73 },
+    'stack': { ko: 0.8 },
+    'thl': { ko: 0.79 },
+    'urbano': { ko: 0.72 },
+    'winx-exe': { ko: 0.82 },
+    'winx-exe': { crouch: 1.45 }, grika: { crouch: 1.45 }, odette: { crouch: 1.45 },
+    'john-vibe': { crouch: 1.45 }, nimbo: { crouch: 1.45 }, emilio: { crouch: 1.45 },
+    du: { block: 1.45 }, iales: { block: 1.5 }, xeon: { block: 1.75 },
+    'dev-virado': { '*': 1.18 }, milena: { '*': 1.18 },
+  };
+  const AFTER = { emilio: { frameMap: { crouch: [0, 2] } }, 'nina-vector': { rows: { ko: 11 }, koFall: true } };
+  for (const id of Object.keys(AFTER)) {
+    const own = SPRITE_LAYOUT.perFighter[id] = SPRITE_LAYOUT.perFighter[id] || {};
+    const f = AFTER[id];
+    if (f.rows) own.rows = Object.assign({}, own.rows, f.rows);
+    if (f.frameMap) own.frameMap = Object.assign({}, own.frameMap, f.frameMap);
+    if (f.koFall) own.koFall = true;
+  }
+  for (const id of Object.keys(MUL)) {
+    const own = SPRITE_LAYOUT.perFighter[id] = SPRITE_LAYOUT.perFighter[id] || {};
+    const base = own.scale || 1;
+    const ps = own.poseScale = Object.assign({}, own.poseScale);
+    const poses = MUL[id]['*'] ? SPRITE_LAYOUT.poses : Object.keys(MUL[id]);
+    for (const pose of poses) {
+      const m = MUL[id][pose] || MUL[id]['*'];
+      ps[pose] = +((ps[pose] || base) * m).toFixed(3);
+    }
+  }
   /* folhas regeradas (tools/integrate_fighter.py) nesta revisao: baixar de novo */
   SPRITE_LAYOUT.ver = SPRITE_LAYOUT.ver || {};
   for (const id of ['rafael', 'hana', 'kira']) SPRITE_LAYOUT.ver[id] = 'v98-sprites';
