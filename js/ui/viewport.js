@@ -66,20 +66,29 @@ const AppViewport = {
     let bottom = inset('paddingBottom') + 8;
     const touch = document.getElementById('touch-controls');
     const controls = touch && !touch.classList.contains('hidden');
+    let full = false;
     if (controls) {
       const dpad = touch.querySelector('.dpad');
       const stick = touch.querySelector('.stick');
       const mover = dpad && !dpad.hidden && dpad.offsetWidth ? dpad : stick;
       const actions = touch.querySelector('.tbtns');
       if (landscape) {
-        left += (mover ? mover.offsetWidth : 120) + 16;
-        right += (actions ? actions.offsetWidth : 160) + 16;
-        top += 40;
+        /* ARENA CHEIA (nov/2026): antes reservava uma coluna fixa pra cada
+           lado dos controles + faixa em cima e a luta ficava com ~1/3 da tela
+           (430x242 num celular de 844x390). Agora a arena usa a ALTURA toda e
+           os controles ficam por cima das bordas, semitransparentes, como nos
+           jogos de luta de celular (~82% da tela). */
+        full = true;
+        left = inset('paddingLeft');
+        right = inset('paddingRight');
+        top = inset('paddingTop');
+        bottom = inset('paddingBottom');
       } else {
         top += 52;
         bottom += Math.max(dpad ? dpad.offsetHeight : 136, actions ? actions.offsetHeight : 140) + 20;
       }
     }
+    document.body.classList.toggle('arena-full', full);
     const availableWidth = Math.max(120, width - left - right);
     const availableHeight = Math.max(68, height - top - bottom);
     const scale = Math.min(availableWidth / 960, availableHeight / 540);
